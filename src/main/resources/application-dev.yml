@@ -1,0 +1,44 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/db}
+    username: ${SPRING_DATASOURCE_USERNAME:dev_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:dev_password}
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+#    properties:
+#      hibernate:
+#        format_sql: true
+
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+    baseline-on-migrate: false
+
+  sql:
+    init:
+      mode: never
+
+  logging:
+    level:
+      root: INFO
+      com.pairing.planet: DEBUG
+      org.hibernate.SQL: DEBUG
+      org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+      org.flywaydb: DEBUG
+      org.springframework.boot.autoconfigure.flyway: DEBUG
+jwt:
+  secret: ${JWT_SECRET:cmVtZW1iZXJpdHJpc2luZ2JlbnRmcmFtZWluZGVwZW5kZW50Y3VyaW91c3Nob3J0ZXI=}
+  expiration: 1800000
+security:
+  encryption-key: "hJk+q9L/8fM3d4a5B6c7D8e9F0g1H2i3J4k5L6m7N8o="

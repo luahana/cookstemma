@@ -1,0 +1,180 @@
+-- 3. Functions and Triggers
+-- These must use ; as the final terminator.
+
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+   NEW.updated_at = NOW();
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_pairing_locale_stats_modtime
+    BEFORE UPDATE ON pairing_locale_stats
+    FOR EACH ROW
+    EXECUTE FUNCTION update_timestamp();
+
+CREATE OR REPLACE FUNCTION update_pairing_locale_stats()
+RETURNS TRIGGER AS $$
+DECLARE
+    diff_genius INT;
+    diff_daring INT;
+    diff_picky  INT;
+    diff_saved INT;
+    diff_comment INT;
+BEGIN
+    -- OLD가 NULL인 경우(INSERT) 처리
+    IF TG_OP = 'INSERT' THEN
+        diff_genius := NEW.genius_count;
+        diff_daring := NEW.daring_count;
+        diff_picky  := NEW.picky_count;
+        diff_saved := NEW.saved_count;
+        diff_comment := NEW.comment_count;
+    ELSE
+        diff_genius := NEW.genius_count - OLD.genius_count;
+        diff_daring := NEW.daring_count - OLD.daring_count;
+        diff_picky  := NEW.picky_count  - OLD.picky_count;
+        diff_saved := NEW.saved_count - OLD.saved_count;
+        diff_comment := NEW.comment_count - OLD.comment_count;
+    END IF;
+    IF TG_OP != 'INSERT' AND diff_genius = 0 AND diff_daring = 0 AND diff_picky = 0 AND diff_saved = 0 AND diff_comment = 0 THEN
+        RETURN NULL;
+    END IF;
+
+    -- [핵심 수정] 없으면 만들고, 있으면 더한다 (UPSERT)
+    INSERT INTO pairing_locale_stats (pairing_id, locale, genius_count, daring_count, picky_count, saved_count, comment_count, updated_at)
+    VALUES (NEW.pairing_id, NEW.locale, diff_genius, diff_daring, diff_picky, diff_saved, diff_comment, NOW())
+        ON CONFLICT (pairing_id, locale)
+            DO UPDATE SET
+            genius_count = pairing_locale_stats.genius_count + EXCLUDED.genius_count,
+            daring_count = pairing_locale_stats.daring_count + EXCLUDED.daring_count,
+            picky_count  = pairing_locale_stats.picky_count  + EXCLUDED.picky_count, -- [수정]
+            saved_count  = pairing_locale_stats.saved_count  + EXCLUDED.saved_count,
+            comment_count = pairing_locale_stats.comment_count + EXCLUDED.comment_count,
+            updated_at = NOW();
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_pairing_locale_stats_insert
+    AFTER INSERT ON posts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_pairing_locale_stats();
+
+CREATE TRIGGER trg_update_pairing_locale_stats_update
+    AFTER UPDATE OF genius_count, daring_count, picky_count, saved_count, comment_count ON posts
+    FOR EACH ROW
+    WHEN (OLD.genius_count IS DISTINCT FROM NEW.genius_count
+       OR OLD.daring_count IS DISTINCT FROM NEW.daring_count
+       OR OLD.picky_count IS DISTINCT FROM NEW.picky_count
+       OR OLD.saved_count IS DISTINCT FROM NEW.saved_count
+       OR OLD.comment_count IS DISTINCT FROM NEW.comment_count)
+    EXECUTE FUNCTION update_pairing_locale_stats();
+
+CREATE OR REPLACE FUNCTION update_post_counters()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+UPDATE posts
+SET
+    genius_count = genius_count + (CASE WHEN NEW.verdict_type = 'GENIUS' THEN 1 ELSE 0 END),
+    daring_count = daring_count + (CASE WHEN NEW.verdict_type = 'DARING' THEN 1 ELSE 0 END),
+    picky_count  = picky_count  + (CASE WHEN NEW.verdict_type = 'PICKY'  THEN 1 ELSE 0 END)
+WHERE id = NEW.post_id;
+
+ELSIF TG_OP = 'DELETE' THEN
+UPDATE posts
+SET
+    genius_count = genius_count - (CASE WHEN OLD.verdict_type = 'GENIUS' THEN 1 ELSE 0 END),
+    daring_count = daring_count - (CASE WHEN OLD.verdict_type = 'DARING' THEN 1 ELSE 0 END),
+    picky_count  = picky_count  - (CASE WHEN OLD.verdict_type = 'PICKY'  THEN 1 ELSE 0 END)
+WHERE id = OLD.post_id;
+
+ELSIF TG_OP = 'UPDATE' THEN
+UPDATE posts
+SET
+    genius_count = genius_count
+        - (CASE WHEN OLD.verdict_type = 'GENIUS' THEN 1 ELSE 0 END)
+        + (CASE WHEN NEW.verdict_type = 'GENIUS' THEN 1 ELSE 0 END),
+    daring_count = daring_count
+        - (CASE WHEN OLD.verdict_type = 'DARING' THEN 1 ELSE 0 END)
+        + (CASE WHEN NEW.verdict_type = 'DARING' THEN 1 ELSE 0 END),
+    picky_count  = picky_count
+        - (CASE WHEN OLD.verdict_type = 'PICKY'  THEN 1 ELSE 0 END)
+        + (CASE WHEN NEW.verdict_type = 'PICKY'  THEN 1 ELSE 0 END)
+WHERE id = NEW.post_id;
+END IF;
+RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_post_counters
+    AFTER INSERT OR UPDATE OR DELETE ON post_verdicts
+    FOR EACH ROW EXECUTE FUNCTION update_post_counters();
+
+CREATE OR REPLACE FUNCTION update_saved_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+UPDATE posts SET saved_count = saved_count + 1 WHERE id = NEW.post_id;
+ELSIF (TG_OP = 'DELETE') THEN
+UPDATE posts SET saved_count = saved_count - 1 WHERE id = OLD.post_id;
+END IF;
+RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_saved_count
+    AFTER INSERT OR DELETE ON saved_posts
+    FOR EACH ROW EXECUTE FUNCTION update_saved_count();
+
+CREATE OR REPLACE FUNCTION update_comment_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+        IF (NEW.is_deleted = FALSE) THEN
+UPDATE posts SET comment_count = comment_count + 1 WHERE id = NEW.post_id;
+END IF;
+    ELSIF (TG_OP = 'UPDATE') THEN
+        IF (OLD.is_deleted = FALSE AND NEW.is_deleted = TRUE) THEN
+UPDATE posts SET comment_count = comment_count - 1 WHERE id = NEW.post_id;
+ELSIF (OLD.is_deleted = TRUE AND NEW.is_deleted = FALSE) THEN
+UPDATE posts SET comment_count = comment_count + 1 WHERE id = NEW.post_id;
+END IF;
+    ELSIF (TG_OP = 'DELETE') THEN
+        IF (OLD.is_deleted = FALSE) THEN
+UPDATE posts SET comment_count = comment_count - 1 WHERE id = OLD.post_id;
+END IF;
+END IF;
+RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_comment_count
+    AFTER INSERT OR UPDATE OR DELETE ON comments
+    FOR EACH ROW EXECUTE FUNCTION update_comment_count();
+
+CREATE OR REPLACE FUNCTION enforce_comment_depth()
+RETURNS trigger AS $$
+DECLARE
+parent_parent_id BIGINT;
+BEGIN
+    IF NEW.parent_id IS NULL THEN
+        RETURN NEW;
+END IF;
+
+SELECT parent_id INTO parent_parent_id FROM comments WHERE id = NEW.parent_id;
+
+IF parent_parent_id IS NOT NULL THEN
+        RAISE EXCEPTION 'Maximum comment depth exceeded';
+END IF;
+
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_enforce_comment_depth
+    BEFORE INSERT ON comments
+    FOR EACH ROW
+    EXECUTE FUNCTION enforce_comment_depth();

@@ -1,0 +1,48 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+    hikari:
+      maximum-pool-size: 10       # CPU 코어 수 * 2 + 1 정도가 적당 (서버 사양에 맞게 조절)
+      minimum-idle: 5             # 최소 유휴 커넥션
+      connection-timeout: 30000   # 30초 (기본값)
+      idle-timeout: 600000        # 10분
+      max-lifetime: 1800000       # 30분
+
+  jpa:
+    open-in-view: false # (중요) 트랜잭션 범위를 좁혀서 DB 커넥션을 빨리 반환하게 함 (성능 필수)
+    show-sql: false     # (보안) 운영 로그에 SQL 찍히면 개인정보 유출 위험 + 디스크 용량 폭발
+    hibernate:
+      ddl-auto: validate # (안전) DB 스키마가 Entity와 맞는지 "검사"만 함. (절대 create 금지!)
+    properties:
+      hibernate:
+        format_sql: false     # 로그 포맷팅 끔
+        default_batch_fetch_size: 100 # N+1 문제 완화를 위한 배치 사이즈 설정
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true # (핵심 ⭐) 실수로 flyway clean 명령어가 실행되어 DB가 싹 날아가는 것을 원천 봉쇄
+
+  # 로깅 설정 (운영은 에러 위주로)
+  logging:
+    level:
+      root: INFO
+      org.hibernate.SQL: INFO # 쿼리 로그 끔
+      org.hibernate.type.descriptor.sql: INFO # 파라미터 바인딩 로그 끔
+      com.pairingplanet: INFO # 내 프로젝트 로그 레벨
+
+  server:
+    error:
+      include-message: never # (보안) 에러 발생 시 내부 스택트레이스나 메시지를 클라이언트에 노출하지 않음
+      include-stacktrace: never
+
+  sql:
+    init:
+      mode: never # 데이터 초기화 방지
