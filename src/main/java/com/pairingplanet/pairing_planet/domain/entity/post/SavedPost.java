@@ -1,6 +1,5 @@
 package com.pairingplanet.pairing_planet.domain.entity.post;
 
-import com.pairingplanet.pairing_planet.domain.entity.post.Post;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,7 +7,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "saved_posts")

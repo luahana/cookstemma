@@ -7,6 +7,7 @@ import com.pairingplanet.pairing_planet.dto.post.MyPostResponseDto;
 import com.pairingplanet.pairing_planet.repository.post.PostRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,9 @@ public class MyPostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository; // [추가] UUID -> User 변환용
+
+    @Value("${file.upload.url-prefix}")
+    private String urlPrefix;
 
     private static final Instant SAFE_MIN_DATE = Instant.parse("1970-01-01T00:00:00Z");
     // [FR-160, FR-162] 내 포스트 목록 조회
@@ -63,7 +67,7 @@ public class MyPostService {
                 .map(post -> {
                     // 다음 커서 생성: 보안을 위해 내부 ID 대신 publicId(UUID) 사용
                     String nextCursor = post.getCreatedAt().toString() + "_" + post.getPublicId();
-                    return MyPostResponseDto.from(post, nextCursor);
+                    return MyPostResponseDto.from(post, nextCursor, urlPrefix);
                 })
                 .toList();
 

@@ -13,6 +13,9 @@ import java.util.UUID;
 
 public interface FoodMasterRepository extends JpaRepository<FoodMaster, Long> {
 
+    // 여러 개의 Public ID(UUID)로 Food 리스트 조회
+    List<FoodMaster> findByPublicIdIn(List<UUID> publicIds);
+
     Optional<FoodMaster> findByPublicId(UUID publicId);
 
     @Query("SELECT f FROM FoodMaster f WHERE f.isVerified = true")

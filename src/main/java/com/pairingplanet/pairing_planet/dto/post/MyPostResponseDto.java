@@ -27,7 +27,7 @@ public record MyPostResponseDto(
 
         String cursor // 다음 페이지 요청용 커서
 ) {
-    public static MyPostResponseDto from(Post post, String nextCursor) {
+    public static MyPostResponseDto from(Post post, String nextCursor, String urlPrefix) {
         // 페어링 정보 추출 (예시: 로케일 처리는 서비스에서 하거나 간단히 'en' 사용)
         String f1 = post.getPairing().getFood1().getName().get("en");
         String f2 = post.getPairing().getFood2() != null ? post.getPairing().getFood2().getName().get("en") : null;
@@ -36,7 +36,8 @@ public record MyPostResponseDto(
                 .id(post.getPublicId())
                 .content(post.getContent())
                 .images(post.getImages().stream()
-                        .map(PostImageDto::from) // Image 엔티티 -> ImageDto 변환
+                        // [수정] PostImageDto.from 호출 시 urlPrefix를 전달합니다.
+                        .map(img -> PostImageDto.from(img, urlPrefix))
                         .toList())
                 .createdAt(post.getCreatedAt())
                 .isPrivate(post.isPrivate())

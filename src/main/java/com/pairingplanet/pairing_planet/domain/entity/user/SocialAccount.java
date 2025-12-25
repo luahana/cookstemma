@@ -1,6 +1,7 @@
 package com.pairingplanet.pairing_planet.domain.entity.user;
 
 import com.pairingplanet.pairing_planet.domain.entity.common.BaseEntity;
+import com.pairingplanet.pairing_planet.domain.enums.Provider;
 import com.pairingplanet.pairing_planet.util.EncryptionConverter;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,7 +20,8 @@ public class SocialAccount extends BaseEntity {
     private User user;
 
     @Column(nullable = false)
-    private String provider;
+    @Enumerated(EnumType.STRING)
+    private Provider provider;
 
     @Column(name = "provider_user_id", nullable = false)
     private String providerUserId;

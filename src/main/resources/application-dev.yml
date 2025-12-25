@@ -39,10 +39,6 @@ spring:
       stack:
         auto: false
 
-  # 커스텀 설정
-  file:
-    upload:
-      bucket: pairing-planet-local # MinIO에 생성될 버킷 이름
 
   flyway:
     enabled: true
@@ -68,3 +64,8 @@ jwt:
 
 security:
   encryption-key: "hJk+q9L/8fM3d4a5B6c7D8e9F0g1H2i3J4k5L6m7N8o="
+
+file:
+  upload:
+    bucket: pairing-planet-local # MinIO에 생성될 버킷 이름
+    url-prefix: http://localhost:9000/${file.upload.bucket}

@@ -7,10 +7,11 @@ import lombok.Builder;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Builder
 public record SavedPostDto(
-        Long postId,
+        UUID postId,
         boolean isDeleted,      // 프론트엔드에서 UI 분기 처리용 (Ghost Card 여부)
 
         // --- 콘텐츠 정보 (삭제 시 null) ---
@@ -29,7 +30,7 @@ public record SavedPostDto(
         Instant savedAt,
         String cursor // 다음 페이지 요청을 위한 커서 값
 ) {
-    public static SavedPostDto from(Post post, Instant savedAt, String nextCursor) {
+    public static SavedPostDto from(Post post, Instant savedAt, String nextCursor, String urlPrefix) {
         boolean deleted = post.isDeleted();
 
         // 페어링 정보 추출 (Post.getPairing() 통해 접근)
@@ -38,6 +39,10 @@ public record SavedPostDto(
         String f1 = pairing.getFood1().getName().get("en");
         String f2 = pairing.getFood2() != null ? pairing.getFood2().getName().get("en") : null;
 
+        List<String> fullImageUrls = post.getImages().stream()
+                .map(img -> urlPrefix + "/" + img.getStoredFilename())
+                .toList();
+
         // When/Dietary 등은 PairingMap 내부 구조에 따름
         String when = "Dinner"; // 예시
         String diet = "Vegan";  // 예시
@@ -45,7 +50,7 @@ public record SavedPostDto(
         if (deleted) {
             // [Ghost Card] 삭제된 경우: 콘텐츠/유저 정보 숨김
             return SavedPostDto.builder()
-                    .postId(post.getId())
+                    .postId(post.getPublicId())
                     .isDeleted(true)
                     .food1Name(f1).food2Name(f2)
                     .whenTagName(when).dietaryTagName(diet)
@@ -55,12 +60,10 @@ public record SavedPostDto(
         } else {
             // [Normal Card] 정상 게시물
             return SavedPostDto.builder()
-                    .postId(post.getId())
+                    .postId(post.getPublicId())
                     .isDeleted(false)
                     .content(post.getContent())
-                    .imageUrls(post.getImages().stream()
-                            .map(Image::getUrl)
-                            .toList())
+                    .imageUrls(fullImageUrls)
                     .creatorName(post.getCreator().getUsername())
                     .creatorProfileUrl(post.getCreator().getProfileImageUrl())
                     .food1Name(f1).food2Name(f2)

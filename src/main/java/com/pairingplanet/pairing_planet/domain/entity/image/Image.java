@@ -16,9 +16,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Image extends BaseEntity {
 
-    @Column(nullable = false, unique = true)
-    private String url; // 전체 URL (조회용)
-
     @Column(nullable = false)
     private String storedFilename; // S3 Key (삭제용, 예: posts/daily/uuid.jpg)
 
@@ -39,8 +36,7 @@ public class Image extends BaseEntity {
 
 
     @Builder
-    public Image(String url, String storedFilename, String originalFilename, ImageType type, Long uploaderId) {
-        this.url = url;
+    public Image(String storedFilename, String originalFilename, ImageType type, Long uploaderId) {
         this.storedFilename = storedFilename;
         this.originalFilename = originalFilename;
         this.type = type; // DB에 저장
@@ -62,5 +58,15 @@ public class Image extends BaseEntity {
         this.post = null;
         // 정책에 따라 status를 TEMP로 돌릴지, 그대로 둘지 결정
         // 보통 연결이 끊기면 다시 TEMP로 돌려서 GC 대상이 되게 하거나, 즉시 삭제합니다.
+    }
+
+    @Transient // DB 컬럼으로 만들지 않음
+    public String getFullUrl(String domainPrefix) {
+        return domainPrefix + "/" + this.storedFilename;
+    }
+
+    public String generateFullUrl(String urlPrefix) {
+        if (this.storedFilename == null) return null;
+        return urlPrefix + "/" + this.storedFilename;
     }
 }

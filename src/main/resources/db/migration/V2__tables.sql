@@ -416,7 +416,6 @@ CREATE TABLE IF NOT EXISTS images (
                                       id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                                       public_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
 
-    url VARCHAR(255) NOT NULL UNIQUE,
     stored_filename VARCHAR(255) NOT NULL,
     original_filename VARCHAR(255) NOT NULL,
 

@@ -8,6 +8,7 @@ import com.pairingplanet.pairing_planet.repository.post.PostRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -31,6 +32,9 @@ public class FeedService {
     private static final String GLOBAL_FEED_KEY = "feed:global:mixed";
     private static final int PAGE_SIZE = 10;
     private static final long HISTORY_TTL_DAYS = 1;
+
+    @Value("${file.upload.url-prefix:http://localhost:9000/pairing-planet-local}")
+    private String urlPrefix;
 
     public FeedResponseDto getMixedFeed(UUID userId, int offset) {
         try {
@@ -88,7 +92,7 @@ public class FeedService {
 
                 for (Long id : idsToFetch) {
                     if (postMap.containsKey(id)) {
-                        finalPosts.add(PostDto.from(postMap.get(id), "🔥 Trending"));
+                        finalPosts.add(PostDto.from(postMap.get(id), "🔥 Trending", urlPrefix));
                     }
                 }
 
@@ -120,7 +124,7 @@ public class FeedService {
         List<Post> posts = postRepository.findAllFallback(PageRequest.of(pageNumber, PAGE_SIZE));
 
         List<PostDto> postDtos = posts.stream()
-                .map(p -> PostDto.from(p, "✨ Latest")) // 태그를 다르게 주어 구분 가능
+                .map(p -> PostDto.from(p, "✨ Latest", urlPrefix)) // 태그를 다르게 주어 구분 가능
                 .toList();
 
         boolean hasNext = postDtos.size() == PAGE_SIZE;

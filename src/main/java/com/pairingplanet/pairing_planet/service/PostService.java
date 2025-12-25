@@ -18,6 +18,7 @@ import com.pairingplanet.pairing_planet.repository.pairing.PairingMapRepository;
 import com.pairingplanet.pairing_planet.repository.post.PostRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +30,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PostService {
-
     private final PostRepository postRepository;
     private final PairingMapRepository pairingMapRepository;
     private final FoodMasterRepository foodMasterRepository;
@@ -38,6 +38,9 @@ public class PostService {
     private final UserRepository userRepository;
     private final ImageRepository  imageRepository;
     private final ImageService imageService;
+
+    @Value("${file.upload.url-prefix}")
+    private String urlPrefix;
 
     // [변경] UUID 환경에서는 DB 생성 시 ID를 알 수 없으므로,
     // 클라이언트가 필수 값을 보내도록 강제하거나, DB에서 이름으로 'Default' 태그를 찾는 로직이 필요합니다.
@@ -48,7 +51,7 @@ public class PostService {
     // ==========================================
 
     @Transactional
-    public PostResponseDto createDailyPost(UUID userId, CreatePostRequestDto request) { // [변경] Long -> UUID
+    public PostResponseDto createDailyPost(UUID userId, CreatePostRequestDto request) {
         User user = getUser(userId);
         PairingMap pairing = processPairingLogic(user, request);
 
@@ -66,14 +69,14 @@ public class PostService {
 
         Post savedPost = postRepository.save(post);
 
-        List<Image> images = imageRepository.findByUrlIn(request.imageUrls());
+        imageService.activateImages(request.imageUrls());
 
-        for (Image image : images) {
-            // [핵심] 이미지에 포스트 정보를 세팅하고 상태를 ACTIVE로 변경
-            image.setPost(post);
-        }
+        List<Image> images = imageRepository.findByStoredFilenameIn(
+                request.imageUrls().stream().map(url -> url.replace(urlPrefix + "/", "")).toList()
+        );
+        for (Image image : images) image.setPost(post);
 
-        return PostResponseDto.from(savedPost);
+        return PostResponseDto.from(savedPost, urlPrefix);
     }
 
     @Transactional
@@ -98,14 +101,14 @@ public class PostService {
 
         Post savedPost = postRepository.save(post);
 
-        List<Image> images = imageRepository.findByUrlIn(request.imageUrls());
+        imageService.activateImages(request.imageUrls());
 
-        for (Image image : images) {
-            // [핵심] 이미지에 포스트 정보를 세팅하고 상태를 ACTIVE로 변경
-            image.setPost(post);
-        }
+        List<Image> images = imageRepository.findByStoredFilenameIn(
+                request.imageUrls().stream().map(url -> url.replace(urlPrefix + "/", "")).toList()
+        );
+        for (Image image : images) image.setPost(post);
 
-        return PostResponseDto.from(savedPost);
+        return PostResponseDto.from(savedPost, urlPrefix);
     }
 
     @Transactional
@@ -132,16 +135,16 @@ public class PostService {
 
         Post savedPost = postRepository.save(post);
 
-        List<Image> images = imageRepository.findByUrlIn(request.imageUrls());
+        imageService.activateImages(request.imageUrls());
 
-        for (Image image : images) {
-            // [핵심] 이미지에 포스트 정보를 세팅하고 상태를 ACTIVE로 변경
-            image.setPost(post);
-        }
+        List<Image> images = imageRepository.findByStoredFilenameIn(
+                request.imageUrls().stream().map(url -> url.replace(urlPrefix + "/", "")).toList()
+        );
+        for (Image image : images) image.setPost(post);
 
         imageService.activateImages(request.imageUrls());
 
-        return PostResponseDto.from(savedPost);
+        return PostResponseDto.from(savedPost, urlPrefix);
     }
 
     // ==========================================
@@ -149,8 +152,7 @@ public class PostService {
     // ==========================================
 
     @Transactional
-    public PostResponseDto updatePost(UUID userId, UUID postId, CreatePostRequestDto request) { // [변경] Long -> UUID
-        // [변경] findById(Long) -> findByPublicId(UUID)
+    public PostResponseDto updatePost(UUID userId, UUID postId, CreatePostRequestDto request) {
         Post post = postRepository.findByPublicId(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
 
@@ -176,7 +178,7 @@ public class PostService {
             if (request.recipeData() != null) recipe.setRecipeData(request.recipeData());
         }
 
-        return PostResponseDto.from(post);
+        return PostResponseDto.from(post, urlPrefix);
     }
 
     // ==========================================

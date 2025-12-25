@@ -1,7 +1,9 @@
 package com.pairingplanet.pairing_planet.domain.entity.user;
 
 import com.pairingplanet.pairing_planet.domain.entity.common.BaseEntity;
+import com.pairingplanet.pairing_planet.domain.enums.AccountStatus;
 import com.pairingplanet.pairing_planet.domain.enums.Gender;
+import com.pairingplanet.pairing_planet.domain.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,9 +36,11 @@ public class User extends BaseEntity {
     @Column(name = "app_refresh_token")
     private String appRefreshToken;
 
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status;
 
     @Column(name = "marketing_agreed")
     private boolean marketingAgreed;

@@ -29,11 +29,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ImageService {
 
+    @Value("${file.upload.url-prefix}")
+    private String urlPrefix;
+
     private final S3Client s3Client;
     private final ImageRepository imageRepository;
     private final UserRepository userRepository; // UUID -> Long 변환용
 
-    @Value("${spring.file.upload.bucket}")
+    @Value("${file.upload.bucket}")
     private String bucket;
 
     @Value("${spring.cloud.aws.s3.endpoint}")
@@ -84,7 +87,6 @@ public class ImageService {
 
             // DB 저장 (TEMP 상태)
             Image image = Image.builder()
-                    .url(imageUrl)
                     .storedFilename(key)
                     .originalFilename(originalFilename)
                     .type(imageType)
@@ -93,7 +95,7 @@ public class ImageService {
             imageRepository.save(image);
 
             return ImageUploadResponseDto.builder()
-                    .imageUrl(imageUrl)
+                    .imageUrl(urlPrefix + "/" + key)
                     .originalFilename(originalFilename)
                     .build();
 
@@ -108,7 +110,11 @@ public class ImageService {
     public void activateImages(List<String> imageUrls) {
         if (imageUrls == null || imageUrls.isEmpty()) return;
 
-        List<Image> images = imageRepository.findByUrlIn(imageUrls);
+        List<String> storedFilenames = imageUrls.stream()
+                .map(this::extractKeyFromUrl)
+                .toList();
+
+        List<Image> images = imageRepository.findByStoredFilenameIn(storedFilenames);
         for (Image image : images) {
             image.activate(); // 상태 변경 (Dirty Checking)
         }
@@ -137,7 +143,7 @@ public class ImageService {
                 // DB 삭제
                 imageRepository.delete(image);
             } catch (Exception e) {
-                log.error("Failed to delete image: {}", image.getUrl(), e);
+                log.error("Failed to delete image: {}", image.getStoredFilename(), e);
             }
         }
     }
@@ -145,5 +151,14 @@ public class ImageService {
     private String getExtension(String filename) {
         if (filename == null || !filename.contains(".")) return "";
         return filename.substring(filename.lastIndexOf("."));
+    }
+
+    private String extractKeyFromUrl(String fullUrl) {
+        if (fullUrl == null) return "";
+        // Prefix가 있다면 제거, 없으면 그대로 사용 (혹시 모를 방어 로직)
+        if (fullUrl.startsWith(urlPrefix + "/")) {
+            return fullUrl.replace(urlPrefix + "/", "");
+        }
+        return fullUrl;
     }
 }

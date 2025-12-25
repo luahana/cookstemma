@@ -6,6 +6,7 @@ import com.pairingplanet.pairing_planet.dto.comment.CommentRequestDto;
 import com.pairingplanet.pairing_planet.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID; // [필수]
@@ -19,7 +20,7 @@ public class CommentController {
 
     @PostMapping
     public ResponseEntity<Void> createComment(
-            @RequestAttribute("userId") UUID userId, // [변경]
+            @AuthenticationPrincipal UUID userId, // [변경]
             @RequestBody CommentRequestDto request) {
         commentService.createComment(userId, request);
         return ResponseEntity.ok().build();
@@ -27,7 +28,7 @@ public class CommentController {
 
     @GetMapping
     public ResponseEntity<CommentListResponseDto> getComments(
-            @RequestAttribute(value = "userId", required = false) UUID userId, // [변경]
+            @AuthenticationPrincipal UUID userId, // [변경]
             @RequestParam UUID postId, // [변경]
             @RequestParam(required = false) VerdictType filter,
             @RequestParam(required = false) String cursor

@@ -6,6 +6,7 @@ import com.pairingplanet.pairing_planet.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID; // [필수]
@@ -23,7 +24,7 @@ public class PostController {
 
     @PostMapping("/daily")
     public ResponseEntity<PostResponseDto> createDailyPost(
-            @RequestHeader("X-User-Id") UUID userId, // [변경] Long -> UUID
+            @AuthenticationPrincipal UUID userId, // [변경] Long -> UUID
             @Valid @RequestBody CreatePostRequestDto request
     ) {
         return ResponseEntity.ok(postService.createDailyPost(userId, request));
@@ -31,7 +32,7 @@ public class PostController {
 
     @PostMapping("/reviews")
     public ResponseEntity<PostResponseDto> createReviewPost(
-            @RequestHeader("X-User-Id") UUID userId, // [변경]
+            @AuthenticationPrincipal UUID userId, // [변경]
             @Valid @RequestBody CreatePostRequestDto request
     ) {
         if (request.rating() == null) {
@@ -42,7 +43,7 @@ public class PostController {
 
     @PostMapping("/recipes")
     public ResponseEntity<PostResponseDto> createRecipePost(
-            @RequestHeader("X-User-Id") UUID userId, // [변경]
+            @AuthenticationPrincipal UUID userId, // [변경]
             @Valid @RequestBody CreatePostRequestDto request
     ) {
         return ResponseEntity.ok(postService.createRecipePost(userId, request));
@@ -54,7 +55,7 @@ public class PostController {
 
     @PatchMapping("/{postId}")
     public ResponseEntity<PostResponseDto> updatePost(
-            @RequestHeader("X-User-Id") UUID userId, // [변경]
+            @AuthenticationPrincipal UUID userId, // [변경]
             @PathVariable UUID postId,               // [변경] Long -> UUID
             @RequestBody CreatePostRequestDto request
     ) {
@@ -63,7 +64,7 @@ public class PostController {
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(
-            @RequestHeader("X-User-Id") UUID userId, // [변경]
+            @AuthenticationPrincipal UUID userId, // [변경]
             @PathVariable UUID postId                // [변경]
     ) {
         postService.deletePost(userId, postId);

@@ -6,6 +6,7 @@ import com.pairingplanet.pairing_planet.dto.search.*;
 import com.pairingplanet.pairing_planet.repository.post.PostRepository;
 import com.pairingplanet.pairing_planet.repository.search.PostSearchRepositoryCustom;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,9 @@ public class SearchService {
     private final ObjectMapper objectMapper;
 
     private static final Instant SAFE_MIN_DATE = Instant.parse("1970-01-01T00:00:00Z");
+
+    @Value("${file.upload.url-prefix:http://localhost:9000/pairing-planet-local}")
+    private String urlPrefix;
 
     @Transactional(readOnly = true)
     public SearchResponseDto searchPosts(PairingSearchRequestDto request) {
@@ -74,13 +78,40 @@ public class SearchService {
             ));
         }
 
-        return new SearchResponseDto(results, nextCursor, hasNext);
+        List<PostSearchResultDto> finalResults = results.stream()
+                .map(dto -> new PostSearchResultDto(
+                        dto.postId(),
+                        dto.postPublicId(),
+                        dto.content(),
+                        dto.imageUrls().stream()
+                                .map(key -> urlPrefix + "/" + key)
+                                .toList(),
+                        dto.createdAt(),
+                        dto.creatorName(),
+                        dto.creatorPublicId(),
+                        dto.food1Name(),
+                        dto.food1PublicId(),
+                        dto.food2Name(),
+                        dto.food2PublicId(),
+                        dto.whenTagName(),
+                        dto.dietaryTagName(),
+                        dto.geniusCount(),
+                        dto.daringCount(),
+                        dto.pickyCount(),
+                        dto.commentCount(),
+                        dto.savedCount(),
+                        dto.popularityScore(),
+                        dto.isWhenFallback()
+                ))
+                .toList();
+
+        return new SearchResponseDto(finalResults, nextCursor, hasNext);
     }
 
     private PostSearchResultDto convertToDto(com.pairingplanet.pairing_planet.domain.entity.post.Post p) {
         return new PostSearchResultDto(
                 p.getId(), p.getPublicId(), p.getContent(),
-                p.getImages().stream().map(Image::getUrl).toList(),
+                p.getImages().stream().map(Image::getStoredFilename).toList(),
                 p.getCreatedAt(),
                 p.getCreator().getUsername(),
                 p.getCreator().getPublicId(),

@@ -32,7 +32,7 @@ public record CommentResponseDto(
                 c.getLikeCount(),
                 isLikedByMe,
                 c.getCreatedAt(),
-                new UserDto(c.getUserId(), "User" + c.getUserId()) // 실제론 User 엔티티에서 조회
+                new UserDto(c.getPublicId(), "User" + c.getUserId()) // 실제론 User 엔티티에서 조회
         );
     }
 }

@@ -28,6 +28,4 @@ public class MyPostController {
         CursorResponse<MyPostResponseDto> response = myPostService.getMyPosts(userId, cursor, size);
         return ResponseEntity.ok(response);
     }
-
-    // [삭제됨] updatePost, deletePost는 PostController에 있으므로 제거!
 }

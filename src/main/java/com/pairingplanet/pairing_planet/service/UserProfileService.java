@@ -7,6 +7,7 @@ import com.pairingplanet.pairing_planet.dto.post.MyPostResponseDto;
 import com.pairingplanet.pairing_planet.repository.post.PostRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,9 @@ public class UserProfileService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository; // [추가] UUID -> User 변환용
+
+    @Value("${file.upload.url-prefix}") // [추가]
+    private String urlPrefix;
 
     public CursorResponse<MyPostResponseDto> getOtherUserPosts(UUID targetUserId, String cursor, int size) {
         // 1. UUID -> User Entity (내부 Long ID 획득)
@@ -61,9 +65,9 @@ public class UserProfileService {
 
         List<MyPostResponseDto> dtos = slice.getContent().stream()
                 .map(post -> {
-                    // [보안] 커서 생성 시 publicId(UUID) 사용
                     String nextCursor = post.getCreatedAt().toString() + "_" + post.getPublicId();
-                    return MyPostResponseDto.from(post, nextCursor);
+                    // [수정] urlPrefix 파라미터 추가
+                    return MyPostResponseDto.from(post, nextCursor, urlPrefix);
                 })
                 .toList();
 

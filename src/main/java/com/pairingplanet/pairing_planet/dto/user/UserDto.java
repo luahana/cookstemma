@@ -4,15 +4,17 @@ import com.pairingplanet.pairing_planet.domain.entity.post.Post;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import lombok.Builder;
 
+import java.util.UUID;
+
 
 @Builder
 public record UserDto(
-        Long id,
+        UUID id,
         String username
 ) {
     public static UserDto from(User user, String tag) {
         return UserDto.builder()
-                .id(user.getId())
+                .id(user.getPublicId())
                 .username(user.getUsername())
                 .build();
     }

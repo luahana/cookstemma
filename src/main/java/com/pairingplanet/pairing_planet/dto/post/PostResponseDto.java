@@ -43,15 +43,15 @@ public record PostResponseDto(
         String ingredients,     // 간단 텍스트 재료
         Integer cookingTime,
         Integer difficulty,
-        Map<String, String> recipeData // 상세 레시피 JSON
+        Map<String, Object> recipeData // 상세 레시피 JSON
 ) {
-    public static PostResponseDto from(Post post) {
+    public static PostResponseDto from(Post post, String urlPrefix) {
         // 1. 공통 빌더 생성
         var builder = PostResponseDto.builder()
                 .id(post.getPublicId())
                 .content(post.getContent())
                 .imageUrls(post.getImages().stream()
-                        .map(Image::getUrl)
+                        .map(img -> urlPrefix + "/" + img.getStoredFilename())
                         .collect(Collectors.toList()))
                 .createdAt(post.getCreatedAt())
                 .isPrivate(post.isPrivate())
