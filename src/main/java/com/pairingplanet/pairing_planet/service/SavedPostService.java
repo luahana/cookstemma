@@ -5,6 +5,7 @@ import com.pairingplanet.pairing_planet.domain.entity.post.SavedPost.SavedPostId
 import com.pairingplanet.pairing_planet.domain.entity.post.Post;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import com.pairingplanet.pairing_planet.dto.post.CursorResponse;
+import com.pairingplanet.pairing_planet.dto.post.CursorResponseTotalCount;
 import com.pairingplanet.pairing_planet.dto.post.SavedPostDto;
 import com.pairingplanet.pairing_planet.repository.post.SavedPostRepository;
 import com.pairingplanet.pairing_planet.repository.post.PostRepository;
@@ -56,8 +57,7 @@ public class SavedPostService {
     }
 
     // FR-90, FR-91: 저장 목록 조회 (Ghost Card + Cursor Pagination)
-    public CursorResponse<SavedPostDto> getSavedPosts(UUID userPublicId, String cursor, int size) {
-        // 1. 외부 UUID를 내부 Long ID로 변환 (성능 및 DB 참조 무결성)
+    public CursorResponseTotalCount<SavedPostDto> getSavedPosts(UUID userPublicId, String cursor, int size) {
         User user = userRepository.findByPublicId(userPublicId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         Long userId = user.getId();
@@ -65,43 +65,30 @@ public class SavedPostService {
         PageRequest pageRequest = PageRequest.of(0, size);
         Slice<SavedPost> slice;
 
+        // 1. 페이징 조회 로직 (기존과 동일)
         if (cursor == null || cursor.isBlank()) {
             slice = savedPostRepository.findAllByUserIdFirstPage(userId, pageRequest);
         } else {
-            // 커서 포맷: "yyyy-MM-ddTHH:mm:ssZ_postPublicUUID" (보안상 UUID 사용)
             String[] parts = cursor.split("_");
-
-            // 날짜 파싱 및 SAFE_MIN_DATE 보정 로직
-            Instant cursorTime;
-            try {
-                cursorTime = Instant.parse(parts[0]);
-                if (cursorTime.isBefore(SAFE_MIN_DATE)) {
-                    cursorTime = SAFE_MIN_DATE;
-                }
-            } catch (Exception e) {
-                cursorTime = SAFE_MIN_DATE;
-            }
-
-            // 2. 커서의 Post UUID를 내부 ID(Long)로 변환
+            Instant cursorTime = Instant.parse(parts[0]);
             UUID postPublicId = UUID.fromString(parts[1]);
-            Long internalPostId = postRepository.findByPublicId(postPublicId)
-                    .map(Post::getId)
-                    .orElse(0L);
-
+            Long internalPostId = postRepository.findByPublicId(postPublicId).map(Post::getId).orElse(0L);
             slice = savedPostRepository.findAllByUserIdWithCursor(userId, cursorTime, internalPostId, pageRequest);
         }
 
-        // 3. DTO 변환 시 urlPrefix 주입
+        // 2. DTO 변환
         List<SavedPostDto> dtos = slice.getContent().stream()
                 .map(sp -> {
-                    // 다음 페이지 요청을 위한 커서 생성 (Public UUID 사용)
                     String nextCursorItem = sp.getCreatedAt().toString() + "_" + sp.getPost().getPublicId();
                     return SavedPostDto.from(sp.getPost(), sp.getCreatedAt(), nextCursorItem, urlPrefix);
                 })
                 .toList();
 
-        String nextCursor = dtos.isEmpty() ? null : dtos.get(dtos.size() - 1).cursor();
+        // 3. 전체 개수 조회 (요구사항 반영)
+        long totalCount = savedPostRepository.countByUserId(userId);
+        String nextCursor = slice.hasNext() && !dtos.isEmpty() ? dtos.get(dtos.size() - 1).cursor() : null;
 
-        return new CursorResponse<>(dtos, nextCursor, slice.hasNext());
+        // CursorResponse 구조: { data: [...], nextCursor: "...", totalCount: ... }
+        return new CursorResponseTotalCount<>(dtos, nextCursor, totalCount);
     }
 }

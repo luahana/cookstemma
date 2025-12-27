@@ -1,8 +1,12 @@
 package com.pairingplanet.pairing_planet.service;
 
+import com.pairingplanet.pairing_planet.domain.entity.post.DailyPost;
 import com.pairingplanet.pairing_planet.domain.entity.post.Post;
+import com.pairingplanet.pairing_planet.domain.entity.post.RecipePost;
+import com.pairingplanet.pairing_planet.domain.entity.post.ReviewPost;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import com.pairingplanet.pairing_planet.dto.post.CursorResponse;
+import com.pairingplanet.pairing_planet.dto.post.CursorResponseTotalCount;
 import com.pairingplanet.pairing_planet.dto.post.MyPostResponseDto;
 import com.pairingplanet.pairing_planet.repository.post.PostRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
@@ -21,60 +25,53 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MyPostService {
-
     private final PostRepository postRepository;
-    private final UserRepository userRepository; // [추가] UUID -> User 변환용
+    private final UserRepository userRepository;
 
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
 
-    private static final Instant SAFE_MIN_DATE = Instant.parse("1970-01-01T00:00:00Z");
-    // [FR-160, FR-162] 내 포스트 목록 조회
-    public CursorResponse<MyPostResponseDto> getMyPosts(UUID userId, String cursor, int size) {
-        // 1. UUID userId -> User Entity (내부 Long ID 사용을 위해)
+    public CursorResponseTotalCount<MyPostResponseDto> getMyPosts(UUID userId, String type, String cursor, int size) {
         User user = userRepository.findByPublicId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        // 1. 문자열 타입을 엔티티 클래스로 매핑
+        Class<? extends Post> entityType = getEntityType(type);
         PageRequest pageRequest = PageRequest.of(0, size);
         Slice<Post> slice;
 
+        // 2. 쿼리 실행 (기존 커서 파싱 로직 포함)
         if (cursor == null || cursor.isBlank()) {
-            // 첫 페이지 조회 (User Entity의 ID를 사용하여 쿼리 최적화)
-            slice = postRepository.findMyPostsFirstPage(user.getId(), pageRequest);
+            slice = postRepository.findMyPostsByTypeFirstPage(user.getId(), entityType, pageRequest);
         } else {
-            // 2. 커서 디코딩 (형식: "yyyy-MM-ddTHH:mm:ss.SSSZ_publicUUID")
             String[] parts = cursor.split("_");
-
-            Instant cursorTime;
-            try {
-                cursorTime = Instant.parse(parts[0]);
-                if (cursorTime.isBefore(SAFE_MIN_DATE)) {
-                    cursorTime = SAFE_MIN_DATE; // 강제로 1970년으로 변경
-                }
-            } catch (Exception e) {
-                cursorTime = SAFE_MIN_DATE; // 파싱 에러 시 안전값 사용
-            }
-
+            Instant cursorTime = Instant.parse(parts[0]);
             UUID cursorPublicId = UUID.fromString(parts[1]);
+            Long cursorInternalId = postRepository.findByPublicId(cursorPublicId).map(Post::getId).orElse(0L);
 
-            Long cursorInternalId = postRepository.findByPublicId(cursorPublicId)
-                    .map(Post::getId)
-                    .orElse(0L);
+            slice = postRepository.findMyPostsByTypeWithCursor(user.getId(), entityType, cursorTime, cursorInternalId, pageRequest);
+        }
 
-            slice = postRepository.findMyPostsWithCursor(user.getId(), cursorTime, cursorInternalId, pageRequest);}
-
+        // 3. DTO 변환 및 결과 구성
         List<MyPostResponseDto> dtos = slice.getContent().stream()
                 .map(post -> {
-                    // 다음 커서 생성: 보안을 위해 내부 ID 대신 publicId(UUID) 사용
                     String nextCursor = post.getCreatedAt().toString() + "_" + post.getPublicId();
                     return MyPostResponseDto.from(post, nextCursor, urlPrefix);
-                })
-                .toList();
+                }).toList();
 
-        String nextCursor = dtos.isEmpty() ? null : dtos.get(dtos.size() - 1).cursor();
+        long totalCount = postRepository.countMyPostsByType(user.getId(), entityType);
+        String nextCursor = slice.hasNext() ? dtos.get(dtos.size() - 1).cursor() : null;
 
-        return new CursorResponse<>(dtos, nextCursor, slice.hasNext());
+        return new CursorResponseTotalCount<>(dtos, nextCursor, totalCount); // totalCount 포함 구조
     }
 
-    // [삭제됨] updatePost, deletePost는 PostController/PostService로 통합되어 제거함.
+    private Class<? extends Post> getEntityType(String type) {
+        if (type == null) return null;
+        return switch (type.toUpperCase()) {
+            case "DAILY" -> DailyPost.class;
+            case "REVIEW" -> ReviewPost.class;
+            case "RECIPE" -> RecipePost.class;
+            default -> null; // ALL
+        };
+    }
 }

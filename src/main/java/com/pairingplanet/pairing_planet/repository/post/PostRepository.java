@@ -208,4 +208,36 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p FROM Post p WHERE p.isDeleted = false AND p.isPrivate = false ORDER BY p.createdAt DESC")
     List<Post> findAllFallback(org.springframework.data.domain.Pageable pageable);
+
+    @Query("""
+        SELECT p FROM Post p 
+        JOIN FETCH p.pairing pm
+        WHERE p.creator.id = :userId 
+          AND p.isDeleted = false 
+          AND (:type IS NULL OR TYPE(p) = :type)
+        ORDER BY p.createdAt DESC, p.id DESC
+    """)
+    Slice<Post> findMyPostsByTypeFirstPage(@Param("userId") Long userId,
+                                           @Param("type") Class<? extends Post> type,
+                                           Pageable pageable);
+
+    // [추가] 타입별 커서 기반 조회
+    @Query("""
+        SELECT p FROM Post p 
+        JOIN FETCH p.pairing pm
+        WHERE p.creator.id = :userId 
+          AND p.isDeleted = false
+          AND (:type IS NULL OR TYPE(p) = :type)
+          AND (p.createdAt < :cursorTime OR (p.createdAt = :cursorTime AND p.id < :cursorId))
+        ORDER BY p.createdAt DESC, p.id DESC
+    """)
+    Slice<Post> findMyPostsByTypeWithCursor(@Param("userId") Long userId,
+                                            @Param("type") Class<? extends Post> type,
+                                            @Param("cursorTime") Instant cursorTime,
+                                            @Param("cursorId") Long cursorId,
+                                            Pageable pageable);
+
+    // [추가] 전체 개수 조회 (요구사항 반영)
+    @Query("SELECT COUNT(p) FROM Post p WHERE p.creator.id = :userId AND p.isDeleted = false AND (:type IS NULL OR TYPE(p) = :type)")
+    long countMyPostsByType(@Param("userId") Long userId, @Param("type") Class<? extends Post> type);
 }

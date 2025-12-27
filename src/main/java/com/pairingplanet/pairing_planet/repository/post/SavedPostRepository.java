@@ -37,5 +37,7 @@ public interface SavedPostRepository extends JpaRepository<SavedPost, SavedPostI
                                                @Param("cursorPostId") Long cursorPostId,
                                                Pageable pageable);
 
+    long countByUserId(Long userId);
+
     boolean existsById(SavedPostId id);
 }

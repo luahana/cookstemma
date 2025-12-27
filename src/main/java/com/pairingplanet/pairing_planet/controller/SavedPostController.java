@@ -1,6 +1,7 @@
 package com.pairingplanet.pairing_planet.controller;
 
 import com.pairingplanet.pairing_planet.dto.post.CursorResponse;
+import com.pairingplanet.pairing_planet.dto.post.CursorResponseTotalCount;
 import com.pairingplanet.pairing_planet.dto.post.SavedPostDto;
 import com.pairingplanet.pairing_planet.service.SavedPostService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class SavedPostController {
     // 저장 토글
     @PostMapping("/{postId}")
     public ResponseEntity<Map<String, Boolean>> toggleSave(
-            @AuthenticationPrincipal UUID userId, // Security Context에서 ID 추출
+            @AuthenticationPrincipal UUID userId,
             @PathVariable UUID postId
     ) {
         boolean isSaved = savedPostService.toggleSave(userId, postId);
@@ -30,12 +31,12 @@ public class SavedPostController {
 
     // 저장 목록 조회 (무한 스크롤)
     @GetMapping
-    public ResponseEntity<CursorResponse<SavedPostDto>> getMySavedPosts(
+    public ResponseEntity<CursorResponseTotalCount<SavedPostDto>> getMySavedPosts(
             @AuthenticationPrincipal UUID userId,
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "10") int size
     ) {
-        CursorResponse<SavedPostDto> response = savedPostService.getSavedPosts(userId, cursor, size);
+        CursorResponseTotalCount<SavedPostDto> response = savedPostService.getSavedPosts(userId, cursor, size);
         return ResponseEntity.ok(response);
     }
 }
