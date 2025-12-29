@@ -47,4 +47,11 @@ public class User extends BaseEntity {
 
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
+
+    /**
+     * [추가] 사용자의 선호 식이 취향 ID
+     * context_tags 테이블의 id를 참조합니다.
+     */
+    @Column(name = "preferred_dietary_id")
+    private Long preferredDietaryId;
 }

@@ -25,6 +25,7 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll() // [중요] reissue 포함 인증 API는 전체 허용
+                        .requestMatchers("/api/v1/contexts/**").permitAll()
                         .requestMatchers("/api/v1/images/upload").authenticated() // 업로드는 인증 필수
                         .anyRequest().authenticated()
                 )

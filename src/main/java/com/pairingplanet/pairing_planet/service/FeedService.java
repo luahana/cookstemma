@@ -1,6 +1,7 @@
 package com.pairingplanet.pairing_planet.service;
 
-import com.pairingplanet.pairing_planet.domain.entity.post.Post;
+import com.pairingplanet.pairing_planet.domain.entity.pairing.PairingMap;
+import com.pairingplanet.pairing_planet.domain.entity.post.*;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import com.pairingplanet.pairing_planet.dto.feed.FeedResponseDto;
 import com.pairingplanet.pairing_planet.dto.post.PostDto;
@@ -10,14 +11,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -29,111 +28,137 @@ public class FeedService {
     private final UserRepository userRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String GLOBAL_FEED_KEY = "feed:global:mixed";
+    // 타입별 Redis Key (4:4:2 비율 유지용)
+    private static final String KEY_DAILY = "feed:daily";
+    private static final String KEY_REVIEW = "feed:review";
+    private static final String KEY_RECIPE = "feed:recipe";
+
     private static final int PAGE_SIZE = 10;
     private static final long HISTORY_TTL_DAYS = 1;
 
     @Value("${file.upload.url-prefix:http://localhost:9000/pairing-planet-local}")
     private String urlPrefix;
 
+    /**
+     * 메인 피드 진입점: 취향 필터링 여부에 따라 로직 분기
+     */
     public FeedResponseDto getMixedFeed(UUID userId, int offset) {
+        // 1. 유저의 식이 취향(Dietary) 정보 가져오기
+        User user = (userId != null) ? userRepository.findByPublicId(userId).orElse(null) : null;
+        Long preferredDietaryId = (user != null) ? user.getPreferredDietaryId() : null;
+
         try {
-            // Redis가 정상일 때 시도하는 로직
+            // 2. 사용자의 식이 취향 설정이 있다면 DB에서 필터링된 피드 제공 (개인화)
+            if (preferredDietaryId != null) {
+                return getPersonalizedFeedFromDb(preferredDietaryId, offset);
+            }
+
+            // 3. 설정이 없다면 글로벌 Redis 피드 시도
             return getFeedFromRedis(userId, offset);
         } catch (Exception e) {
-            // [핵심] Redis 연결 실패, 타임아웃 등 모든 에러를 잡아서 DB로 돌림
-            log.error("Redis connection failed. Switching to DB Fallback. Error: {}", e.getMessage());
+            log.error("Feed error, switching to Global DB Fallback: {}", e.getMessage());
             return getFeedFallback(offset);
         }
     }
 
-    // --- 1. Redis 기반 피드 로직 (기존 코드 분리) ---
-    private FeedResponseDto getFeedFromRedis(UUID userId, int offset) {
-        Long internalUserId = null;
-        if (userId != null) {
-            internalUserId = userRepository.findByPublicId(userId)
-                    .map(User::getId)
-                    .orElse(null);
-        }
+    /**
+     * 개인화 피드 (DB 기반, 식이 취향 필터 적용)
+     */
+    private FeedResponseDto getPersonalizedFeedFromDb(Long dietaryId, int offset) {
+        List<PostDto> combinedPosts = new ArrayList<>();
 
-        String historyKey = (internalUserId != null) ? "user:" + internalUserId + ":seen" : "user:anon:seen";
-        List<PostDto> finalPosts = new ArrayList<>();
-        int currentOffset = offset;
-        int attempts = 0;
+        // 4:4:2 비율로 DB 필터링 조회
+        combinedPosts.addAll(fetchFromDbWithFilter(DailyPost.class, dietaryId, 4, offset));
+        combinedPosts.addAll(fetchFromDbWithFilter(ReviewPost.class, dietaryId, 4, offset));
+        combinedPosts.addAll(fetchFromDbWithFilter(RecipePost.class, dietaryId, 2, offset));
 
-        while (finalPosts.size() < PAGE_SIZE && attempts < 5) {
-            // Redis 호출 (여기서 에러나면 상위 catch로 이동)
-            List<Object> rawIds = redisTemplate.opsForList().range(GLOBAL_FEED_KEY, currentOffset, currentOffset + (PAGE_SIZE * 2));
+        Collections.shuffle(combinedPosts);
 
-            if (rawIds == null || rawIds.isEmpty()) break;
-
-            List<Long> candidateIds = rawIds.stream()
-                    .map(obj -> Long.valueOf(obj.toString()))
-                    .collect(Collectors.toList());
-
-            // 중복 필터링
-            List<Long> newIds = new ArrayList<>();
-            for (Long id : candidateIds) {
-                Boolean seen = redisTemplate.opsForSet().isMember(historyKey, id.toString());
-                if (Boolean.FALSE.equals(seen)) {
-                    newIds.add(id);
-                }
-            }
-
-            if (!newIds.isEmpty()) {
-                int needed = PAGE_SIZE - finalPosts.size();
-                List<Long> idsToFetch = newIds.stream().limit(needed).toList();
-                List<Post> posts = postRepository.findAllById(idsToFetch);
-
-                // 순서 보장을 위해 Map 변환
-                Map<Long, Post> postMap = posts.stream()
-                        .filter(p -> !p.isDeleted() && !p.isPrivate())
-                        .collect(Collectors.toMap(Post::getId, p -> p));
-
-                for (Long id : idsToFetch) {
-                    if (postMap.containsKey(id)) {
-                        finalPosts.add(PostDto.from(postMap.get(id), "🔥 Trending", urlPrefix));
-                    }
-                }
-
-                // History 업데이트 (Redis 호출)
-                Object[] seenIdStrings = idsToFetch.stream().map(String::valueOf).toArray(String[]::new);
-                if (seenIdStrings.length > 0) {
-                    redisTemplate.opsForSet().add(historyKey, seenIdStrings);
-                    redisTemplate.expire(historyKey, HISTORY_TTL_DAYS, TimeUnit.DAYS);
-                }
-            }
-            currentOffset += rawIds.size();
-            attempts++;
-        }
-
-        boolean hasNext = finalPosts.size() == PAGE_SIZE;
         return FeedResponseDto.builder()
-                .posts(finalPosts)
-                .nextCursor(String.valueOf(currentOffset))
-                .hasNext(hasNext)
+                .posts(combinedPosts)
+                .nextCursor(String.valueOf(offset + 1))
+                .hasNext(combinedPosts.size() >= PAGE_SIZE)
                 .build();
     }
 
-    // --- 2. DB 기반 Fallback 로직 (Redis 장애 시) ---
-    private FeedResponseDto getFeedFallback(int offset) {
-        // Offset을 Page 번호로 변환 (간단 계산)
-        int pageNumber = offset / PAGE_SIZE;
+    /**
+     * 일반 피드 (Redis 기반, 중복 제거 적용)
+     */
+    private FeedResponseDto getFeedFromRedis(UUID userId, int offset) {
+        Long internalUserId = (userId != null) ?
+                userRepository.findByPublicId(userId).map(User::getId).orElse(null) : null;
+        String historyKey = (internalUserId != null) ? "user:" + internalUserId + ":seen" : "user:anon:seen";
 
-        // DB에서 최신순 조회
-        List<Post> posts = postRepository.findAllFallback(PageRequest.of(pageNumber, PAGE_SIZE));
+        List<PostDto> finalPosts = new ArrayList<>();
 
-        List<PostDto> postDtos = posts.stream()
-                .map(p -> PostDto.from(p, "✨ Latest", urlPrefix)) // 태그를 다르게 주어 구분 가능
-                .toList();
+        // 4:4:2 비율로 Redis에서 데이터 추출
+        finalPosts.addAll(fetchAndFilterFromRedis(KEY_DAILY, 4, offset, historyKey));
+        finalPosts.addAll(fetchAndFilterFromRedis(KEY_REVIEW, 4, offset, historyKey));
+        finalPosts.addAll(fetchAndFilterFromRedis(KEY_RECIPE, 2, offset, historyKey));
 
-        boolean hasNext = postDtos.size() == PAGE_SIZE;
-        int nextOffset = offset + postDtos.size(); // 다음 오프셋 계산
+        Collections.shuffle(finalPosts);
 
         return FeedResponseDto.builder()
-                .posts(postDtos)
-                .nextCursor(String.valueOf(nextOffset))
-                .hasNext(hasNext)
+                .posts(finalPosts)
+                .nextCursor(String.valueOf(offset + 1))
+                .hasNext(finalPosts.size() >= PAGE_SIZE)
                 .build();
+    }
+
+    /**
+     * 장애 대응 피드 (DB 기반, 글로벌 최신순)
+     */
+    private FeedResponseDto getFeedFallback(int offset) {
+        List<PostDto> combinedPosts = new ArrayList<>();
+
+        combinedPosts.addAll(fetchFromDbWithFilter(DailyPost.class, null, 4, offset));
+        combinedPosts.addAll(fetchFromDbWithFilter(ReviewPost.class, null, 4, offset));
+        combinedPosts.addAll(fetchFromDbWithFilter(RecipePost.class, null, 2, offset));
+
+        return FeedResponseDto.builder()
+                .posts(combinedPosts)
+                .nextCursor(String.valueOf(offset + 1))
+                .hasNext(combinedPosts.size() >= PAGE_SIZE)
+                .build();
+    }
+
+    // --- Helper Methods ---
+
+    private List<PostDto> fetchAndFilterFromRedis(String key, int count, int offset, String historyKey) {
+        int start = offset * count;
+        List<Object> rawIds = redisTemplate.opsForList().range(key, start, start + (count * 2));
+        if (rawIds == null || rawIds.isEmpty()) return new ArrayList<>();
+
+        List<Long> filteredIds = new ArrayList<>();
+        for (Object obj : rawIds) {
+            String idStr = obj.toString();
+            if (Boolean.FALSE.equals(redisTemplate.opsForSet().isMember(historyKey, idStr))) {
+                filteredIds.add(Long.valueOf(idStr));
+                if (filteredIds.size() >= count) break;
+            }
+        }
+
+        if (filteredIds.isEmpty()) return new ArrayList<>();
+
+        redisTemplate.opsForSet().add(historyKey, filteredIds.stream().map(String::valueOf).toArray(String[]::new));
+        redisTemplate.expire(historyKey, HISTORY_TTL_DAYS, TimeUnit.DAYS);
+
+        return postRepository.findAllWithDetailsByIdIn(filteredIds).stream()
+                .map(p -> PostDto.from(p, resolveDietaryLabel(p), urlPrefix))
+                .toList();
+    }
+
+    private List<PostDto> fetchFromDbWithFilter(Class<? extends Post> type, Long dietaryId, int limit, int offset) {
+        return postRepository.findPublicPostsWithPreference(type, dietaryId, PageRequest.of(offset, limit))
+                .getContent().stream()
+                .map(p -> PostDto.from(p, resolveDietaryLabel(p), urlPrefix))
+                .toList();
+    }
+
+    private String resolveDietaryLabel(Post post) {
+        if (post.getPairing() != null && post.getPairing().getDietaryContext() != null) {
+            return post.getPairing().getDietaryContext().getDisplayName(); // Dietary Context만 반환
+        }
+        return "";
     }
 }

@@ -32,11 +32,12 @@ CREATE TABLE IF NOT EXISTS users (
 
     role VARCHAR(20) DEFAULT 'USER' CHECK (role IN ('USER', 'ADMIN', 'CREATOR')),
     status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'BANNED', 'DELETED')),
+    preferred_dietary_id BIGINT,
 
     marketing_agreed BOOLEAN DEFAULT FALSE,
     last_login_at TIMESTAMP WITH TIME ZONE,
 
-                                app_refresh_token VARCHAR(512),
+    app_refresh_token VARCHAR(512),
 
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -432,3 +433,7 @@ CREATE TABLE IF NOT EXISTS images (
 CREATE INDEX IF NOT EXISTS idx_images_status_created_at ON images (status, created_at);
 CREATE INDEX IF NOT EXISTS idx_images_type ON images (type);
 CREATE INDEX IF NOT EXISTS idx_images_post_id ON images (post_id);
+
+ALTER TABLE users
+    ADD CONSTRAINT fk_users_preferred_dietary
+        FOREIGN KEY (preferred_dietary_id) REFERENCES context_tags(id);

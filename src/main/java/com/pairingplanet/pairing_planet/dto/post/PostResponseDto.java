@@ -1,6 +1,7 @@
 package com.pairingplanet.pairing_planet.dto.post;
 
 import com.pairingplanet.pairing_planet.domain.entity.image.Image;
+import com.pairingplanet.pairing_planet.domain.entity.pairing.PairingMap;
 import com.pairingplanet.pairing_planet.domain.entity.post.DailyPost;
 import com.pairingplanet.pairing_planet.domain.entity.post.Post;
 import com.pairingplanet.pairing_planet.domain.entity.post.RecipePost;
@@ -17,15 +18,18 @@ import java.util.stream.Collectors;
 public record PostResponseDto(
         // --- [Common] 모든 포스트 공통 필드 ---
         UUID id,
-        String type,            // "DAILY", "REVIEW", "RECIPE" (프론트 분기 처리용)
+        UUID creatorId,         // [추가] 작성자 식별자 (UUID)
+        String type,            // "DAILY", "REVIEW", "RECIPE"
         String content,
         List<String> imageUrls,
         Instant createdAt,
         Boolean isPrivate,
 
-        // 페어링 정보 (PairingMap에서 추출)
+        // 페어링 및 컨텍스트 정보
         String food1Name,
         String food2Name,
+        String whenContext,
+        String dietaryContext,
 
         // 카운트 정보
         int geniusCount,
@@ -34,21 +38,21 @@ public record PostResponseDto(
         int savedCount,
         int commentCount,
 
-        // --- [Review] 리뷰 전용 필드 (null 가능) ---
-        String reviewTitle,     // title
-        Boolean verdictEnabled, // ReviewPost에만 있음
+        // --- [Review] 전용 필드 ---
+        String reviewTitle,
+        Boolean verdictEnabled,
 
-        // --- [Recipe] 레시피 전용 필드 (null 가능) ---
-        String recipeTitle,     // title
-        String ingredients,     // 간단 텍스트 재료
+        // --- [Recipe] 전용 필드 ---
+        String recipeTitle,
+        String ingredients,
         Integer cookingTime,
         Integer difficulty,
-        Map<String, Object> recipeData // 상세 레시피 JSON
+        Map<String, Object> recipeData
 ) {
     public static PostResponseDto from(Post post, String urlPrefix) {
-        // 1. 공통 빌더 생성
         var builder = PostResponseDto.builder()
                 .id(post.getPublicId())
+                .creatorId(post.getCreator() != null ? post.getCreator().getPublicId() : null)
                 .content(post.getContent())
                 .imageUrls(post.getImages().stream()
                         .map(img -> urlPrefix + "/" + img.getStoredFilename())
@@ -61,27 +65,28 @@ public record PostResponseDto(
                 .savedCount(post.getSavedCount())
                 .commentCount(post.getCommentCount());
 
-        // 페어링 정보 매핑 (Null check 권장)
+        // 2. 페어링 정보 매핑
         if (post.getPairing() != null) {
-            // 예시: 로케일 처리는 서비스 레이어에서 하거나, 여기서는 단순화
-            // builder.food1Name(...);
+            PairingMap pairing = post.getPairing();
+            builder.food1Name(pairing.getFood1() != null ? pairing.getFood1().getNameByLocale(post.getLocale()) : null);
+            builder.food2Name(pairing.getFood2() != null ? pairing.getFood2().getNameByLocale(post.getLocale()) : null);
+            builder.whenContext(pairing.getWhenContext() != null ? pairing.getWhenContext().getDisplayName() : null);
+            builder.dietaryContext(pairing.getDietaryContext() != null ? pairing.getDietaryContext().getDisplayName() : null);
         }
 
-        // 2. 타입별 분기 처리 (instanceof 패턴 매칭)
+        // 3. 타입별 분기 처리
         if (post instanceof DailyPost) {
             builder.type("DAILY");
-        }
-        else if (post instanceof ReviewPost review) {
+        } else if (post instanceof ReviewPost review) {
             builder.type("REVIEW")
                     .reviewTitle(review.getTitle())
                     .verdictEnabled(review.isVerdictEnabled());
-        }
-        else if (post instanceof RecipePost recipe) {
+        } else if (post instanceof RecipePost recipe) {
             builder.type("RECIPE")
                     .recipeTitle(recipe.getTitle())
                     .ingredients(recipe.getIngredients())
                     .cookingTime(recipe.getCookingTime())
-                    .difficulty(recipe.getDifficulty()); // Entity 필드명 매핑
+                    .difficulty(recipe.getDifficulty());
         }
 
         return builder.build();

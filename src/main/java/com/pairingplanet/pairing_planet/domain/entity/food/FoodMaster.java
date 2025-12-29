@@ -40,4 +40,23 @@ public class FoodMaster extends BaseEntity {
     @Column(name = "is_verified", nullable = false)
     @Builder.Default
     private Boolean isVerified = true;
+
+    public String getNameByLocale(String locale) {
+        if (name == null || name.isEmpty()) {
+            return "Unknown Food";
+        }
+
+        // 1. 요청된 로케일(예: "ko")이 존재하는지 확인
+        if (name.containsKey(locale)) {
+            return name.get(locale);
+        }
+
+        // 2. 요청한 언어가 없을 경우 기본값으로 영어("en") 반환
+        if (name.containsKey("en")) {
+            return name.get("en");
+        }
+
+        // 3. 영어도 없을 경우 맵에 저장된 첫 번째 이름을 반환
+        return name.values().iterator().next();
+    }
 }

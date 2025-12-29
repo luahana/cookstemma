@@ -3,6 +3,7 @@ package com.pairingplanet.pairing_planet.repository.post;
 import com.pairingplanet.pairing_planet.domain.entity.post.Post;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,17 +17,144 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Optional<Post> findByPublicId(UUID publicId);
 
-    // 1. 첫 페이지 (커서 없음)
+
+    // 1. Fresh (최신순) + Type + Dietary Filter
     @Query("""
         SELECT p FROM Post p 
-        JOIN FETCH p.pairing pm
-        JOIN FETCH pm.food1
-        LEFT JOIN FETCH pm.food2
-        WHERE p.creator.id = :userId 
-          AND p.isDeleted = false 
+        WHERE p.locale = :locale 
+          AND p.isDeleted = false AND p.isPrivate = false
+          AND (:type IS NULL OR TYPE(p) = :type)
+          AND (:dietaryId IS NULL OR p.pairing.dietaryContext.id = :dietaryId)
+          AND (p.createdAt < :lastTime OR (p.createdAt = :lastTime AND p.id < :lastId))
         ORDER BY p.createdAt DESC, p.id DESC
     """)
-    Slice<Post> findMyPostsFirstPage(@Param("userId") Long userId, Pageable pageable);
+    Slice<Post> findFreshWithType(
+            @Param("locale") String locale,
+            @Param("type") Class<? extends Post> type,
+            @Param("dietaryId") Long dietaryId,
+            @Param("lastId") Long lastId,
+            @Param("lastTime") Instant lastTime,
+            Pageable pageable);
+
+    // 2. Popular Only + Type + Dietary Filter
+    @Query("""
+        SELECT p FROM Post p 
+        WHERE p.locale = :locale 
+          AND p.isDeleted = false AND p.isPrivate = false
+          AND (:type IS NULL OR TYPE(p) = :type)
+          AND (:dietaryId IS NULL OR p.pairing.dietaryContext.id = :dietaryId)
+          AND (p.popularityScore < :lastScore OR (p.popularityScore = :lastScore AND p.id < :lastId))
+        ORDER BY p.popularityScore DESC, p.id DESC
+    """)
+    Slice<Post> findPopularOnlyWithType(
+            @Param("locale") String locale,
+            @Param("type") Class<? extends Post> type,
+            @Param("dietaryId") Long dietaryId,
+            @Param("lastId") Long lastId,
+            @Param("lastScore") Double lastScore,
+            Pageable pageable);
+
+    // 3. Controversial Only + Type + Dietary Filter
+    @Query("""
+        SELECT p FROM Post p 
+        WHERE p.locale = :locale 
+          AND p.isDeleted = false AND p.isPrivate = false
+          AND (:type IS NULL OR TYPE(p) = :type)
+          AND (:dietaryId IS NULL OR p.pairing.dietaryContext.id = :dietaryId)
+          AND (p.controversyScore < :lastScore OR (p.controversyScore = :lastScore AND p.id < :lastId))
+        ORDER BY p.controversyScore DESC, p.id DESC
+    """)
+    Slice<Post> findControversialOnlyWithType(
+            @Param("locale") String locale,
+            @Param("type") Class<? extends Post> type,
+            @Param("dietaryId") Long dietaryId,
+            @Param("lastId") Long lastId,
+            @Param("lastScore") Double lastScore,
+            Pageable pageable);
+
+    // 4. Trending Only + Type + Dietary Filter
+    // 정렬 공식: $(commentCount \times 3.0) + (savedCount \times 5.0)$
+    @Query("""
+        SELECT p FROM Post p 
+        WHERE p.locale = :locale 
+          AND p.isDeleted = false AND p.isPrivate = false
+          AND (:type IS NULL OR TYPE(p) = :type)
+          AND (:dietaryId IS NULL OR p.pairing.dietaryContext.id = :dietaryId)
+          AND p.popularityScore < :popThreshold 
+          AND p.createdAt >= :afterTime
+          AND (
+              ((p.commentCount * 3.0 + p.savedCount * 5.0) < :lastScore)
+              OR 
+              ((p.commentCount * 3.0 + p.savedCount * 5.0) = :lastScore AND p.createdAt < :lastTime)
+              OR
+              ((p.commentCount * 3.0 + p.savedCount * 5.0) = :lastScore AND p.createdAt = :lastTime AND p.id < :lastId)
+          )
+        ORDER BY (p.commentCount * 3.0 + p.savedCount * 5.0) DESC, p.createdAt DESC, p.id DESC
+    """)
+    Slice<Post> findTrendingOnlyWithType(
+            @Param("locale") String locale,
+            @Param("type") Class<? extends Post> type,
+            @Param("dietaryId") Long dietaryId,
+            @Param("popThreshold") double popThreshold,
+            @Param("afterTime") Instant afterTime,
+            @Param("lastId") Long lastId,
+            @Param("lastScore") Double lastScore,
+            @Param("lastTime") Instant lastTime,
+            Pageable pageable
+    );
+
+    // 5. Popular & Trending + Type + Dietary Filter
+    @Query("""
+        SELECT p FROM Post p 
+        WHERE p.locale = :locale 
+          AND p.isDeleted = false AND p.isPrivate = false
+          AND (:type IS NULL OR TYPE(p) = :type)
+          AND (:dietaryId IS NULL OR p.pairing.dietaryContext.id = :dietaryId)
+          AND p.popularityScore >= :popThreshold 
+          AND p.createdAt >= :afterTime
+          AND (p.popularityScore < :lastScore OR (p.popularityScore = :lastScore AND p.id < :lastId))
+        ORDER BY p.popularityScore DESC, p.id DESC
+    """)
+    Slice<Post> findPopularAndTrendingWithType(
+            @Param("locale") String locale,
+            @Param("type") Class<? extends Post> type,
+            @Param("dietaryId") Long dietaryId,
+            @Param("popThreshold") double popThreshold,
+            @Param("afterTime") Instant afterTime,
+            @Param("lastId") Long lastId,
+            @Param("lastScore") Double lastScore,
+            Pageable pageable
+    );
+
+    // 6. Trending & Controversial + Type + Dietary Filter
+    @Query("""
+        SELECT p FROM Post p 
+        WHERE p.locale = :locale 
+          AND p.isDeleted = false AND p.isPrivate = false
+          AND (:type IS NULL OR TYPE(p) = :type)
+          AND (:dietaryId IS NULL OR p.pairing.dietaryContext.id = :dietaryId)
+          AND p.controversyScore >= :contThreshold 
+          AND p.createdAt >= :afterTime
+          AND (p.commentCount < :lastCount OR (p.commentCount = :lastCount AND p.id < :lastId))
+        ORDER BY p.commentCount DESC, p.id DESC
+    """)
+    Slice<Post> findTrendingAndControversialWithType(
+            @Param("locale") String locale,
+            @Param("type") Class<? extends Post> type,
+            @Param("dietaryId") Long dietaryId,
+            @Param("contThreshold") double contThreshold,
+            @Param("afterTime") Instant afterTime,
+            @Param("lastId") Long lastId,
+            @Param("lastCount") Integer lastCount,
+            Pageable pageable
+    );
+
+    // ID 기반 벌크 페치 (Redis에서 꺼내온 ID 목록용)
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
+            "pairing", "pairing.food1", "pairing.food2",
+            "pairing.whenContext", "pairing.dietaryContext", "images"
+    })
+    List<Post> findAllWithDetailsByIdIn(List<Long> ids);
 
     // 2. 두 번째 페이지부터 (커서 있음)
     // 커서 조건: (createdAt < cursorTime) OR (createdAt = cursorTime AND id < cursorId)
@@ -74,6 +202,65 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                                                    @Param("cursorTime") Instant cursorTime,
                                                    @Param("cursorId") Long cursorId,
                                                    Pageable pageable);
+
+
+    // [추가] 타입별 공용 피드 조회 (Fallback용)
+    // context_tags의 display_name을 사용하기 위해 FETCH JOIN 추가
+    @Query("""
+        SELECT p FROM Post p 
+        JOIN FETCH p.pairing pm
+        JOIN FETCH pm.food1
+        LEFT JOIN FETCH pm.food2
+        LEFT JOIN FETCH pm.whenContext
+        LEFT JOIN FETCH pm.dietaryContext
+        WHERE p.isDeleted = false 
+          AND p.isPrivate = false
+          AND (:type IS NULL OR TYPE(p) = :type)
+        ORDER BY p.createdAt DESC, p.id DESC
+    """)
+    Slice<Post> findPublicPostsByTypeWithContext(@Param("type") Class<? extends Post> type, Pageable pageable);
+
+    // 기존 메서드들도 Context Fetch Join을 추가하여 N+1 문제 방지
+    @Query("""
+        SELECT p FROM Post p 
+        JOIN FETCH p.pairing pm
+        JOIN FETCH pm.food1
+        LEFT JOIN FETCH pm.food2
+        LEFT JOIN FETCH pm.whenContext
+        LEFT JOIN FETCH pm.dietaryContext
+        WHERE p.creator.id = :userId 
+          AND p.isDeleted = false 
+        ORDER BY p.createdAt DESC, p.id DESC
+    """)
+    Slice<Post> findMyPostsFirstPage(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("""
+    SELECT p FROM Post p 
+    JOIN FETCH p.pairing pm
+    JOIN FETCH pm.food1
+    LEFT JOIN FETCH pm.food2
+    LEFT JOIN FETCH pm.dietaryContext
+    WHERE p.isDeleted = false 
+      AND p.isPrivate = false
+      AND (:type IS NULL OR TYPE(p) = :type)
+      AND (:dietaryId IS NULL OR pm.dietaryContext.id = :dietaryId)
+    ORDER BY p.createdAt DESC, p.id DESC
+""")
+    Slice<Post> findPublicPostsWithPreference(
+            @Param("type") Class<? extends Post> type,
+            @Param("dietaryId") Long dietaryId,
+            Pageable pageable
+    );
+
+    @Query("""
+    SELECT p FROM Post p 
+    JOIN FETCH p.pairing pm
+    WHERE p.isDeleted = false 
+      AND p.isPrivate = false
+      AND (:type IS NULL OR TYPE(p) = :type)
+    ORDER BY p.createdAt DESC, p.id DESC
+""")
+    Slice<Post> findPublicPostsByType(@Param("type") Class<? extends Post> type, Pageable pageable);
 
     // 0. Fresh (최신글) - Cursor: createdAt, id
     @Query("""
@@ -220,6 +407,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Slice<Post> findMyPostsByTypeFirstPage(@Param("userId") Long userId,
                                            @Param("type") Class<? extends Post> type,
                                            Pageable pageable);
+
 
     // [추가] 타입별 커서 기반 조회
     @Query("""

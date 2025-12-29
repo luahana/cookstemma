@@ -2,6 +2,7 @@ package com.pairingplanet.pairing_planet.service;
 
 import com.pairingplanet.pairing_planet.domain.entity.comment.Comment;
 import com.pairingplanet.pairing_planet.domain.entity.post.Post;
+import com.pairingplanet.pairing_planet.domain.entity.post.ReviewPost;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import com.pairingplanet.pairing_planet.domain.entity.verdict.PostVerdict;
 import com.pairingplanet.pairing_planet.domain.entity.verdict.PostVerdictId;
@@ -9,11 +10,13 @@ import com.pairingplanet.pairing_planet.domain.enums.VerdictType;
 import com.pairingplanet.pairing_planet.dto.comment.CommentListResponseDto;
 import com.pairingplanet.pairing_planet.dto.comment.CommentRequestDto;
 import com.pairingplanet.pairing_planet.dto.comment.CommentResponseDto;
+import com.pairingplanet.pairing_planet.dto.user.UserDto;
 import com.pairingplanet.pairing_planet.repository.comment.CommentRepository;
 import com.pairingplanet.pairing_planet.repository.post.PostRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
 import com.pairingplanet.pairing_planet.repository.verdict.PostVerdictRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,43 +32,53 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final PostVerdictRepository verdictRepository;
-    private final UserRepository userRepository; // [추가]
-    private final PostRepository postRepository; // [추가]
+    private final UserRepository userRepository;
+    private final PostRepository postRepository;
+
+    @Value("${file.upload.url-prefix:http://localhost:9000/pairing-planet-local}")
+    private String urlPrefix;
 
     private static final Instant SAFE_MIN_DATE = Instant.parse("1970-01-01T00:00:00Z");
-    private static final Instant SAFE_MAX_DATE = Instant.parse("3000-01-01T00:00:00Z"); // 안전한 최대값
+    private static final Instant SAFE_MAX_DATE = Instant.parse("3000-01-01T00:00:00Z");
 
-    // 댓글 작성
+    /**
+     * 댓글 작성 로직
+     * 1. 대댓글은 1단계까지만 허용
+     * 2. 리뷰 포스트만 유저의 Verdict 반영, 일상/레시피는 null 처리
+     */
     @Transactional
-    public void createComment(UUID userId, CommentRequestDto request) { // [변경] Long -> UUID
-        // 1. UUID -> Long 변환
+    public void createComment(UUID userId, CommentRequestDto request) {
         User user = userRepository.findByPublicId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // request.postId()도 UUID일 것이므로 변환 필요
-        // DTO의 postId 타입을 UUID로 변경했다고 가정하거나, String이라면 변환
-        UUID postPublicId = request.postId(); // (가정: DTO도 UUID로 수정됨)
-        Post post = postRepository.findByPublicId(postPublicId)
+        Post post = postRepository.findByPublicId(request.postId())
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
-        // 2. Verdict 조회 (복합키: Long userId, Long postId)
-        PostVerdict postVerdict = verdictRepository.findById(new PostVerdictId(user.getId(), post.getId()))
-                .orElse(null);
+        // [핵심] 포스트 타입에 따른 Verdict 결정
+        VerdictType currentType = null;
+        if (post instanceof ReviewPost) {
+            // 리뷰 포스트인 경우에만 사용자의 투표(Verdict) 상태를 가져옴
+            PostVerdict postVerdict = verdictRepository.findById(new PostVerdictId(user.getId(), post.getId()))
+                    .orElse(null);
+            currentType = (postVerdict != null) ? postVerdict.getVerdictType() : null;
+        }
 
-        VerdictType currentType = (postVerdict != null) ? postVerdict.getVerdictType() : null;
-
-        // 부모 댓글 처리 (Optional)
+        // [핵심] 대댓글 깊이 제한 (1단계: 부모-자식까지만 가능)
         Long parentId = null;
         if (request.parentId() != null) {
-            // request.parentId()는 UUID여야 함
             Comment parent = commentRepository.findByPublicId(request.parentId())
                     .orElseThrow(() -> new IllegalArgumentException("Parent comment not found"));
+
+            // 부모 댓글이 이미 다른 댓글의 자식이라면(parentId가 존재하면) 에러
+            if (parent.getParentId() != null) {
+                throw new IllegalStateException("Only up to 1-level of nested comments are allowed.");
+            }
             parentId = parent.getId();
         }
 
         Comment comment = Comment.builder()
-                .postId(post.getId()) // 내부 Long ID 저장
-                .userId(user.getId()) // 내부 Long ID 저장
+                .postId(post.getId())
+                .userId(user.getId())
                 .parentId(parentId)
                 .content(request.content())
                 .initialVerdict(currentType)
@@ -74,86 +88,59 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
-    // Verdict 변경 시 (내부 로직이므로 Long 사용 가능하나, 컨트롤러 호출이면 UUID 변환 필요)
-    @Transactional
-    public void onVerdictSwitched(Long userId, Long postId, VerdictType newType) {
-        // 내부 이벤트나 스케줄러에서 호출된다면 Long 유지 가능
-        // 만약 컨트롤러에서 호출된다면 위 createComment처럼 변환 로직 추가
-        commentRepository.updateVerdictForUserPost(userId, postId, newType);
-    }
-
-    // 댓글 목록 조회
+    /**
+     * 댓글 목록 조회 로직
+     * 1. 일상/레시피 포스트는 Verdict 필터 무시 (전체 조회)
+     * 2. 커서 기반 페이징 처리
+     */
     @Transactional(readOnly = true)
     public CommentListResponseDto getComments(UUID userId, UUID postId, VerdictType filterType, String cursor) {
-        // 1. UUID -> Long 변환
-        // (비로그인 허용 시 userId null 체크)
-        Long internalUserId = null;
-        if (userId != null) {
-            internalUserId = userRepository.findByPublicId(userId)
-                    .map(User::getId)
-                    .orElse(null);
-        }
-
         Post post = postRepository.findByPublicId(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
         Long internalPostId = post.getId();
 
-        // 2. 배댓 가져오기 (Long ID 사용)
-        List<Comment> bestEntities;
-        if (filterType == null) {
-            bestEntities = commentRepository.findGlobalBestComments(internalPostId);
-        } else {
-            bestEntities = commentRepository.findFilteredBestComments(internalPostId, filterType);
+        // 일상/레시피 포스트는 프론트에서 필터를 보내도 null로 강제 (일반 댓글 취급)
+        if (!(post instanceof ReviewPost)) {
+            filterType = null;
         }
 
-        // 3. 커서 파싱 (UUID 포함된 커서 해독)
-        Instant cursorTime;
-        Long cursorInternalId;
+        // 1. 배댓(Best Comments) 조회
+        List<Comment> bestEntities = (filterType == null) ?
+                commentRepository.findGlobalBestComments(internalPostId) :
+                commentRepository.findFilteredBestComments(internalPostId, filterType);
 
-        if (cursor == null) {
-            cursorTime = SAFE_MAX_DATE;
-            cursorInternalId = Long.MAX_VALUE;
-        } else {
-            // 커서 포맷: "2025-01-01T..._UUID"
+        // 2. 커서 파싱 (Time_UUID 포맷)
+        Instant cursorTime = SAFE_MAX_DATE;
+        Long cursorInternalId = Long.MAX_VALUE;
+
+        if (cursor != null) {
             String[] parts = cursor.split("_");
             try {
                 cursorTime = Instant.parse(parts[0]);
-                // [추가] 안전장치: 너무 작은 값은 1970년으로 보정
-                if (cursorTime.isBefore(SAFE_MIN_DATE)) {
-                    cursorTime = SAFE_MIN_DATE;
-                }
+                if (cursorTime.isBefore(SAFE_MIN_DATE)) cursorTime = SAFE_MIN_DATE;
             } catch (Exception e) {
-                cursorTime = SAFE_MAX_DATE; // 파싱 실패 시 안전값
+                cursorTime = SAFE_MAX_DATE;
             }
-            UUID cursorPublicId = UUID.fromString(parts[1]);
-
-            // UUID -> Long 변환
-            cursorInternalId = commentRepository.findByPublicId(cursorPublicId)
-                    .map(Comment::getId)
-                    .orElse(0L);
+            cursorInternalId = commentRepository.findByPublicId(UUID.fromString(parts[1]))
+                    .map(Comment::getId).orElse(0L);
         }
 
-        // 4. 리스트 가져오기 (Long ID 사용)
+        // 3. 일반 댓글 리스트 조회
         int fetchSize = 10;
-        List<Comment> listEntities;
+        List<Comment> listEntities = (filterType == null) ?
+                commentRepository.findAllByCursor(internalPostId, cursorTime, cursorInternalId, PageRequest.of(0, fetchSize)) :
+                commentRepository.findFilteredByCursor(internalPostId, filterType, cursorTime, cursorInternalId, PageRequest.of(0, fetchSize));
 
-        if (filterType == null) {
-            listEntities = commentRepository.findAllByCursor(internalPostId, cursorTime, cursorInternalId, PageRequest.of(0, fetchSize));
-        } else {
-            listEntities = commentRepository.findFilteredByCursor(internalPostId, filterType, cursorTime, cursorInternalId, PageRequest.of(0, fetchSize));
-        }
-
-        // 5. DTO 변환 (내부 ID 숨기고 Public ID 노출)
-        // (CommentResponseDto.from 메서드도 Public ID를 쓰도록 되어있어야 함)
+        // 4. DTO 변환 (작성자 정보 연동 포함)
         List<CommentResponseDto> bestDtos = bestEntities.stream()
-                .map(c -> CommentResponseDto.from(c, false))
-                .toList();
+                .map(c -> convertToResponseDto(c, userId))
+                .collect(Collectors.toList());
 
         List<CommentResponseDto> listDtos = listEntities.stream()
-                .map(c -> CommentResponseDto.from(c, false))
-                .toList();
+                .map(c -> convertToResponseDto(c, userId))
+                .collect(Collectors.toList());
 
-        // 6. 다음 커서 생성 (Public ID 사용)
+        // 5. 다음 커서 생성
         String nextCursor = null;
         if (!listEntities.isEmpty()) {
             Comment last = listEntities.get(listEntities.size() - 1);
@@ -161,5 +148,15 @@ public class CommentService {
         }
 
         return new CommentListResponseDto(bestDtos, listDtos, nextCursor, !listEntities.isEmpty());
+    }
+
+    private CommentResponseDto convertToResponseDto(Comment comment, UUID viewerId) {
+        // 실제 작성자 정보 조회 (N+1 방지를 위해 추후 fetch join 쿼리로 개선 권장)
+        User writer = userRepository.findById(comment.getUserId()).orElse(null);
+
+        // 좋아요 여부 확인 (실제 로직 구현 필요, 여기서는 false 처리)
+        boolean isLikedByMe = false;
+
+        return CommentResponseDto.from(comment, writer, isLikedByMe, urlPrefix);
     }
 }

@@ -41,6 +41,7 @@ spring:
 
 
   flyway:
+    clean-on-validation-error: true
     enabled: true
     validate-on-migrate: false
     baseline-on-migrate: false
