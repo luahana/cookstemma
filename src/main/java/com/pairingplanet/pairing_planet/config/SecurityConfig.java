@@ -1,5 +1,6 @@
 package com.pairingplanet.pairing_planet.config;
 
+import com.pairingplanet.pairing_planet.security.JwtAuthenticationEntryPoint;
 import com.pairingplanet.pairing_planet.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -27,6 +29,9 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 401 처리
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll() // [중요] reissue 포함 인증 API는 전체 허용
                         .requestMatchers("/api/v1/contexts/**").permitAll()
@@ -34,11 +39,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/posts/feed").permitAll()
                         .requestMatchers("/internal/api/**").permitAll()
 
-                        .requestMatchers("/api/v1/images/upload").authenticated()
-                        .requestMatchers("/api/v1/images/posts").authenticated()
-                        .requestMatchers("/api/v1/comments").authenticated()
+                        .requestMatchers("/api/v1/posts/**").authenticated()
+                        .requestMatchers("/api/v1/images/**").authenticated()
+                        .requestMatchers("/api/v1/comments/**").authenticated()
                         .requestMatchers("/api/v1/me/posts").authenticated()
-                        .requestMatchers("/api/v1/saved-posts/**").authenticated()
                         .requestMatchers("/api/v1/search/**").authenticated()
                         .requestMatchers("/api/v1/users/**").authenticated()
 

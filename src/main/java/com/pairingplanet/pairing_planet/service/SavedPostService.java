@@ -66,14 +66,19 @@ public class SavedPostService {
         Slice<SavedPost> slice;
 
         // 1. 페이징 조회 로직 (기존과 동일)
-        if (cursor == null || cursor.isBlank()) {
+        try {
+            if (cursor == null || cursor.isBlank()) {
+                slice = savedPostRepository.findAllByUserIdFirstPage(userId, pageRequest);
+            } else {
+                String[] parts = cursor.split("_");
+                Instant cursorTime = Instant.parse(parts[0]);
+                UUID postPublicId = UUID.fromString(parts[1]);
+                Long internalPostId = postRepository.findByPublicId(postPublicId).map(Post::getId).orElse(0L);
+                slice = savedPostRepository.findAllByUserIdWithCursor(userId, cursorTime, internalPostId, pageRequest);
+            }
+        } catch (Exception e) {
+            // [추가] 커서 파싱 실패 시 첫 페이지 반환 (500 에러 방지)
             slice = savedPostRepository.findAllByUserIdFirstPage(userId, pageRequest);
-        } else {
-            String[] parts = cursor.split("_");
-            Instant cursorTime = Instant.parse(parts[0]);
-            UUID postPublicId = UUID.fromString(parts[1]);
-            Long internalPostId = postRepository.findByPublicId(postPublicId).map(Post::getId).orElse(0L);
-            slice = savedPostRepository.findAllByUserIdWithCursor(userId, cursorTime, internalPostId, pageRequest);
         }
 
         // 2. DTO 변환

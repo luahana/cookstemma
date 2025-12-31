@@ -245,6 +245,22 @@ CREATE INDEX IF NOT EXISTS idx_stats_locale_popular ON pairing_locale_stats (loc
 CREATE INDEX IF NOT EXISTS idx_stats_locale_controversial ON pairing_locale_stats (locale, controversy_score DESC);
 CREATE INDEX IF NOT EXISTS idx_trending_controversial_filtered ON pairing_locale_stats (locale, trending_score DESC) WHERE controversy_score >= 2.0;
 
+CREATE TABLE IF NOT EXISTS search_histories (
+                                                id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                                                public_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    pairing_id BIGINT NOT NULL REFERENCES pairing_map(id) ON DELETE CASCADE,
+
+    -- 같은 유저가 동일한 조합을 검색할 경우 하나만 유지하기 위한 유니크 제약
+    CONSTRAINT uq_user_pairing UNIQUE (user_id, pairing_id),
+
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    );
+
+CREATE INDEX IF NOT EXISTS idx_search_history_user ON search_histories (user_id, updated_at DESC);
+
 -- [수정된 부분] posts 테이블 (USING 구문 제거)
 CREATE TABLE IF NOT EXISTS posts (
                                      id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

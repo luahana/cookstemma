@@ -15,33 +15,24 @@ import java.util.stream.Collectors;
 
 @Builder
 public record PostResponseDto(
-        // --- [Common] 모든 포스트 공통 필드 ---
         UUID id,
-        UUID creatorId,         // [추가] 작성자 식별자 (UUID)
-        String type,            // "DAILY", "DISCUSSION", "RECIPE"
+        UUID creatorId,
+        String type,
         String content,
         List<String> imageUrls,
         Instant createdAt,
         Boolean isPrivate,
-
-        // 페어링 및 컨텍스트 정보
         String food1Name,
         String food2Name,
         String whenContext,
         String dietaryContext,
-
-        // 카운트 정보
         int geniusCount,
         int daringCount,
         int pickyCount,
         int savedCount,
         int commentCount,
-
-        // --- [Discussion] 전용 필드 ---
         String discussionTitle,
         Boolean verdictEnabled,
-
-        // --- [Recipe] 전용 필드 ---
         String recipeTitle,
         String ingredients,
         Integer cookingTime,
@@ -64,7 +55,6 @@ public record PostResponseDto(
                 .savedCount(post.getSavedCount())
                 .commentCount(post.getCommentCount());
 
-        // 2. 페어링 정보 매핑
         if (post.getPairing() != null) {
             PairingMap pairing = post.getPairing();
             builder.food1Name(pairing.getFood1() != null ? pairing.getFood1().getNameByLocale(post.getLocale()) : null);
@@ -73,7 +63,6 @@ public record PostResponseDto(
             builder.dietaryContext(pairing.getDietaryContext() != null ? pairing.getDietaryContext().getDisplayName() : null);
         }
 
-        // 3. 타입별 분기 처리
         if (post instanceof DailyPost) {
             builder.type("DAILY");
         } else if (post instanceof DiscussionPost discussion) {

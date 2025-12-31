@@ -11,6 +11,7 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Getter
+@Setter
 @SuperBuilder
 @MappedSuperclass
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
