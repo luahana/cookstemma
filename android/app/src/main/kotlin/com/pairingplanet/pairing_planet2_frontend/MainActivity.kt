@@ -1,4 +1,4 @@
-package com.example.pairing_planet2_frontend
+package com.pairingplanet.pairing_planet_frontend
 
 import io.flutter.embedding.android.FlutterActivity
 

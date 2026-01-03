@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:pairing_planet2_frontend/core/router/app_router.dart';
 import 'package:pairing_planet2_frontend/core/services/toast_service.dart';
@@ -22,6 +23,8 @@ void main() async {
     // options: DefaultFirebaseOptions.currentPlatform, // flutterfire로 생성된 옵션
   );
 
+  await GoogleSignIn.instance.initialize();
+
   // 2. Flutter 프레임워크 내 에러 캡처
   FlutterError.onError = (errorDetails) {
     FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
@@ -32,6 +35,10 @@ void main() async {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
+
+  await Firebase.initializeApp(
+    // options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   await EasyLocalization.ensureInitialized();
   await dotenv.load(fileName: ".env");

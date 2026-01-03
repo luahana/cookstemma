@@ -7,17 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:223256199574:android:7e5e7f1da64c1dc8341db7",
+        "mobilesdk_app_id": "1:223256199574:android:b0bc3fd7cae4a232341db7",
         "android_client_info": {
-          "package_name": "com.pp.pptest"
+          "package_name": "com.pairingplanet.pairing_planet_frontend"
         }
       },
       "oauth_client": [
         {
-          "client_id": "223256199574-73a5u2jh66kl4tgsfbcvnjm33csou69m.apps.googleusercontent.com",
+          "client_id": "223256199574-51m9kr4rbdgkc5gqag91jm8vfq37khqs.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.pp.pptest",
+            "package_name": "com.pairingplanet.pairing_planet_frontend",
             "certificate_hash": "459bc191b97229de016776dfc54809cbe46bb1d7"
           }
         },
