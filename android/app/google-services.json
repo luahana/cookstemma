@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "223256199574",
+    "project_id": "pptest-b5da0",
+    "storage_bucket": "pptest-b5da0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:223256199574:android:7e5e7f1da64c1dc8341db7",
+        "android_client_info": {
+          "package_name": "com.pp.pptest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxq9-_u1y3D8oPI1JBpfk5O1a0Otjq-l4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
