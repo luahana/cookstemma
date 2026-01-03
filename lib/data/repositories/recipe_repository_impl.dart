@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:pairing_planet2_frontend/core/constants/api_constants.dart';
 import 'package:pairing_planet2_frontend/core/error/failures.dart';
 import 'package:pairing_planet2_frontend/data/models/common/paged_response_dto.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
@@ -95,9 +96,9 @@ class RecipeRepositoryImpl implements RecipeRepository {
 
       case DioExceptionType.badResponse:
         final statusCode = e.response?.statusCode;
-        if (statusCode == 404) return NotFoundFailure();
-        if (statusCode == 401) return UnauthorizedFailure();
-        if (statusCode == 500) return ServerFailure();
+        if (statusCode == HttpStatus.notFound) return NotFoundFailure();
+        if (statusCode == HttpStatus.unauthorized) return UnauthorizedFailure();
+        if (statusCode == HttpStatus.serverError) return ServerFailure();
         return ServerFailure('에러 코드: $statusCode');
 
       default:

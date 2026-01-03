@@ -3,6 +3,7 @@ import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/config/app_config.dart';
+import 'package:pairing_planet2_frontend/core/constants/api_constants.dart';
 import 'package:pairing_planet2_frontend/core/network/auth_interceptor.dart';
 import 'package:pairing_planet2_frontend/core/services/storage_service.dart';
 import 'package:pairing_planet2_frontend/core/services/toast_service.dart'; // 💡 추가
@@ -40,10 +41,24 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  // 2. 인증 인터셉터 (헤더에 토큰 주입 및 401 에러 처리)
+  // 2. 공통 헤더 주입 (인증보다 먼저 실행되어야 함)
+  dio.interceptors.add(
+    InterceptorsWrapper(
+      onRequest: (options, handler) {
+        // 💡 현재 앱의 언어 코드를 가져와 헤더에 삽입 (예: 'ko', 'en')
+        // context가 없는 환경이라면 별도의 LanguageService를 만들어 관리해야 합니다.
+        options.headers['Accept-Language'] =
+            'ko'; // 실제로는 현재 설정된 locale 값을 넣습니다.
+        return handler.next(options);
+      },
+    ),
+  );
+
+  // 3. 인증 인터셉터 (401 발생 시 토큰 갱신 후 재시도)
   dio.interceptors.add(AuthInterceptor(storageService, dio));
 
-  // 3. 재시도 인터셉터 (네트워크 불안정 시 자동 재시도)
+  // 4. 네트워크 재시도 인터셉터
+  // 💡 인증 인터셉터가 해결하지 못한 네트워크 오류(502, 503 등)를 처리
   dio.interceptors.add(
     RetryInterceptor(
       dio: dio,
@@ -62,32 +77,20 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  // 4. 에러 알림 인터셉터 (전역 ToastService 연동)
+  // 5. 최하단: 사용자 알림 및 로그 (최종 결과에 대해 Toast 출력)
   dio.interceptors.add(
     InterceptorsWrapper(
       onError: (DioException e, handler) {
         if (e.type == DioExceptionType.connectionTimeout ||
             e.type == DioExceptionType.connectionError) {
           ToastService.showError("네트워크 연결이 불안정합니다.");
-        } else if (e.response?.statusCode == 500) {
+        } else if (e.response?.statusCode == HttpStatus.serverError) {
           FirebaseCrashlytics.instance.log(
             "Server Error 500: ${e.requestOptions.path}",
           );
           ToastService.showError("서버 내부 오류가 발생했습니다.");
         }
         return handler.next(e);
-      },
-    ),
-  );
-
-  dio.interceptors.add(
-    InterceptorsWrapper(
-      onRequest: (options, handler) {
-        // 💡 현재 앱의 언어 코드를 가져와 헤더에 삽입 (예: 'ko', 'en')
-        // context가 없는 환경이라면 별도의 LanguageService를 만들어 관리해야 합니다.
-        options.headers['Accept-Language'] =
-            'ko'; // 실제로는 현재 설정된 locale 값을 넣습니다.
-        return handler.next(options);
       },
     ),
   );
