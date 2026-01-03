@@ -1,0 +1,12 @@
+{
+  "home": {
+    "title": "페어링 플래닛",
+    "trending": "트렌딩 트리",
+    "recent": "최근 레시피"
+  },
+  "recipe": {
+    "detail": "레시피 상세",
+    "ingredients": "재료",
+    "steps": "조리 순서"
+  }
+}
