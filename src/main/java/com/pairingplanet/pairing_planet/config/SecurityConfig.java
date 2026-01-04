@@ -36,14 +36,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll() // [중요] reissue 포함 인증 API는 전체 허용
                         .requestMatchers("/api/v1/contexts/**").permitAll()
                         .requestMatchers("/api/v1/autocomplete/**").permitAll()
-                        .requestMatchers("/api/v1/posts/feed").permitAll()
-                        .requestMatchers("/internal/api/**").permitAll()
 
-                        .requestMatchers("/api/v1/posts/**").authenticated()
                         .requestMatchers("/api/v1/images/**").authenticated()
-                        .requestMatchers("/api/v1/comments/**").authenticated()
-                        .requestMatchers("/api/v1/me/posts").authenticated()
-                        .requestMatchers("/api/v1/search/**").authenticated()
                         .requestMatchers("/api/v1/users/**").authenticated()
 
                         .anyRequest().authenticated()

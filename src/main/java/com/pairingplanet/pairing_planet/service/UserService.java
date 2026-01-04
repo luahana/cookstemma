@@ -1,9 +1,12 @@
 package com.pairingplanet.pairing_planet.service;
 
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
+import com.pairingplanet.pairing_planet.dto.user.MyProfileResponseDto;
 import com.pairingplanet.pairing_planet.dto.user.UpdateProfileRequestDto;
 import com.pairingplanet.pairing_planet.dto.user.UserDto;
+import com.pairingplanet.pairing_planet.repository.recipe.RecipeRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
+import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,17 +22,32 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final ImageService imageService;
+    private final RecipeRepository recipeRepository;
 
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
 
     /**
-     * 사용자 상세 정보 조회 (공통)
+     * [내 정보] UserPrincipal 기반 상세 조회 (기획서 7번 반영)
      */
-    public UserDto getUserProfile(UUID userId) {
-        User user = userRepository.findByPublicId(userId)
+    public MyProfileResponseDto getMyProfile(UserPrincipal principal) {
+        // principal에 이미 담긴 Long ID를 사용하여 DB 부하를 줄입니다.
+        User user = userRepository.findById(principal.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        // 기획서 요구사항: 내가 만든 레시피 개수 등 활동 내역 포함
+        return MyProfileResponseDto.builder()
+                .user(UserDto.from(user, urlPrefix))
+                .recipeCount(recipeRepository.countByCreatorIdAndIsDeletedFalse(user.getId()))
+                .build();
+    }
+
+    /**
+     * 사용자 상세 정보 조회 (공통)
+     */
+    public UserDto getUserProfile(UUID publicId) {
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
         return UserDto.from(user, urlPrefix);
     }
 
@@ -37,8 +55,8 @@ public class UserService {
      * 내 프로필 수정
      */
     @Transactional
-    public UserDto updateProfile(UUID userId, UpdateProfileRequestDto request) {
-        User user = userRepository.findByPublicId(userId)
+    public UserDto updateProfile(UserPrincipal principal, UpdateProfileRequestDto request) {
+        User user = userRepository.findById(principal.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // 1. 사용자명 중복 체크 및 변경

@@ -8,6 +8,8 @@ import com.pairingplanet.pairing_planet.domain.enums.ImageType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -22,9 +24,11 @@ public class Image extends BaseEntity {
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private ImageStatus status = ImageStatus.PROCESSING;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private ImageType type;
 
     @Builder.Default

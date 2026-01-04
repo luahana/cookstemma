@@ -2,6 +2,7 @@ package com.pairingplanet.pairing_planet.controller;
 
 import com.pairingplanet.pairing_planet.domain.enums.ImageType;
 import com.pairingplanet.pairing_planet.dto.image.ImageUploadResponseDto;
+import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import com.pairingplanet.pairing_planet.service.ImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -26,12 +27,12 @@ public class ImageController {
      */
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ImageUploadResponseDto> uploadImage(
-            @AuthenticationPrincipal UUID userId, // Security 적용 시
+            @AuthenticationPrincipal UserPrincipal principal, // Security 적용 시
             // 혹은 @RequestHeader("X-User-Id") UUID userId,
             @RequestParam("file") MultipartFile file,
             @RequestParam("type") ImageType type
     ) {
-        ImageUploadResponseDto response = imageService.uploadImage(file, type, userId);
+        ImageUploadResponseDto response = imageService.uploadImage(file, type, principal);
         return ResponseEntity.ok(response);
     }
 }

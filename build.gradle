@@ -59,6 +59,8 @@ dependencies {
     implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.1.0') // 버전은 최신에 맞게 조정 가능
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
     implementation 'io.minio:minio:8.5.7'
+
+    implementation 'com.google.firebase:firebase-admin:9.2.0'
 }
 
 tasks.named('test') {

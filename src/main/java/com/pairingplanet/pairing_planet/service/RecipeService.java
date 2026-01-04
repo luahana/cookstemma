@@ -54,6 +54,15 @@ public class RecipeService {
             root = (parent.getRootRecipe() != null) ? parent.getRootRecipe() : parent;
         }
 
+        Long foodId = req.food1MasterId();
+        if (foodId == null && parent != null) {
+            foodId = parent.getFood1MasterId();
+        }
+
+        if (foodId == null) {
+            throw new IllegalArgumentException("음식 카테고리(food1MasterId)는 필수입니다.");
+        }
+
         Recipe recipe = Recipe.builder()
                 .title(req.title())
                 .description(req.description())

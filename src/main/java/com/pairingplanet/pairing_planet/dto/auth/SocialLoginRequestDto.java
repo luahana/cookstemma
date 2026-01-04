@@ -5,13 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record SocialLoginRequestDto(
-        @NotNull(message = "Provider is required")
-        Provider provider,
-        @NotBlank String providerUserId,
-        String email,
-        String username,
-        String profileImageUrl,
-        @NotBlank String locale,
-        @NotBlank String socialAccessToken, // 암호화되어 저장될 값
-        String socialRefreshToken
+        @NotBlank String idToken, // Firebase에서 발급받은 ID Token
+        @NotBlank String locale   // 유저의 시스템 언어 설정
 ) {}

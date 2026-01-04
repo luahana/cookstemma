@@ -8,6 +8,7 @@ import com.pairingplanet.pairing_planet.domain.enums.ImageType;
 import com.pairingplanet.pairing_planet.dto.image.ImageUploadResponseDto;
 import com.pairingplanet.pairing_planet.repository.image.ImageRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
+import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,12 +46,10 @@ public class ImageService {
     private String endpoint;
 
     @Transactional
-    public ImageUploadResponseDto uploadImage(MultipartFile file, ImageType imageType, UUID uploaderPublicId) {
+    public ImageUploadResponseDto uploadImage(MultipartFile file, ImageType imageType, UserPrincipal principal) {
         if (file.isEmpty()) throw new IllegalArgumentException("File is empty");
 
-        Long uploaderId = userRepository.findByPublicId(uploaderPublicId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found")).getId();
-
+        Long uploaderId = principal.getId();
         String originalFilename = file.getOriginalFilename();
         String extension = getExtension(originalFilename);
         String savedFilename = UUID.randomUUID() + extension;

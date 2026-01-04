@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -22,7 +24,8 @@ public class AuthController {
         return ResponseEntity.ok(authService.socialLogin(request));
     }
 
-    // 토큰 갱신 (Sliding Expiration + RTR)
+    // 기존의 firebase-login 엔드포인트는 삭제 가능
+
     @PostMapping("/reissue")
     public ResponseEntity<AuthResponseDto> reissue(@RequestBody @Valid TokenReissueRequestDto request) {
         return ResponseEntity.ok(authService.reissue(request));
