@@ -13,54 +13,50 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface RecipeRepository extends JpaRepository<Recipe, Long> {
-    // 1. 상세 조회 (계보 정보와 해시태그를 함께 로드)
-    @EntityGraph(attributePaths = {"rootRecipe", "parentRecipe", "hashtags"})
+
+    // [보안] publicId로 상세 조회 시, 음식 정보와 계보 정보를 한 번에 가져옴 (N+1 방지)
+    @EntityGraph(attributePaths = {"foodMaster", "rootRecipe", "parentRecipe", "hashtags"})
     Optional<Recipe> findByPublicId(UUID publicId);
 
-    // 2. 전체 피드 조회 (공개된 최신 레시피 slice)
     @Query("SELECT r FROM Recipe r WHERE r.isDeleted = false AND r.isPrivate = false")
     Slice<Recipe> findPublicRecipes(Pageable pageable);
 
-    // 3. 특정 레시피로부터 파생된 변형 레시피 목록 조회
+    // [계보 조회용] 특정 레시피로부터 직접 파생된 변형들
     List<Recipe> findByParentRecipeIdAndIsDeletedFalse(Long parentId);
 
-    // 4. 특정 루트 레시피를 공유하는 모든 계보 조회
+    // [계보 조회용] 한 뿌리(Root) 아래의 모든 가족 레시피 조회
     List<Recipe> findByRootRecipeIdAndIsDeletedFalse(Long rootId);
 
-    // 5. 유저별 레시피 개수 (통계용)
     long countByCreatorIdAndIsDeletedFalse(Long creatorId);
 
-    @Query("""
-        SELECT r FROM Recipe r 
-        LEFT JOIN Recipe v ON v.rootRecipe = r 
-        WHERE r.rootRecipe IS NULL 
-        GROUP BY r.id 
-        ORDER BY MAX(v.createdAt) DESC
-    """)
-    List<Recipe> findTrendingVariantTrees(Pageable pageable);
-
-    // 3. 특정 계보 전체 조회 (Root부터 모든 자식까지)
-    List<Recipe> findAllByRootRecipeIdOrIdOrderByCreatedAtDesc(Long rootId, Long id);
-
+    // [Home] 오리지널 레시피(Root) 중 로케일에 맞는 것만 슬라이스로 조회
     @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.culinaryLocale = :locale AND r.isDeleted = false")
     Slice<Recipe> findRootRecipesByLocale(@Param("locale") String locale, Pageable pageable);
 
-    // Home: 최근 생성된 레시피 5개 조회
-    List<Recipe> findTop5ByIsDeletedFalseOrderByCreatedAtDesc();
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.isDeleted = false")
+    Slice<Recipe> findAllRootRecipes(Pageable pageable);
 
-    // Home: 최근 변형이 일어난 오리지널 레시피들 조회 (활발한 트리용)
+    // [Home] 최근 생성된 공개 레시피 5개
+    List<Recipe> findTop5ByIsDeletedFalseAndIsPrivateFalseOrderByCreatedAtDesc();
+
+    // [Home] 활발한 변형 트리 (가장 최근에 변형/로그가 발생한 오리지널 중심)
     @Query("""
         SELECT r FROM Recipe r 
         LEFT JOIN Recipe v ON v.rootRecipe = r 
         WHERE r.rootRecipe IS NULL AND r.isDeleted = false
         GROUP BY r.id 
-        ORDER BY MAX(v.createdAt) DESC
+        ORDER BY MAX(COALESCE(v.createdAt, r.createdAt)) DESC
     """)
     List<Recipe> findTrendingOriginals(Pageable pageable);
 
-    /**
-     * [해결] 특정 루트 레시피를 기준으로 생성된 모든 변형 레시피의 개수 조회
-     * SQL: SELECT COUNT(*) FROM recipes WHERE root_recipe_id = ? AND is_deleted = false
-     */
+    // 특정 루트 레시피를 기준으로 생성된 모든 변형 레시피의 개수
     long countByRootRecipeIdAndIsDeletedFalse(Long rootId);
+
+    // [추가] 음식 ID(Long)를 사용하는 레시피가 있는지 확인 (삭제 방지용 등)
+    boolean existsByFoodMasterId(Long foodMasterId);
+
+
+    // 2. [필터] 특정 로케일의 모든 공개 레시피 (에러 해결 지점)
+    @Query("SELECT r FROM Recipe r WHERE r.culinaryLocale = :locale AND r.isDeleted = false AND r.isPrivate = false")
+    Slice<Recipe> findPublicRecipesByLocale(@Param("locale") String locale, Pageable pageable);
 }

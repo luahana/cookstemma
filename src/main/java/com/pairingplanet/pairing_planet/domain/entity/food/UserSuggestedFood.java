@@ -2,6 +2,7 @@ package com.pairingplanet.pairing_planet.domain.entity.food;
 
 import com.pairingplanet.pairing_planet.domain.entity.common.BaseEntity;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
+import com.pairingplanet.pairing_planet.domain.enums.SuggestionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -34,8 +35,4 @@ public class UserSuggestedFood extends BaseEntity {
     @JoinColumn(name = "master_food_id_ref")
     private FoodMaster masterFoodRef;
 
-    // Status Enum 정의
-    public enum SuggestionStatus {
-        PENDING, APPROVED, REJECTED
-    }
 }

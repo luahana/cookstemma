@@ -14,10 +14,12 @@ public record CreateRecipeRequestDto(
         String title,
         String description,
         String culinaryLocale,
-        Long food1MasterId,
+        UUID food1MasterPublicId, // [수정] Long ID 대신 UUID 사용
+        String newFoodName,
         List<IngredientDto> ingredients,
         List<StepDto> steps,
-        List<UUID> imagePublicIds, // 대표 사진들
-        String changeCategory,  // 변형 시 "무엇을 바꿨나요?"
-        UUID parentPublicId     // 변형 대상 레시피 (NULL이면 오리지널)
+        List<UUID> imagePublicIds,
+        String changeCategory,
+        UUID parentPublicId,
+        UUID rootPublicId
 ) {}

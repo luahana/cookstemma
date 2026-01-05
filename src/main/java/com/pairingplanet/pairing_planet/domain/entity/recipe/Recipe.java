@@ -1,6 +1,7 @@
 package com.pairingplanet.pairing_planet.domain.entity.recipe;
 
 import com.pairingplanet.pairing_planet.domain.entity.common.BaseEntity;
+import com.pairingplanet.pairing_planet.domain.entity.food.FoodMaster;
 import com.pairingplanet.pairing_planet.domain.entity.hashtag.Hashtag;
 import com.pairingplanet.pairing_planet.domain.entity.image.Image;
 import jakarta.persistence.*;
@@ -19,8 +20,9 @@ import java.util.Set;
 @SuperBuilder // BaseEntity 상속을 위해 SuperBuilder 사용
 public class Recipe extends BaseEntity {
 
-    @Column(name = "food1_master_id", nullable = false)
-    private Long food1MasterId; // [교정] PK가 아닌 일반 컬럼으로 변경
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "food1_master_id", nullable = false)
+    private FoodMaster foodMaster;
 
     private String culinaryLocale;
     private String title;
@@ -67,4 +69,8 @@ public class Recipe extends BaseEntity {
             joinColumns = @JoinColumn(name = "recipe_id"),
             inverseJoinColumns = @JoinColumn(name = "hashtag_id"))
     private Set<Hashtag> hashtags = new HashSet<>();
+
+    public boolean isOriginal() {
+        return this.rootRecipe == null;
+    }
 }

@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,16 +34,15 @@ public class AutocompleteService {
     public List<AutocompleteDto> search(String keyword, String locale) {
         if (keyword == null || keyword.isBlank()) return List.of();
 
-        // --- 1단계: Redis 검색 (고속, Prefix) ---
+        // 1. Redis에서 직접 UUID가 포함된 결과 추출 (DB 접근 0)
         List<AutocompleteDto> redisResults = searchRedis(keyword, locale);
 
-        // Redis 결과가 있으면 바로 리턴 (DB 부하 0)
         if (!redisResults.isEmpty()) {
             return redisResults;
         }
 
-        // --- 2단계: DB Fallback (오타 보정) ---
-        // Redis 결과가 없다는 건, 유저가 오타를 냈거나 없는 단어일 확률이 높음 -> DB Fuzzy Query 호출
+        // 2. Redis에 없을 때만 DB Fuzzy 검색 수행
+        // pg_trgm 인덱스를 사용하여 텍스트 유사도 검색 최적화
         return searchDbWithFuzzy(keyword, locale);
     }
 
@@ -93,11 +89,11 @@ public class AutocompleteService {
      * 데이터 추가/갱신 (Sync용)
      * Format: "Name::Type::Id::Score"
      */
-    public void add(String locale, String name, String type, Long id, Double score) {
+    public void add(String locale, String name, String type, UUID publicId, Double score) {
         String key = AUTOCOMPLETE_KEY_PREFIX + locale;
-        String value = String.join(DELIMITER, name, type, String.valueOf(id), String.valueOf(score));
+        // 성능 포인트: 불필요한 객체 생성을 줄이기 위해 String.join 사용
+        String value = name + DELIMITER + type + DELIMITER + publicId.toString() + DELIMITER + score;
 
-        // ZSet에 추가 (Score는 0으로 고정하여 Lexical Ordering 사용)
         redisTemplate.opsForZSet().add(key, value, 0);
     }
 
@@ -111,16 +107,14 @@ public class AutocompleteService {
     private AutocompleteDto parse(String raw) {
         try {
             String[] parts = raw.split(DELIMITER);
-            // parts[0]=Name, parts[1]=Type, parts[2]=Id, parts[3]=Score
             return AutocompleteDto.builder()
                     .name(parts[0])
                     .type(parts[1])
-                    .id(Long.parseLong(parts[2]))
+                    .publicId(UUID.fromString(parts[2])) // 성능: UUID.fromString은 매우 빠른 비트 연산 기반임
                     .score(Double.parseDouble(parts[3]))
                     .build();
         } catch (Exception e) {
-            // 파싱 에러 시 빈 객체 혹은 null 처리
-            return AutocompleteDto.builder().name(raw).type("UNKNOWN").id(0L).score(0.0).build();
+            return AutocompleteDto.builder().name(raw).type("UNKNOWN").build();
         }
     }
 
@@ -128,7 +122,7 @@ public class AutocompleteService {
 
     private AutocompleteDto convertProjection(AutocompleteProjectionDto p) {
         return AutocompleteDto.builder()
-                .id(p.getId())
+                .publicId(p.getPublicId())
                 .name(p.getName())
                 .type(p.getType()) // "FOOD" or "CATEGORY" from query
                 .score(p.getScore())

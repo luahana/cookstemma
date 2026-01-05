@@ -63,7 +63,7 @@ public class AutocompleteScheduler {
         else {
             names.forEach((locale, name) -> {
                 if (SUPPORTED_LOCALES.contains(locale)) {
-                    autocompleteService.add(locale, name, "CATEGORY", c.getId(), baseScore);
+                    autocompleteService.add(locale, name, "CATEGORY", c.getPublicId(), baseScore);
                 }
             });
         }
@@ -79,7 +79,7 @@ public class AutocompleteScheduler {
                 // 하지만 현재 구조(add)는 검색어=표시이름 이므로,
                 // 코드로 검색되게 하려면 별도 처리가 필요하지만,
                 // 간단하게 "Code" 자체를 자동완성 리스트에 띄워줍니다.
-                autocompleteService.add(locale, c.getCode(), "CATEGORY", c.getId(), baseScore - 1.0);
+                autocompleteService.add(locale, c.getCode(), "CATEGORY", c.getPublicId(), baseScore - 1.0);
             }
         }
     }
@@ -92,7 +92,7 @@ public class AutocompleteScheduler {
         if (names != null) {
             names.forEach((locale, name) -> {
                 if (SUPPORTED_LOCALES.contains(locale)) {
-                    autocompleteService.add(locale, name, "FOOD", f.getId(), score);
+                    autocompleteService.add(locale, name, "FOOD", f.getPublicId(), score);
                 }
             });
         }

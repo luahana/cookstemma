@@ -21,28 +21,23 @@ public interface FoodMasterRepository extends JpaRepository<FoodMaster, Long> {
     @Query("SELECT f FROM FoodMaster f WHERE f.isVerified = true")
     List<FoodMaster> findAllVerified();
 
+    // [수정] JSONB 필드인 name 내에서 특정 로케일(ko-KR 등)의 값이 일치하는지 검색
     @Query(value = "SELECT * FROM foods_master WHERE name ->> :locale = :name LIMIT 1", nativeQuery = true)
-    Optional<FoodMaster> findByNameAndLocale(@Param("locale") String locale, @Param("name") String name);
+    Optional<FoodMaster> findByNameAndLocale(@Param("name") String name, @Param("locale") String locale);
+
+    @Query(value = "SELECT * FROM foods_master WHERE EXISTS (SELECT 1 FROM jsonb_each_text(name) WHERE value = :name) LIMIT 1", nativeQuery = true)
+    Optional<FoodMaster> findByNameInAnyLocale(@Param("name") String name);
 
     // FR-86: Fuzzy Matching (오타 보정)
     // 1순위: 정확/부분 일치 (ILIKE)
     // 2순위: 유사도(SIMILARITY) 0.3 이상
-    @Query(value = """
-        SELECT f.id as id, 
-               f.name ->> :locale as name, 
-               'FOOD' as type,
-               CASE 
-                   WHEN (f.name ->> :locale ILIKE %:keyword%) THEN 1.0
-                   ELSE SIMILARITY(f.search_keywords, :keyword)
-               END as score
-        FROM foods_master f
-        WHERE 
-            (f.name ->> :locale ILIKE %:keyword% OR f.search_keywords ILIKE %:keyword%)
-            OR 
-            (SIMILARITY(f.search_keywords, :keyword) > 0.3)
-        AND f.is_verified = TRUE
-        ORDER BY score DESC, LENGTH(f.name ->> :locale) ASC
-        """, nativeQuery = true)
+    @Query(value = "SELECT public_id as publicId, " + // [핵심] id 대신 public_id를 조회
+            "name ->> :locale as name, 'FOOD' as type, food_score as score " +
+            "FROM foods_master " +
+            "WHERE name ->> :locale %> :keyword " + // pg_trgm 유사도 검색
+            "ORDER BY name ->> :locale <-> :keyword " + // 유사도 순 정렬
+            "LIMIT :#{#pageable.pageSize}",
+            nativeQuery = true)
     List<AutocompleteProjectionDto> searchByNameWithFuzzy(@Param("keyword") String keyword,
                                                           @Param("locale") String locale,
                                                           Pageable pageable);

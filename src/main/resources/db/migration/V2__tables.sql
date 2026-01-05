@@ -395,7 +395,8 @@ CREATE TABLE IF NOT EXISTS images (
 
     CONSTRAINT chk_image_target CHECK (
         (log_post_id IS NOT NULL AND recipe_id IS NULL) OR
-        (log_post_id IS NULL AND recipe_id IS NOT NULL)
+        (log_post_id IS NULL AND recipe_id IS NOT NULL) OR
+        (recipe_id IS NULL AND log_post_id IS NULL)
     )
     );
 

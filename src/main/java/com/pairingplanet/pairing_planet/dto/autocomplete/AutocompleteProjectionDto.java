@@ -1,9 +1,10 @@
 package com.pairingplanet.pairing_planet.dto.autocomplete;
 
+import java.util.UUID;
+
 public interface AutocompleteProjectionDto {
 
-    // SQL: select f.id as id
-    Long getId();
+    UUID getPublicId();
 
     // SQL: select ... as name
     String getName();

@@ -4,8 +4,14 @@ import java.util.UUID;
 
 public record RecipeSummaryDto(
         UUID publicId,
+        String foodName,
+        UUID foodMasterPublicId,
         String title,
+        String description,
         String culinaryLocale,
         String creatorName,
-        String thumbnail // display_order = 0인 이미지
+        String thumbnail,
+        Integer variantCount,
+        UUID parentPublicId,
+        UUID rootPublicId
 ) {}

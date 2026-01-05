@@ -20,13 +20,17 @@ public class RecipeController {
     private final RecipeService recipeService;
     // --- [TAB 2: RECIPES] ---
     /**
-     * 레시피 탐색: 오리지널(Root) 레시피 리스트 조회
+     * 레시피 탐색 통합 엔드포인트
+     * - GET /api/v1/recipes : 로케일 상관없이 모든 레시피 조회 (Default)
+     * - GET /api/v1/recipes?locale=ko-KR : 한국 레시피만 조회
+     * - GET /api/v1/recipes?onlyRoot=true : 오리지널 레시피만 조회
      */
     @GetMapping
-    public ResponseEntity<Slice<RecipeSummaryDto>> getRootRecipes(
-            @RequestParam String locale,
+    public ResponseEntity<Slice<RecipeSummaryDto>> getRecipes(
+            @RequestParam(required = false) String locale,
+            @RequestParam(defaultValue = "false") boolean onlyRoot,
             Pageable pageable) {
-        return ResponseEntity.ok(recipeService.findRootRecipes(locale, pageable));
+        return ResponseEntity.ok(recipeService.findRecipes(locale, onlyRoot, pageable));
     }
 
     /**
