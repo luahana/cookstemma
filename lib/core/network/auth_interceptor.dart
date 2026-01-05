@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
-import 'package:pairing_planet2_frontend/core/constants/api_constants.dart';
+import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/utils/logger.dart';
 import '../services/storage_service.dart';
 

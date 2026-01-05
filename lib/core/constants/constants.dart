@@ -4,6 +4,8 @@ class ApiEndpoints {
   static const String rootRecipes = '/recipes/roots'; //
   static String recipeDetail(String id) => '/recipes/$id'; //
 
+  static const String log_posts = '/log_posts'; //
+
   // Feed 관련
   static const String homeFeed = '/home/feed'; //
 
@@ -18,11 +20,14 @@ class RouteConstants {
   static const String recipeCreate = '/recipe/create';
   static const String recipes = '/recipes';
   static const String recipeDetail = ':id'; // 하위 경로용
+  static const String logPostCreate = '/log_post/create';
+  static const String logDetail = '/log/:id'; // 💡 추가
   static const String search = '/search';
   static const String profile = '/profile';
 
   // 이동 시 사용할 전체 경로 헬퍼
   static String recipeDetailPath(String id) => '/recipes/$id';
+  static String logDetailPath(String id) => '/log/$id';
 }
 
 class HttpStatus {

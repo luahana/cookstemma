@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pairing_planet2_frontend/core/constants/api_constants.dart';
+import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/ingredient_dto.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
@@ -22,111 +22,93 @@ class RecipeDetailScreen extends ConsumerWidget {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
-        actions: [
-          recipeAsync.when(
-            data: (recipe) => TextButton(
-              onPressed: () => context.push(
-                // 💡 id뿐만 아니라 recipe 객체 전체를 전달합니다.
-                RouteConstants.recipeCreate,
-                extra: recipe,
-              ),
-              child: const Text(
-                "변형하기",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-          ),
-        ],
+        // 💡 AppBar에서 변형하기 버튼을 제거했습니다.
       ),
       body: recipeAsync.when(
-        data: (recipe) => SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildImageHeader(recipe),
-              Padding(
-                padding: const EdgeInsets.all(20.0),
+        data: (recipe) => Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 💡 1. 계보 정보 (요구사항 B-3)
-                    _buildLineageTag(recipe),
-                    const SizedBox(height: 12),
-                    Text(
-                      "[${recipe.foodName}]",
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.indigo[900],
-                        fontWeight: FontWeight.w600,
+                    _buildImageHeader(recipe),
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildLineageTag(recipe),
+                          const SizedBox(height: 12),
+                          Text(
+                            "[${recipe.foodName}]",
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.indigo[900],
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            recipe.title,
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            recipe.description ?? "",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[700],
+                              height: 1.5,
+                            ),
+                          ),
+                          const Divider(height: 48),
+                          const Text(
+                            "준비 재료",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildIngredientSection(
+                            "주재료",
+                            recipe.ingredients,
+                            IngredientType.MAIN,
+                          ),
+                          _buildIngredientSection(
+                            "부재료",
+                            recipe.ingredients,
+                            IngredientType.SECONDARY,
+                          ),
+                          _buildIngredientSection(
+                            "양념",
+                            recipe.ingredients,
+                            IngredientType.SEASONING,
+                          ),
+                          const Divider(height: 48),
+                          const Text(
+                            "조리 순서",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ...recipe.steps.map((step) => _buildStepItem(step)),
+                          const SizedBox(height: 20),
+                        ],
                       ),
                     ),
-                    Text(
-                      recipe.title,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      recipe.description ?? "",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[700],
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 💡 2. 요리 시간 및 난이도 (요구사항 B-1)
-                    // _buildRecipeStats(recipe),
-                    const Divider(height: 48),
-
-                    // 💡 3. 재료 목록 (MAIN / SECONDARY / SEASONING 분류)
-                    const Text(
-                      "준비 재료",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildIngredientSection(
-                      "주재료",
-                      recipe.ingredients,
-                      IngredientType.MAIN,
-                    ),
-                    _buildIngredientSection(
-                      "부재료",
-                      recipe.ingredients,
-                      IngredientType.SECONDARY,
-                    ),
-                    _buildIngredientSection(
-                      "양념",
-                      recipe.ingredients,
-                      IngredientType.SEASONING,
-                    ),
-
-                    const Divider(height: 48),
-
-                    // 💡 4. 조리 단계
-                    const Text(
-                      "조리 순서",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ...recipe.steps.map((step) => _buildStepItem(step)),
-                    const SizedBox(height: 50),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+            // 💡 하단 고정 버튼 섹션 추가
+            _buildBottomActionButtons(context, recipe),
+          ],
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(
@@ -146,9 +128,66 @@ class RecipeDetailScreen extends ConsumerWidget {
     );
   }
 
-  // 💡 계보 태그 UI (B-3 반영)
+  // 💡 하단 변형하기 & 로그 기록하기 버튼 레이아웃
+  Widget _buildBottomActionButtons(BuildContext context, RecipeDetail recipe) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // 1. 로그 기록하기 버튼 (좌측)
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () {
+                // 💡 로그 작성을 위한 경로로 이동 (RouteConstants에 정의 필요)
+                context.push(RouteConstants.logPostCreate, extra: recipe);
+              },
+              icon: const Icon(Icons.history_edu),
+              label: const Text("로그 기록"),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                side: const BorderSide(color: Color(0xFF1A237E)),
+                foregroundColor: const Color(0xFF1A237E),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // 2. 변형하기 버튼 (우측)
+          Expanded(
+            flex: 1,
+            child: ElevatedButton.icon(
+              onPressed: () =>
+                  context.push(RouteConstants.recipeCreate, extra: recipe),
+              icon: const Icon(Icons.alt_route, color: Colors.white),
+              label: const Text("변형하기", style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1A237E), // 남색 스타일 적용
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLineageTag(RecipeDetail recipe) {
-    final isVariant = recipe.publicId != null;
+    final isVariant = recipe.parentInfo != null || recipe.rootInfo != null;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -166,37 +205,6 @@ class RecipeDetailScreen extends ConsumerWidget {
     );
   }
 
-  // 💡 요리 정보 통계 UI (B-1 반영)
-  // Widget _buildRecipeStats(RecipeDetail recipe) {
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.spaceAround,
-  //     children: [
-  //       _statItem(
-  //         Icons.timer_outlined,
-  //         "${recipe.cookingTime ?? '-'}분",
-  //         "요리 시간",
-  //       ),
-  //       _statItem(Icons.bar_chart_outlined, recipe.difficulty ?? "미설정", "난이도"),
-  //       _statItem(Icons.language_outlined, recipe.culinaryLocale, "국가"),
-  //     ],
-  //   );
-  // }
-
-  Widget _statItem(IconData icon, String value, String label) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.indigo[900], size: 28),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-        ),
-        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-      ],
-    );
-  }
-
-  // 💡 재료 섹션 UI
   Widget _buildIngredientSection(
     String title,
     List<dynamic> allIngredients,
@@ -239,7 +247,6 @@ class RecipeDetailScreen extends ConsumerWidget {
     );
   }
 
-  // 💡 조리 단계 UI
   Widget _buildStepItem(dynamic step) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),

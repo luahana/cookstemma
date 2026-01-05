@@ -2,8 +2,10 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pairing_planet2_frontend/core/constants/api_constants.dart';
+import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/features/home/screens/main_screen.dart';
+import 'package:pairing_planet2_frontend/features/log_post/presentation/screens/log_post_create_screen.dart';
+import 'package:pairing_planet2_frontend/features/log_post/presentation/screens/log_post_detail_screen.dart';
 import 'package:pairing_planet2_frontend/features/login/screens/login_screen.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/screens/recipe_create_screen.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/screens/recipe_list_screen.dart';
@@ -58,6 +60,23 @@ final routerProvider = Provider<GoRouter>((ref) {
           return RecipeCreateScreen(
             parentRecipe: parentRecipe, // 💡 객체 하나만 전달
           );
+        },
+      ),
+      GoRoute(
+        path: RouteConstants.logPostCreate,
+        name: 'log_post_create',
+        builder: (context, state) {
+          final recipe = state.extra as RecipeDetail; // 💡 필수 객체 수신
+          return LogPostCreateScreen(recipe: recipe);
+        },
+      ),
+      GoRoute(
+        path: RouteConstants.logDetail, // '/log/:id'
+        name: 'log_detail',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          // 💡 로그 상세 페이지로 이동 (해당 위젯은 별도로 생성 필요)
+          return LogPostDetailScreen(logId: id);
         },
       ),
       StatefulShellRoute.indexedStack(

@@ -3,7 +3,7 @@ import 'package:pairing_planet2_frontend/data/models/common/paged_response_dto.d
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_detail_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/create_recipe_request_dtos.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
-import '../../../core/constants/api_constants.dart';
+import '../../../core/constants/constants.dart';
 import '../../../core/error/exceptions.dart';
 import '../../models/home/home_feed_response_dto.dart';
 
