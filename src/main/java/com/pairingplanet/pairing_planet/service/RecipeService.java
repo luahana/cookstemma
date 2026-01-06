@@ -400,4 +400,16 @@ public class RecipeService {
                 .map(this::convertToSummary);
     }
 
+    /**
+     * 레시피 검색 (제목, 설명, 재료명)
+     */
+    public Slice<RecipeSummaryDto> searchRecipes(String keyword, Pageable pageable) {
+        if (keyword == null || keyword.trim().length() < 2) {
+            return new org.springframework.data.domain.SliceImpl<>(
+                    java.util.Collections.emptyList(), pageable, false);
+        }
+        return recipeRepository.searchRecipes(keyword.trim(), pageable)
+                .map(this::convertToSummary);
+    }
+
 }

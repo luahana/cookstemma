@@ -6,6 +6,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -26,4 +27,31 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
 
     // 4. 사용자의 로그 개수 (삭제되지 않은 것만)
     long countByCreatorIdAndIsDeletedFalse(Long creatorId);
+
+    // [검색] pg_trgm 기반 로그 검색 (제목, 내용, 연결된 레시피명)
+    @Query(value = """
+        SELECT DISTINCT lp.* FROM log_posts lp
+        LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
+        LEFT JOIN recipes r ON r.id = rl.recipe_id
+        WHERE lp.is_deleted = false AND lp.is_private = false
+        AND (
+            lp.title ILIKE '%' || :keyword || '%'
+            OR lp.content ILIKE '%' || :keyword || '%'
+            OR r.title ILIKE '%' || :keyword || '%'
+        )
+        ORDER BY lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(DISTINCT lp.id) FROM log_posts lp
+        LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
+        LEFT JOIN recipes r ON r.id = rl.recipe_id
+        WHERE lp.is_deleted = false AND lp.is_private = false
+        AND (
+            lp.title ILIKE '%' || :keyword || '%'
+            OR lp.content ILIKE '%' || :keyword || '%'
+            OR r.title ILIKE '%' || :keyword || '%'
+        )
+        """,
+        nativeQuery = true)
+    Slice<LogPost> searchLogPosts(@Param("keyword") String keyword, Pageable pageable);
 }

@@ -62,4 +62,29 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
     // [마이페이지] 내가 만든 레시피 (최신순)
     Slice<Recipe> findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(Long creatorId, Pageable pageable);
+
+    // [검색] pg_trgm 기반 레시피 검색 (제목, 설명, 재료명)
+    @Query(value = """
+        SELECT DISTINCT r.* FROM recipes r
+        LEFT JOIN recipe_ingredients ri ON ri.recipe_id = r.id
+        WHERE r.is_deleted = false AND r.is_private = false
+        AND (
+            r.title ILIKE '%' || :keyword || '%'
+            OR r.description ILIKE '%' || :keyword || '%'
+            OR ri.name ILIKE '%' || :keyword || '%'
+        )
+        ORDER BY r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(DISTINCT r.id) FROM recipes r
+        LEFT JOIN recipe_ingredients ri ON ri.recipe_id = r.id
+        WHERE r.is_deleted = false AND r.is_private = false
+        AND (
+            r.title ILIKE '%' || :keyword || '%'
+            OR r.description ILIKE '%' || :keyword || '%'
+            OR ri.name ILIKE '%' || :keyword || '%'
+        )
+        """,
+        nativeQuery = true)
+    Slice<Recipe> searchRecipes(@Param("keyword") String keyword, Pageable pageable);
 }

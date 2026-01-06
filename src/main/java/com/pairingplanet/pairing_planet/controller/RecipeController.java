@@ -27,12 +27,18 @@ public class RecipeController {
      * - GET /api/v1/recipes : 로케일 상관없이 모든 레시피 조회 (Default)
      * - GET /api/v1/recipes?locale=ko-KR : 한국 레시피만 조회
      * - GET /api/v1/recipes?onlyRoot=true : 오리지널 레시피만 조회
+     * - GET /api/v1/recipes?q=검색어 : 제목/설명/재료 검색
      */
     @GetMapping
     public ResponseEntity<Slice<RecipeSummaryDto>> getRecipes(
             @RequestParam(name = "locale", required = false) String locale,
             @RequestParam(name = "onlyRoot", defaultValue = "false") boolean onlyRoot,
+            @RequestParam(name = "q", required = false) String searchKeyword,
             Pageable pageable) {
+        // 검색어가 있으면 검색 모드
+        if (searchKeyword != null && !searchKeyword.isBlank()) {
+            return ResponseEntity.ok(recipeService.searchRecipes(searchKeyword, pageable));
+        }
         return ResponseEntity.ok(recipeService.findRecipes(locale, onlyRoot, pageable));
     }
 

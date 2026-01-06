@@ -191,4 +191,17 @@ public class LogPostService {
                 rootTitle
         );
     }
+
+    /**
+     * 로그 검색 (제목, 내용, 연결된 레시피 제목)
+     */
+    @Transactional(readOnly = true)
+    public Slice<LogPostSummaryDto> searchLogPosts(String keyword, Pageable pageable) {
+        if (keyword == null || keyword.trim().length() < 2) {
+            return new org.springframework.data.domain.SliceImpl<>(
+                    java.util.Collections.emptyList(), pageable, false);
+        }
+        return logPostRepository.searchLogPosts(keyword.trim(), pageable)
+                .map(this::convertToLogSummary);
+    }
 }
