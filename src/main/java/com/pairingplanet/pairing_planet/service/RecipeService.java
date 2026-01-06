@@ -29,7 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+
+import com.pairingplanet.pairing_planet.domain.entity.hashtag.Hashtag;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,6 +52,7 @@ public class RecipeService {
     private final UserSuggestedFoodRepository suggestedFoodRepository;
     private final RecipeCategoryDetectionService categoryDetectionService;
     private final SavedRecipeRepository savedRecipeRepository;
+    private final HashtagService hashtagService;
 
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
@@ -104,6 +108,12 @@ public class RecipeService {
                 .build();
 
         recipeRepository.save(recipe);
+
+        // Process hashtags
+        if (req.hashtags() != null && !req.hashtags().isEmpty()) {
+            Set<Hashtag> hashtags = hashtagService.getOrCreateHashtags(req.hashtags());
+            recipe.setHashtags(hashtags);
+        }
         saveIngredientsAndSteps(recipe, req);
         imageService.activateImages(req.imagePublicIds(), recipe);
 
@@ -358,7 +368,7 @@ public class RecipeService {
                             .orElse(null);
 
                     return TrendingTreeDto.builder()
-                            .rootRecipeId(root.getPublicId())
+                            .rootPublicId(root.getPublicId())
                             .title(root.getTitle())
                             .foodName(getFoodName(root))
                             .culinaryLocale(root.getCulinaryLocale())

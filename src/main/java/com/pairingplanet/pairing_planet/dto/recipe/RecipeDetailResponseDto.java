@@ -2,6 +2,7 @@ package com.pairingplanet.pairing_planet.dto.recipe;
 
 import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
 import com.pairingplanet.pairing_planet.dto.log_post.LogPostSummaryDto;
+import com.pairingplanet.pairing_planet.dto.hashtag.HashtagDto;
 import com.pairingplanet.pairing_planet.dto.image.ImageResponseDto;
 import lombok.Builder;
 import java.util.List;
@@ -24,6 +25,7 @@ public record RecipeDetailResponseDto(
         List<ImageResponseDto> images,
         List<RecipeSummaryDto> variants,
         List<LogPostSummaryDto> logs,
+        List<HashtagDto> hashtags,    // Hashtags for this recipe
         Boolean isSavedByCurrentUser  // P1: 북마크 저장 여부
 ) {
     public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix, Boolean isSavedByCurrentUser) {
@@ -81,6 +83,11 @@ public record RecipeDetailResponseDto(
                 ))
                 .toList();
 
+        // 5. 해시태그 리스트 변환
+        List<HashtagDto> hashtagDtos = recipe.getHashtags().stream()
+                .map(HashtagDto::from)
+                .toList();
+
         return RecipeDetailResponseDto.builder()
                 .publicId(recipe.getPublicId())
                 .title(recipe.getTitle())
@@ -104,6 +111,7 @@ public record RecipeDetailResponseDto(
                 .images(imageResponses)
                 .variants(variants)
                 .logs(logs)
+                .hashtags(hashtagDtos)
                 .isSavedByCurrentUser(isSavedByCurrentUser)
                 .build();
     }

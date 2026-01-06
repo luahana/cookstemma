@@ -20,31 +20,19 @@ public interface FoodCategoryRepository extends JpaRepository<FoodCategory, Long
      * 3. 오타가 있어도 유사도(SIMILARITY)가 높으면 검색됨
      */
     @Query(value = """
-        SELECT c.id as id,
-               c.name ->> :locale as name,
+        SELECT c.public_id as publicId,
+               c.name ->> CAST(:locale AS TEXT) as name,
                'CATEGORY' as type,
-               
-               -- [점수 계산]
-               CASE 
-                   -- 1. 이름이나 코드가 정확히 포함되면 1.0점
-                   WHEN (c.name ->> :locale ILIKE %:keyword% OR c.code ILIKE %:keyword%) THEN 1.0
-                   -- 2. 아니면 유사도 점수 반환
-                   ELSE SIMILARITY(c.name ->> :locale, :keyword)
+               CASE
+                   WHEN (c.name ->> CAST(:locale AS TEXT) ILIKE CONCAT('%', CAST(:keyword AS TEXT), '%') OR c.code ILIKE CONCAT('%', CAST(:keyword AS TEXT), '%')) THEN 1.0
+                   ELSE SIMILARITY(c.name ->> CAST(:locale AS TEXT), CAST(:keyword AS TEXT))
                END as score
-               
         FROM food_categories c
-        WHERE 
-            -- 1. 이름(Locale) 일치
-            (c.name ->> :locale ILIKE %:keyword%)
-            OR 
-            -- 2. 코드(CODE) 일치 (예: 'NOODLE')
-            (c.code ILIKE %:keyword%)
-            OR 
-            -- 3. 오타 보정 (유사도 0.3 이상)
-            (SIMILARITY(c.name ->> :locale, :keyword) > 0.3)
-            
-        -- [정렬] 점수 높은 순 -> 이름 짧은 순
-        ORDER BY score DESC, LENGTH(c.name ->> :locale) ASC
+        WHERE
+            (c.name ->> CAST(:locale AS TEXT) ILIKE CONCAT('%', CAST(:keyword AS TEXT), '%'))
+            OR (c.code ILIKE CONCAT('%', CAST(:keyword AS TEXT), '%'))
+            OR (SIMILARITY(c.name ->> CAST(:locale AS TEXT), CAST(:keyword AS TEXT)) > 0.3)
+        ORDER BY score DESC, LENGTH(c.name ->> CAST(:locale AS TEXT)) ASC
         """, nativeQuery = true)
     List<AutocompleteProjectionDto> searchByNameWithFuzzy(@Param("keyword") String keyword,
                                                           @Param("locale") String locale,

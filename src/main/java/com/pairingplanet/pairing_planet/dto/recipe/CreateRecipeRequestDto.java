@@ -25,5 +25,7 @@ public record CreateRecipeRequestDto(
         UUID rootPublicId,
         // Phase 7-3: Automatic Change Detection
         Map<String, Object> changeDiff,
-        String changeReason
+        String changeReason,
+        // Hashtags (e.g., ["vegetarian", "quick-meal", "spicy"])
+        List<String> hashtags
 ) {}

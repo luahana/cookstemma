@@ -11,4 +11,7 @@ public interface HashtagRepository extends JpaRepository<Hashtag, Long> {
 
     // 이름 리스트로 한꺼번에 조회
     List<Hashtag> findByNameIn(List<String> names);
+
+    // 자동완성용 검색 (대소문자 무시)
+    List<Hashtag> findByNameContainingIgnoreCase(String name);
 }
