@@ -211,7 +211,7 @@ class RecipeDetailScreen extends ConsumerWidget {
     List<dynamic> allIngredients,
     IngredientType type,
   ) {
-    final items = allIngredients.where((i) => i.type == type).toList();
+    final items = allIngredients.where((i) => i.type == type.name).toList();
     if (items.isEmpty) return const SizedBox.shrink();
 
     return Padding(

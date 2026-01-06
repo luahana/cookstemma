@@ -9,12 +9,14 @@ class IngredientSection extends ConsumerStatefulWidget {
   final List<Map<String, dynamic>> ingredients;
   final Function(String) onAddIngredient;
   final Function(int) onRemoveIngredient;
+  final Function(int) onRestoreIngredient;
 
   const IngredientSection({
     super.key,
     required this.ingredients,
     required this.onAddIngredient,
     required this.onRemoveIngredient,
+    required this.onRestoreIngredient,
   });
 
   @override
@@ -53,10 +55,16 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     String type,
     IconData icon,
   ) {
-    final categoryIngredients = widget.ingredients
+    final activeItems = widget.ingredients
         .asMap()
         .entries
-        .where((e) => e.value["type"] == type)
+        .where((e) => e.value["type"] == type && e.value["isDeleted"] != true)
+        .toList();
+
+    final deletedItems = widget.ingredients
+        .asMap()
+        .entries
+        .where((e) => e.value["type"] == type && e.value["isDeleted"] == true)
         .toList();
 
     return Column(
@@ -64,7 +72,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
       children: [
         MinimalHeader(icon: icon, title: title),
         const SizedBox(height: 12),
-        ...categoryIngredients.map((e) => _buildIngredientRow(e.key)),
+        ...activeItems.map((e) => _buildIngredientRow(e.key)),
         TextButton.icon(
           onPressed: () => widget.onAddIngredient(type),
           icon: const Icon(Icons.add, size: 18),
@@ -77,6 +85,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
           ),
         ),
+        if (deletedItems.isNotEmpty) _buildDeletedSection(deletedItems),
       ],
     );
   }
@@ -213,6 +222,63 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDeletedSection(List<MapEntry<int, Map<String, dynamic>>> items) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "삭제됨",
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...items.map((e) => _buildDeletedRow(e.key, e.value)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeletedRow(int index, Map<String, dynamic> ingredient) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              "${ingredient['name']} ${ingredient['amount']}",
+              style: TextStyle(
+                decoration: TextDecoration.lineThrough,
+                color: Colors.grey[500],
+                fontSize: 13,
+              ),
+            ),
+          ),
+          TextButton.icon(
+            onPressed: () => widget.onRestoreIngredient(index),
+            icon: const Icon(Icons.undo, size: 16),
+            label: const Text("복원", style: TextStyle(fontSize: 12)),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.indigo,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ],
       ),
     );
   }

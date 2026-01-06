@@ -11,6 +11,7 @@ class StepSection extends ConsumerStatefulWidget {
   final List<Map<String, dynamic>> steps;
   final VoidCallback onAddStep;
   final Function(int) onRemoveStep;
+  final Function(int) onRestoreStep;
   final Function(int, int) onReorder;
   final VoidCallback onStateChanged;
 
@@ -19,6 +20,7 @@ class StepSection extends ConsumerStatefulWidget {
     required this.steps,
     required this.onAddStep,
     required this.onRemoveStep,
+    required this.onRestoreStep,
     required this.onReorder,
     required this.onStateChanged,
   });
@@ -46,7 +48,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
   Future<void> _handleStepImageUpload(int index, UploadItem item) async {
     setState(() => item.status = UploadStatus.uploading);
     final result = await ref
-        .read(uploadImageUseCaseProvider)
+        .read(uploadImageWithTrackingUseCaseProvider)
         .execute(file: item.file, type: "STEP");
     result.fold(
       (f) => setState(() => item.status = UploadStatus.error),
@@ -61,6 +63,19 @@ class _StepSectionState extends ConsumerState<StepSection> {
 
   @override
   Widget build(BuildContext context) {
+    // Split into active and deleted steps
+    final activeSteps = widget.steps
+        .asMap()
+        .entries
+        .where((e) => e.value['isDeleted'] != true)
+        .toList();
+
+    final deletedSteps = widget.steps
+        .asMap()
+        .entries
+        .where((e) => e.value['isDeleted'] == true)
+        .toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -69,18 +84,27 @@ class _StepSectionState extends ConsumerState<StepSection> {
           title: "요리 단계 (드래그하여 순서 변경)",
         ),
         const SizedBox(height: 12),
-        // 💡 드래그 앤 드롭 리스트
+        // 💡 드래그 앤 드롭 리스트 (active steps only)
         ReorderableListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: widget.steps.length,
-          onReorder: widget.onReorder,
+          itemCount: activeSteps.length,
+          onReorder: (oldIndex, newIndex) {
+            // Map back to original indices
+            final oldOriginalIndex = activeSteps[oldIndex].key;
+            final newOriginalIndex = newIndex < activeSteps.length
+                ? activeSteps[newIndex].key
+                : widget.steps.length;
+            widget.onReorder(oldOriginalIndex, newOriginalIndex);
+          },
           itemBuilder: (context, index) {
-            final step = widget.steps[index];
+            final entry = activeSteps[index];
+            final originalIndex = entry.key;
+            final step = entry.value;
             final bool isOriginal = step['isOriginal'] ?? false;
 
             return Container(
-              key: ValueKey("step_${step['stepNumber']}_$index"), // 💡 유니크 키 필수
+              key: ValueKey("step_${step['stepNumber']}_$originalIndex"),
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 color: isOriginal ? Colors.grey[50] : Colors.white,
@@ -91,15 +115,15 @@ class _StepSectionState extends ConsumerState<StepSection> {
                   const Icon(
                     Icons.drag_handle,
                     color: Colors.grey,
-                  ), // 💡 드래그 핸들
+                  ),
                   const SizedBox(width: 8),
                   _buildStepNumber(index + 1),
                   const SizedBox(width: 12),
-                  _buildImageSlot(index, step),
+                  _buildImageSlot(originalIndex, step),
                   const SizedBox(width: 12),
                   Expanded(child: _buildDescriptionField(step, isOriginal)),
                   IconButton(
-                    onPressed: () => widget.onRemoveStep(index),
+                    onPressed: () => widget.onRemoveStep(originalIndex),
                     icon: const Icon(
                       Icons.remove_circle_outline,
                       color: Colors.redAccent,
@@ -117,6 +141,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
             label: const Text("단계 추가"),
           ),
         ),
+        if (deletedSteps.isNotEmpty) _buildDeletedSection(deletedSteps),
       ],
     );
   }
@@ -174,4 +199,68 @@ class _StepSectionState extends ConsumerState<StepSection> {
     "$number",
     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
   );
+
+  Widget _buildDeletedSection(List<MapEntry<int, Map<String, dynamic>>> items) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "삭제됨",
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...items.map((e) => _buildDeletedRow(e.key, e.value)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeletedRow(int index, Map<String, dynamic> step) {
+    final description = step['description'] ?? '';
+    final displayText = description.length > 30
+        ? '${description.substring(0, 30)}...'
+        : description;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              "단계: $displayText",
+              style: TextStyle(
+                decoration: TextDecoration.lineThrough,
+                color: Colors.grey[500],
+                fontSize: 13,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          TextButton.icon(
+            onPressed: () => widget.onRestoreStep(index),
+            icon: const Icon(Icons.undo, size: 16),
+            label: const Text("복원", style: TextStyle(fontSize: 12)),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.indigo,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

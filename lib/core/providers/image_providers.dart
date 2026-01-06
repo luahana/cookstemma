@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/error/failures.dart';
+import 'package:pairing_planet2_frontend/core/services/image_processing_service.dart';
 import 'package:pairing_planet2_frontend/data/models/image/image_upload_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/repositories/image_repository_impl.dart';
 import 'package:pairing_planet2_frontend/domain/entities/analytics/app_event.dart';
@@ -24,12 +25,20 @@ final imageRepositoryProvider = Provider<ImageRepository>((ref) {
   return ImageRepositoryImpl(ref.read(imageRemoteDataSourceProvider));
 });
 
-// 3. UseCase
-final uploadImageUseCaseProvider = Provider((ref) {
-  return UploadImageUseCase(ref.read(imageRepositoryProvider));
+// 3. Image Processing Service
+final imageProcessingServiceProvider = Provider((ref) {
+  return ImageProcessingService();
 });
 
-// 4. Upload Image with Analytics Tracking
+// 4. UseCase with Image Processing
+final uploadImageUseCaseProvider = Provider((ref) {
+  return UploadImageUseCase(
+    ref.read(imageRepositoryProvider),
+    ref.read(imageProcessingServiceProvider),
+  );
+});
+
+// 5. Upload Image with Analytics Tracking
 final uploadImageWithTrackingUseCaseProvider = Provider((ref) {
   return UploadImageWithTrackingUseCase(
     ref.read(uploadImageUseCaseProvider),
@@ -54,22 +63,22 @@ class UploadImageWithTrackingUseCase {
 
     return result.fold(
       (failure) => Left(failure),
-      (response) {
-        // Track photo upload event
+      (uploadResult) {
+        // Track photo upload event with compression metadata
         _analyticsRepository.trackEvent(AppEvent(
           eventId: const Uuid().v4(),
           eventType: EventType.logPhotoUploaded,
           timestamp: DateTime.now(),
           priority: EventPriority.batched,
           properties: {
-            'image_size': file.lengthSync(),
-            'image_type': type, // 'recipe' or 'log'
-            'format': file.path.split('.').last,
-            'public_id': response.imagePublicId,
+            'image_type': type,
+            'public_id': uploadResult.response.imagePublicId,
+            ...uploadResult.metadata.toAnalyticsProperties(),
           },
         ));
 
-        return Right(response);
+        // Return just the response for backwards compatibility
+        return Right(uploadResult.response);
       },
     );
   }

@@ -65,6 +65,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
         'amount': ing.amount,
         'type': ing.type, // Already a string in domain entity
         'isOriginal': true,
+        'isDeleted': false,
       });
     }
     // 💡 기존 단계 복사 (수정 불가 마킹)
@@ -75,6 +76,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
         'imageUrl': step.imageUrl,
         'imagePublicId': step.imagePublicId,
         'isOriginal': true,
+        'isDeleted': false,
       });
     }
   }
@@ -98,7 +100,20 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
         'amount': '',
         'type': type,
         'isOriginal': false,
+        'isDeleted': false,
       });
+    });
+  }
+
+  void _onRemoveIngredient(int index) {
+    setState(() {
+      _ingredients[index]['isDeleted'] = true;
+    });
+  }
+
+  void _onRestoreIngredient(int index) {
+    setState(() {
+      _ingredients[index]['isDeleted'] = false;
     });
   }
 
@@ -111,7 +126,20 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
         'imagePublicId': null,
         'uploadItem': null,
         'isOriginal': false,
+        'isDeleted': false,
       });
+    });
+  }
+
+  void _onRemoveStep(int index) {
+    setState(() {
+      _steps[index]['isDeleted'] = true;
+    });
+  }
+
+  void _onRestoreStep(int index) {
+    setState(() {
+      _steps[index]['isDeleted'] = false;
     });
   }
 
@@ -146,6 +174,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
         food1MasterPublicId: _food1MasterPublicId,
         newFoodName: isVariantMode ? null : _foodNameController.text.trim(),
         ingredients: _ingredients
+            .where((i) => i['isDeleted'] != true)  // Exclude deleted items
             .map(
               (i) => Ingredient(
                 name: i['name'],
@@ -155,6 +184,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
             )
             .toList(),
         steps: _steps
+            .where((s) => s['isDeleted'] != true)  // Exclude deleted items
             .map(
               (s) => RecipeStep(
                 stepNumber: s['stepNumber'],
@@ -229,15 +259,16 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
                     IngredientSection(
                       ingredients: _ingredients,
                       onAddIngredient: _addIngredient,
-                      onRemoveIngredient: (i) =>
-                          setState(() => _ingredients.removeAt(i)),
+                      onRemoveIngredient: _onRemoveIngredient,
+                      onRestoreIngredient: _onRestoreIngredient,
                     ),
                     const SizedBox(height: 32),
                     StepSection(
                       steps: _steps,
                       onAddStep: _addStep,
-                      onRemoveStep: (i) => setState(() => _steps.removeAt(i)),
-                      onReorder: _onReorderSteps, // 💡 드래그앤드랍 연결
+                      onRemoveStep: _onRemoveStep,
+                      onRestoreStep: _onRestoreStep,
+                      onReorder: _onReorderSteps,
                       onStateChanged: () => setState(() {}),
                     ),
                     const SizedBox(height: 120),
