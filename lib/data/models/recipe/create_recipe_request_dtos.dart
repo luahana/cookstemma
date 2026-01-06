@@ -3,7 +3,6 @@ import 'package:pairing_planet2_frontend/domain/entities/recipe/create_recipe_re
 import 'ingredient_dto.dart';
 import 'step_dto.dart';
 
-// 💡 중요: 파일명이 'create_recipe_request_dtos.dart'이므로 아래와 같이 정확히 맞춰야 합니다.
 part 'create_recipe_request_dtos.g.dart';
 
 @JsonSerializable()
@@ -19,6 +18,9 @@ class CreateRecipeRequestDto {
   final String? changeCategory;
   final String? parentPublicId;
   final String? rootPublicId;
+  // Phase 7-3: Automatic Change Detection
+  final Map<String, dynamic>? changeDiff;
+  final String? changeReason;
 
   CreateRecipeRequestDto({
     required this.title,
@@ -32,8 +34,9 @@ class CreateRecipeRequestDto {
     this.changeCategory,
     this.parentPublicId,
     this.rootPublicId,
+    this.changeDiff,
+    this.changeReason,
   }) {
-    // 💡 생성자 몸체에서 검증 로직 추가
     if (food1MasterPublicId == null &&
         (newFoodName == null || newFoodName!.trim().isEmpty)) {
       throw ArgumentError(
@@ -42,7 +45,6 @@ class CreateRecipeRequestDto {
     }
   }
 
-  // 💡 클래스 이름과 매칭되는 생성자
   factory CreateRecipeRequestDto.fromJson(Map<String, dynamic> json) =>
       _$CreateRecipeRequestDtoFromJson(json);
 
@@ -61,6 +63,8 @@ class CreateRecipeRequestDto {
       changeCategory: request.changeCategory,
       parentPublicId: request.parentPublicId,
       rootPublicId: request.rootPublicId,
+      changeDiff: request.changeDiff,
+      changeReason: request.changeReason,
     );
   }
 }

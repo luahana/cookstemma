@@ -13,6 +13,9 @@ class CreateRecipeRequest {
   final String? changeCategory;
   final String? parentPublicId;
   final String? rootPublicId;
+  // Phase 7-3: Automatic Change Detection
+  final Map<String, dynamic>? changeDiff;  // Structured diff
+  final String? changeReason;              // User's explanation for changes
 
   CreateRecipeRequest({
     required this.title,
@@ -26,5 +29,7 @@ class CreateRecipeRequest {
     this.changeCategory,
     this.parentPublicId,
     this.rootPublicId,
+    this.changeDiff,
+    this.changeReason,
   });
 }

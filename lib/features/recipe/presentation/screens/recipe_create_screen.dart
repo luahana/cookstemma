@@ -156,6 +156,66 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
     });
   }
 
+  /// Phase 7-3: Compute change diff between parent and current variation
+  Map<String, dynamic>? _computeChangeDiff() {
+    if (!isVariantMode) return null;
+
+    // Track ingredient changes
+    final removedIngredients = <String>[];
+    final addedIngredients = <String>[];
+
+    // Find removed ingredients (original items marked as deleted)
+    for (final ing in _ingredients) {
+      if (ing['isOriginal'] == true && ing['isDeleted'] == true) {
+        removedIngredients.add('${ing['name']} ${ing['amount']}'.trim());
+      }
+    }
+
+    // Find added ingredients (new items not deleted)
+    for (final ing in _ingredients) {
+      if (ing['isOriginal'] != true && ing['isDeleted'] != true) {
+        final name = ing['name'] as String?;
+        if (name != null && name.isNotEmpty) {
+          addedIngredients.add('${ing['name']} ${ing['amount']}'.trim());
+        }
+      }
+    }
+
+    // Track step changes
+    final removedSteps = <String>[];
+    final addedSteps = <String>[];
+
+    // Find removed steps (original items marked as deleted)
+    for (final step in _steps) {
+      if (step['isOriginal'] == true && step['isDeleted'] == true) {
+        removedSteps.add(step['description'] as String? ?? '');
+      }
+    }
+
+    // Find added steps (new items not deleted)
+    for (final step in _steps) {
+      if (step['isOriginal'] != true && step['isDeleted'] != true) {
+        final desc = step['description'] as String?;
+        if (desc != null && desc.isNotEmpty) {
+          addedSteps.add(desc);
+        }
+      }
+    }
+
+    return {
+      'ingredients': {
+        'removed': removedIngredients,
+        'added': addedIngredients,
+        'modified': <Map<String, String>>[],
+      },
+      'steps': {
+        'removed': removedSteps,
+        'added': addedSteps,
+        'modified': <Map<String, String>>[],
+      },
+    };
+  }
+
   Future<void> _handleSubmit() async {
     if (isVariantMode && _changeReasonController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
@@ -165,6 +225,9 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
     }
     setState(() => _isLoading = true);
     try {
+      // Phase 7-3: Compute change diff for variations
+      final changeDiff = _computeChangeDiff();
+
       final request = CreateRecipeRequest(
         title: _titleController.text,
         description: _descriptionController.text,
@@ -202,6 +265,8 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
         rootPublicId:
             widget.parentRecipe?.rootInfo?.publicId ??
             widget.parentRecipe?.publicId,
+        changeDiff: changeDiff,
+        changeReason: isVariantMode ? _changeReasonController.text.trim() : null,
       );
 
       // Use the new provider with analytics tracking
