@@ -2,12 +2,17 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info_impl.dart';
-import 'package:pairing_planet2_frontend/data/models/common/paged_response_dto.dart';
+import 'package:pairing_planet2_frontend/core/providers/analytics_providers.dart';
+import 'package:pairing_planet2_frontend/domain/entities/analytics/app_event.dart';
+import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
+import 'package:pairing_planet2_frontend/domain/entities/recipe/create_recipe_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
+import 'package:pairing_planet2_frontend/domain/repositories/analytics_repository.dart';
 import 'package:pairing_planet2_frontend/domain/usecases/recipe/create_recipe_usecase.dart';
 import 'package:pairing_planet2_frontend/domain/usecases/recipe/get_recipe_detail.dart';
 import 'package:pairing_planet2_frontend/data/datasources/recipe/recipe_local_data_source.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
+import 'package:uuid/uuid.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../../data/datasources/recipe/recipe_remote_data_source.dart';
 import '../../../data/repositories/recipe_repository_impl.dart';
@@ -22,7 +27,7 @@ final connectivityProvider = Provider<Connectivity>((ref) => Connectivity());
 
 // 클린 아키텍처를 위한 NetworkInfo 인터페이스 구현체 주입
 final networkInfoProvider = Provider<NetworkInfo>((ref) {
-  final connectivity = ref.watch(connectivityProvider);
+  final connectivity = ref.read(connectivityProvider);
   return NetworkInfoImpl(connectivity);
 });
 
@@ -37,15 +42,15 @@ final recipeLocalDataSourceProvider = Provider<RecipeLocalDataSource>((ref) {
 
 // 백엔드 API와 직접 통신하는 리모트 데이터 소스
 final recipeRemoteDataSourceProvider = Provider<RecipeRemoteDataSource>((ref) {
-  final dio = ref.watch(dioProvider);
+  final dio = ref.read(dioProvider);
   return RecipeRemoteDataSource(dio);
 });
 
 // 리포지토리 구현체: Remote, Local, NetworkInfo를 모두 조합하여 데이터 흐름 제어
 final recipeRepositoryProvider = Provider<RecipeRepository>((ref) {
-  final remoteDataSource = ref.watch(recipeRemoteDataSourceProvider);
-  final localDataSource = ref.watch(recipeLocalDataSourceProvider);
-  final networkInfo = ref.watch(networkInfoProvider);
+  final remoteDataSource = ref.read(recipeRemoteDataSourceProvider);
+  final localDataSource = ref.read(recipeLocalDataSourceProvider);
+  final networkInfo = ref.read(networkInfoProvider);
 
   return RecipeRepositoryImpl(
     remoteDataSource: remoteDataSource,
@@ -60,7 +65,7 @@ final recipeRepositoryProvider = Provider<RecipeRepository>((ref) {
 
 // 비즈니스 로직을 담당하는 UseCase
 final getRecipeDetailUseCaseProvider = Provider<GetRecipeDetailUseCase>((ref) {
-  final repository = ref.watch(recipeRepositoryProvider);
+  final repository = ref.read(recipeRepositoryProvider);
   return GetRecipeDetailUseCase(repository);
 });
 
@@ -81,12 +86,12 @@ final recipeDetailProvider = FutureProvider.family<RecipeDetail, String>((
 });
 
 final createRecipeUseCaseProvider = Provider<CreateRecipeUseCase>((ref) {
-  final repository = ref.watch(recipeRepositoryProvider);
+  final repository = ref.read(recipeRepositoryProvider);
   return CreateRecipeUseCase(repository);
 });
 
 final recipesProvider =
-    FutureProvider.family<PagedResponseDto<RecipeSummary>, int>((
+    FutureProvider.family<SliceResponse<RecipeSummary>, int>((
       ref,
       page,
     ) async {
@@ -98,6 +103,97 @@ final recipesProvider =
       // Either 타입을 처리하여 성공 시 데이터를 반환하고, 실패 시 에러를 던집니다.
       return result.fold(
         (failure) => throw failure,
-        (pagedResponse) => pagedResponse,
+        (sliceResponse) => sliceResponse,
       );
     });
+
+// ----------------------------------------------------------------
+// 5. Recipe Creation with Analytics
+// ----------------------------------------------------------------
+
+final recipeCreationProvider =
+    StateNotifierProvider<RecipeCreationNotifier, AsyncValue<String?>>((ref) {
+  return RecipeCreationNotifier(
+    ref.read(createRecipeUseCaseProvider),
+    ref.read(analyticsRepositoryProvider),
+  );
+});
+
+class RecipeCreationNotifier extends StateNotifier<AsyncValue<String?>> {
+  final CreateRecipeUseCase _useCase;
+  final AnalyticsRepository _analyticsRepository;
+
+  RecipeCreationNotifier(this._useCase, this._analyticsRepository)
+      : super(const AsyncValue.data(null));
+
+  Future<void> createRecipe(CreateRecipeRequest request) async {
+    state = const AsyncValue.loading();
+    final result = await _useCase.execute(request);
+
+    state = result.fold(
+      (failure) {
+        // Don't track creation failures (network errors, validation, etc.)
+        return AsyncValue.error(failure.message, StackTrace.current);
+      },
+      (recipeId) {
+        // Determine if this is a variation or new recipe
+        final isVariation = request.parentPublicId != null;
+
+        // Track recipe creation success event
+        _analyticsRepository.trackEvent(AppEvent(
+          eventId: const Uuid().v4(),
+          eventType: isVariation ? EventType.variationCreated : EventType.recipeCreated,
+          timestamp: DateTime.now(),
+          priority: EventPriority.immediate,
+          recipeId: recipeId,
+          properties: {
+            'ingredient_count': request.ingredients.length,
+            'step_count': request.steps.length,
+            'has_images': request.imagePublicIds.isNotEmpty,
+            'image_count': request.imagePublicIds.length,
+            if (isVariation) 'parent_recipe_id': request.parentPublicId,
+            if (isVariation && request.rootPublicId != null)
+              'root_recipe_id': request.rootPublicId,
+            if (isVariation) 'change_category': request.changeCategory ?? '',
+          },
+        ));
+
+        return AsyncValue.data(recipeId);
+      },
+    );
+  }
+}
+
+// ----------------------------------------------------------------
+// 6. Recipe Detail with View Tracking
+// ----------------------------------------------------------------
+
+final recipeDetailWithTrackingProvider =
+    FutureProvider.family<RecipeDetail, String>((ref, id) async {
+  final useCase = ref.watch(getRecipeDetailUseCaseProvider);
+  final analyticsRepo = ref.read(analyticsRepositoryProvider);
+
+  final result = await useCase(id);
+
+  return result.fold(
+    (failure) => throw failure.message,
+    (recipe) {
+      // Track recipe view event
+      analyticsRepo.trackEvent(AppEvent(
+        eventId: const Uuid().v4(),
+        eventType: EventType.recipeViewed,
+        timestamp: DateTime.now(),
+        priority: EventPriority.batched,
+        recipeId: recipe.publicId,
+        properties: {
+          'has_parent': recipe.parentInfo != null,
+          'has_root': recipe.rootInfo != null,
+          'ingredient_count': recipe.ingredients.length,
+          'step_count': recipe.steps.length,
+        },
+      ));
+
+      return recipe;
+    },
+  );
+});

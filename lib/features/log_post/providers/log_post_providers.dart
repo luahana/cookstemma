@@ -115,9 +115,31 @@ final logPostDetailProvider = FutureProvider.family<LogPostDetail, String>((
   id,
 ) async {
   final useCase = ref.read(getLogPostDetailUseCaseProvider);
+  final analyticsRepo = ref.read(analyticsRepositoryProvider);
+
   final result = await useCase(id);
 
-  return result.fold((failure) => throw failure.message, (logPost) => logPost);
+  return result.fold(
+    (failure) => throw failure.message,
+    (logPost) {
+      // Track log view event
+      analyticsRepo.trackEvent(AppEvent(
+        eventId: const Uuid().v4(),
+        eventType: EventType.logViewed,
+        timestamp: DateTime.now(),
+        priority: EventPriority.batched,
+        logId: logPost.publicId,
+        recipeId: logPost.recipePublicId,
+        properties: {
+          'rating': logPost.rating,
+          'image_count': logPost.imageUrls.length,
+          'content_length': logPost.content.length,
+        },
+      ));
+
+      return logPost;
+    },
+  );
 });
 
 final logPostListProvider = FutureProvider<SliceResponse<LogPostSummary>>((ref) async {

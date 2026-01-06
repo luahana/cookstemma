@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
-import 'package:pairing_planet2_frontend/data/models/recipe/ingredient_dto.dart';
-import 'package:pairing_planet2_frontend/data/models/recipe/create_recipe_request_dtos.dart';
-import 'package:pairing_planet2_frontend/data/models/recipe/step_dto.dart';
+import 'package:pairing_planet2_frontend/domain/entities/recipe/create_recipe_request.dart';
+import 'package:pairing_planet2_frontend/domain/entities/recipe/ingredient.dart';
+import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_step.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart'; // 💡 추가
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/ingredient_section.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart';
@@ -43,7 +43,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
     if (isVariantMode) {
       _initVariantData(); // 💡 변형 데이터 초기화
     } else {
-      _addIngredient(IngredientType.MAIN);
+      _addIngredient('MAIN');
       _addStep();
     }
     _titleController.addListener(_rebuild);
@@ -63,7 +63,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
       _ingredients.add({
         'name': ing.name,
         'amount': ing.amount,
-        'type': IngredientType.values.firstWhere((e) => e.name == ing.type),
+        'type': ing.type, // Already a string in domain entity
         'isOriginal': true,
       });
     }
@@ -91,7 +91,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
 
   void _rebuild() => setState(() {});
 
-  void _addIngredient(IngredientType type) {
+  void _addIngredient(String type) {
     setState(() {
       _ingredients.add({
         'name': '',
@@ -137,7 +137,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
     }
     setState(() => _isLoading = true);
     try {
-      final requestDto = CreateRecipeRequestDto(
+      final request = CreateRecipeRequest(
         title: _titleController.text,
         description: _descriptionController.text,
         culinaryLocale: _localeController.text.isEmpty
@@ -147,7 +147,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
         newFoodName: isVariantMode ? null : _foodNameController.text.trim(),
         ingredients: _ingredients
             .map(
-              (i) => IngredientDto(
+              (i) => Ingredient(
                 name: i['name'],
                 amount: i['amount'],
                 type: i['type'],
@@ -156,7 +156,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
             .toList(),
         steps: _steps
             .map(
-              (s) => StepDto(
+              (s) => RecipeStep(
                 stepNumber: s['stepNumber'],
                 description: s['description'],
                 imagePublicId: s['imagePublicId'],
@@ -174,14 +174,19 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
             widget.parentRecipe?.publicId,
       );
 
-      final result = await ref
-          .read(recipeRepositoryProvider)
-          .createRecipe(requestDto);
-      result.fold(
-        (failure) => ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('실패: $failure'))),
-        (newId) => context.go(ApiEndpoints.recipeDetail(newId)),
+      // Use the new provider with analytics tracking
+      await ref.read(recipeCreationProvider.notifier).createRecipe(request);
+
+      final state = ref.read(recipeCreationProvider);
+      state.when(
+        data: (newId) {
+          if (newId != null) {
+            context.go(ApiEndpoints.recipeDetail(newId));
+          }
+        },
+        error: (error, _) => ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('실패: $error'))),
+        loading: () {},
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

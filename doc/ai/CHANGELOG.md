@@ -192,6 +192,50 @@ Batch event tracking for analytics events.
 4. Set up analytics dashboard (Metabase/Superset)
 5. Proceed to Phase 2: Image Compression & WebP Conversion
 
+### Additional Events Implemented (2026-01-05)
+
+Added 5 more event types to complete core user action tracking:
+
+**New Events:**
+1. **recipeCreated** - Recipe creation tracking
+2. **variationCreated** - Recipe variation tracking
+3. **recipeViewed** - Recipe detail view tracking
+4. **logViewed** - Log post detail view tracking
+5. **logPhotoUploaded** - Photo upload tracking (all images)
+
+**Files Modified:**
+```
+lib/features/recipe/providers/recipe_providers.dart - Added RecipeCreationNotifier and recipeDetailWithTrackingProvider
+lib/features/recipe/presentation/screens/recipe_create_screen.dart - Updated to use recipeCreationProvider
+lib/features/recipe/presentation/screens/recipe_detail_screen.dart - Updated to use recipeDetailWithTrackingProvider
+lib/features/log_post/providers/log_post_providers.dart - Updated logPostDetailProvider with view tracking
+lib/core/providers/image_providers.dart - Created UploadImageWithTrackingUseCase
+lib/core/widgets/image_upload_section.dart - Updated to use uploadImageWithTrackingUseCaseProvider
+```
+
+**Event Details:**
+
+| Event Type | Priority | Tracked Data |
+|------------|----------|--------------|
+| recipeCreated | immediate | ingredient_count, step_count, has_images, image_count |
+| variationCreated | immediate | ingredient_count, step_count, has_images, image_count, parent_recipe_id, root_recipe_id, change_category |
+| recipeViewed | batched | has_parent, has_root, ingredient_count, step_count |
+| logViewed | batched | rating, image_count, content_length |
+| logPhotoUploaded | batched | image_size, image_type, format, public_id |
+
+**Total Events Implemented:** 7/11
+- ✅ recipeCreated
+- ✅ logCreated
+- ✅ variationCreated
+- ✅ logFailed
+- ✅ recipeViewed
+- ✅ logViewed
+- ✅ logPhotoUploaded
+- ⏳ recipeSaved (pending)
+- ⏳ recipeShared (pending)
+- ⏳ variationTreeViewed (pending)
+- ⏳ searchPerformed (pending)
+
 ---
 
 ## Phase 2: Image Compression & WebP Conversion (Planned)

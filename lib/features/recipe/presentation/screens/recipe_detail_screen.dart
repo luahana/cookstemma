@@ -13,7 +13,8 @@ class RecipeDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final recipeAsync = ref.watch(recipeDetailProvider(recipeId));
+    // Use the tracking provider to log recipe views
+    final recipeAsync = ref.watch(recipeDetailWithTrackingProvider(recipeId));
 
     return Scaffold(
       backgroundColor: Colors.white,
