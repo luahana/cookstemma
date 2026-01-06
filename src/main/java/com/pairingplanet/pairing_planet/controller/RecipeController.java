@@ -27,8 +27,8 @@ public class RecipeController {
      */
     @GetMapping
     public ResponseEntity<Slice<RecipeSummaryDto>> getRecipes(
-            @RequestParam(required = false) String locale,
-            @RequestParam(defaultValue = "false") boolean onlyRoot,
+            @RequestParam(name = "locale", required = false) String locale,
+            @RequestParam(name = "onlyRoot", defaultValue = "false") boolean onlyRoot,
             Pageable pageable) {
         return ResponseEntity.ok(recipeService.findRecipes(locale, onlyRoot, pageable));
     }
@@ -37,7 +37,7 @@ public class RecipeController {
      * 레시피 상세: 상단에 루트 레시피 고정 + 변형 리스트 + 로그 포함
      */
     @GetMapping("/{publicId}")
-    public ResponseEntity<RecipeDetailResponseDto> getRecipeDetail(@PathVariable UUID publicId) {
+    public ResponseEntity<RecipeDetailResponseDto> getRecipeDetail(@PathVariable("publicId") UUID publicId) {
         return ResponseEntity.ok(recipeService.getRecipeDetail(publicId));
     }
 

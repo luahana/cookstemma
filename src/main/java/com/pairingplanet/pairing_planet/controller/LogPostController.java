@@ -42,7 +42,7 @@ public class LogPostController {
      * 로그 상세: 사진, 메모, 연결된 레시피 카드 포함
      */
     @GetMapping("/{publicId}")
-    public ResponseEntity<LogPostDetailResponseDto> getLogDetail(@PathVariable UUID publicId) {
+    public ResponseEntity<LogPostDetailResponseDto> getLogDetail(@PathVariable("publicId") UUID publicId) {
         return ResponseEntity.ok(logPostService.getLogDetail(publicId));
     }
 }

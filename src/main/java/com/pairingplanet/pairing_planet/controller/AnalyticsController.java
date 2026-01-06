@@ -41,7 +41,7 @@ public class AnalyticsController {
      * 사용자가 탈퇴하거나 데이터 삭제를 요청할 때 호출합니다.
      */
     @DeleteMapping("/users/{userId}")
-    public ResponseEntity<Void> deleteUserAnalytics(@PathVariable UUID userId) {
+    public ResponseEntity<Void> deleteUserAnalytics(@PathVariable("userId") UUID userId) {
         analyticsService.deleteUserEvents(userId);
         return ResponseEntity.ok().build();
     }

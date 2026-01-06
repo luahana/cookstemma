@@ -46,7 +46,7 @@ public class UserController {
      * 경로에 포함된 UUID(userId)를 사용하여 해당 사용자를 조회합니다.
      */
     @GetMapping("/{userId}")
-    public ResponseEntity<UserDto> getOtherUserProfile(@PathVariable UUID userId) { // [교정] UserPrincipal -> UUID
+    public ResponseEntity<UserDto> getOtherUserProfile(@PathVariable("userId") UUID userId) { // [교정] UserPrincipal -> UUID
         // [수정] 경로 변수로 받은 UUID를 서비스에 전달합니다.
         UserDto response = userService.getUserProfile(userId);
         return ResponseEntity.ok(response);

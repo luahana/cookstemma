@@ -24,6 +24,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -43,6 +44,7 @@ public class RecipeService {
 
     private final FoodMasterRepository foodMasterRepository;
     private final UserSuggestedFoodRepository suggestedFoodRepository;
+    private final RecipeCategoryDetectionService categoryDetectionService;
 
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
@@ -79,6 +81,10 @@ public class RecipeService {
                 ? (parent != null ? parent.getCulinaryLocale() : "ko-KR")
                 : req.culinaryLocale();
 
+        // Phase 7-3: Process change diff and auto-detect categories
+        Map<String, Object> changeDiff = req.changeDiff() != null ? req.changeDiff() : new HashMap<>();
+        List<String> changeCategories = categoryDetectionService.detectCategories(changeDiff);
+
         Recipe recipe = Recipe.builder()
                 .title(req.title())
                 .description(req.description())
@@ -88,6 +94,9 @@ public class RecipeService {
                 .parentRecipe(parent) // 바로 위 부모
                 .rootRecipe(root)     // 최상위 뿌리
                 .changeCategory(req.changeCategory())
+                .changeDiff(changeDiff)
+                .changeReason(req.changeReason())
+                .changeCategories(changeCategories)
                 .build();
 
         recipeRepository.save(recipe);
