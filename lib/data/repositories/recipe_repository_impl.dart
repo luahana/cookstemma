@@ -105,6 +105,40 @@ class RecipeRepositoryImpl implements RecipeRepository {
     }
   }
 
+  // P1: 레시피 저장 (북마크)
+  @override
+  Future<Either<Failure, void>> saveRecipe(String publicId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.saveRecipe(publicId);
+        return const Right(null);
+      } on DioException catch (e) {
+        return Left(_mapDioExceptionToFailure(e));
+      } catch (e) {
+        return Left(UnknownFailure(e.toString()));
+      }
+    } else {
+      return Left(ConnectionFailure('네트워크 연결이 없습니다.'));
+    }
+  }
+
+  // P1: 레시피 저장 취소
+  @override
+  Future<Either<Failure, void>> unsaveRecipe(String publicId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.unsaveRecipe(publicId);
+        return const Right(null);
+      } on DioException catch (e) {
+        return Left(_mapDioExceptionToFailure(e));
+      } catch (e) {
+        return Left(UnknownFailure(e.toString()));
+      }
+    } else {
+      return Left(ConnectionFailure('네트워크 연결이 없습니다.'));
+    }
+  }
+
   Failure _mapDioExceptionToFailure(DioException e) {
     switch (e.type) {
       case DioExceptionType.connectionTimeout:

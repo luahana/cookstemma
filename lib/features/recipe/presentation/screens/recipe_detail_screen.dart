@@ -7,14 +7,33 @@ import 'package:pairing_planet2_frontend/data/models/recipe/ingredient_dto.dart'
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
 import '../../providers/recipe_providers.dart';
 
-class RecipeDetailScreen extends ConsumerWidget {
+class RecipeDetailScreen extends ConsumerStatefulWidget {
   final String recipeId;
   const RecipeDetailScreen({super.key, required this.recipeId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RecipeDetailScreen> createState() => _RecipeDetailScreenState();
+}
+
+class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
+  bool _saveStateInitialized = false;
+
+  @override
+  Widget build(BuildContext context) {
     // Use the tracking provider to log recipe views
-    final recipeAsync = ref.watch(recipeDetailWithTrackingProvider(recipeId));
+    final recipeAsync = ref.watch(recipeDetailWithTrackingProvider(widget.recipeId));
+    final saveState = ref.watch(saveRecipeProvider(widget.recipeId));
+
+    // P1: 레시피 데이터 로드 시 저장 상태 초기화
+    ref.listen(recipeDetailWithTrackingProvider(widget.recipeId), (_, next) {
+      next.whenData((recipe) {
+        if (!_saveStateInitialized && recipe.isSavedByCurrentUser != null) {
+          ref.read(saveRecipeProvider(widget.recipeId).notifier)
+              .setInitialState(recipe.isSavedByCurrentUser!);
+          _saveStateInitialized = true;
+        }
+      });
+    });
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -23,7 +42,32 @@ class RecipeDetailScreen extends ConsumerWidget {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
-        // 💡 AppBar에서 변형하기 버튼을 제거했습니다.
+        actions: [
+          // P1: 북마크 버튼
+          saveState.when(
+            data: (isSaved) => IconButton(
+              icon: Icon(
+                isSaved ? Icons.bookmark : Icons.bookmark_border,
+                color: isSaved ? const Color(0xFF1A237E) : Colors.grey[600],
+              ),
+              onPressed: () {
+                ref.read(saveRecipeProvider(widget.recipeId).notifier).toggle();
+              },
+            ),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(12.0),
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            error: (_, __) => IconButton(
+              icon: Icon(Icons.bookmark_border, color: Colors.grey[400]),
+              onPressed: null,
+            ),
+          ),
+        ],
       ),
       body: recipeAsync.when(
         data: (recipe) => Column(
@@ -119,7 +163,7 @@ class RecipeDetailScreen extends ConsumerWidget {
               Text("데이터를 가져오지 못했습니다: $err"),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.refresh(recipeDetailProvider(recipeId)),
+                onPressed: () => ref.refresh(recipeDetailProvider(widget.recipeId)),
                 child: const Text("다시 시도"),
               ),
             ],

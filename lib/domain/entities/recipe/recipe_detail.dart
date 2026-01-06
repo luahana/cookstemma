@@ -18,6 +18,7 @@ class RecipeDetail {
   final List<String> imageUrls;
   final List<RecipeSummary> variants;
   final List<LogPostSummary> logs;
+  final bool? isSavedByCurrentUser; // P1: 북마크 저장 여부
 
   RecipeDetail({
     required this.publicId,
@@ -34,5 +35,6 @@ class RecipeDetail {
     required this.imageUrls,
     required this.variants,
     required this.logs,
+    this.isSavedByCurrentUser,
   });
 }

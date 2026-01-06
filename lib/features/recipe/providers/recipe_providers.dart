@@ -197,3 +197,45 @@ final recipeDetailWithTrackingProvider =
     },
   );
 });
+
+// ----------------------------------------------------------------
+// 7. Recipe Save/Bookmark (P1)
+// ----------------------------------------------------------------
+
+/// 북마크 상태를 관리하는 StateNotifier
+class SaveRecipeNotifier extends StateNotifier<AsyncValue<bool>> {
+  final RecipeRepository _repository;
+  final String _recipeId;
+
+  SaveRecipeNotifier(this._repository, this._recipeId)
+      : super(const AsyncValue.data(false));
+
+  /// 초기 저장 상태 설정 (API에서 받은 값으로)
+  void setInitialState(bool isSaved) {
+    state = AsyncValue.data(isSaved);
+  }
+
+  /// 저장/저장취소 토글
+  Future<void> toggle() async {
+    final currentlySaved = state.value ?? false;
+    state = const AsyncValue.loading();
+
+    final result = currentlySaved
+        ? await _repository.unsaveRecipe(_recipeId)
+        : await _repository.saveRecipe(_recipeId);
+
+    state = result.fold(
+      (failure) => AsyncValue.error(failure.message, StackTrace.current),
+      (_) => AsyncValue.data(!currentlySaved),
+    );
+  }
+}
+
+/// 북마크 상태 Provider (레시피 ID별로 생성)
+final saveRecipeProvider =
+    StateNotifierProvider.family<SaveRecipeNotifier, AsyncValue<bool>, String>(
+  (ref, recipeId) {
+    final repository = ref.read(recipeRepositoryProvider);
+    return SaveRecipeNotifier(repository, recipeId);
+  },
+);

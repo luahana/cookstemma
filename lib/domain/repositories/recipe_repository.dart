@@ -14,4 +14,8 @@ abstract class RecipeRepository {
     required int page,
     int size = 10,
   });
+
+  // P1: 레시피 저장/저장취소
+  Future<Either<Failure, void>> saveRecipe(String publicId);
+  Future<Either<Failure, void>> unsaveRecipe(String publicId);
 }

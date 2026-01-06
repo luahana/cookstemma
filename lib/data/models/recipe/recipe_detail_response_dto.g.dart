@@ -38,6 +38,7 @@ RecipeDetailResponseDto _$RecipeDetailResponseDtoFromJson(
       logs: (json['logs'] as List<dynamic>?)
           ?.map((e) => LogPostSummaryDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+      isSavedByCurrentUser: json['isSavedByCurrentUser'] as bool?,
     );
 
 Map<String, dynamic> _$RecipeDetailResponseDtoToJson(
@@ -57,4 +58,5 @@ Map<String, dynamic> _$RecipeDetailResponseDtoToJson(
       'images': instance.images,
       'variants': instance.variants,
       'logs': instance.logs,
+      'isSavedByCurrentUser': instance.isSavedByCurrentUser,
     };

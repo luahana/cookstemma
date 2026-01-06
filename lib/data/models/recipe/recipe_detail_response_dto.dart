@@ -28,6 +28,7 @@ class RecipeDetailResponseDto {
   final List<ImageResponseDto>? images;
   final List<RecipeSummaryDto>? variants;
   final List<LogPostSummaryDto>? logs;
+  final bool? isSavedByCurrentUser; // P1: 북마크 저장 여부
 
   RecipeDetailResponseDto({
     required this.publicId,
@@ -44,6 +45,7 @@ class RecipeDetailResponseDto {
     this.images,
     this.variants,
     this.logs,
+    this.isSavedByCurrentUser,
   });
 
   factory RecipeDetailResponseDto.fromJson(Map<String, dynamic> json) =>
@@ -74,5 +76,6 @@ class RecipeDetailResponseDto {
 
     variants: variants?.map((e) => e.toEntity()).toList() ?? [],
     logs: logs?.map((e) => e.toEntity()).toList() ?? [],
+    isSavedByCurrentUser: isSavedByCurrentUser,
   );
 }

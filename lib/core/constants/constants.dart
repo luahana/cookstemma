@@ -3,6 +3,7 @@ class ApiEndpoints {
   static const String recipes = '/recipes'; //
   static const String rootRecipes = '/recipes/roots'; //
   static String recipeDetail(String id) => '/recipes/$id'; //
+  static String recipeSave(String id) => '/recipes/$id/save'; // P1: 북마크
 
   static const String log_posts = '/log_posts'; //
 

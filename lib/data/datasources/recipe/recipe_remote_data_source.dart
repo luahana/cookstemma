@@ -81,4 +81,28 @@ class RecipeRemoteDataSource {
       rethrow; // Repository에서 잡을 수 있도록 던짐
     }
   }
+
+  /// P1: 레시피 저장 (북마크)
+  Future<void> saveRecipe(String publicId) async {
+    try {
+      final response = await _dio.post(ApiEndpoints.recipeSave(publicId));
+      if (response.statusCode != HttpStatus.ok) {
+        throw ServerException();
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// P1: 레시피 저장 취소
+  Future<void> unsaveRecipe(String publicId) async {
+    try {
+      final response = await _dio.delete(ApiEndpoints.recipeSave(publicId));
+      if (response.statusCode != HttpStatus.ok) {
+        throw ServerException();
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
