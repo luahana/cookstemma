@@ -1,0 +1,35 @@
+# Production Environment Variables
+# Copy this file to terraform.tfvars and fill in actual values
+# IMPORTANT: Never commit terraform.tfvars to git!
+
+aws_region          = "ap-northeast-2"
+project_name        = "pairing-planet"
+environment         = "prod"
+ecr_repository_name = "pairing-planet"
+
+# ACM Certificate ARN (create in AWS ACM first)
+certificate_arn = "arn:aws:acm:ap-northeast-2:123456789012:certificate/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Database - Use strong, unique password for production!
+db_name     = "pairingplanet"
+db_username = "postgres"
+db_password = "your-very-secure-production-password-here"
+
+# JWT - Use unique key for production
+jwt_secret_key = "your-production-jwt-secret-key-here"
+
+# Google OAuth
+google_client_id     = "your-google-client-id.apps.googleusercontent.com"
+google_client_secret = "your-google-client-secret"
+
+# Encryption - Use unique key for production
+encryption_key = "your-production-encryption-key-here"
+
+# Firebase (paste the JSON credentials as a single line string)
+firebase_credentials = "{\"type\":\"service_account\",\"project_id\":\"your-project\"}"
+
+# S3
+s3_access_key = "your-s3-access-key"
+s3_secret_key = "your-s3-secret-key"
+s3_bucket     = "your-s3-bucket"
+s3_region     = "ap-northeast-2"

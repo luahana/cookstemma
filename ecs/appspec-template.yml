@@ -1,0 +1,15 @@
+# AppSpec for CodeDeploy Blue/Green ECS deployment
+# This file is generated dynamically during deployment
+# Template shown here for reference
+
+version: 0.0
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: "<TASK_DEFINITION_ARN>"
+        LoadBalancerInfo:
+          ContainerName: "pairing-planet-${ENVIRONMENT}"
+          ContainerPort: 4000
+        # Optional: Platform version (defaults to LATEST)
+        # PlatformVersion: "1.4.0"
