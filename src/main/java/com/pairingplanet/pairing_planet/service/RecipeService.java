@@ -45,6 +45,7 @@ public class RecipeService {
     private final FoodMasterRepository foodMasterRepository;
     private final UserSuggestedFoodRepository suggestedFoodRepository;
     private final RecipeCategoryDetectionService categoryDetectionService;
+    private final SavedRecipeRepository savedRecipeRepository;
 
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
@@ -108,8 +109,17 @@ public class RecipeService {
 
     /**
      * 레시피 상세 조회 (기획 원칙 1 반영: 상단 루트 고정)
+     * 비로그인 사용자용 (isSavedByCurrentUser = null)
      */
     public RecipeDetailResponseDto getRecipeDetail(UUID publicId) {
+        return getRecipeDetail(publicId, null);
+    }
+
+    /**
+     * 레시피 상세 조회 (기획 원칙 1 반영: 상단 루트 고정)
+     * 로그인 사용자용 (저장 여부 확인)
+     */
+    public RecipeDetailResponseDto getRecipeDetail(UUID publicId, Long userId) {
         Recipe recipe = recipeRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
 
@@ -129,7 +139,12 @@ public class RecipeService {
                         null  // 작성자 생략
                 )).toList();
 
-        return RecipeDetailResponseDto.from(recipe, variants, logs, this.urlPrefix);
+        // P1: 저장 여부 확인
+        Boolean isSavedByCurrentUser = (userId != null)
+                ? savedRecipeRepository.existsByUserIdAndRecipeId(userId, recipe.getId())
+                : null;
+
+        return RecipeDetailResponseDto.from(recipe, variants, logs, this.urlPrefix, isSavedByCurrentUser);
     }
 
     @Transactional(readOnly = true)

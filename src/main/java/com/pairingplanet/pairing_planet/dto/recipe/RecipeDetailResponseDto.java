@@ -23,9 +23,10 @@ public record RecipeDetailResponseDto(
         List<StepDto> steps,
         List<ImageResponseDto> images,
         List<RecipeSummaryDto> variants,
-        List<LogPostSummaryDto> logs
+        List<LogPostSummaryDto> logs,
+        Boolean isSavedByCurrentUser  // P1: 북마크 저장 여부
 ) {
-    public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix) {
+    public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix, Boolean isSavedByCurrentUser) {
         Recipe root = recipe.getRootRecipe();
         Recipe parent = recipe.getParentRecipe();
 
@@ -99,6 +100,7 @@ public record RecipeDetailResponseDto(
                 .images(imageResponses)
                 .variants(variants)
                 .logs(logs)
+                .isSavedByCurrentUser(isSavedByCurrentUser)
                 .build();
     }
 }

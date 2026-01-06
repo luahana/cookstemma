@@ -87,6 +87,14 @@ public class Recipe extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "hashtag_id"))
     private Set<Hashtag> hashtags = new HashSet<>();
 
+    public void incrementSavedCount() {
+        this.savedCount = (this.savedCount == null ? 0 : this.savedCount) + 1;
+    }
+
+    public void decrementSavedCount() {
+        this.savedCount = Math.max(0, (this.savedCount == null ? 0 : this.savedCount) - 1);
+    }
+
     public boolean isOriginal() {
         return this.rootRecipe == null;
     }
