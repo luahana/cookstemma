@@ -11,7 +11,7 @@ CreateLogPostRequestDto _$CreateLogPostRequestDtoFromJson(
     CreateLogPostRequestDto(
       recipePublicId: json['recipePublicId'] as String,
       content: json['content'] as String,
-      rating: (json['rating'] as num).toDouble(),
+      outcome: json['outcome'] as String,
       title: json['title'] as String?,
       imagePublicIds: (json['imagePublicIds'] as List<dynamic>)
           .map((e) => e as String)
@@ -23,7 +23,7 @@ Map<String, dynamic> _$CreateLogPostRequestDtoToJson(
     <String, dynamic>{
       'recipePublicId': instance.recipePublicId,
       'content': instance.content,
-      'rating': instance.rating,
+      'outcome': instance.outcome,
       'title': instance.title,
       'imagePublicIds': instance.imagePublicIds,
     };

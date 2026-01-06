@@ -47,7 +47,7 @@ class LogPostDetailScreen extends ConsumerWidget {
                             fontSize: 14,
                           ),
                         ),
-                        _buildRatingStars(log.rating),
+                        _buildOutcomeEmoji(log.outcome),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -121,17 +121,15 @@ class LogPostDetailScreen extends ConsumerWidget {
     );
   }
 
-  // 💡 별점 시각화 위젯
-  Widget _buildRatingStars(double rating) {
-    return Row(
-      children: List.generate(5, (index) {
-        return Icon(
-          index < rating ? Icons.star : Icons.star_border,
-          color: Colors.amber,
-          size: 20,
-        );
-      }),
-    );
+  // 💡 요리 결과 이모지 표시
+  Widget _buildOutcomeEmoji(String outcome) {
+    final emoji = switch (outcome) {
+      'SUCCESS' => '😊',
+      'PARTIAL' => '😐',
+      'FAILED' => '😢',
+      _ => '😐',
+    };
+    return Text(emoji, style: const TextStyle(fontSize: 24));
   }
 
   // 💡 클릭 시 해당 레시피로 이동하는 카드

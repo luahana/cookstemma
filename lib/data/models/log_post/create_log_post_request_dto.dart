@@ -7,14 +7,14 @@ part 'create_log_post_request_dto.g.dart';
 class CreateLogPostRequestDto {
   final String recipePublicId;
   final String content;
-  final double rating;
+  final String outcome; // SUCCESS, PARTIAL, FAILED
   final String? title;
   final List<String> imagePublicIds;
 
   CreateLogPostRequestDto({
     required this.recipePublicId,
     required this.content,
-    required this.rating,
+    required this.outcome,
     this.title,
     required this.imagePublicIds,
   });
@@ -25,7 +25,7 @@ class CreateLogPostRequestDto {
     return CreateLogPostRequestDto(
       recipePublicId: request.recipePublicId,
       content: request.content,
-      rating: request.rating.toDouble(),
+      outcome: request.outcome,
       title: request.title,
       imagePublicIds: request.imagePublicIds,
     );

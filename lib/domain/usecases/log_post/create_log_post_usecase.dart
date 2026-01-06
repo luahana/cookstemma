@@ -13,8 +13,8 @@ class CreateLogPostUseCase {
     CreateLogPostRequest request,
   ) async {
     // Validation
-    if (request.rating < 1 || request.rating > 5) {
-      return Left(ValidationFailure('평점은 1-5 사이여야 합니다.'));
+    if (!['SUCCESS', 'PARTIAL', 'FAILED'].contains(request.outcome)) {
+      return Left(ValidationFailure('유효하지 않은 요리 결과입니다.'));
     }
     if (request.content.trim().isEmpty) {
       return Left(ValidationFailure('내용을 입력해주세요.'));

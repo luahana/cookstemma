@@ -10,7 +10,7 @@ class LogPostDetailResponseDto {
   final String publicId;
   final String? title;
   final String content;
-  final int rating;
+  final String? outcome; // SUCCESS, PARTIAL, FAILED (nullable for backward compat)
   final List<ImageResponseDto>? images;
   final RecipeSummaryDto? linkedRecipe;
   final String createdAt;
@@ -19,7 +19,7 @@ class LogPostDetailResponseDto {
     required this.publicId,
     required this.title,
     required this.content,
-    required this.rating,
+    this.outcome,
     required this.images,
     required this.linkedRecipe,
     required this.createdAt,
@@ -29,11 +29,10 @@ class LogPostDetailResponseDto {
       _$LogPostDetailResponseDtoFromJson(json);
   Map<String, dynamic> toJson() => _$LogPostDetailResponseDtoToJson(this);
 
-  // 💡 수정된 매핑 로직
   LogPostDetail toEntity() => LogPostDetail(
     publicId: publicId,
     content: content,
-    rating: rating.toDouble(), // 💡 int를 엔티티의 double 타입으로 변환
+    outcome: outcome ?? 'PARTIAL', // Default to PARTIAL if null
     imageUrls: images?.map((img) => img.imageUrl).toList() ?? [],
     recipePublicId: linkedRecipe?.publicId ?? "",
     createdAt: DateTime.parse(createdAt),

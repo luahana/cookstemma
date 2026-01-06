@@ -25,7 +25,7 @@ class LogPostCreateScreen extends ConsumerStatefulWidget {
 class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
   final _contentController = TextEditingController();
   final List<UploadItem> _images = []; // 💡 업로드 이미지 리스트
-  double _rating = 3.0; // 💡 평점 변수 (초기값 3)
+  String _selectedOutcome = 'SUCCESS'; // 💡 요리 결과 (SUCCESS, PARTIAL, FAILED)
   bool _isLoading = false;
 
   @override
@@ -57,7 +57,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
   Future<void> _handleImageUpload(UploadItem item) async {
     setState(() => item.status = UploadStatus.uploading);
     final result = await ref
-        .read(uploadImageUseCaseProvider)
+        .read(uploadImageWithTrackingUseCaseProvider)
         .execute(file: item.file, type: "LOG_POST");
     result.fold((f) => setState(() => item.status = UploadStatus.error), (res) {
       setState(() {
@@ -84,7 +84,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
     final request = CreateLogPostRequest(
       recipePublicId: widget.recipe.publicId,
       content: _contentController.text,
-      rating: _rating.round(),
+      outcome: _selectedOutcome,
       imagePublicIds: imagePublicIds,
     );
 
@@ -156,16 +156,16 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
                     _buildImagePickerList(),
                     const SizedBox(height: 32),
 
-                    // 💡 3. 평점 섹션 추가
+                    // 💡 3. 요리 결과 섹션 (이모지 선택)
                     const Text(
-                      "평점",
+                      "어땠나요?",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    _buildRatingField(),
+                    const SizedBox(height: 12),
+                    _buildOutcomeSelector(),
                     const SizedBox(height: 32),
 
                     const Text(
@@ -374,19 +374,47 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
     }
   }
 
-  // 💡 평점(별점) 필드 UI
-  Widget _buildRatingField() {
+  // 💡 요리 결과 이모지 선택 UI
+  Widget _buildOutcomeSelector() {
     return Row(
-      children: List.generate(5, (index) {
-        return IconButton(
-          onPressed: () => setState(() => _rating = index + 1.0),
-          icon: Icon(
-            index < _rating ? Icons.star : Icons.star_border,
-            color: Colors.amber,
-            size: 32,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildOutcomeOption('SUCCESS', '😊', '성공했어요'),
+        _buildOutcomeOption('PARTIAL', '😐', '반쯤 성공'),
+        _buildOutcomeOption('FAILED', '😢', '망했어요'),
+      ],
+    );
+  }
+
+  Widget _buildOutcomeOption(String value, String emoji, String label) {
+    final isSelected = _selectedOutcome == value;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedOutcome = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.indigo[50] : Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? Colors.indigo : Colors.transparent,
+            width: 2,
           ),
-        );
-      }),
+        ),
+        child: Column(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 32)),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.indigo : Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

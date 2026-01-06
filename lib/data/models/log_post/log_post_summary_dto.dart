@@ -7,14 +7,14 @@ part 'log_post_summary_dto.g.dart';
 class LogPostSummaryDto {
   final String publicId;
   final String? title;
-  final int? rating;
+  final String? outcome; // SUCCESS, PARTIAL, FAILED
   final String? thumbnailUrl;
   final String? creatorName;
 
   LogPostSummaryDto({
     required this.publicId,
     this.title,
-    this.rating,
+    this.outcome,
     this.thumbnailUrl,
     this.creatorName,
   });
@@ -26,7 +26,7 @@ class LogPostSummaryDto {
   LogPostSummary toEntity() => LogPostSummary(
     id: publicId,
     title: title ?? '',
-    rating: rating,
+    outcome: outcome,
     thumbnailUrl: thumbnailUrl,
     creatorName: creatorName,
   );

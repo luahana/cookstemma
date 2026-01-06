@@ -81,7 +81,7 @@ class LogPostCreationNotifier
           recipeId: request.recipePublicId,
           properties: {
             'error': failure.message,
-            'rating': request.rating,
+            'outcome': request.outcome,
           },
         ));
 
@@ -97,7 +97,7 @@ class LogPostCreationNotifier
           logId: success.publicId,
           recipeId: request.recipePublicId,
           properties: {
-            'rating': request.rating,
+            'outcome': request.outcome,
             'has_title': request.title?.isNotEmpty ?? false,
             'image_count': request.imagePublicIds.length,
             'content_length': request.content.length,
@@ -131,7 +131,7 @@ final logPostDetailProvider = FutureProvider.family<LogPostDetail, String>((
         logId: logPost.publicId,
         recipeId: logPost.recipePublicId,
         properties: {
-          'rating': logPost.rating,
+          'outcome': logPost.outcome,
           'image_count': logPost.imageUrls.length,
           'content_length': logPost.content.length,
         },

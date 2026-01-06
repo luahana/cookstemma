@@ -12,7 +12,7 @@ LogPostDetailResponseDto _$LogPostDetailResponseDtoFromJson(
       publicId: json['publicId'] as String,
       title: json['title'] as String?,
       content: json['content'] as String,
-      rating: (json['rating'] as num).toInt(),
+      outcome: json['outcome'] as String?,
       images: (json['images'] as List<dynamic>?)
           ?.map((e) => ImageResponseDto.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -29,7 +29,7 @@ Map<String, dynamic> _$LogPostDetailResponseDtoToJson(
       'publicId': instance.publicId,
       'title': instance.title,
       'content': instance.content,
-      'rating': instance.rating,
+      'outcome': instance.outcome,
       'images': instance.images,
       'linkedRecipe': instance.linkedRecipe,
       'createdAt': instance.createdAt,

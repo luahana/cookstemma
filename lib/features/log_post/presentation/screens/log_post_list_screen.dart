@@ -33,6 +33,16 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
     }
   }
 
+  Widget _buildOutcomeEmoji(String? outcome) {
+    final emoji = switch (outcome) {
+      'SUCCESS' => '😊',
+      'PARTIAL' => '😐',
+      'FAILED' => '😢',
+      _ => '😐',
+    };
+    return Text(emoji, style: const TextStyle(fontSize: 20));
+  }
+
   @override
   Widget build(BuildContext context) {
     final logPostsAsync = ref.watch(logPostPaginatedListProvider);
@@ -118,29 +128,8 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 8),
-                              if (logPost.rating != null)
-                                Row(
-                                  children: [
-                                    ...List.generate(
-                                      5,
-                                      (starIndex) => Icon(
-                                        starIndex < logPost.rating!
-                                            ? Icons.star
-                                            : Icons.star_border,
-                                        color: Colors.orange,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      logPost.rating!.toString(),
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              if (logPost.outcome != null)
+                                _buildOutcomeEmoji(logPost.outcome),
                               const SizedBox(height: 8),
                               if (logPost.creatorName != null)
                                 Text(
