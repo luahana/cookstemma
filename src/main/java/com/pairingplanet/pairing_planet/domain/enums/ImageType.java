@@ -5,4 +5,4 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ImageType { THUMBNAIL, STEP, LOG, COVER }
+public enum ImageType { THUMBNAIL, STEP, LOG_POST, COVER }

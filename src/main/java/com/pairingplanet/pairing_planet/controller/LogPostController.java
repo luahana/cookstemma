@@ -4,6 +4,8 @@ import com.pairingplanet.pairing_planet.dto.log_post.*;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import com.pairingplanet.pairing_planet.service.LogPostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +27,14 @@ public class LogPostController {
             @RequestBody CreateLogRequestDto req,
             @AuthenticationPrincipal UserPrincipal principal) {
         return ResponseEntity.ok(logPostService.createLog(req, principal));
+    }
+    /**
+     * 모든 로그 탐색 (무한 스크롤용 커서 기반 조회)
+     * GET /api/v1/log_posts?page=0&size=10
+     */
+    @GetMapping
+    public ResponseEntity<Slice<LogPostSummaryDto>> getAllLogs(Pageable pageable) {
+        return ResponseEntity.ok(logPostService.getAllLogs(pageable));
     }
 
     // --- [LOG DETAIL] ---

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -19,4 +20,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
 
     // 3. 특정 지역/언어 기반 최신 로그 피드
     Slice<LogPost> findByLocaleAndIsDeletedFalseAndIsPrivateFalseOrderByCreatedAtDesc(String locale, Pageable pageable);
+
+    @Query("SELECT l FROM LogPost l ORDER BY l.createdAt DESC")
+    Slice<LogPost> findAllOrderByCreatedAtDesc(Pageable pageable);
 }

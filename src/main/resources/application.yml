@@ -12,6 +12,12 @@ spring:
   jackson:
     date-format: "yyyy-MM-dd'T'HH:mm:ss'Z'"
     time-zone: UTC
+    # ISO-8601 형식을 사용하도록 설정
+    serialization:
+      write-dates-as-timestamps: false
+    # 시간대가 없는 경우 기본적으로 UTC로 인식
+    deserialization:
+      adjust-dates-to-context-time-zone: false
 
   servlet:
     multipart:

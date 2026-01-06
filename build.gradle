@@ -14,6 +14,11 @@ java {
 	}
 }
 
+// Preserve parameter names in bytecode for Spring @RequestParam
+tasks.withType(JavaCompile) {
+	options.compilerArgs << '-parameters'
+}
+
 repositories {
 	mavenCentral()
 }

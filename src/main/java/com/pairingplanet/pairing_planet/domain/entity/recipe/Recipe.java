@@ -7,11 +7,14 @@ import com.pairingplanet.pairing_planet.domain.entity.image.Image;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 // Recipe.java 수정 제안
 @Entity
@@ -47,6 +50,20 @@ public class Recipe extends BaseEntity {
 
     private String changeCategory;
     private Long creatorId;
+
+    // Phase 7-2: Change tracking fields for automatic change detection
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "change_diff", columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, Object> changeDiff = new HashMap<>();
+
+    @Column(name = "change_reason", length = 200)
+    private String changeReason;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "change_categories", columnDefinition = "jsonb")
+    @Builder.Default
+    private List<String> changeCategories = new ArrayList<>();
 
     // [경고 해결] @Builder.Default 추가
     @Builder.Default

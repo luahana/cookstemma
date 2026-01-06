@@ -457,6 +457,25 @@ CREATE INDEX IF NOT EXISTS idx_recipes_discovery ON recipes(is_deleted, is_priva
 CREATE INDEX IF NOT EXISTS idx_images_recipe_order ON images(recipe_id, display_order) WHERE recipe_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_images_log_order ON images(log_post_id, display_order) WHERE log_post_id IS NOT NULL;
 
+-- 이벤트 트래킹 테이블 생성
+CREATE TABLE IF NOT EXISTS analytics_events (
+                                  id BIGSERIAL PRIMARY KEY,
+                                  event_id UUID UNIQUE NOT NULL,      -- 중복 수집 방지(Idempotency)를 위한 식별자
+                                  event_type VARCHAR(100) NOT NULL,   -- recipeViewed, logCreated 등
+                                  user_id UUID,                       -- 익명 사용자인 경우 NULL 허용
+                                  recipe_id UUID,                     -- 관련 레시피 (선택)
+                                  log_id UUID,                        -- 관련 로그 (선택)
+                                  timestamp TIMESTAMPTZ NOT NULL,     -- 이벤트 발생 시각 (기기 기준)
+                                  properties JSONB,                   -- 상세 속성 (Rating, 길이 등 가변 데이터)
+                                  created_at TIMESTAMPTZ DEFAULT NOW() -- 서버 수신 시각
+);
+
+-- 검색 성능 최적화를 위한 인덱스
+CREATE INDEX IF NOT EXISTS idx_events_type ON analytics_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_events_timestamp ON analytics_events(timestamp);
+CREATE INDEX IF NOT EXISTS idx_events_user ON analytics_events(user_id) WHERE user_id IS NOT NULL;
+
+
 -- CREATE TABLE IF NOT EXISTS post_verdicts (
 --                                              user_id BIGINT REFERENCES users(id),
 --     post_id BIGINT REFERENCES posts(id),
