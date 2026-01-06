@@ -19,7 +19,7 @@ import java.util.Map;
 public class FoodMaster extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(name = "category_id", nullable = true)
     private FoodCategory category;
 
     @JdbcTypeCode(SqlTypes.JSON)

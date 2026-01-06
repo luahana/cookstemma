@@ -8,5 +8,6 @@ public record CreateLogRequestDto(
         String title,
         String content,
         String outcome,  // SUCCESS, PARTIAL, FAILED
-        List<UUID> imagePublicIds // [수정] String imageUrls -> UUID imagePublicIds
+        List<UUID> imagePublicIds, // [수정] String imageUrls -> UUID imagePublicIds
+        List<String> hashtags // 해시태그 목록
 ) {}

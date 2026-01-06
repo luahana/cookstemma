@@ -1,9 +1,11 @@
 package com.pairingplanet.pairing_planet.service;
 
+import com.pairingplanet.pairing_planet.domain.entity.hashtag.Hashtag;
 import com.pairingplanet.pairing_planet.domain.entity.log_post.LogPost;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.RecipeLog;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
+import com.pairingplanet.pairing_planet.dto.hashtag.HashtagDto;
 import com.pairingplanet.pairing_planet.dto.image.ImageResponseDto;
 import com.pairingplanet.pairing_planet.dto.log_post.LogPostDetailResponseDto;
 import com.pairingplanet.pairing_planet.dto.log_post.CreateLogRequestDto;
@@ -21,8 +23,8 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -34,6 +36,7 @@ public class LogPostService {
     private final RecipeLogRepository recipeLogRepository;
     private final ImageService imageService;
     private final UserRepository userRepository;
+    private final HashtagService hashtagService;
 
     @Value("${file.upload.url-prefix}") // [추가] URL 조합을 위해 필요
     private String urlPrefix;
@@ -64,6 +67,12 @@ public class LogPostService {
 
         // 이미지 활성화 (LOG 타입)
         imageService.activateImages(req.imagePublicIds(), logPost);
+
+        // 해시태그 처리
+        if (req.hashtags() != null && !req.hashtags().isEmpty()) {
+            Set<Hashtag> hashtags = hashtagService.getOrCreateHashtags(req.hashtags());
+            logPost.setHashtags(hashtags);
+        }
 
         return getLogDetail(logPost.getPublicId());
     }
@@ -102,7 +111,12 @@ public class LogPostService {
         // 2. 연결된 레시피 요약 정보 생성 (11개 필드 대응)
         RecipeSummaryDto linkedRecipeSummary = convertToRecipeSummary(linkedRecipe);
 
-        // 3. 최종 DTO 생성 시 createdAt 추가
+        // 3. 해시태그 리스트 변환
+        List<HashtagDto> hashtagDtos = logPost.getHashtags().stream()
+                .map(HashtagDto::from)
+                .toList();
+
+        // 4. 최종 DTO 생성 시 createdAt 추가
         return new LogPostDetailResponseDto(
                 logPost.getPublicId(),
                 logPost.getTitle(),
@@ -110,7 +124,8 @@ public class LogPostService {
                 recipeLog.getOutcome(),
                 imageResponses,
                 linkedRecipeSummary,
-                logPost.getCreatedAt()// [추가] BaseEntity로부터 상속받은 생성일시 전달
+                logPost.getCreatedAt(),
+                hashtagDtos
         );
     }
 
