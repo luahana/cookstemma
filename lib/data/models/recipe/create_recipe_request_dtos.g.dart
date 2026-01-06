@@ -28,6 +28,9 @@ CreateRecipeRequestDto _$CreateRecipeRequestDtoFromJson(
       rootPublicId: json['rootPublicId'] as String?,
       changeDiff: json['changeDiff'] as Map<String, dynamic>?,
       changeReason: json['changeReason'] as String?,
+      hashtags: (json['hashtags'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$CreateRecipeRequestDtoToJson(
@@ -46,4 +49,5 @@ Map<String, dynamic> _$CreateRecipeRequestDtoToJson(
       'rootPublicId': instance.rootPublicId,
       'changeDiff': instance.changeDiff,
       'changeReason': instance.changeReason,
+      'hashtags': instance.hashtags,
     };

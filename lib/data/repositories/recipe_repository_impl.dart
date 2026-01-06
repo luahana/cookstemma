@@ -89,19 +89,85 @@ class RecipeRepositoryImpl implements RecipeRepository {
     required int page,
     int size = 10,
   }) async {
-    try {
-      // 1. RemoteDataSource 호출
-      final sliceDto = await remoteDataSource.getRecipes(
-        page: page,
-        size: size,
-      );
+    // Only cache first page (page 0)
+    if (page == 0) {
+      return _getRecipesWithCache(size: size);
+    }
 
-      // 2. DTO를 Entity로 변환
+    // Pages > 0: network-only (no caching for pagination)
+    try {
+      final sliceDto = await remoteDataSource.getRecipes(page: page, size: size);
       return Right(sliceDto.toEntity((dto) => dto.toEntity()));
     } on DioException catch (e) {
       return Left(_mapDioExceptionToFailure(e));
     } catch (e) {
       return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  /// Cache-first strategy for the first page of recipes.
+  Future<Either<Failure, SliceResponse<RecipeSummary>>> _getRecipesWithCache({
+    int size = 10,
+  }) async {
+    // 1. Check for cached data
+    final cached = await localDataSource.getCachedRecipeList();
+
+    // 2. Check network connectivity
+    if (await networkInfo.isConnected) {
+      try {
+        // 3. Fetch fresh data from server
+        final sliceDto = await remoteDataSource.getRecipes(page: 0, size: size);
+
+        // 4. Cache the first page on success
+        await localDataSource.cacheRecipeList(sliceDto.content);
+
+        // 5. Return fresh data
+        return Right(sliceDto.toEntity((dto) => dto.toEntity()));
+      } on DioException catch (e) {
+        // Network error: fallback to cache if available
+        if (cached != null) {
+          return Right(SliceResponse(
+            content: cached.data.map((d) => d.toEntity()).toList(),
+            number: 0,
+            size: cached.data.length,
+            first: true,
+            last: false,
+            hasNext: true, // Assume there's more (can't verify offline)
+            isFromCache: true,
+            cachedAt: cached.cachedAt,
+          ));
+        }
+        return Left(_mapDioExceptionToFailure(e));
+      } catch (e) {
+        if (cached != null) {
+          return Right(SliceResponse(
+            content: cached.data.map((d) => d.toEntity()).toList(),
+            number: 0,
+            size: cached.data.length,
+            first: true,
+            last: false,
+            hasNext: true,
+            isFromCache: true,
+            cachedAt: cached.cachedAt,
+          ));
+        }
+        return Left(UnknownFailure(e.toString()));
+      }
+    } else {
+      // Offline: use cached data
+      if (cached != null) {
+        return Right(SliceResponse(
+          content: cached.data.map((d) => d.toEntity()).toList(),
+          number: 0,
+          size: cached.data.length,
+          first: true,
+          last: false,
+          hasNext: false, // Can't paginate offline
+          isFromCache: true,
+          cachedAt: cached.cachedAt,
+        ));
+      }
+      return Left(ConnectionFailure('오프라인 상태이며 저장된 데이터가 없습니다.'));
     }
   }
 

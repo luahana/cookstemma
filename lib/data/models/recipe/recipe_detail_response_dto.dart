@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
 import '../image/image_response_dto.dart';
 import '../log_post/log_post_summary_dto.dart';
+import '../hashtag/hashtag_dto.dart';
 import 'recipe_summary_dto.dart';
 import 'ingredient_dto.dart';
 import 'step_dto.dart';
@@ -22,13 +23,13 @@ class RecipeDetailResponseDto {
   final RecipeSummaryDto? rootInfo;
   final RecipeSummaryDto? parentInfo;
 
-  // 💡 리스트 필드들을 Nullable(?)로 변경하여 파싱 에러 방지
   final List<IngredientDto>? ingredients;
   final List<StepDto>? steps;
   final List<ImageResponseDto>? images;
   final List<RecipeSummaryDto>? variants;
   final List<LogPostSummaryDto>? logs;
-  final bool? isSavedByCurrentUser; // P1: 북마크 저장 여부
+  final List<HashtagDto>? hashtags;
+  final bool? isSavedByCurrentUser;
 
   RecipeDetailResponseDto({
     required this.publicId,
@@ -40,11 +41,12 @@ class RecipeDetailResponseDto {
     this.changeCategory,
     this.rootInfo,
     this.parentInfo,
-    this.ingredients, // required 제거
+    this.ingredients,
     this.steps,
     this.images,
     this.variants,
     this.logs,
+    this.hashtags,
     this.isSavedByCurrentUser,
   });
 
@@ -58,24 +60,22 @@ class RecipeDetailResponseDto {
     foodName: foodName,
     foodMasterPublicId: foodMasterPublicId,
     title: title,
-    description: description ?? "", // 💡 엔티티가 String이면 ?? "" 필수
+    description: description ?? "",
     culinaryLocale: (culinaryLocale?.isEmpty ?? true) ? "ko" : culinaryLocale!,
     changeCategory: changeCategory,
     rootInfo: rootInfo?.toEntity(),
     parentInfo: parentInfo?.toEntity(),
     ingredients: ingredients?.map((e) => e.toEntity()).toList() ?? [],
     steps: steps?.map((e) => e.toEntity()).toList() ?? [],
-
-    // 💡 Java의 imageUrl 필드명을 사용하여 추출
     imageUrls:
         images
             ?.map((img) => img.imageUrl ?? "")
             .where((url) => url.isNotEmpty)
             .toList() ??
         [],
-
     variants: variants?.map((e) => e.toEntity()).toList() ?? [],
     logs: logs?.map((e) => e.toEntity()).toList() ?? [],
+    hashtags: hashtags?.map((e) => e.toEntity()).toList() ?? [],
     isSavedByCurrentUser: isSavedByCurrentUser,
   );
 }

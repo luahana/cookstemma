@@ -23,6 +23,10 @@ class ApiEndpoints {
   // Analytics 관련
   static const String events = '/events'; // 단일 이벤트 추적
   static const String eventsBatch = '/events/batch'; // 배치 이벤트 추적
+
+  // Hashtags 관련
+  static const String hashtags = '/hashtags';
+  static const String hashtagSearch = '/hashtags/search';
 }
 
 class RouteConstants {

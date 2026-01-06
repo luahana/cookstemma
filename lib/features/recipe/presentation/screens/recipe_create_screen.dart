@@ -11,6 +11,7 @@ import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_provid
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 import '../widgets/hook_section.dart';
 import '../widgets/step_section.dart';
+import '../widgets/hashtag_input_section.dart';
 
 class RecipeCreateScreen extends ConsumerStatefulWidget {
   final RecipeDetail? parentRecipe; // 💡 변경: ID 대신 객체 수신
@@ -33,6 +34,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
   final List<Map<String, dynamic>> _ingredients = [];
   final List<Map<String, dynamic>> _steps = [];
   final List<UploadItem> _finishedImages = [];
+  final List<String> _hashtags = [];
 
   String? _food1MasterPublicId;
   bool _isLoading = false;
@@ -267,10 +269,13 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
             widget.parentRecipe?.publicId,
         changeDiff: changeDiff,
         changeReason: isVariantMode ? _changeReasonController.text.trim() : null,
+        hashtags: _hashtags.isNotEmpty ? _hashtags : null,
       );
 
       // Use the new provider with analytics tracking
       await ref.read(recipeCreationProvider.notifier).createRecipe(request);
+
+      if (!mounted) return;
 
       final state = ref.read(recipeCreationProvider);
       state.when(
@@ -313,6 +318,15 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
                           setState(() => _food1MasterPublicId = publicId),
 
                       onStateChanged: () => setState(() {}),
+                    ),
+
+                    const SizedBox(height: 24),
+                    HashtagInputSection(
+                      hashtags: _hashtags,
+                      onHashtagsChanged: (tags) => setState(() {
+                        _hashtags.clear();
+                        _hashtags.addAll(tags);
+                      }),
                     ),
 
                     if (isVariantMode) ...[

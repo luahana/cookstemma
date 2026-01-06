@@ -2,6 +2,7 @@ import 'ingredient.dart';
 import 'recipe_step.dart';
 import 'recipe_summary.dart';
 import '../log_post/log_post_summary.dart';
+import '../hashtag/hashtag.dart';
 
 class RecipeDetail {
   final String publicId;
@@ -11,14 +12,15 @@ class RecipeDetail {
   final String? description;
   final String? culinaryLocale;
   final String? changeCategory;
-  final RecipeSummary? rootInfo; // [원칙 1] 상단 고정 루트 정보
-  final RecipeSummary? parentInfo; // Inspired by 정보
+  final RecipeSummary? rootInfo;
+  final RecipeSummary? parentInfo;
   final List<Ingredient> ingredients;
   final List<RecipeStep> steps;
   final List<String> imageUrls;
   final List<RecipeSummary> variants;
   final List<LogPostSummary> logs;
-  final bool? isSavedByCurrentUser; // P1: 북마크 저장 여부
+  final List<Hashtag> hashtags;
+  final bool? isSavedByCurrentUser;
 
   RecipeDetail({
     required this.publicId,
@@ -35,6 +37,7 @@ class RecipeDetail {
     required this.imageUrls,
     required this.variants,
     required this.logs,
+    required this.hashtags,
     this.isSavedByCurrentUser,
   });
 }

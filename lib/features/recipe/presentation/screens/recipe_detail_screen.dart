@@ -9,6 +9,7 @@ import '../../providers/recipe_providers.dart';
 import '../widgets/lineage_breadcrumb.dart';
 import '../widgets/recent_logs_gallery.dart';
 import '../widgets/variants_gallery.dart';
+import '../widgets/hashtag_chips.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final String recipeId;
@@ -117,6 +118,11 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                               height: 1.5,
                             ),
                           ),
+                          // Hashtags section
+                          if (recipe.hashtags.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            HashtagChips(hashtags: recipe.hashtags),
+                          ],
                           const Divider(height: 48),
                           const Text(
                             "준비 재료",

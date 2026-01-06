@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:dartz/dartz.dart';
+import 'package:pairing_planet2_frontend/core/error/failures.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info.dart';
 import 'package:pairing_planet2_frontend/data/datasources/analytics/analytics_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/analytics/analytics_remote_data_source.dart';
@@ -24,79 +26,91 @@ class AnalyticsRepositoryImpl implements AnalyticsRepository {
         _talker = talker;
 
   @override
-  Future<void> trackEvent(AppEvent event) async {
-    // Always queue locally first (Outbox pattern)
-    await _localDataSource.queueEvent(event);
+  Future<Either<Failure, Unit>> trackEvent(AppEvent event) async {
+    try {
+      // Always queue locally first (Outbox pattern)
+      await _localDataSource.queueEvent(event);
 
-    // If immediate priority and online, send now
-    if (event.priority == EventPriority.immediate &&
-        await _networkInfo.isConnected) {
-      try {
-        await _remoteDataSource.trackEvent(event);
-        await _localDataSource.markAsSynced(event.eventId);
-        _talker.info(
-            'Event ${event.eventType.name} sent immediately (eventId: ${event.eventId})');
-      } catch (e) {
-        // Failed, will retry in background sync
-        _talker.error('Failed to send immediate event', e);
-        await _localDataSource.markAsFailed(event.eventId);
+      // If immediate priority and online, send now
+      if (event.priority == EventPriority.immediate &&
+          await _networkInfo.isConnected) {
+        try {
+          await _remoteDataSource.trackEvent(event);
+          await _localDataSource.markAsSynced(event.eventId);
+          _talker.info(
+              'Event ${event.eventType.name} sent immediately (eventId: ${event.eventId})');
+        } catch (e) {
+          // Failed, will retry in background sync
+          _talker.error('Failed to send immediate event', e);
+          await _localDataSource.markAsFailed(event.eventId);
+        }
+      } else {
+        _talker.debug(
+            'Event ${event.eventType.name} queued for batch sync (eventId: ${event.eventId})');
       }
-    } else {
-      _talker.debug(
-          'Event ${event.eventType.name} queued for batch sync (eventId: ${event.eventId})');
+      return const Right(unit);
+    } catch (e) {
+      _talker.error('Failed to track event', e);
+      return Left(UnknownFailure(e.toString()));
     }
   }
 
   @override
-  Future<void> syncPendingEvents() async {
-    if (!await _networkInfo.isConnected) {
-      _talker.debug('Sync skipped: no network connection');
-      return;
-    }
-
-    // Sync immediate events first (priority)
-    final immediateEvents = await _localDataSource.getPendingEvents(
-      priority: EventPriority.immediate,
-    );
-
-    for (final event in immediateEvents) {
-      try {
-        final appEvent = _convertToAppEvent(event);
-        await _remoteDataSource.trackEvent(appEvent);
-        await _localDataSource.markAsSynced(event.eventId);
-        _talker.info('Synced immediate event: ${event.eventType}');
-      } catch (e) {
-        // Retry logic handled by background worker
-        _talker.error('Failed to sync event ${event.eventId}', e);
-        await _localDataSource.markAsFailed(event.eventId);
+  Future<Either<Failure, Unit>> syncPendingEvents() async {
+    try {
+      if (!await _networkInfo.isConnected) {
+        _talker.debug('Sync skipped: no network connection');
+        return const Right(unit);
       }
-    }
 
-    // Batch sync analytics events
-    final batchedEvents = await _localDataSource.getPendingEvents(
-      priority: EventPriority.batched,
-    );
+      // Sync immediate events first (priority)
+      final immediateEvents = await _localDataSource.getPendingEvents(
+        priority: EventPriority.immediate,
+      );
 
-    if (batchedEvents.isNotEmpty) {
-      try {
-        final appEvents = batchedEvents.map(_convertToAppEvent).toList();
-        await _remoteDataSource.trackBatchEvents(appEvents);
-
-        for (final event in batchedEvents) {
+      for (final event in immediateEvents) {
+        try {
+          final appEvent = _convertToAppEvent(event);
+          await _remoteDataSource.trackEvent(appEvent);
           await _localDataSource.markAsSynced(event.eventId);
-        }
-
-        _talker.info('Batch synced ${batchedEvents.length} events');
-      } catch (e) {
-        _talker.error('Failed to batch sync events', e);
-        for (final event in batchedEvents) {
+          _talker.info('Synced immediate event: ${event.eventType}');
+        } catch (e) {
+          // Retry logic handled by background worker
+          _talker.error('Failed to sync event ${event.eventId}', e);
           await _localDataSource.markAsFailed(event.eventId);
         }
       }
-    }
 
-    // Cleanup old synced events (keep last 7 days)
-    await _localDataSource.cleanupSyncedEvents(olderThanDays: 7);
+      // Batch sync analytics events
+      final batchedEvents = await _localDataSource.getPendingEvents(
+        priority: EventPriority.batched,
+      );
+
+      if (batchedEvents.isNotEmpty) {
+        try {
+          final appEvents = batchedEvents.map(_convertToAppEvent).toList();
+          await _remoteDataSource.trackBatchEvents(appEvents);
+
+          for (final event in batchedEvents) {
+            await _localDataSource.markAsSynced(event.eventId);
+          }
+
+          _talker.info('Batch synced ${batchedEvents.length} events');
+        } catch (e) {
+          _talker.error('Failed to batch sync events', e);
+          for (final event in batchedEvents) {
+            await _localDataSource.markAsFailed(event.eventId);
+          }
+        }
+      }
+
+      // Cleanup old synced events (keep last 7 days)
+      await _localDataSource.cleanupSyncedEvents(olderThanDays: 7);
+      return const Right(unit);
+    } catch (e) {
+      _talker.error('Failed to sync pending events', e);
+      return Left(UnknownFailure(e.toString()));
+    }
   }
 
   AppEvent _convertToAppEvent(QueuedEvent queuedEvent) {

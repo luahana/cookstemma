@@ -2,29 +2,59 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart';
 import '../../../domain/entities/recipe/recipe_summary.dart';
 
-// 💡 데이터와 다음 페이지 유무를 함께 관리하기 위한 상태 클래스 추가
+/// State class for recipe list with pagination and cache info.
 class RecipeListState {
   final List<RecipeSummary> items;
   final bool hasNext;
+  final bool isFromCache;
+  final DateTime? cachedAt;
 
-  RecipeListState({required this.items, required this.hasNext});
+  RecipeListState({
+    required this.items,
+    required this.hasNext,
+    this.isFromCache = false,
+    this.cachedAt,
+  });
+
+  RecipeListState copyWith({
+    List<RecipeSummary>? items,
+    bool? hasNext,
+    bool? isFromCache,
+    DateTime? cachedAt,
+  }) {
+    return RecipeListState(
+      items: items ?? this.items,
+      hasNext: hasNext ?? this.hasNext,
+      isFromCache: isFromCache ?? this.isFromCache,
+      cachedAt: cachedAt ?? this.cachedAt,
+    );
+  }
 }
 
 class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
   int _currentPage = 0;
   bool _hasNext = true;
   bool _isFetchingNext = false;
+  bool _isFromCache = false;
+  DateTime? _cachedAt;
 
   @override
   Future<RecipeListState> build() async {
-    // 💡 초기화 로직
+    // 초기화 로직
     _currentPage = 0;
     _hasNext = true;
     _isFetchingNext = false;
+    _isFromCache = false;
+    _cachedAt = null;
 
     final items = await _fetchRecipes(page: _currentPage);
-    // 💡 초기 상태에 현재 리스트와 hasNext 정보를 함께 담아 반환합니다.
-    return RecipeListState(items: items, hasNext: _hasNext);
+    // 초기 상태에 현재 리스트와 hasNext, 캐시 정보를 함께 담아 반환합니다.
+    return RecipeListState(
+      items: items,
+      hasNext: _hasNext,
+      isFromCache: _isFromCache,
+      cachedAt: _cachedAt,
+    );
   }
 
   Future<List<RecipeSummary>> _fetchRecipes({required int page}) async {
@@ -32,7 +62,12 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
     final result = await repository.getRecipes(page: page, size: 10);
 
     return result.fold((failure) => throw failure, (sliceResponse) {
-      _hasNext = sliceResponse.hasNext; // 💡 서버 응답에서 다음 페이지 유무 확인
+      _hasNext = sliceResponse.hasNext;
+      // Track cache status for first page
+      if (page == 0) {
+        _isFromCache = sliceResponse.isFromCache;
+        _cachedAt = sliceResponse.cachedAt;
+      }
       return sliceResponse.content;
     });
   }

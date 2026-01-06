@@ -21,6 +21,8 @@ class CreateRecipeRequestDto {
   // Phase 7-3: Automatic Change Detection
   final Map<String, dynamic>? changeDiff;
   final String? changeReason;
+  // Hashtags
+  final List<String>? hashtags;
 
   CreateRecipeRequestDto({
     required this.title,
@@ -36,6 +38,7 @@ class CreateRecipeRequestDto {
     this.rootPublicId,
     this.changeDiff,
     this.changeReason,
+    this.hashtags,
   }) {
     if (food1MasterPublicId == null &&
         (newFoodName == null || newFoodName!.trim().isEmpty)) {
@@ -65,6 +68,7 @@ class CreateRecipeRequestDto {
       rootPublicId: request.rootPublicId,
       changeDiff: request.changeDiff,
       changeReason: request.changeReason,
+      hashtags: request.hashtags,
     );
   }
 }

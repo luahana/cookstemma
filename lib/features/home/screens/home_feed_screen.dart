@@ -13,7 +13,7 @@ class HomeFeedScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final feedAsync = ref.watch(homeFeedProvider);
+    final feedState = ref.watch(homeFeedProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -28,52 +28,112 @@ class HomeFeedScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(homeFeedProvider);
-          return ref.read(homeFeedProvider.future);
+          await ref.read(homeFeedProvider.notifier).refresh();
         },
-        child: feedAsync.when(
-          data: (feed) => SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Section 1: Recent Activity
-                if (feed.recentActivity.isNotEmpty) ...[
-                  _buildSectionHeader("최근 요리 활동"),
-                  ...feed.recentActivity.map((activity) => _buildActivityCard(context, activity)),
-                ],
+        child: _buildContent(context, ref, feedState),
+      ),
+    );
+  }
 
-                // Section 2: Trending Trees
-                if (feed.trendingTrees.isNotEmpty) ...[
-                  const SizedBox(height: 24),
-                  _buildSectionHeader("이 레시피, 이렇게 바뀌고 있어요"),
-                  SizedBox(
-                    height: 200,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: feed.trendingTrees.length,
-                      itemBuilder: (context, index) {
-                        return _buildTrendingTreeCard(context, feed.trendingTrees[index]);
-                      },
-                    ),
-                  ),
-                ],
+  Widget _buildContent(BuildContext context, WidgetRef ref, HomeFeedState feedState) {
+    // Show loading only if no data available
+    if (feedState.isLoading && feedState.data == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-                // Section 3: Recent Recipes
-                if (feed.recentRecipes.isNotEmpty) ...[
-                  const SizedBox(height: 24),
-                  _buildSectionHeader("최근 등록된 레시피"),
-                  ...feed.recentRecipes.map((recipe) => _buildRecipeCard(context, recipe)),
-                ],
+    // Show error only if no data available
+    if (feedState.error != null && feedState.data == null) {
+      return _buildErrorState(context, ref, feedState.error!);
+    }
 
-                const SizedBox(height: 32),
-              ],
+    final feed = feedState.data;
+    if (feed == null) {
+      return _buildErrorState(context, ref, "데이터가 없습니다");
+    }
+
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Cache status indicator (optional)
+          if (feedState.isFromCache && feedState.cachedAt != null)
+            _buildCacheIndicator(feedState),
+
+          // Section 1: Recent Activity
+          if (feed.recentActivity.isNotEmpty) ...[
+            _buildSectionHeader("최근 요리 활동"),
+            ...feed.recentActivity.map((activity) => _buildActivityCard(context, activity)),
+          ],
+
+          // Section 2: Trending Trees
+          if (feed.trendingTrees.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildSectionHeader("이 레시피, 이렇게 바뀌고 있어요"),
+            SizedBox(
+              height: 200,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: feed.trendingTrees.length,
+                itemBuilder: (context, index) {
+                  return _buildTrendingTreeCard(context, feed.trendingTrees[index]);
+                },
+              ),
             ),
+          ],
+
+          // Section 3: Recent Recipes
+          if (feed.recentRecipes.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildSectionHeader("최근 등록된 레시피"),
+            ...feed.recentRecipes.map((recipe) => _buildRecipeCard(context, recipe)),
+          ],
+
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCacheIndicator(HomeFeedState state) {
+    final cachedAt = state.cachedAt;
+    if (cachedAt == null) return const SizedBox.shrink();
+
+    final diff = DateTime.now().difference(cachedAt);
+    String timeText;
+    if (diff.inMinutes < 1) {
+      timeText = "방금 전";
+    } else if (diff.inMinutes < 60) {
+      timeText = "${diff.inMinutes}분 전";
+    } else {
+      timeText = "${diff.inHours}시간 전";
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.orange[50],
+      child: Row(
+        children: [
+          Icon(Icons.access_time, size: 14, color: Colors.orange[700]),
+          const SizedBox(width: 6),
+          Text(
+            "마지막 업데이트: $timeText",
+            style: TextStyle(fontSize: 12, color: Colors.orange[700]),
           ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => _buildErrorState(context, ref, err),
-        ),
+          if (state.isLoading) ...[
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.orange[700],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

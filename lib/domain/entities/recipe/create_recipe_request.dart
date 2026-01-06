@@ -14,8 +14,10 @@ class CreateRecipeRequest {
   final String? parentPublicId;
   final String? rootPublicId;
   // Phase 7-3: Automatic Change Detection
-  final Map<String, dynamic>? changeDiff;  // Structured diff
-  final String? changeReason;              // User's explanation for changes
+  final Map<String, dynamic>? changeDiff;
+  final String? changeReason;
+  // Hashtags
+  final List<String>? hashtags;
 
   CreateRecipeRequest({
     required this.title,
@@ -31,5 +33,6 @@ class CreateRecipeRequest {
     this.rootPublicId,
     this.changeDiff,
     this.changeReason,
+    this.hashtags,
   });
 }
