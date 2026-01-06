@@ -6,6 +6,9 @@ import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/ingredient_dto.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
 import '../../providers/recipe_providers.dart';
+import '../widgets/lineage_breadcrumb.dart';
+import '../widgets/recent_logs_gallery.dart';
+import '../widgets/variants_gallery.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final String recipeId;
@@ -72,6 +75,11 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       body: recipeAsync.when(
         data: (recipe) => Column(
           children: [
+            // Lineage breadcrumb at TOP (for variant recipes)
+            LineageBreadcrumb(
+              rootInfo: recipe.rootInfo,
+              parentInfo: recipe.parentInfo,
+            ),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -143,10 +151,24 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                           ),
                           const SizedBox(height: 16),
                           ...recipe.steps.map((step) => _buildStepItem(step)),
-                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
+                    // Variants Gallery section (only for ROOT recipes with variants)
+                    if (recipe.variants.isNotEmpty && recipe.rootInfo == null) ...[
+                      const Divider(height: 48),
+                      VariantsGallery(
+                        variants: recipe.variants,
+                        recipeId: recipe.publicId,
+                      ),
+                    ],
+                    // Recent Logs Gallery section
+                    const Divider(height: 48),
+                    RecentLogsGallery(
+                      logs: recipe.logs,
+                      recipeId: recipe.publicId,
+                    ),
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),

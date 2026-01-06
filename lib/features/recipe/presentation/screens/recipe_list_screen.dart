@@ -217,6 +217,10 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                     style: TextStyle(color: Colors.grey[600], fontSize: 14),
                   ),
                   const SizedBox(height: 12),
+                  // Activity counts row
+                  _buildActivityRow(recipe),
+                  const SizedBox(height: 8),
+                  // Creator and root link row
                   Row(
                     children: [
                       Icon(
@@ -230,13 +234,14 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                         style: TextStyle(color: Colors.grey[600], fontSize: 13),
                       ),
                       const Spacer(),
-                      if (recipe.variantCount > 0)
+                      // Show root link for variants
+                      if (recipe.isVariant && recipe.rootTitle != null)
                         Text(
-                          "변형 ${recipe.variantCount}개",
-                          style: const TextStyle(
-                            color: Colors.orange,
+                          "📌 원본: ${recipe.rootTitle}",
+                          style: TextStyle(
+                            color: Colors.orange[700],
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                     ],
@@ -265,6 +270,48 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
           fontWeight: FontWeight.bold,
         ),
       ),
+    );
+  }
+
+  /// Activity counts row: shows variant count and log count
+  Widget _buildActivityRow(RecipeSummary recipe) {
+    final hasVariants = recipe.variantCount > 0;
+    final hasLogs = recipe.logCount > 0;
+
+    // If no activity, don't show the row
+    if (!hasVariants && !hasLogs) {
+      return const SizedBox.shrink();
+    }
+
+    return Row(
+      children: [
+        if (hasVariants) ...[
+          Text(
+            "🔀 ${recipe.variantCount}개 변형",
+            style: TextStyle(
+              color: Colors.grey[700],
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+        if (hasVariants && hasLogs) ...[
+          Text(
+            " · ",
+            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+          ),
+        ],
+        if (hasLogs) ...[
+          Text(
+            "📝 ${recipe.logCount}개 로그",
+            style: TextStyle(
+              color: Colors.grey[700],
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

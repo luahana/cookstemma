@@ -35,6 +35,9 @@ class LogPostDetailResponseDto {
     outcome: outcome ?? 'PARTIAL', // Default to PARTIAL if null
     imageUrls: images?.map((img) => img.imageUrl).toList() ?? [],
     recipePublicId: linkedRecipe?.publicId ?? "",
+    linkedRecipe: linkedRecipe != null
+        ? LinkedRecipeInfo.fromRecipeSummary(linkedRecipe!.toEntity())
+        : null,
     createdAt: DateTime.parse(createdAt),
   );
 }

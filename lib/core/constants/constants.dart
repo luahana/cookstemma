@@ -8,11 +8,17 @@ class ApiEndpoints {
   static const String log_posts = '/log_posts'; //
 
   // Feed 관련
-  static const String homeFeed = '/home/feed'; //
+  static const String homeFeed = '/home'; //
 
   // Logs 관련
   static const String logs = '/logs'; //
   static String logDetail(String id) => '/logs/$id'; //
+
+  // User 관련
+  static const String myProfile = '/users/me';
+  static const String myRecipes = '/recipes/my';
+  static const String myLogs = '/log_posts/my';
+  static const String savedRecipes = '/recipes/saved';
 
   // Analytics 관련
   static const String events = '/events'; // 단일 이벤트 추적

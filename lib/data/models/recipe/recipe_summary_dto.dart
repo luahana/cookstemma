@@ -6,16 +6,18 @@ part 'recipe_summary_dto.g.dart';
 @JsonSerializable()
 class RecipeSummaryDto {
   final String publicId;
-  final String foodName; // 💡 추가
-  final String foodMasterPublicId; // 💡 추가
+  final String foodName;
+  final String foodMasterPublicId;
   final String title;
   final String? description;
   final String? culinaryLocale;
   final String? creatorName;
   final String? thumbnail;
   final int? variantCount;
-  final String? parentPublicId; // 💡 추가
+  final int? logCount; // Activity count from backend (nullable for backward compat)
+  final String? parentPublicId;
   final String? rootPublicId;
+  final String? rootTitle; // Root recipe title for variants
 
   RecipeSummaryDto({
     required this.publicId,
@@ -27,8 +29,10 @@ class RecipeSummaryDto {
     required this.creatorName,
     this.thumbnail,
     this.variantCount,
+    this.logCount,
     this.parentPublicId,
     this.rootPublicId,
+    this.rootTitle,
   });
 
   factory RecipeSummaryDto.fromJson(Map<String, dynamic> json) =>
@@ -36,10 +40,9 @@ class RecipeSummaryDto {
 
   Map<String, dynamic> toJson() => _$RecipeSummaryDtoToJson(this);
 
-  // 💡 DTO를 도메인 엔티티로 변환하는 로직
   RecipeSummary toEntity() => RecipeSummary(
     publicId: publicId,
-    foodName: foodName, // 💡 매핑 추가
+    foodName: foodName,
     foodMasterPublicId: foodMasterPublicId,
     title: title,
     description: description ?? "",
@@ -47,7 +50,9 @@ class RecipeSummaryDto {
     thumbnailUrl: thumbnail,
     creatorName: creatorName ?? "익명",
     variantCount: variantCount ?? 0,
+    logCount: logCount ?? 0,
     parentPublicId: parentPublicId,
     rootPublicId: rootPublicId,
+    rootTitle: rootTitle,
   );
 }

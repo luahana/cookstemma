@@ -17,8 +17,10 @@ RecipeSummaryDto _$RecipeSummaryDtoFromJson(Map<String, dynamic> json) =>
       creatorName: json['creatorName'] as String?,
       thumbnail: json['thumbnail'] as String?,
       variantCount: (json['variantCount'] as num?)?.toInt(),
+      logCount: (json['logCount'] as num?)?.toInt(),
       parentPublicId: json['parentPublicId'] as String?,
       rootPublicId: json['rootPublicId'] as String?,
+      rootTitle: json['rootTitle'] as String?,
     );
 
 Map<String, dynamic> _$RecipeSummaryDtoToJson(RecipeSummaryDto instance) =>
@@ -32,6 +34,8 @@ Map<String, dynamic> _$RecipeSummaryDtoToJson(RecipeSummaryDto instance) =>
       'creatorName': instance.creatorName,
       'thumbnail': instance.thumbnail,
       'variantCount': instance.variantCount,
+      'logCount': instance.logCount,
       'parentPublicId': instance.parentPublicId,
       'rootPublicId': instance.rootPublicId,
+      'rootTitle': instance.rootTitle,
     };

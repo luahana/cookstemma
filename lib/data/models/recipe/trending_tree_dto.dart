@@ -6,7 +6,9 @@ part 'trending_tree_dto.g.dart';
 class TrendingTreeDto {
   final String rootRecipeId;
   final String title;
+  final String? foodName;
   final String culinaryLocale;
+  final String? thumbnail;
   final int variantCount;
   final int logCount;
   final String? latestChangeSummary;
@@ -14,7 +16,9 @@ class TrendingTreeDto {
   TrendingTreeDto({
     required this.rootRecipeId,
     required this.title,
+    this.foodName,
     required this.culinaryLocale,
+    this.thumbnail,
     required this.variantCount,
     required this.logCount,
     this.latestChangeSummary,

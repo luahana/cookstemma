@@ -1,8 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
+import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_list_provider.dart';
 
 class LogPostListScreen extends ConsumerStatefulWidget {
@@ -33,14 +34,13 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
     }
   }
 
-  Widget _buildOutcomeEmoji(String? outcome) {
-    final emoji = switch (outcome) {
+  String _getOutcomeEmoji(String? outcome) {
+    return switch (outcome) {
       'SUCCESS' => '😊',
       'PARTIAL' => '😐',
       'FAILED' => '😢',
-      _ => '😐',
+      _ => '🍳',
     };
-    return Text(emoji, style: const TextStyle(fontSize: 20));
   }
 
   @override
@@ -48,134 +48,255 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
     final logPostsAsync = ref.watch(logPostPaginatedListProvider);
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('로그'),
-        centerTitle: true,
+        title: const Text(
+          '요리 기록',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
       body: logPostsAsync.when(
         data: (state) {
           if (state.items.isEmpty) {
-            return const Center(
-              child: Text(
-                '아직 작성된 로그가 없습니다.',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            );
+            return _buildEmptyState();
           }
 
           return RefreshIndicator(
             onRefresh: () async {
               await ref.read(logPostPaginatedListProvider.notifier).refresh();
             },
-            child: ListView.builder(
+            child: CustomScrollView(
               controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: state.items.length + (state.hasNext ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == state.items.length) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: CircularProgressIndicator(),
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                // Grid of log posts
+                SliverPadding(
+                  padding: const EdgeInsets.all(12),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 0.75,
                     ),
-                  );
-                }
-
-                final logPost = state.items[index];
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () {
-                      context.push(
-                        RouteConstants.logPostDetailPath(logPost.id),
-                      );
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (logPost.thumbnailUrl != null)
-                          AspectRatio(
-                            aspectRatio: 16 / 9,
-                            child: CachedNetworkImage(
-                              imageUrl: logPost.thumbnailUrl!,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                color: Colors.grey[300],
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
-                              errorWidget: (context, url, error) => Container(
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.error),
-                              ),
-                            ),
-                          ),
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                logPost.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 8),
-                              if (logPost.outcome != null)
-                                _buildOutcomeEmoji(logPost.outcome),
-                              const SizedBox(height: 8),
-                              if (logPost.creatorName != null)
-                                Text(
-                                  'by ${logPost.creatorName}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        if (index < state.items.length) {
+                          return _buildLogCard(context, state.items[index]);
+                        }
+                        return null;
+                      },
+                      childCount: state.items.length,
                     ),
                   ),
-                );
-              },
+                ),
+                // Loading indicator at the bottom
+                if (state.hasNext)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+                // End message when no more items
+                if (!state.hasNext && state.items.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(
+                        child: Text(
+                          "모든 요리 기록을 불러왔습니다",
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
+        error: (error, stack) => _buildErrorState(error),
+      ),
+    );
+  }
+
+  Widget _buildLogCard(BuildContext context, LogPostSummary logPost) {
+    return GestureDetector(
+      onTap: () => context.push(RouteConstants.logPostDetailPath(logPost.id)),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Photo with outcome overlay
+            Expanded(
+              flex: 3,
+              child: Stack(
+                children: [
+                  // Photo
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    child: logPost.thumbnailUrl != null
+                        ? AppCachedImage(
+                            imageUrl: logPost.thumbnailUrl!,
+                            width: double.infinity,
+                            height: double.infinity,
+                            borderRadius: 0,
+                          )
+                        : Container(
+                            width: double.infinity,
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.restaurant,
+                              size: 40,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                  ),
+                  // Outcome emoji overlay
+                  Positioned(
+                    right: 8,
+                    bottom: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        _getOutcomeEmoji(logPost.outcome),
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Text info
+            Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      logPost.title,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    if (logPost.creatorName != null)
+                      Text(
+                        "@${logPost.creatorName}",
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey[600],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+        Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              Icon(
+                Icons.history_edu,
+                size: 64,
+                color: Colors.grey[400],
+              ),
               const SizedBox(height: 16),
               Text(
-                '로그를 불러올 수 없습니다.',
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                "아직 요리 기록이 없어요",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
-                error.toString(),
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  ref.invalidate(logPostPaginatedListProvider);
-                },
-                child: const Text('다시 시도'),
+                "레시피를 따라 요리하고\n기록을 남겨보세요!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                ),
               ),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(Object error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 48, color: Colors.red),
+          const SizedBox(height: 16),
+          Text(
+            '로그를 불러올 수 없습니다',
+            style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            error.toString(),
+            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              ref.invalidate(logPostPaginatedListProvider);
+            },
+            child: const Text('다시 시도'),
+          ),
+        ],
       ),
     );
   }

@@ -7,9 +7,11 @@ import 'package:pairing_planet2_frontend/features/home/screens/main_screen.dart'
 import 'package:pairing_planet2_frontend/features/log_post/presentation/screens/log_post_create_screen.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/screens/log_post_detail_screen.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/screens/log_post_list_screen.dart';
+import 'package:pairing_planet2_frontend/features/home/screens/home_feed_screen.dart';
 import 'package:pairing_planet2_frontend/features/login/screens/login_screen.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/screens/recipe_create_screen.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/screens/recipe_list_screen.dart';
+import 'package:pairing_planet2_frontend/features/profile/screens/profile_screen.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart'; // 💡 추가
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/recipe/presentation/screens/recipe_detail_screen.dart';
@@ -87,7 +89,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/',
-                builder: (context, state) => const Center(child: Text('홈 화면')),
+                builder: (context, state) => const HomeFeedScreen(),
               ),
             ],
           ),
@@ -121,7 +123,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: RouteConstants.profile,
-                builder: (context, state) => const Center(child: Text('마이페이지')),
+                builder: (context, state) => const ProfileScreen(),
               ),
             ],
           ),

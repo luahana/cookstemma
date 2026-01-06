@@ -1,27 +1,33 @@
 class RecipeSummary {
   final String publicId;
-  final String foodName; // 💡 추가
-  final String? foodMasterPublicId; // 💡 추가
+  final String foodName;
+  final String? foodMasterPublicId;
   final String title;
   final String description;
   final String culinaryLocale;
   final String? thumbnailUrl;
   final String creatorName;
   final int variantCount;
-  final String? parentPublicId; // 💡 추가
+  final int logCount; // Activity count: number of cooking logs
+  final String? parentPublicId;
   final String? rootPublicId;
+  final String? rootTitle; // For displaying root recipe link in variants
 
   RecipeSummary({
     required this.publicId,
-    required this.foodName, // 💡 추가
-    this.foodMasterPublicId, // 💡 추가
+    required this.foodName,
+    this.foodMasterPublicId,
     required this.title,
     required this.description,
     required this.culinaryLocale,
     this.thumbnailUrl,
     required this.creatorName,
     required this.variantCount,
-    this.parentPublicId, // 💡 추가
+    this.logCount = 0,
+    this.parentPublicId,
     this.rootPublicId,
+    this.rootTitle,
   });
+
+  bool get isVariant => rootPublicId != null;
 }
