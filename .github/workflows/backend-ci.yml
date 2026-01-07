@@ -1,8 +1,8 @@
-# CI Pipeline
+# CI Pipeline for Backend
 # Runs on all pull requests to any branch
 # Tests and builds the application
 
-name: CI
+name: Backend CI
 
 on:
   pull_request:
@@ -10,11 +10,17 @@ on:
       - master
       - staging
       - dev
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
 
 jobs:
   test:
     name: Test & Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
 
     steps:
       - name: Checkout code
@@ -32,7 +38,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
@@ -50,12 +56,12 @@ jobs:
         if: always()
         with:
           name: test-results
-          path: build/reports/tests/
+          path: backend/build/reports/tests/
           retention-days: 7
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: build/libs/*.jar
+          path: backend/build/libs/*.jar
           retention-days: 1

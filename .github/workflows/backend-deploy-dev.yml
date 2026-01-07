@@ -1,13 +1,16 @@
-# Deploy to Dev Environment
+# Deploy Backend to Dev Environment
 # Triggers on push to dev branch
 # Simple rolling update (no Blue/Green)
 
-name: Deploy to Dev
+name: Backend Deploy to Dev
 
 on:
   push:
     branches:
       - dev
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-deploy-dev.yml'
 
 env:
   AWS_REGION: us-east-2
@@ -21,6 +24,9 @@ jobs:
     name: Deploy to Dev
     runs-on: ubuntu-latest
     environment: dev
+    defaults:
+      run:
+        working-directory: ./backend
 
     steps:
       - name: Checkout code
@@ -38,7 +44,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
@@ -64,17 +70,19 @@ jobs:
 
       - name: Build, tag, and push Docker image
         id: build-image
+        working-directory: .
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: dev-${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./backend/Dockerfile ./backend
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Download task definition
+        working-directory: .
         run: |
           aws ecs describe-task-definition --task-definition pairing-planet-dev \
             --query taskDefinition > task-definition.json
@@ -96,6 +104,7 @@ jobs:
           wait-for-service-stability: true
 
       - name: Deployment Summary
+        working-directory: .
         run: |
           echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment:** Dev" >> $GITHUB_STEP_SUMMARY

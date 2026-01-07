@@ -1,29 +1,35 @@
-# Deploy to Production Environment
-# Triggers on push to master branch
+# Deploy Backend to Staging Environment
+# Triggers on push to staging branch
 # Blue/Green deployment with CodeDeploy
 
-name: Deploy to Production
+name: Backend Deploy to Staging
 
 on:
   push:
     branches:
-      - master
+      - staging
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-deploy-staging.yml'
 
 env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: pairing-planet
-  ECS_CLUSTER: pairing-planet-prod-cluster
-  ECS_SERVICE: pairing-planet-prod-service
-  CONTAINER_NAME: pairing-planet-prod
-  CODEDEPLOY_APP: pairing-planet-prod
-  CODEDEPLOY_GROUP: pairing-planet-prod-dg
-  TASK_DEFINITION_FAMILY: pairing-planet-prod
+  ECS_CLUSTER: pairing-planet-staging-cluster
+  ECS_SERVICE: pairing-planet-staging-service
+  CONTAINER_NAME: pairing-planet-staging
+  CODEDEPLOY_APP: pairing-planet-staging
+  CODEDEPLOY_GROUP: pairing-planet-staging-dg
+  TASK_DEFINITION_FAMILY: pairing-planet-staging
 
 jobs:
   deploy:
-    name: Deploy to Production
+    name: Deploy to Staging
     runs-on: ubuntu-latest
-    environment: production
+    environment: staging
+    defaults:
+      run:
+        working-directory: ./backend
 
     steps:
       - name: Checkout code
@@ -41,7 +47,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
@@ -67,17 +73,19 @@ jobs:
 
       - name: Build, tag, and push Docker image
         id: build-image
+        working-directory: .
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: prod-${{ github.sha }}
+          IMAGE_TAG: staging-${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:prod-latest
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./backend/Dockerfile ./backend
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:staging-latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:prod-latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:staging-latest
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Download current task definition
+        working-directory: .
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.TASK_DEFINITION_FAMILY }} \
             --query taskDefinition > task-definition.json
@@ -92,6 +100,7 @@ jobs:
 
       - name: Register new task definition
         id: register-task
+        working-directory: .
         run: |
           TASK_DEF_ARN=$(aws ecs register-task-definition \
             --cli-input-json file://${{ steps.task-def.outputs.task-definition }} \
@@ -100,6 +109,7 @@ jobs:
           echo "task-definition-arn=$TASK_DEF_ARN" >> $GITHUB_OUTPUT
 
       - name: Create AppSpec file
+        working-directory: .
         run: |
           cat > appspec.json << EOF
           {
@@ -123,6 +133,7 @@ jobs:
 
       - name: Create CodeDeploy deployment
         id: deploy
+        working-directory: .
         run: |
           DEPLOYMENT_ID=$(aws deploy create-deployment \
             --application-name ${{ env.CODEDEPLOY_APP }} \
@@ -134,58 +145,18 @@ jobs:
           echo "Deployment ID: $DEPLOYMENT_ID"
 
       - name: Wait for deployment to complete
+        working-directory: .
         run: |
           echo "Waiting for deployment ${{ steps.deploy.outputs.deployment-id }} to complete..."
           aws deploy wait deployment-successful \
             --deployment-id ${{ steps.deploy.outputs.deployment-id }}
           echo "Deployment completed successfully!"
 
-      - name: Get latest version tag
-        id: get-version
-        run: |
-          # Fetch all tags
-          git fetch --tags
-
-          # Get latest version tag (v*.*.*)
-          LATEST_TAG=$(git tag -l "v*.*.*" | sort -V | tail -n 1)
-
-          if [ -z "$LATEST_TAG" ]; then
-            # No existing tag, start with v1.0.0
-            NEW_VERSION="v1.0.0"
-          else
-            # Increment patch version (v1.0.1 -> v1.0.2)
-            VERSION=${LATEST_TAG#v}
-            MAJOR=$(echo $VERSION | cut -d. -f1)
-            MINOR=$(echo $VERSION | cut -d. -f2)
-            PATCH=$(echo $VERSION | cut -d. -f3)
-            NEW_PATCH=$((PATCH + 1))
-            NEW_VERSION="v${MAJOR}.${MINOR}.${NEW_PATCH}"
-          fi
-
-          echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "New version: $NEW_VERSION"
-
-      - name: Create and push tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a ${{ steps.get-version.outputs.new-version }} -m "Release ${{ steps.get-version.outputs.new-version }}"
-          git push origin ${{ steps.get-version.outputs.new-version }}
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.get-version.outputs.new-version }}
-          name: Release ${{ steps.get-version.outputs.new-version }}
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Deployment Summary
+        working-directory: .
         run: |
           echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment:** Production" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version:** ${{ steps.get-version.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** Staging" >> $GITHUB_STEP_SUMMARY
           echo "- **Image:** ${{ steps.build-image.outputs.image }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Deployment ID:** ${{ steps.deploy.outputs.deployment-id }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Deployment Type:** Blue/Green (CodeDeploy - Linear 10% every minute)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployment Type:** Blue/Green (CodeDeploy)" >> $GITHUB_STEP_SUMMARY
