@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
-import 'package:pairing_planet2_frontend/core/widgets/search_app_bar.dart';
+import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
+import 'package:pairing_planet2_frontend/core/widgets/search/enhanced_search_app_bar.dart';
+import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
+import 'package:pairing_planet2_frontend/core/widgets/skeletons/log_post_card_skeleton.dart';
+import 'package:pairing_planet2_frontend/data/datasources/search/search_local_data_source.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_list_provider.dart';
 
@@ -50,10 +54,11 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: SearchAppBar(
+      appBar: EnhancedSearchAppBar(
         title: '요리 기록',
         hintText: '요리 기록 검색...',
         currentQuery: logPostsAsync.valueOrNull?.searchQuery,
+        searchType: SearchType.logPost,
         onSearch: (query) {
           ref.read(logPostPaginatedListProvider.notifier).search(query);
         },
@@ -88,7 +93,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         if (index < state.items.length) {
-                          return _buildLogCard(context, state.items[index]);
+                          return _buildLogCard(context, state.items[index], state.searchQuery);
                         }
                         return null;
                       },
@@ -124,13 +129,13 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const LogPostGridSkeleton(),
         error: (error, stack) => _buildErrorState(error),
       ),
     );
   }
 
-  Widget _buildLogCard(BuildContext context, LogPostSummary logPost) {
+  Widget _buildLogCard(BuildContext context, LogPostSummary logPost, String? searchQuery) {
     return GestureDetector(
       onTap: () => context.push(RouteConstants.logPostDetailPath(logPost.id)),
       child: Container(
@@ -207,8 +212,9 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      logPost.title,
+                    HighlightedText(
+                      text: logPost.title,
+                      query: searchQuery,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -240,39 +246,12 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
   Widget _buildEmptyState(String? searchQuery) {
     // 검색 결과가 없는 경우
     if (searchQuery != null && searchQuery.isNotEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          SizedBox(height: MediaQuery.of(context).size.height * 0.25),
-          Center(
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.search_off,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "'$searchQuery'에 대한 검색 결과가 없습니다.",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "다른 키워드로 검색해보세요.",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      return SearchEmptyState(
+        query: searchQuery,
+        entityName: '요리 기록',
+        onClearSearch: () {
+          ref.read(logPostPaginatedListProvider.notifier).clearSearch();
+        },
       );
     }
 

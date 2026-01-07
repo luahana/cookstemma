@@ -50,6 +50,7 @@ void main() async {
   await Hive.initFlutter();
   await Hive.openBox('recipe_box');
   await Hive.openBox('profile_cache_box');
+  await Hive.openBox('search_history_box');
 
   // Initialize Isar database for event tracking
   final isar = await initializeIsar();

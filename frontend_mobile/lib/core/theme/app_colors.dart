@@ -18,4 +18,7 @@ class AppColors {
   // 💡 기타 (별점, 로그 구분 등)
   static const Color rating = Color(0xFFF1C40F);
   static const Color border = Color(0xFFDFE6E9);
+
+  // 💡 검색 하이라이트
+  static const Color highlightBackground = Color(0xFFFFF3E0);
 }
