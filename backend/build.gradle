@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.pairingplanet'
 version = '0.0.1-SNAPSHOT'
-description = 'pairing planet backend '
+description = 'pairing planet backend - monorepo'
 
 java {
 	toolchain {
