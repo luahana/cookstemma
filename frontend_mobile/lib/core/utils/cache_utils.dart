@@ -45,4 +45,7 @@ class CacheTTL {
 
   /// Log post detail cache: 30 minutes
   static const Duration logPostDetail = Duration(minutes: 30);
+
+  /// Profile tabs cache (My Recipes, My Logs, Saved): 5 minutes
+  static const Duration profileTabs = Duration(minutes: 5);
 }
