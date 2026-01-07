@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @Builder
 public record TrendingTreeDto(
-        UUID rootPublicId,
+        UUID rootRecipeId,
         String title,
         String foodName,      // 음식 이름
         String culinaryLocale,
