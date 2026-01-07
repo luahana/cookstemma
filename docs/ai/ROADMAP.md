@@ -10,7 +10,10 @@
 
 ### Priority 0 — Critical (Do These First)
 
-- [x] **Profile Page Local Caching** — Cache "My Recipes", "My Logs", "Saved" tabs (2026-01-05)
+- [ ] **Profile Page Local Caching** — Cache "My Recipes", "My Logs", "Saved" tabs in Isar
+  - Files: `profile_provider.dart`, `profile_local_data_source.dart`
+  - Pattern: Cache-first, show cached data immediately, then refresh from network
+  - Add cache indicator like home feed
 
 ### Priority 1 — High Impact
 
