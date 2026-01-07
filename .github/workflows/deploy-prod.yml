@@ -140,10 +140,52 @@ jobs:
             --deployment-id ${{ steps.deploy.outputs.deployment-id }}
           echo "Deployment completed successfully!"
 
+      - name: Get latest version tag
+        id: get-version
+        run: |
+          # Fetch all tags
+          git fetch --tags
+
+          # Get latest version tag (v*.*.*)
+          LATEST_TAG=$(git tag -l "v*.*.*" | sort -V | tail -n 1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            # No existing tag, start with v1.0.0
+            NEW_VERSION="v1.0.0"
+          else
+            # Increment patch version (v1.0.1 -> v1.0.2)
+            VERSION=${LATEST_TAG#v}
+            MAJOR=$(echo $VERSION | cut -d. -f1)
+            MINOR=$(echo $VERSION | cut -d. -f2)
+            PATCH=$(echo $VERSION | cut -d. -f3)
+            NEW_PATCH=$((PATCH + 1))
+            NEW_VERSION="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+          fi
+
+          echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a ${{ steps.get-version.outputs.new-version }} -m "Release ${{ steps.get-version.outputs.new-version }}"
+          git push origin ${{ steps.get-version.outputs.new-version }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get-version.outputs.new-version }}
+          name: Release ${{ steps.get-version.outputs.new-version }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Deployment Summary
         run: |
           echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${{ steps.get-version.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Image:** ${{ steps.build-image.outputs.image }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Deployment ID:** ${{ steps.deploy.outputs.deployment-id }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Deployment Type:** Blue/Green (CodeDeploy - Linear 10% every minute)" >> $GITHUB_STEP_SUMMARY

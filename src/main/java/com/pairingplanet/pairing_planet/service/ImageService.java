@@ -43,9 +43,6 @@ public class ImageService {
     @Value("${file.upload.bucket}")
     private String bucket;
 
-    @Value("${spring.cloud.aws.s3.endpoint}")
-    private String endpoint;
-
     @Transactional
     public ImageUploadResponseDto uploadImage(MultipartFile file, ImageType imageType, UserPrincipal principal) {
         if (file.isEmpty()) throw new IllegalArgumentException("File is empty");

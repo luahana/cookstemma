@@ -8,17 +8,21 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.Limit;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AutocompleteService {
 
-    private final RedisTemplate<String, String> redisTemplate;
+    @Autowired(required = false)
+    private RedisTemplate<String, String> redisTemplate;
 
     private final FoodMasterRepository foodMasterRepository;
     private final FoodCategoryRepository foodCategoryRepository;
@@ -47,6 +51,10 @@ public class AutocompleteService {
     }
 
     private List<AutocompleteDto> searchRedis(String prefix, String locale) {
+        if (redisTemplate == null) {
+            return List.of(); // Redis not available, fall back to DB
+        }
+
         String key = AUTOCOMPLETE_KEY_PREFIX + locale;
         Range<String> range = Range.rightOpen(prefix, prefix + "\uffff");
         Limit limit = Limit.limit().count(50);
@@ -90,6 +98,10 @@ public class AutocompleteService {
      * Format: "Name::Type::Id::Score"
      */
     public void add(String locale, String name, String type, UUID publicId, Double score) {
+        if (redisTemplate == null) {
+            return; // Redis not available
+        }
+
         String key = AUTOCOMPLETE_KEY_PREFIX + locale;
         // 성능 포인트: 불필요한 객체 생성을 줄이기 위해 String.join 사용
         String value = name + DELIMITER + type + DELIMITER + publicId.toString() + DELIMITER + score;
@@ -101,6 +113,9 @@ public class AutocompleteService {
      * 전체 삭제 (초기화용)
      */
     public void clear(String locale) {
+        if (redisTemplate == null) {
+            return; // Redis not available
+        }
         redisTemplate.delete(AUTOCOMPLETE_KEY_PREFIX + locale);
     }
 

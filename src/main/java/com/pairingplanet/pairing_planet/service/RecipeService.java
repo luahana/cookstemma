@@ -368,7 +368,7 @@ public class RecipeService {
                             .orElse(null);
 
                     return TrendingTreeDto.builder()
-                            .rootPublicId(root.getPublicId())
+                            .rootRecipeId(root.getPublicId())
                             .title(root.getTitle())
                             .foodName(getFoodName(root))
                             .culinaryLocale(root.getCulinaryLocale())

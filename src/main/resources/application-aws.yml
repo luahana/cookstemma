@@ -1,0 +1,63 @@
+spring:
+  config:
+    activate:
+      on-profile: aws
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        show_sql: false
+
+  cloud:
+    aws:
+      s3:
+        path-style-access-enabled: false
+      credentials:
+        access-key: ${S3_ACCESS_KEY}
+        secret-key: ${S3_SECRET_KEY}
+      region:
+        static: ${S3_REGION:us-east-2}
+      stack:
+        auto: false
+
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+    baseline-on-migrate: true
+
+  sql:
+    init:
+      mode: never
+
+logging:
+  level:
+    root: INFO
+    com.pairingplanet: INFO
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  expiration: 1800000
+
+security:
+  encryption-key: ${ENCRYPTION_KEY}
+
+firebase:
+  credentials: ${FIREBASE_CREDENTIALS:}
+
+file:
+  upload:
+    bucket: ${S3_BUCKET}
+    url-prefix: https://${S3_BUCKET}.s3.${S3_REGION:us-east-2}.amazonaws.com

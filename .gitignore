@@ -37,6 +37,7 @@ out/
 .vscode/
 
 /src/main/resources/firebase-service-account.json
+
 ### Terraform ###
 terraform/.terraform/
 terraform/**/.terraform/
