@@ -39,6 +39,7 @@ public class ImageService {
     private final S3Client s3Client;
     private final ImageRepository imageRepository;
     private final UserRepository userRepository;
+    private final ImageProcessingService imageProcessingService;
 
     @Value("${file.upload.bucket}")
     private String bucket;
@@ -110,6 +111,9 @@ public class ImageService {
 
             image.setStatus(ImageStatus.ACTIVE);
             image.setDisplayOrder(index); // 복사한 상수를 사용
+
+            // Trigger async variant generation
+            imageProcessingService.generateVariantsAsync(image.getId());
         }
     }
 
