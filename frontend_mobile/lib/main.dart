@@ -49,6 +49,7 @@ void main() async {
   await dotenv.load(fileName: ".env");
   await Hive.initFlutter();
   await Hive.openBox('recipe_box');
+  await Hive.openBox('profile_cache_box');
 
   // Initialize Isar database for event tracking
   final isar = await initializeIsar();

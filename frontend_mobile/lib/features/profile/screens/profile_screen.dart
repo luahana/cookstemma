@@ -208,6 +208,52 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 }
 
+/// Cache indicator widget
+Widget _buildCacheIndicator({
+  required bool isFromCache,
+  required DateTime? cachedAt,
+  required bool isLoading,
+}) {
+  if (!isFromCache || cachedAt == null) return const SizedBox.shrink();
+
+  final diff = DateTime.now().difference(cachedAt);
+  String timeText;
+  if (diff.inMinutes < 1) {
+    timeText = "방금 전";
+  } else if (diff.inMinutes < 60) {
+    timeText = "${diff.inMinutes}분 전";
+  } else {
+    timeText = "${diff.inHours}시간 전";
+  }
+
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    color: Colors.orange[50],
+    child: Row(
+      children: [
+        Icon(Icons.access_time, size: 14, color: Colors.orange[700]),
+        const SizedBox(width: 6),
+        Text(
+          "마지막 업데이트: $timeText",
+          style: TextStyle(fontSize: 12, color: Colors.orange[700]),
+        ),
+        if (isLoading) ...[
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.orange[700],
+            ),
+          ),
+        ],
+      ],
+    ),
+  );
+}
+
 /// 내 레시피 탭
 class _MyRecipesTab extends ConsumerStatefulWidget {
   const _MyRecipesTab();
@@ -240,42 +286,59 @@ class _MyRecipesTabState extends ConsumerState<_MyRecipesTab> {
 
   @override
   Widget build(BuildContext context) {
-    final recipesAsync = ref.watch(myRecipesProvider);
+    final state = ref.watch(myRecipesProvider);
 
-    return recipesAsync.when(
-      data: (state) {
-        if (state.items.isEmpty) {
-          return _buildEmptyState(
-            icon: Icons.restaurant_menu,
-            message: '아직 만든 레시피가 없어요',
-            subMessage: '나만의 레시피를 만들어보세요!',
-          );
-        }
+    // Initial loading (no cached data)
+    if (state.isLoading && state.items.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-        return RefreshIndicator(
-          onRefresh: () => ref.read(myRecipesProvider.notifier).refresh(),
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(16),
-            itemCount: state.items.length + (state.hasNext ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= state.items.length) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-              return _buildRecipeCard(context, state.items[index]);
-            },
+    // Error with no data
+    if (state.error != null && state.items.isEmpty) {
+      return _buildErrorState(() {
+        ref.read(myRecipesProvider.notifier).refresh();
+      });
+    }
+
+    // Empty state
+    if (state.items.isEmpty) {
+      return _buildEmptyState(
+        icon: Icons.restaurant_menu,
+        message: '아직 만든 레시피가 없어요',
+        subMessage: '나만의 레시피를 만들어보세요!',
+      );
+    }
+
+    // Data available
+    return RefreshIndicator(
+      onRefresh: () => ref.read(myRecipesProvider.notifier).refresh(),
+      child: Column(
+        children: [
+          _buildCacheIndicator(
+            isFromCache: state.isFromCache,
+            cachedAt: state.cachedAt,
+            isLoading: state.isLoading,
           ),
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => _buildErrorState(() {
-        ref.invalidate(myRecipesProvider);
-      }),
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: state.items.length + (state.hasNext ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= state.items.length) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                return _buildRecipeCard(context, state.items[index]);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -388,43 +451,60 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
 
   @override
   Widget build(BuildContext context) {
-    final logsAsync = ref.watch(myLogsProvider);
+    final state = ref.watch(myLogsProvider);
 
-    return logsAsync.when(
-      data: (state) {
-        if (state.items.isEmpty) {
-          return _buildEmptyState(
-            icon: Icons.history_edu,
-            message: '아직 요리 기록이 없어요',
-            subMessage: '레시피를 따라 요리하고 기록을 남겨보세요!',
-          );
-        }
+    // Initial loading (no cached data)
+    if (state.isLoading && state.items.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-        return RefreshIndicator(
-          onRefresh: () => ref.read(myLogsProvider.notifier).refresh(),
-          child: GridView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.85,
-            ),
-            itemCount: state.items.length + (state.hasNext ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= state.items.length) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              return _buildLogCard(context, state.items[index]);
-            },
+    // Error with no data
+    if (state.error != null && state.items.isEmpty) {
+      return _buildErrorState(() {
+        ref.read(myLogsProvider.notifier).refresh();
+      });
+    }
+
+    // Empty state
+    if (state.items.isEmpty) {
+      return _buildEmptyState(
+        icon: Icons.history_edu,
+        message: '아직 요리 기록이 없어요',
+        subMessage: '레시피를 따라 요리하고 기록을 남겨보세요!',
+      );
+    }
+
+    // Data available
+    return RefreshIndicator(
+      onRefresh: () => ref.read(myLogsProvider.notifier).refresh(),
+      child: Column(
+        children: [
+          _buildCacheIndicator(
+            isFromCache: state.isFromCache,
+            cachedAt: state.cachedAt,
+            isLoading: state.isLoading,
           ),
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => _buildErrorState(() {
-        ref.invalidate(myLogsProvider);
-      }),
+          Expanded(
+            child: GridView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(12),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.85,
+              ),
+              itemCount: state.items.length + (state.hasNext ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= state.items.length) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return _buildLogCard(context, state.items[index]);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -539,42 +619,59 @@ class _SavedRecipesTabState extends ConsumerState<_SavedRecipesTab> {
 
   @override
   Widget build(BuildContext context) {
-    final savedAsync = ref.watch(savedRecipesProvider);
+    final state = ref.watch(savedRecipesProvider);
 
-    return savedAsync.when(
-      data: (state) {
-        if (state.items.isEmpty) {
-          return _buildEmptyState(
-            icon: Icons.bookmark_border,
-            message: '저장한 레시피가 없어요',
-            subMessage: '마음에 드는 레시피를 저장해보세요!',
-          );
-        }
+    // Initial loading (no cached data)
+    if (state.isLoading && state.items.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-        return RefreshIndicator(
-          onRefresh: () => ref.read(savedRecipesProvider.notifier).refresh(),
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(16),
-            itemCount: state.items.length + (state.hasNext ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= state.items.length) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-              return _buildSavedRecipeCard(context, state.items[index]);
-            },
+    // Error with no data
+    if (state.error != null && state.items.isEmpty) {
+      return _buildErrorState(() {
+        ref.read(savedRecipesProvider.notifier).refresh();
+      });
+    }
+
+    // Empty state
+    if (state.items.isEmpty) {
+      return _buildEmptyState(
+        icon: Icons.bookmark_border,
+        message: '저장한 레시피가 없어요',
+        subMessage: '마음에 드는 레시피를 저장해보세요!',
+      );
+    }
+
+    // Data available
+    return RefreshIndicator(
+      onRefresh: () => ref.read(savedRecipesProvider.notifier).refresh(),
+      child: Column(
+        children: [
+          _buildCacheIndicator(
+            isFromCache: state.isFromCache,
+            cachedAt: state.cachedAt,
+            isLoading: state.isLoading,
           ),
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => _buildErrorState(() {
-        ref.invalidate(savedRecipesProvider);
-      }),
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: state.items.length + (state.hasNext ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= state.items.length) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                return _buildSavedRecipeCard(context, state.items[index]);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
