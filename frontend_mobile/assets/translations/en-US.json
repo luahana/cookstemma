@@ -1,0 +1,12 @@
+{
+  "home": {
+    "title": "Pairing Planet",
+    "trending": "Trending Trees",
+    "recent": "Recent Recipes"
+  },
+  "recipe": {
+    "detail": "Recipe Detail",
+    "ingredients": "Ingredients",
+    "steps": "Steps"
+  }
+}

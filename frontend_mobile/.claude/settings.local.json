@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dart run build_runner:*)",
+      "Bash(flutter pub run build_runner build:*)",
+      "Bash(del:*)",
+      "Bash(find:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(if [ -f \"CLAUDE.md\" ])",
+      "Bash(then mkdir -p doc/ai)",
+      "Bash(else echo \"CLAUDE.md not found\")",
+      "Bash(fi)",
+      "Bash(flutter pub get:*)",
+      "Bash(flutter run:*)",
+      "Bash(timeout:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
