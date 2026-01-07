@@ -8,6 +8,7 @@ import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_step.dart
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart'; // 💡 추가
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/ingredient_section.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart';
+import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 import '../widgets/hook_section.dart';
 import '../widgets/step_section.dart';
@@ -281,6 +282,9 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
       state.when(
         data: (newId) {
           if (newId != null) {
+            // Invalidate profile providers so they refresh when user visits profile
+            ref.invalidate(myRecipesProvider);
+            ref.invalidate(myProfileProvider);
             context.go(ApiEndpoints.recipeDetail(newId));
           }
         },
