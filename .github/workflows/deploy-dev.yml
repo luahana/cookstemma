@@ -10,7 +10,7 @@ on:
       - dev
 
 env:
-  AWS_REGION: ap-northeast-2
+  AWS_REGION: us-east-2
   ECR_REPOSITORY: pairing-planet
   ECS_CLUSTER: pairing-planet-dev-cluster
   ECS_SERVICE: pairing-planet-dev-service

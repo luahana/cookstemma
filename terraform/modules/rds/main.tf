@@ -41,7 +41,7 @@ resource "aws_db_subnet_group" "main" {
 # Parameter Group for PostgreSQL
 resource "aws_db_parameter_group" "main" {
   name        = "${var.project_name}-${var.environment}-pg-params"
-  family      = "postgres16"
+  family      = "postgres15"
   description = "PostgreSQL parameter group for ${var.environment}"
 
   parameter {

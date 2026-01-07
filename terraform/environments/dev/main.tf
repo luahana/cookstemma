@@ -12,11 +12,11 @@ terraform {
   }
 
   # Backend configuration for state storage
-  # Uncomment after creating the S3 bucket
+  # Uncomment after creating the S3 bucket and DynamoDB table
   # backend "s3" {
   #   bucket         = "pairing-planet-terraform-state"
   #   key            = "dev/terraform.tfstate"
-  #   region         = "ap-northeast-2"
+  #   region         = "us-east-1"
   #   encrypt        = true
   #   dynamodb_table = "pairing-planet-terraform-locks"
   # }
@@ -102,7 +102,7 @@ module "rds" {
   master_username         = var.db_username
   master_password         = var.db_password
   multi_az                = false
-  backup_retention_period = 3
+  backup_retention_period = 0  # Free tier doesn't support backups
 }
 
 # ECS Module - Public IP, no ALB

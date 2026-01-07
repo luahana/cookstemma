@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "ap-northeast-2"
+  default     = "us-east-2"
 }
 
 variable "project_name" {
@@ -100,5 +100,5 @@ variable "s3_bucket" {
 variable "s3_region" {
   description = "S3 region"
   type        = string
-  default     = "ap-northeast-2"
+  default     = "us-east-2"
 }

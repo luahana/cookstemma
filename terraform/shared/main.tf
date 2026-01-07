@@ -12,14 +12,13 @@ terraform {
   }
 
   # Backend configuration for state storage
-  # Uncomment and configure after creating the S3 bucket
-  # backend "s3" {
-  #   bucket         = "pairing-planet-terraform-state"
-  #   key            = "shared/terraform.tfstate"
-  #   region         = "ap-northeast-2"
-  #   encrypt        = true
-  #   dynamodb_table = "pairing-planet-terraform-locks"
-  # }
+  backend "s3" {
+    bucket         = "pairing-planet-terraform-state"
+    key            = "shared/terraform.tfstate"
+    region         = "us-east-2"
+    encrypt        = true
+    dynamodb_table = "pairing-planet-terraform-locks"
+  }
 }
 
 provider "aws" {

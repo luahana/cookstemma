@@ -293,10 +293,8 @@ resource "aws_ecs_service" "main" {
     }
   }
 
-  # Ignore changes to task definition and desired count when using CodeDeploy
-  lifecycle {
-    ignore_changes = var.use_code_deploy ? [task_definition, load_balancer] : []
-  }
+  # Note: When using CodeDeploy (staging/prod), you may need to manually
+  # ignore changes to task_definition and load_balancer in the state
 
   tags = {
     Name = "${var.project_name}-${var.environment}-service"
