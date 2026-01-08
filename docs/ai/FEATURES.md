@@ -374,6 +374,121 @@ Client                                  Server
 
 ---
 
+### [FEAT-019]: Batch Photo Upload
+
+**Status:** 📋 Planned
+**Branch:** `feature/content-creation-ux`
+
+**Description:** Upload multiple photos at once for cooking steps. Each photo creates a step automatically.
+
+**Acceptance Criteria:**
+- [ ] "Add Multiple" button in step section
+- [ ] Multi-select from gallery (up to 10)
+- [ ] Each photo creates a step with empty description
+- [ ] User can reorder, edit descriptions, remove steps
+- [ ] Progress indicator during upload
+
+**Technical Notes:** Use `pickMultiImage()`, parallel upload, numbered badges for order
+
+---
+
+### [FEAT-020]: Recipe Locale
+
+**Status:** 📋 Planned
+**Branch:** `feature/content-creation-ux`
+
+**Description:** Tag recipes with culinary locale (Korean, American, etc.) for cultural taste preferences.
+
+**Locale Options:** Korean, American, Japanese, Chinese, Italian, Mexican, Thai, Indian, French, Other/Fusion
+
+**Acceptance Criteria:**
+- [ ] Locale dropdown in recipe creation (10 options)
+- [ ] Default from user profile setting
+- [ ] Inherit from parent recipe on variations
+- [ ] Locale badge on recipe cards
+- [ ] Filter chips in home feed
+
+**Technical Notes:** Backend `culinaryLocale` field exists, add enum validation
+
+---
+
+### [FEAT-021]: Recipe Draft Auto-Save
+
+**Status:** 📋 Planned
+**Branch:** `feature/content-creation-ux`
+
+**Description:** Auto-save recipe drafts locally. Restore on return.
+
+**Acceptance Criteria:**
+- [ ] Auto-save on 30s interval, blur, background, navigation
+- [ ] 7-day retention, 1 draft per user
+- [ ] "Continue Draft?" dialog on return
+- [ ] "Drafts" tab in profile
+- [ ] Status indicator: "Saving..." → "Saved"
+
+**Technical Notes:** Isar local storage, debounced timer, clear on publish
+
+---
+
+### [FEAT-022]: Guest Access
+
+**Status:** 📋 Planned
+**Branch:** `feature/content-creation-ux`
+
+**Description:** Browse recipes without signing in. Login required for actions.
+
+**Acceptance Criteria:**
+- [ ] "Browse as Guest" button on login screen
+- [ ] Guests can browse, view, search
+- [ ] Login prompt on: create, save, follow
+- [ ] Auto-complete action after login
+- [ ] Profile tab shows "Sign in" for guests
+
+**Technical Notes:** Add `AuthStatus.guest`, `LoginPromptSheet`, pending action callback
+
+---
+
+### [FEAT-023]: Mandatory Fields
+
+**Status:** 📋 Planned
+**Branch:** `feature/content-creation-ux`
+
+**Description:** Require minimum fields for content quality.
+
+**Acceptance Criteria:**
+- [ ] Recipe: 1 photo, title (2ch), food, 1 ingredient, 1 step
+- [ ] Log: linked recipe, outcome (photo optional)
+- [ ] Inline validation with indicators
+- [ ] Publish disabled until valid
+- [ ] Backend validation with field errors
+
+**Technical Notes:** Jakarta validation annotations, 400 response with field details
+
+---
+
+### [FEAT-024]: Settings & Account Deletion
+
+**Status:** 🟡 In Progress
+**Branch:** `feature/social-sharing`
+**PR:** #14
+
+**Description:** Settings screen with logout and account deletion (soft delete with 30-day grace period).
+
+**Acceptance Criteria:**
+- [x] Settings screen accessible from Profile AppBar
+- [x] Language, Notifications, Logout options
+- [x] Delete Account with "DELETE"/"삭제" type confirmation
+- [x] 30-day grace period before permanent deletion
+- [x] Account restoration on login within grace period
+- [x] Daily scheduled cleanup job
+
+**Technical Notes:**
+- Backend: `deletedAt`, `deleteScheduledAt` fields on User entity
+- Frontend: SettingsScreen, DeleteAccountScreen
+- Scheduler: `AccountCleanupScheduler` runs daily at midnight
+
+---
+
 # 🏛️ DECISIONS
 
 ## Template
@@ -503,4 +618,10 @@ Client                                  Server
 | FEAT-016 | Improved Onboarding | 📋 |
 | FEAT-017 | Full-Text Search | 📋 |
 | FEAT-018 | Achievement Badges | 📋 |
+| FEAT-019 | Batch Photo Upload | 📋 |
+| FEAT-020 | Recipe Locale | 📋 |
+| FEAT-021 | Recipe Draft Auto-Save | 📋 |
+| FEAT-022 | Guest Access | 📋 |
+| FEAT-023 | Mandatory Fields | 📋 |
+| FEAT-024 | Settings & Account Deletion | 🟡 |
 | FEAT-025 | Idempotency Keys | ✅ |
