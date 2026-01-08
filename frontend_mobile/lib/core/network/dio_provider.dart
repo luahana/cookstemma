@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/config/app_config.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/network/auth_interceptor.dart';
+import 'package:pairing_planet2_frontend/core/network/idempotency_interceptor.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
 import 'package:pairing_planet2_frontend/core/services/storage_service.dart';
 import 'package:pairing_planet2_frontend/core/services/toast_service.dart';
@@ -59,8 +60,12 @@ final dioProvider = Provider<Dio>((ref) {
   // 3. 인증 인터셉터 (401 발생 시 토큰 갱신 후 재시도)
   dio.interceptors.add(AuthInterceptor(storageService, dio));
 
-  // 4. 네트워크 재시도 인터셉터
-  // 💡 인증 인터셉터가 해결하지 못한 네트워크 오류(502, 503 등)를 처리
+  // 4. 멱등성 인터셉터 (POST/PATCH 요청에 고유 키 추가)
+  // 💡 재시도 인터셉터보다 먼저 실행되어야 동일한 키로 재시도됨
+  dio.interceptors.add(IdempotencyInterceptor());
+
+  // 5. 네트워크 재시도 인터셉터
+  // 💡 멱등성 인터셉터가 키를 보존하므로 재시도 시 동일한 키 사용
   dio.interceptors.add(
     RetryInterceptor(
       dio: dio,
@@ -79,7 +84,7 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  // 5. 최하단: 사용자 알림 및 로그 (최종 결과에 대해 Toast 출력)
+  // 6. 최하단: 사용자 알림 및 로그 (최종 결과에 대해 Toast 출력)
   dio.interceptors.add(
     InterceptorsWrapper(
       onError: (DioException e, handler) {
