@@ -9,6 +9,7 @@ import 'package:pairing_planet2_frontend/core/widgets/search/enhanced_search_app
 import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
 import 'package:pairing_planet2_frontend/data/datasources/search/search_local_data_source.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
+import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/locale_badge.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_list_provider.dart';
 
 class RecipeListScreen extends ConsumerStatefulWidget {
@@ -216,6 +217,14 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                   borderRadius: 16,
                 ),
                 Positioned(top: 12, left: 12, child: _buildBadge(isVariant)),
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: LocaleBadge(
+                    localeCode: recipe.culinaryLocale,
+                    showLabel: false,
+                  ),
+                ),
               ],
             ),
             Padding(

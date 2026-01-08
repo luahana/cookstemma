@@ -61,6 +61,10 @@ final homeFeedProvider =
   );
 });
 
+/// Provider for selected locale filter in home feed.
+/// null means "All" (no filter).
+final homeLocaleFilterProvider = StateProvider<String?>((ref) => null);
+
 /// StateNotifier for managing home feed with cache-first strategy.
 class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
   final RecipeRemoteDataSource remoteDataSource;

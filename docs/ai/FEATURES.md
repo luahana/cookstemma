@@ -394,21 +394,27 @@ Client                                  Server
 
 ### [FEAT-020]: Recipe Locale
 
-**Status:** 📋 Planned
-**Branch:** `feature/content-creation-ux`
+**Status:** ✅ Done
+**Branch:** `feature/recipe-locale`
 
 **Description:** Tag recipes with culinary locale (Korean, American, etc.) for cultural taste preferences.
 
 **Locale Options:** Korean, American, Japanese, Chinese, Italian, Mexican, Thai, Indian, French, Other/Fusion
 
 **Acceptance Criteria:**
-- [ ] Locale dropdown in recipe creation (10 options)
-- [ ] Default from user profile setting
-- [ ] Inherit from parent recipe on variations
-- [ ] Locale badge on recipe cards
-- [ ] Filter chips in home feed
+- [x] Locale dropdown in recipe creation (10 options)
+- [x] Default to Korean for new recipes
+- [x] Inherit from parent recipe on variations
+- [x] Locale badge on recipe cards (home feed + recipe list)
+- [x] Filter chips in home feed (client-side filtering)
 
-**Technical Notes:** Backend `culinaryLocale` field exists, add enum validation
+**Technical Notes:**
+- Backend: `culinaryLocale` field already supported with server-side filtering in `RecipeController`
+- Frontend widgets: `LocaleDropdown`, `LocaleBadge`, `LocaleFilterChips`
+- HookSection: Added locale dropdown after description field
+- RecipeCreateScreen: Default ko-KR for new, inherit from parent for variants
+- Home feed: Filter chips with client-side filtering of trending trees and recent recipes
+- Translations: Added `locale.*` keys to both en-US.json and ko-KR.json
 
 ---
 
@@ -622,7 +628,7 @@ Client                                  Server
 | FEAT-017 | Full-Text Search | 📋 |
 | FEAT-018 | Achievement Badges | 📋 |
 | FEAT-019 | Batch Photo Upload | 📋 |
-| FEAT-020 | Recipe Locale | 📋 |
+| FEAT-020 | Recipe Locale | ✅ |
 | FEAT-021 | Recipe Draft Auto-Save | 📋 |
 | FEAT-022 | Guest Access | ✅ |
 | FEAT-023 | Mandatory Fields | 📋 |
