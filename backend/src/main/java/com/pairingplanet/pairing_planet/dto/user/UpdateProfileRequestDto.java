@@ -10,5 +10,6 @@ public record UpdateProfileRequestDto(
         Gender gender,
         LocalDate birthDate,
         UUID preferredDietaryId,
-        Boolean marketingAgreed
+        Boolean marketingAgreed,
+        String locale  // 언어 설정: ko-KR, en-US
 ) {}

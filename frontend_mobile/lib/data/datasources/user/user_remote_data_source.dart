@@ -5,6 +5,8 @@ import 'package:pairing_planet2_frontend/data/models/common/slice_response_dto.d
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/my_profile_response_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/user/update_profile_request_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/user/user_dto.dart';
 
 class UserRemoteDataSource {
   final Dio _dio;
@@ -83,6 +85,24 @@ class UserRemoteDataSource {
       );
     } catch (e) {
       rethrow;
+    }
+  }
+
+  /// 프로필 수정
+  Future<UserDto> updateProfile(UpdateProfileRequestDto request) async {
+    try {
+      final response = await _dio.patch(
+        ApiEndpoints.myProfile,
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == HttpStatus.ok) {
+        return UserDto.fromJson(response.data);
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      throw ServerException(e.toString());
     }
   }
 }

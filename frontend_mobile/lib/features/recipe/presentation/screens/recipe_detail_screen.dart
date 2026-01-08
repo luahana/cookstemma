@@ -10,6 +10,7 @@ import '../widgets/lineage_breadcrumb.dart';
 import '../widgets/recent_logs_gallery.dart';
 import '../widgets/variants_gallery.dart';
 import '../widgets/hashtag_chips.dart';
+import '../widgets/share_bottom_sheet.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final String recipeId;
@@ -47,6 +48,23 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         foregroundColor: Colors.black,
         elevation: 0,
         actions: [
+          // Share button
+          recipeAsync.maybeWhen(
+            data: (recipe) => IconButton(
+              icon: Icon(Icons.share, color: Colors.grey[600]),
+              onPressed: () {
+                ShareBottomSheet.show(
+                  context,
+                  recipePublicId: widget.recipeId,
+                  recipeTitle: recipe.title,
+                );
+              },
+            ),
+            orElse: () => IconButton(
+              icon: Icon(Icons.share, color: Colors.grey[400]),
+              onPressed: null,
+            ),
+          ),
           // P1: 북마크 버튼
           saveState.when(
             data: (isSaved) => IconButton(

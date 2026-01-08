@@ -47,6 +47,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () {
+              context.push(RouteConstants.profileEdit);
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
               _showLogoutDialog(context);

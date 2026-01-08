@@ -17,6 +17,7 @@ public record UserDto(
         String profileImageUrl,  // [유지] 화면 표시용 전체 URL
         Gender gender,
         LocalDate birthDate,
+        String locale,           // 언어 설정: ko-KR, en-US
         int followerCount,
         int followingCount
 ) {
@@ -43,6 +44,7 @@ public record UserDto(
                 .profileImageUrl(profileUrl)
                 .gender(user.getGender())
                 .birthDate(user.getBirthDate())
+                .locale(user.getLocale())
                 .followerCount(user.getFollowerCount())
                 .followingCount(user.getFollowingCount())
                 .build();

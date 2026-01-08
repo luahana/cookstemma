@@ -10,6 +10,7 @@ class UserDto {
   final String? profileImageUrl;
   final String? gender;
   final String? birthDate;
+  final String? locale;  // 언어 설정: ko-KR, en-US
   final int followerCount;
   final int followingCount;
 
@@ -20,6 +21,7 @@ class UserDto {
     this.profileImageUrl,
     this.gender,
     this.birthDate,
+    this.locale,
     this.followerCount = 0,
     this.followingCount = 0,
   });

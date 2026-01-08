@@ -12,6 +12,7 @@ import 'package:pairing_planet2_frontend/features/login/screens/login_screen.dar
 import 'package:pairing_planet2_frontend/features/recipe/presentation/screens/recipe_create_screen.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/screens/recipe_list_screen.dart';
 import 'package:pairing_planet2_frontend/features/profile/screens/profile_screen.dart';
+import 'package:pairing_planet2_frontend/features/profile/screens/profile_edit_screen.dart';
 import 'package:pairing_planet2_frontend/features/profile/screens/followers_list_screen.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart'; // 💡 추가
 import 'package:pairing_planet2_frontend/features/notification/screens/notification_inbox_screen.dart';
@@ -96,6 +97,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           final tabIndex = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
           return FollowersListScreen(userId: userId, initialTabIndex: tabIndex);
         },
+      ),
+      GoRoute(
+        path: RouteConstants.profileEdit,
+        name: 'profile_edit',
+        builder: (context, state) => const ProfileEditScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

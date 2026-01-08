@@ -592,6 +592,61 @@ As the product team, I want reliable analytics, so that I don't lose events due 
 
 ---
 
+# 📤 Sharing
+
+### [SHARE-001]: Social Sharing
+
+**Status:** 🟡 In Progress
+
+**Branch:** `feature/social-sharing`
+
+**Description:**
+Share recipes to social platforms (KakaoTalk, Twitter, Instagram, etc.) with rich link previews showing recipe image, title, and description.
+
+**User Story:**
+As a user, I want to share a recipe to KakaoTalk or Twitter, so that my friends can see a preview and open the recipe directly.
+
+**Acceptance Criteria:**
+- [ ] Share button on recipe detail screen
+- [ ] Rich link preview with Open Graph meta tags
+- [ ] Preview shows: recipe image, title, description, creator name
+- [ ] Deep link opens recipe detail screen in app
+- [ ] Fallback to web URL if app not installed
+- [ ] KakaoTalk share with custom template
+- [ ] Twitter/X share with card preview
+- [ ] Copy link to clipboard option
+
+**UI/UX:**
+- Screen: `RecipeDetailScreen`
+- Entry point: Share icon button in app bar
+- Flow: Tap share → Bottom sheet with options → Select platform → Open platform share dialog
+
+**Technical Details:**
+- Frontend: `lib/features/recipe/widgets/share_bottom_sheet.dart`
+- Frontend: `share_plus` package for native share
+- Backend: `GET /api/v1/recipes/{publicId}/og` returns Open Graph HTML
+- Backend: Dynamic Open Graph meta tags for crawlers
+- Deep linking: `pairingplanet://recipe/{publicId}`
+
+**Edge Cases:**
+- Recipe has no image → Use default app image
+- Recipe title too long → Truncate to 60 chars
+- Recipe is private → Show "비공개 레시피입니다" message
+- User not logged in → Still allow sharing public recipes
+
+**Error Handling:**
+- Share failed → "공유에 실패했습니다. 다시 시도해주세요."
+- Link copy failed → "클립보드 복사에 실패했습니다."
+
+**Test Cases:**
+- [ ] Share button visible on recipe detail
+- [ ] Bottom sheet shows all share options
+- [ ] Open Graph endpoint returns valid HTML
+- [ ] Deep link opens correct recipe
+- [ ] Copy link works and shows confirmation
+
+---
+
 ## Feature Index
 
 | ID | Feature | Status | Category |
@@ -611,6 +666,7 @@ As the product team, I want reliable analytics, so that I don't lose events due 
 | SEARCH-001 | Enhanced Search | ✅ | Search |
 | IMG-001 | Image Variants | ✅ | Performance |
 | EVENT-001 | Event Tracking | ✅ | Analytics |
+| SHARE-001 | Social Sharing | 🟡 | Sharing |
 
 ---
 

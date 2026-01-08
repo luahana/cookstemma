@@ -85,7 +85,21 @@ public class UserService {
             user.setProfileImageUrl(profileImage.getStoredFilename());
         }
 
-        // 3. 기타 정보 업데이트 로직 동일
+        // 3. 성별 업데이트
+        if (request.gender() != null) {
+            user.setGender(request.gender());
+        }
+
+        // 4. 생년월일 업데이트
+        if (request.birthDate() != null) {
+            user.setBirthDate(request.birthDate());
+        }
+
+        // 5. 언어 설정 업데이트
+        if (request.locale() != null) {
+            user.setLocale(request.locale());
+        }
+
         return UserDto.from(user, urlPrefix);
     }
 }

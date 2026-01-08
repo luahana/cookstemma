@@ -46,6 +46,7 @@ class RouteConstants {
   static const String logPosts = '/log_posts'; // 로그 포스트 리스트
   static const String search = '/search';
   static const String profile = '/profile';
+  static const String profileEdit = '/profile/edit';
   static const String notifications = '/notifications';
 
   // Follow 관련

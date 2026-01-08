@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/contexts/**").permitAll()
                         .requestMatchers("/api/v1/autocomplete/**").permitAll()
                         .requestMatchers("/api/v1/home/**").permitAll() // 홈 피드는 공개
+                        .requestMatchers("/share/**").permitAll() // 소셜 공유 Open Graph (크롤러 접근용)
 
                         .requestMatchers("/api/v1/images/**").authenticated()
                         .requestMatchers("/api/v1/users/**").authenticated()
