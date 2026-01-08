@@ -94,4 +94,9 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<void> clearTokens() async {
+    await localDataSource.clearAll();
+  }
 }

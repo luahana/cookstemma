@@ -14,6 +14,7 @@ import '../widgets/recent_logs_gallery.dart';
 import '../widgets/variants_gallery.dart';
 import '../widgets/hashtag_chips.dart';
 import '../widgets/share_bottom_sheet.dart';
+import '../widgets/locale_badge.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final String recipeId;
@@ -134,12 +135,19 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          Text(
-                            recipe.title,
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  recipe.title,
+                                  style: const TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              LocaleBadgeLarge(localeCode: recipe.culinaryLocale),
+                            ],
                           ),
                           const SizedBox(height: 8),
                           Text(
