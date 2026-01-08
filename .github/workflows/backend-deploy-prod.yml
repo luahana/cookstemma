@@ -27,6 +27,9 @@ jobs:
     name: Deploy to Production
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      id-token: write    # Required for OIDC
+      contents: write    # Required to push tags
     defaults:
       run:
         working-directory: ./backend
@@ -63,8 +66,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::819551471059:role/github-actions-pairing-planet-prod
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR

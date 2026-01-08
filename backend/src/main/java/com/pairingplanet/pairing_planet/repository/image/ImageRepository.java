@@ -3,7 +3,10 @@ package com.pairingplanet.pairing_planet.repository.image;
 import com.pairingplanet.pairing_planet.domain.entity.image.Image;
 import com.pairingplanet.pairing_planet.domain.enums.ImageStatus;
 import com.pairingplanet.pairing_planet.domain.enums.ImageType;
+import com.pairingplanet.pairing_planet.domain.enums.ImageVariant;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
@@ -28,4 +31,15 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     List<Image> findByStatusAndCreatedAtBefore(ImageStatus status, Instant dateTime);
 
     Optional<Image> findByPublicId(UUID publicId);
+
+    // Variant-related queries
+    List<Image> findByOriginalImageId(Long originalImageId);
+
+    Optional<Image> findByOriginalImageIdAndVariantType(Long originalImageId, ImageVariant variantType);
+
+    @Query("SELECT i FROM Image i WHERE i.originalImage IS NULL AND i.variantType IS NULL AND i.status = :status")
+    List<Image> findOriginalImagesWithoutVariants(@Param("status") ImageStatus status);
+
+    @Query("SELECT i FROM Image i LEFT JOIN FETCH i.variants WHERE i.publicId = :publicId")
+    Optional<Image> findByPublicIdWithVariants(@Param("publicId") UUID publicId);
 }

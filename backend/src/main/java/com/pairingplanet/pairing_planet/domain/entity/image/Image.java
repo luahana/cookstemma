@@ -5,12 +5,15 @@ import com.pairingplanet.pairing_planet.domain.entity.log_post.LogPost;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
 import com.pairingplanet.pairing_planet.domain.enums.ImageStatus;
 import com.pairingplanet.pairing_planet.domain.enums.ImageType;
+import com.pairingplanet.pairing_planet.domain.enums.ImageVariant;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -43,4 +46,31 @@ public class Image extends BaseEntity {
     private Recipe recipe;
 
     private Long uploaderId;
+
+    // Variant-related fields
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "variant_type")
+    private ImageVariant variantType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "original_image_id")
+    private Image originalImage;
+
+    @OneToMany(mappedBy = "originalImage", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Image> variants = new ArrayList<>();
+
+    private Integer width;
+    private Integer height;
+    private Long fileSize;
+    private String format;
+
+    public boolean isOriginal() {
+        return originalImage == null;
+    }
+
+    public boolean hasVariants() {
+        return variants != null && !variants.isEmpty();
+    }
 }

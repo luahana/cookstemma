@@ -1,10 +1,14 @@
 package com.pairingplanet.pairing_planet.controller;
 
+import com.pairingplanet.pairing_planet.domain.entity.image.Image;
 import com.pairingplanet.pairing_planet.domain.enums.ImageType;
 import com.pairingplanet.pairing_planet.dto.image.ImageUploadResponseDto;
+import com.pairingplanet.pairing_planet.dto.image.ImageVariantsDto;
+import com.pairingplanet.pairing_planet.repository.image.ImageRepository;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import com.pairingplanet.pairing_planet.service.ImageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +23,10 @@ import java.util.UUID;
 public class ImageController {
 
     private final ImageService imageService;
+    private final ImageRepository imageRepository;
+
+    @Value("${file.upload.url-prefix}")
+    private String urlPrefix;
 
     /**
      * 이미지 업로드 통합 API
@@ -34,5 +42,18 @@ public class ImageController {
     ) {
         ImageUploadResponseDto response = imageService.uploadImage(file, type, principal);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get image variants by public ID
+     * @param publicId Image public ID
+     * @return ImageVariantsDto containing URLs for all size variants
+     */
+    @GetMapping("/{publicId}/variants")
+    public ResponseEntity<ImageVariantsDto> getImageVariants(@PathVariable UUID publicId) {
+        Image image = imageRepository.findByPublicIdWithVariants(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("Image not found: " + publicId));
+
+        return ResponseEntity.ok(ImageVariantsDto.from(image, urlPrefix));
     }
 }

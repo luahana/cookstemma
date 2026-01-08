@@ -54,4 +54,12 @@ public class User extends BaseEntity {
     @Column(name = "is_bot", nullable = false)
     @Builder.Default
     private boolean isBot = false; // 기본값은 일반 유저
+
+    @Column(name = "follower_count", nullable = false)
+    @Builder.Default
+    private int followerCount = 0;
+
+    @Column(name = "following_count", nullable = false)
+    @Builder.Default
+    private int followingCount = 0;
 }
