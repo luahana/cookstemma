@@ -468,7 +468,7 @@ Client                                  Server
 
 ### [FEAT-024]: Settings & Account Deletion
 
-**Status:** 🟡 In Progress
+**Status:** ✅ Done
 **Branch:** `feature/social-sharing`
 **PR:** #14
 
@@ -623,5 +623,5 @@ Client                                  Server
 | FEAT-021 | Recipe Draft Auto-Save | 📋 |
 | FEAT-022 | Guest Access | 📋 |
 | FEAT-023 | Mandatory Fields | 📋 |
-| FEAT-024 | Settings & Account Deletion | 🟡 |
+| FEAT-024 | Settings & Account Deletion | ✅ |
 | FEAT-025 | Idempotency Keys | ✅ |
