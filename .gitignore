@@ -71,8 +71,9 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
-# VS Code
-.vscode/
+# VS Code (ignore settings, allow launch configs for flavored builds)
+.vscode/*
+!.vscode/launch.json
 
 # NetBeans
 /nbproject/private/

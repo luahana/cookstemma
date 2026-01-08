@@ -1,0 +1,42 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "PP Dev",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_dev.dart",
+      "args": ["--flavor", "dev"]
+    },
+    {
+      "name": "PP Staging",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_stg.dart",
+      "args": ["--flavor", "stg"]
+    },
+    {
+      "name": "PP Prod",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_prod.dart",
+      "args": ["--flavor", "prod"]
+    },
+    {
+      "name": "PP Dev (Profile)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_dev.dart",
+      "args": ["--flavor", "dev"],
+      "flutterMode": "profile"
+    },
+    {
+      "name": "PP Dev (Release)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_dev.dart",
+      "args": ["--flavor", "dev"],
+      "flutterMode": "release"
+    }
+  ]
+}

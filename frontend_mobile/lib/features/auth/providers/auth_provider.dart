@@ -77,7 +77,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Enter guest mode to browse without signing in
-  void enterGuestMode() {
+  Future<void> enterGuestMode() async {
+    // Clear any existing tokens to ensure clean guest state
+    await _repository.clearTokens();
     if (!mounted) return;
     state = AuthState(status: AuthStatus.guest);
   }

@@ -77,8 +77,9 @@ class LoginScreen extends ConsumerWidget {
                     foregroundColor: Colors.grey[700],
                     side: BorderSide(color: Colors.grey[400]!),
                   ),
-                  onPressed: () {
-                    ref.read(authStateProvider.notifier).enterGuestMode();
+                  onPressed: () async {
+                    await ref.read(authStateProvider.notifier).enterGuestMode();
+                    if (!context.mounted) return;
                     context.go(RouteConstants.home);
                   },
                 ),
