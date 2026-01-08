@@ -78,15 +78,23 @@ class _FollowersTab extends ConsumerWidget {
     }
 
     if (state.error != null && state.items.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        onRefresh: () => notifier.refresh(),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Text('오류가 발생했습니다', style: TextStyle(fontSize: 16.sp)),
-            SizedBox(height: 8.h),
-            ElevatedButton(
-              onPressed: () => notifier.refresh(),
-              child: const Text('다시 시도'),
+            SizedBox(height: 200.h),
+            Center(
+              child: Column(
+                children: [
+                  Text('오류가 발생했습니다', style: TextStyle(fontSize: 16.sp)),
+                  SizedBox(height: 8.h),
+                  ElevatedButton(
+                    onPressed: () => notifier.refresh(),
+                    child: const Text('다시 시도'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -94,15 +102,23 @@ class _FollowersTab extends ConsumerWidget {
     }
 
     if (state.items.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        onRefresh: () => notifier.refresh(),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Icon(Icons.people_outline, size: 64.sp, color: Colors.grey[400]),
-            SizedBox(height: 16.h),
-            Text(
-              '아직 팔로워가 없습니다',
-              style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
+            SizedBox(height: 200.h),
+            Center(
+              child: Column(
+                children: [
+                  Icon(Icons.people_outline, size: 64.sp, color: Colors.grey[400]),
+                  SizedBox(height: 16.h),
+                  Text(
+                    '아직 팔로워가 없습니다',
+                    style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -122,6 +138,7 @@ class _FollowersTab extends ConsumerWidget {
           return false;
         },
         child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
           itemCount: state.items.length + (state.isLoading ? 1 : 0),
           itemBuilder: (context, index) {
             if (index >= state.items.length) {
@@ -157,15 +174,23 @@ class _FollowingTab extends ConsumerWidget {
     }
 
     if (state.error != null && state.items.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        onRefresh: () => notifier.refresh(),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Text('오류가 발생했습니다', style: TextStyle(fontSize: 16.sp)),
-            SizedBox(height: 8.h),
-            ElevatedButton(
-              onPressed: () => notifier.refresh(),
-              child: const Text('다시 시도'),
+            SizedBox(height: 200.h),
+            Center(
+              child: Column(
+                children: [
+                  Text('오류가 발생했습니다', style: TextStyle(fontSize: 16.sp)),
+                  SizedBox(height: 8.h),
+                  ElevatedButton(
+                    onPressed: () => notifier.refresh(),
+                    child: const Text('다시 시도'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -173,15 +198,23 @@ class _FollowingTab extends ConsumerWidget {
     }
 
     if (state.items.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        onRefresh: () => notifier.refresh(),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Icon(Icons.person_add_outlined, size: 64.sp, color: Colors.grey[400]),
-            SizedBox(height: 16.h),
-            Text(
-              '아직 팔로잉하는 유저가 없습니다',
-              style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
+            SizedBox(height: 200.h),
+            Center(
+              child: Column(
+                children: [
+                  Icon(Icons.person_add_outlined, size: 64.sp, color: Colors.grey[400]),
+                  SizedBox(height: 16.h),
+                  Text(
+                    '아직 팔로잉하는 유저가 없습니다',
+                    style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -201,6 +234,7 @@ class _FollowingTab extends ConsumerWidget {
           return false;
         },
         child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
           itemCount: state.items.length + (state.isLoading ? 1 : 0),
           itemBuilder: (context, index) {
             if (index >= state.items.length) {
