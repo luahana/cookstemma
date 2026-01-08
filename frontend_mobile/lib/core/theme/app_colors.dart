@@ -21,4 +21,10 @@ class AppColors {
 
   // 💡 검색 하이라이트
   static const Color highlightBackground = Color(0xFFFFF3E0);
+
+  // 💡 Shimmer & Badges
+  static const Color shimmerBase = Color(0xFFE0E0E0);
+  static const Color shimmerHighlight = Color(0xFFF5F5F5);
+  static const Color badgeBackground = Color(0xFFF5F5F5);
+  static const Color overlayGradientEnd = Color(0xCC000000);
 }
