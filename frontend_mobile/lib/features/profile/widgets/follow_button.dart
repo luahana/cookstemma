@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/widgets/login_prompt_sheet.dart';
+import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/follow_provider.dart';
 
 class FollowButton extends ConsumerWidget {
@@ -33,6 +35,18 @@ class FollowButton extends ConsumerWidget {
         onPressed: isLoading
             ? null
             : () async {
+                final authStatus = ref.read(authStateProvider).status;
+                if (authStatus != AuthStatus.authenticated) {
+                  LoginPromptSheet.show(
+                    context: context,
+                    actionKey: 'guest.signInToFollow',
+                    pendingAction: () async {
+                      await notifier.toggleFollow();
+                      onFollowChanged?.call();
+                    },
+                  );
+                  return;
+                }
                 await notifier.toggleFollow();
                 onFollowChanged?.call();
               },
@@ -101,6 +115,18 @@ class FollowButtonCompact extends ConsumerWidget {
         onPressed: isLoading
             ? null
             : () async {
+                final authStatus = ref.read(authStateProvider).status;
+                if (authStatus != AuthStatus.authenticated) {
+                  LoginPromptSheet.show(
+                    context: context,
+                    actionKey: 'guest.signInToFollow',
+                    pendingAction: () async {
+                      await notifier.toggleFollow();
+                      onFollowChanged?.call();
+                    },
+                  );
+                  return;
+                }
                 await notifier.toggleFollow();
                 onFollowChanged?.call();
               },

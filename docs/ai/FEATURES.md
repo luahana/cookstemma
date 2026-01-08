@@ -432,19 +432,22 @@ Client                                  Server
 
 ### [FEAT-022]: Guest Access
 
-**Status:** 📋 Planned
-**Branch:** `feature/content-creation-ux`
+**Status:** ✅ Done
+**Branch:** `feature/guest-access`
 
 **Description:** Browse recipes without signing in. Login required for actions.
 
 **Acceptance Criteria:**
-- [ ] "Browse as Guest" button on login screen
-- [ ] Guests can browse, view, search
-- [ ] Login prompt on: create, save, follow
-- [ ] Auto-complete action after login
-- [ ] Profile tab shows "Sign in" for guests
+- [x] "Browse as Guest" button on login screen
+- [x] Guests can browse, view, search
+- [x] Login prompt on: create, save, follow
+- [x] Auto-complete action after login
+- [x] Profile tab shows "Sign in" for guests
 
-**Technical Notes:** Add `AuthStatus.guest`, `LoginPromptSheet`, pending action callback
+**Technical Notes:**
+- Frontend: `AuthStatus.guest` state, `LoginPromptSheet` for action prompts
+- Backend: `SecurityConfig` updated for public endpoints (recipes, search)
+- Router guards redirect guests to login for protected actions
 
 ---
 
@@ -621,7 +624,7 @@ Client                                  Server
 | FEAT-019 | Batch Photo Upload | 📋 |
 | FEAT-020 | Recipe Locale | 📋 |
 | FEAT-021 | Recipe Draft Auto-Save | 📋 |
-| FEAT-022 | Guest Access | 📋 |
+| FEAT-022 | Guest Access | ✅ |
 | FEAT-023 | Mandatory Fields | 📋 |
 | FEAT-024 | Settings & Account Deletion | ✅ |
 | FEAT-025 | Idempotency Keys | ✅ |
