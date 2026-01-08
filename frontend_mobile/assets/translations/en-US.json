@@ -248,6 +248,20 @@
     "delete": "Delete",
     "permissionDenied": "Permission required"
   },
+  "locale": {
+    "korean": "Korean",
+    "american": "American",
+    "japanese": "Japanese",
+    "chinese": "Chinese",
+    "italian": "Italian",
+    "mexican": "Mexican",
+    "thai": "Thai",
+    "indian": "Indian",
+    "french": "French",
+    "other": "Other/Fusion",
+    "all": "All",
+    "selectLocale": "Cuisine Type"
+  },
   "settings": {
     "title": "Settings",
     "general": "General",

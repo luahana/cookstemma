@@ -7,7 +7,9 @@ import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/data/models/home/recent_activity_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/trending_tree_dto.dart';
+import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/locale_badge.dart';
 import '../providers/home_feed_provider.dart';
+import '../widgets/locale_filter_chips.dart';
 
 class HomeFeedScreen extends ConsumerWidget {
   const HomeFeedScreen({super.key});
@@ -52,6 +54,19 @@ class HomeFeedScreen extends ConsumerWidget {
       return _buildErrorState(context, ref, 'common.noData'.tr());
     }
 
+    // Get selected locale filter
+    final selectedLocale = ref.watch(homeLocaleFilterProvider);
+
+    // Filter recipes by locale (client-side)
+    final filteredRecipes = selectedLocale == null
+        ? feed.recentRecipes
+        : feed.recentRecipes.where((r) => r.culinaryLocale == selectedLocale).toList();
+
+    // Filter trending trees by locale (client-side)
+    final filteredTrending = selectedLocale == null
+        ? feed.trendingTrees
+        : feed.trendingTrees.where((t) => t.culinaryLocale == selectedLocale).toList();
+
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
@@ -61,6 +76,15 @@ class HomeFeedScreen extends ConsumerWidget {
           if (feedState.isFromCache && feedState.cachedAt != null)
             _buildCacheIndicator(feedState),
 
+          // Locale filter chips
+          const SizedBox(height: 12),
+          LocaleFilterChips(
+            selectedLocale: selectedLocale,
+            onLocaleChanged: (locale) {
+              ref.read(homeLocaleFilterProvider.notifier).state = locale;
+            },
+          ),
+
           // Section 1: Recent Activity
           if (feed.recentActivity.isNotEmpty) ...[
             _buildSectionHeader('home.recentActivity'.tr()),
@@ -68,7 +92,7 @@ class HomeFeedScreen extends ConsumerWidget {
           ],
 
           // Section 2: Trending Trees
-          if (feed.trendingTrees.isNotEmpty) ...[
+          if (filteredTrending.isNotEmpty) ...[
             const SizedBox(height: 24),
             _buildSectionHeader('home.trendingVariants'.tr()),
             SizedBox(
@@ -76,19 +100,19 @@ class HomeFeedScreen extends ConsumerWidget {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: feed.trendingTrees.length,
+                itemCount: filteredTrending.length,
                 itemBuilder: (context, index) {
-                  return _buildTrendingTreeCard(context, feed.trendingTrees[index]);
+                  return _buildTrendingTreeCard(context, filteredTrending[index]);
                 },
               ),
             ),
           ],
 
           // Section 3: Recent Recipes
-          if (feed.recentRecipes.isNotEmpty) ...[
+          if (filteredRecipes.isNotEmpty) ...[
             const SizedBox(height: 24),
             _buildSectionHeader('home.recentRecipes'.tr()),
-            ...feed.recentRecipes.map((recipe) => _buildRecipeCard(context, recipe)),
+            ...filteredRecipes.map((recipe) => _buildRecipeCard(context, recipe)),
           ],
 
           const SizedBox(height: 32),
@@ -294,14 +318,25 @@ class HomeFeedScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    tree.foodName ?? tree.title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          tree.foodName ?? tree.title,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      LocaleBadge(
+                        localeCode: tree.culinaryLocale,
+                        showLabel: false,
+                        fontSize: 10,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -378,13 +413,23 @@ class HomeFeedScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    recipe.foodName,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.indigo[700],
-                      fontWeight: FontWeight.w500,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          recipe.foodName,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.indigo[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      LocaleBadge(
+                        localeCode: recipe.culinaryLocale,
+                        showLabel: false,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 2),
                   Text(

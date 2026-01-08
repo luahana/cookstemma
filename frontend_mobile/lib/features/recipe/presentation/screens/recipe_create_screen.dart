@@ -10,6 +10,7 @@ import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.da
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/ingredient_section.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
+import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 import '../widgets/hook_section.dart';
 import '../widgets/step_section.dart';
@@ -49,6 +50,13 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
     } else {
       _addIngredient('MAIN');
       _addStep();
+      // Set default locale from user's app locale after frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_localeController.text.isEmpty) {
+          final userLocale = ref.read(localeProvider);
+          _localeController.text = userLocale;
+        }
+      });
     }
     _titleController.addListener(_rebuild);
     _foodNameController.addListener(_rebuild);
@@ -59,6 +67,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
     _titleController.text = "${p.title} ${'recipe.variantSuffix'.tr()}";
     _descriptionController.text = p.description ?? "";
     _foodNameController.text = p.foodName; // 💡 실제 요리명 매핑 권장
+    _localeController.text = p.culinaryLocale ?? "ko-KR"; // Inherit locale from parent
 
     _food1MasterPublicId = p.foodMasterPublicId;
 
@@ -316,8 +325,9 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
                       titleController: _titleController,
                       foodNameController: _foodNameController,
                       descriptionController: _descriptionController,
+                      localeController: _localeController,
                       finishedImages: _finishedImages,
-                      isReadOnly: isVariantMode, // 요리명 수정 불가 제약
+                      isReadOnly: isVariantMode, // 요리명 및 로케일 수정 불가 제약
                       // 💡 누락된 필수 파라미터 추가
                       onFoodPublicIdSelected: (publicId) =>
                           setState(() => _food1MasterPublicId = publicId),

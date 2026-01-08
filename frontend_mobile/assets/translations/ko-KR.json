@@ -248,6 +248,20 @@
     "delete": "삭제",
     "permissionDenied": "권한이 필요합니다"
   },
+  "locale": {
+    "korean": "한식",
+    "american": "미국식",
+    "japanese": "일식",
+    "chinese": "중식",
+    "italian": "이탈리안",
+    "mexican": "멕시칸",
+    "thai": "태국식",
+    "indian": "인도식",
+    "french": "프랑스식",
+    "other": "기타/퓨전",
+    "all": "전체",
+    "selectLocale": "요리 종류"
+  },
   "settings": {
     "title": "설정",
     "general": "일반",
