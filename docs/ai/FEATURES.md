@@ -1,72 +1,140 @@
 # FEATURES.md — Pairing Planet
 
-> All features, technical decisions, and domain terminology in one place.
+> Features, tasks, decisions, and terminology - all in one place.
+
+---
+
+# 🎯 CURRENT SPRINT
+
+### High Priority
+| ID | Feature | Status | Locked By |
+|----|---------|--------|-----------|
+| FEAT-009 | Follow System | 📋 Planned | - |
+| FEAT-010 | Push Notifications | 📋 Planned | - |
+| FEAT-011 | Profile Caching | 📋 Planned | - |
+
+### Medium Priority
+| ID | Feature | Status | Locked By |
+|----|---------|--------|-----------|
+| FEAT-012 | Recipe Search | 📋 Planned | - |
+| FEAT-013 | Recipe Categories | 📋 Planned | - |
+| FEAT-014 | User Settings | 📋 Planned | - |
+
+### Backlog
+- Dark mode
+- Localization (Korean, English)
+- Share to social media
+- Recipe rating system
+- Comments on recipes
+- Weekly meal planner
+
+---
+
+# 🔒 HOW TO LOCK A FEATURE
+
+**When Claude Code instance starts working on a feature:**
+
+### Step 1: Update the table above
+```markdown
+| FEAT-009 | Follow System | 🟡 In Progress | Claude-1 |
+```
+
+### Step 2: Add lock info to the feature section
+```markdown
+### [FEAT-009]: Follow System
+**Status:** 🟡 In Progress
+**Locked by:** Claude-1 (branch: feature/follow-system)
+**Lock time:** 2025-01-08 14:30 UTC
+**Server port:** 4001
+```
+
+### Step 3: Commit and push IMMEDIATELY
+```bash
+git add docs/ai/FEATURES.md
+git commit -m "docs: lock FEAT-009"
+git push origin dev
+```
+
+### Step 4: THEN create branch and start coding
+
+### When done: Remove lock
+```markdown
+**Status:** ✅ Done
+# Delete "Locked by", "Lock time", and "Server port" lines
+```
 
 ---
 
 # 📋 FEATURES
 
-## Template
+## Status Legend
+| Status | Meaning | Action |
+|--------|---------|--------|
+| 📋 Planned | Not started | Available to lock |
+| 🟡 In Progress | Being worked on | Check "Locked by" - don't touch! |
+| ✅ Done | Completed | No lock needed |
 
+## Template
 ```markdown
 ### [FEAT-XXX]: Feature Name
-
-**Status:** 📋 Planned | 🟡 In Progress | ✅ Done
+**Status:** 📋 Planned
 **Branch:** `feature/xxx`
+
+# ═══ WHEN STARTING WORK, ADD THESE ═══
+**Status:** 🟡 In Progress
+**Locked by:** Claude-1 (branch: feature/xxx)
+**Lock time:** 2025-01-08 14:30 UTC
+**Server port:** 4001 (or 4002, 4003 if running multiple backends)
+
+# ═══ WHEN DONE, CHANGE TO ═══
+**Status:** ✅ Done
+# (Delete Locked by, Lock time, Server port lines)
 
 **Description:** What it does
 
-**User Story:** As a [user], I want [action], so that [benefit]
+**Research Findings:**
+- How [App1] does it: ...
+- Industry standard: ...
+- Pitfall to avoid: ...
 
 **Acceptance Criteria:**
-- [ ] Criterion 1
-- [ ] Criterion 2
+- [ ] Criterion
+- [ ] Edge case handling
 
-**Technical Notes:** Implementation details, edge cases
+**Technical Notes:**
+- Backend: ...
+- Frontend: ...
 ```
 
 ---
 
-## Implemented ✅
+## ✅ Completed
 
 ### [FEAT-001]: Social Login (Google/Apple)
-
 **Status:** ✅ Done
-
 **Description:** Users sign in with Google/Apple via Firebase Auth, exchanged for app JWT.
-
 **Acceptance Criteria:**
 - [x] Google Sign-In button
 - [x] Apple Sign-In (iOS)
 - [x] Anonymous browsing
 - [x] Token refresh
 
-**Technical Notes:** Firebase token → Backend → JWT pair (access + refresh)
-
 ---
 
 ### [FEAT-002]: Recipe List (Home Feed)
-
 **Status:** ✅ Done
-
 **Description:** Paginated recipe feed with infinite scroll, offline cache.
-
 **Acceptance Criteria:**
 - [x] Recipe cards with thumbnail, title, author
 - [x] Infinite scroll (20/page)
 - [x] Pull-to-refresh
 - [x] Offline cache with indicator
 
-**Technical Notes:** Cache-first pattern, Isar local storage, 5min TTL
-
 ---
 
 ### [FEAT-003]: Recipe Detail
-
 **Status:** ✅ Done
-
 **Description:** Full recipe view with ingredients, steps, logs, variants tabs.
-
 **Acceptance Criteria:**
 - [x] Image carousel
 - [x] Ingredients by type (MAIN, SECONDARY, SEASONING)
@@ -77,11 +145,8 @@
 ---
 
 ### [FEAT-004]: Create Recipe
-
 **Status:** ✅ Done
-
 **Description:** Multi-step form to create recipes.
-
 **Acceptance Criteria:**
 - [x] Add title, description
 - [x] Add ingredients
@@ -92,28 +157,18 @@
 ---
 
 ### [FEAT-005]: Recipe Variations
-
 **Status:** ✅ Done
-
 **Description:** Create modified versions of recipes with change tracking.
-
 **Acceptance Criteria:**
 - [x] Pre-fill from parent recipe
 - [x] Track changes
 - [x] parentPublicId + rootPublicId linking
 
-**Technical Notes:**
-- `parentPublicId` = direct parent
-- `rootPublicId` = original recipe (top of tree)
-
 ---
 
 ### [FEAT-006]: Cooking Logs
-
 **Status:** ✅ Done
-
 **Description:** Log cooking attempts with photos, notes, outcome.
-
 **Acceptance Criteria:**
 - [x] Outcome: SUCCESS 😊 / PARTIAL 😐 / FAILED 😢
 - [x] Photos
@@ -123,11 +178,8 @@
 ---
 
 ### [FEAT-007]: Save/Bookmark
-
 **Status:** ✅ Done
-
 **Description:** Save recipes to personal collection.
-
 **Acceptance Criteria:**
 - [x] Save button on recipe detail
 - [x] Toggle save/unsave
@@ -136,11 +188,8 @@
 ---
 
 ### [FEAT-008]: User Profile
-
 **Status:** ✅ Done
-
 **Description:** Profile page with tabs for user content.
-
 **Acceptance Criteria:**
 - [x] Profile photo, username
 - [x] My Recipes tab
@@ -149,453 +198,201 @@
 
 ---
 
-### [FEAT-009]: Follow System
+## 📋 Planned
 
-**Status:** ✅ Done
+### [FEAT-009]: Follow System
+**Status:** 📋 Planned
 **Branch:** `feature/follow-system`
-**PR:** #8
 
 **Description:** Follow other users to build social graph.
 
+**Research Findings:**
+- Instagram: Optimistic UI, instant count update, "Follows you" badge
+- Twitter: Mutual follow detection, rate limiting
+- Industry standard: Optimistic updates with rollback on error
+- Pitfall: Race conditions with rapid tap, count inconsistency
+
 **Acceptance Criteria:**
-- [x] Follow/unfollow button
-- [x] Follower/following counts
-- [x] Followers list screen
-- [x] Following list screen
-- [x] Pull-to-refresh for empty states
+- [ ] Follow/unfollow button with optimistic UI
+- [ ] Follower/following counts (cached locally)
+- [ ] Followers list screen with pagination
+- [ ] Following list screen with pagination
+- [ ] Debounce rapid taps (300ms)
+- [ ] Rollback on API failure
+- [ ] "Follows you" badge for mutual follows
 
 **Technical Notes:**
-- Backend: `user_follows` table, atomic count updates
-- API: `POST/DELETE /api/v1/users/{id}/follow`
-- Optimistic UI update with rollback on error
+- Backend: `POST /api/v1/users/{id}/follow`, `DELETE /api/v1/users/{id}/follow`
+- Database: `user_follows` table
+- Frontend: Riverpod, optimistic update pattern
+
+**Edge Cases:**
+- Network failure → Rollback UI
+- Rapid tap → Debounce
+- Self-follow → Prevent
 
 ---
 
 ### [FEAT-010]: Push Notifications
-
-**Status:** ✅ Done
+**Status:** 📋 Planned
 **Branch:** `feature/push-notifications`
-**PR:** #7
 
 **Description:** FCM notifications for social interactions.
 
+**Research Findings:**
+- Slack: Grouped notifications, badge count
+- Instagram: Activity grouping ("X and 5 others liked...")
+- Industry standard: Foreground handling, deep linking
+- Pitfall: Notification spam, stale token handling
+
 **Acceptance Criteria:**
-- [x] NEW_FOLLOWER notification
-- [x] RECIPE_COOKED notification
-- [x] RECIPE_VARIATION notification
-- [x] Notification list screen
-- [x] Mark as read
-- [x] Unread count badge
+- [ ] NEW_FOLLOWER notification
+- [ ] RECIPE_COOKED notification
+- [ ] Notification list screen with grouping
+- [ ] Mark as read (individual and all)
+- [ ] Deep link to relevant screen
+- [ ] Handle foreground notifications
+- [ ] Badge count on app icon
 
 **Technical Notes:**
-- Backend: `notifications` + `user_fcm_tokens` tables
-- Frontend: Firebase Messaging integration
-- Deep linking to relevant screens
+- Firebase Cloud Messaging
+- Store device tokens in backend
+- Background message handler
+
+**Edge Cases:**
+- Token expired → Re-register
+- Multiple devices → Send to all
+- App in foreground → In-app banner
 
 ---
 
 ### [FEAT-011]: Profile Caching
-
-**Status:** ✅ Done
+**Status:** 📋 Planned
 **Branch:** `feature/profile-caching`
-**PR:** #4
 
-**Description:** Cache profile tabs locally for offline access.
-
-**Acceptance Criteria:**
-- [x] My Recipes cached (5min TTL)
-- [x] My Logs cached
-- [x] Saved cached
-- [x] Cache indicator with timestamp
-- [x] Background refresh
-
-**Technical Notes:** Isar-based caching with cache-first pattern
-
----
-
-### [FEAT-012]: Social Sharing
-
-**Status:** ✅ Done
-**Branch:** `feature/social-sharing`
-
-**Description:** Share recipes with Open Graph meta tags for rich link previews.
+**Description:** Cache profile tabs locally.
 
 **Acceptance Criteria:**
-- [x] Share button on recipe detail
-- [x] Open Graph HTML endpoint for crawlers
-- [x] Locale-aware share options (KakaoTalk for Korea, WhatsApp for others)
-- [x] Native share sheet via share_plus
-- [x] Copy link functionality
+- [ ] My Recipes cached (5min TTL)
+- [ ] My Logs cached (5min TTL)
+- [ ] Saved recipes cached (5min TTL)
+- [ ] Invalidate cache on create/delete
+- [ ] Offline indicator
+- [ ] Pull-to-refresh bypasses cache
 
 **Technical Notes:**
-- Backend: `/share/recipe/{publicId}` returns HTML with og:title, og:image, og:description
-- Frontend: ShareBottomSheet with locale detection via localeProvider
-- Deep link support for app opening
+- Isar for local storage
+- TTL-based invalidation
 
 ---
 
-### [FEAT-013]: Profile Edit
-
-**Status:** ✅ Done
-**Branch:** `feature/social-sharing`
-
-**Description:** Edit profile with birthday, gender, and language preference.
-
-**Acceptance Criteria:**
-- [x] Birthday date picker
-- [x] Gender dropdown (Male/Female/Other)
-- [x] Language dropdown (Korean/English)
-- [x] Language change updates app locale dynamically
-- [x] Unsaved changes warning
-
-**Technical Notes:**
-- Backend: `PATCH /api/v1/users/me` with locale field
-- Frontend: EasyLocalization for dynamic locale switching
-- Profile refresh after save
-
----
-
-### [FEAT-014]: Image Variants
-
-**Status:** ✅ Done
-
-**Description:** Server-side image resizing for optimized delivery.
-
-**Acceptance Criteria:**
-- [x] Thumbnail variant (300px)
-- [x] Display variant (800px)
-- [x] Original preserved
-- [x] AppCachedImage supports variant parameter
-
-**Technical Notes:**
-- Backend generates variants on upload
-- URL pattern: `/images/{id}?variant=thumbnail`
-
----
-
-### [FEAT-015]: Enhanced Search
-
-**Status:** ✅ Done
-
-**Description:** Search with autocomplete suggestions and history.
-
-**Acceptance Criteria:**
-- [x] Search suggestions from API
-- [x] Recent search history (local)
-- [x] Clear history option
-- [x] Search by recipe title, food name
-
-**Technical Notes:**
-- Autocomplete endpoint: `/api/v1/autocomplete`
-- Local history stored in SharedPreferences
-
----
-
-### [FEAT-025]: Idempotency Keys
-
-**Status:** ✅ Done
-**Branch:** `feature/idempotency-keys`
-**PR:** #15
-
-**Description:** Prevent duplicate writes on network retries using idempotency keys pattern (Stripe-style).
-
-**Acceptance Criteria:**
-- [x] Client generates UUID v4 for POST/PATCH requests
-- [x] Server stores key + response, returns cached on retry
-- [x] 24-hour TTL for keys
-- [x] Request hash verification to detect misuse
-- [x] Hourly cleanup of expired keys
-- [x] Keys scoped per user
-
-**Technical Notes:**
-- Backend: `idempotency_keys` table, `IdempotencyFilter` after JWT auth
-- Frontend: `IdempotencyInterceptor` in Dio chain before retry interceptor
-- Reuses same key on retry, clears on success/non-retryable error
-- Returns 422 if same key used with different request body
-
-**How it works:**
-```
-Client                                  Server
-  │  POST /recipes                        │
-  │  Idempotency-Key: uuid-123            │
-  │ ──────────────────────────────────────>
-  │       (timeout)                       │
-  │ <──────────────────────────────────── X
-  │  RETRY with same key                  │
-  │ ──────────────────────────────────────>
-  │       200 OK (cached response)        │
-  │ <──────────────────────────────────────
-```
-
----
-
-## Planned 📋
-
-### [FEAT-016]: Improved Onboarding
-
+### [FEAT-012]: Recipe Search
 **Status:** 📋 Planned
+**Branch:** `feature/recipe-search`
 
-**Description:** 5-screen flow explaining recipe variation concept.
+**Description:** Search recipes with filters.
 
 **Acceptance Criteria:**
-- [ ] Welcome screen
-- [ ] Recipe concept explanation
-- [ ] Variation concept explanation
-- [ ] Cooking log explanation
-- [ ] Get started button
+- [ ] Search by title (debounced 300ms)
+- [ ] Filter by ingredient
+- [ ] Recent searches (local, max 10)
+- [ ] Empty state with suggestions
+
+**Technical Notes:**
+- Backend: PostgreSQL full-text search
 
 ---
 
-### [FEAT-017]: Full-Text Search
-
+### [FEAT-013]: Recipe Categories
 **Status:** 📋 Planned
+**Branch:** `feature/categories`
 
-**Description:** PostgreSQL trigram search for recipes.
+**Description:** Organize recipes by categories/tags.
 
 **Acceptance Criteria:**
-- [ ] Search by ingredients
-- [ ] Search by description
-- [ ] Fuzzy matching
-- [ ] Search ranking
+- [ ] Add tags to recipes (max 5)
+- [ ] Browse by category
+- [ ] Popular tags section
 
 ---
 
-### [FEAT-018]: Achievement Badges
-
+### [FEAT-014]: User Settings
 **Status:** 📋 Planned
+**Branch:** `feature/settings`
 
-**Description:** Gamification badges for cooking milestones.
-
-**Acceptance Criteria:**
-- [ ] "첫 요리" - First log
-- [ ] "용감한 요리사" - First variation
-- [ ] "꾸준한 요리사" - 10 logs
-- [ ] Badge display on profile
-
----
-
-### [FEAT-019]: Batch Photo Upload
-
-**Status:** ✅ Done
-**Branch:** `feature/batch-photo-upload`
-**PR:** #24
-
-**Description:** Upload multiple photos at once for cooking steps. Each photo creates a step automatically.
+**Description:** App settings screen.
 
 **Acceptance Criteria:**
-- [x] "Add Multiple" button in step section
-- [x] Multi-select from gallery (up to 10)
-- [x] Each photo creates a step with empty description
-- [x] User can reorder, edit descriptions, remove steps
-- [x] Progress indicator during upload
-
-**Technical Notes:**
-- `StepSection` widget: Added `onAddMultipleSteps` callback and `_pickMultipleStepImages()` method
-- Uses `ImagePicker.pickMultiImage()` with `imageQuality: 70` and `limit: 10`
-- Each image creates a step via `_addMultipleSteps()` in `RecipeCreateScreen`
-- Upload status indicators: `CircularProgressIndicator` while uploading, red border + retry icon on error
-- Translation keys added: `steps.addMultiple`, `steps.addStep`, etc. in en-US.json and ko-KR.json
-
----
-
-### [FEAT-020]: Recipe Locale
-
-**Status:** ✅ Done
-**Branch:** `feature/recipe-locale`
-
-**Description:** Tag recipes with culinary locale (Korean, American, etc.) for cultural taste preferences.
-
-**Locale Options:** Korean, American, Japanese, Chinese, Italian, Mexican, Thai, Indian, French, Other/Fusion
-
-**Acceptance Criteria:**
-- [x] Locale dropdown in recipe creation (10 options)
-- [x] Default to Korean for new recipes
-- [x] Inherit from parent recipe on variations
-- [x] Locale badge on recipe cards (home feed + recipe list)
-- [x] Filter chips in home feed (client-side filtering)
-
-**Technical Notes:**
-- Backend: `culinaryLocale` field already supported with server-side filtering in `RecipeController`
-- Frontend widgets: `LocaleDropdown`, `LocaleBadge`, `LocaleFilterChips`
-- HookSection: Added locale dropdown after description field
-- RecipeCreateScreen: Default ko-KR for new, inherit from parent for variants
-- Home feed: Filter chips with client-side filtering of trending trees and recent recipes
-- Translations: Added `locale.*` keys to both en-US.json and ko-KR.json
-
----
-
-### [FEAT-021]: Recipe Draft Auto-Save
-
-**Status:** ✅ Done
-**Branch:** `feature/recipe-draft-autosave`
-
-**Description:** Auto-save recipe drafts locally. Restore on return.
-
-**Acceptance Criteria:**
-- [x] Auto-save on 30s interval, blur, background, navigation
-- [x] 7-day retention, 1 draft per user
-- [x] "Continue Draft?" dialog on return
-- [x] Status indicator: "Saving..." → "Saved"
-
-**Technical Notes:**
-- Hive local storage (recipe_draft_box) with JSON serialization
-- Timer-based auto-save every 30 seconds
-- AppLifecycleObserver for background/pause detection
-- PopScope for navigation interception
-- No draft saving for variants (skip all draft logic in variant mode)
-- Clear draft on successful publish
-
----
-
-### [FEAT-022]: Guest Access
-
-**Status:** ✅ Done
-**Branch:** `feature/guest-access`
-
-**Description:** Browse recipes without signing in. Login required for actions.
-
-**Acceptance Criteria:**
-- [x] "Browse as Guest" button on login screen
-- [x] Guests can browse, view, search
-- [x] Login prompt on: create, save, follow
-- [x] Auto-complete action after login
-- [x] Profile tab shows "Sign in" for guests
-
-**Technical Notes:**
-- Frontend: `AuthStatus.guest` state, `LoginPromptSheet` for action prompts
-- Backend: `SecurityConfig` updated for public endpoints (recipes, search)
-- Router guards redirect guests to login for protected actions
-
----
-
-### [FEAT-023]: Mandatory Fields
-
-**Status:** 📋 Planned
-**Branch:** `feature/content-creation-ux`
-
-**Description:** Require minimum fields for content quality.
-
-**Acceptance Criteria:**
-- [ ] Recipe: 1 photo, title (2ch), food, 1 ingredient, 1 step
-- [ ] Log: linked recipe, outcome (photo optional)
-- [ ] Inline validation with indicators
-- [ ] Publish disabled until valid
-- [ ] Backend validation with field errors
-
-**Technical Notes:** Jakarta validation annotations, 400 response with field details
-
----
-
-### [FEAT-024]: Settings & Account Deletion
-
-**Status:** ✅ Done
-**Branch:** `feature/social-sharing`
-**PR:** #14
-
-**Description:** Settings screen with logout and account deletion (soft delete with 30-day grace period).
-
-**Acceptance Criteria:**
-- [x] Settings screen accessible from Profile AppBar
-- [x] Language, Notifications, Logout options
-- [x] Delete Account with "DELETE"/"삭제" type confirmation
-- [x] 30-day grace period before permanent deletion
-- [x] Account restoration on login within grace period
-- [x] Daily scheduled cleanup job
-
-**Technical Notes:**
-- Backend: `deletedAt`, `deleteScheduledAt` fields on User entity
-- Frontend: SettingsScreen, DeleteAccountScreen
-- Scheduler: `AccountCleanupScheduler` runs daily at midnight
+- [ ] Notification preferences
+- [ ] Account management
+- [ ] Logout with confirmation
+- [ ] Delete account flow
 
 ---
 
 # 🏛️ DECISIONS
 
-## Template
-
-```markdown
-### [DEC-XXX]: Decision Title
-
-**Date:** YYYY-MM-DD
-**Status:** ✅ Accepted | ❌ Rejected
-
-**Context:** Problem we faced
-**Decision:** What we chose
-**Reason:** Why
-**Alternatives:** What else we considered
-```
-
----
-
 ### [DEC-001]: Isar for Local Database
-
-**Date:** 2024-12-15
-**Status:** ✅ Accepted
-
-**Context:** Need offline caching with query support.
-**Decision:** Use Isar
-**Reason:** Type-safe, fast, supports queries (unlike Hive)
-**Alternatives:** Hive (no queries), SQLite (too heavy), Drift (SQL-based)
+**Date:** 2024-12-15 | **Status:** ✅ Accepted
+**Decision:** Use Isar for offline caching
+**Reason:** Type-safe, fast, supports queries
 
 ---
 
 ### [DEC-002]: Either<Failure, T> for Error Handling
-
-**Date:** 2024-12-20
-**Status:** ✅ Accepted
-
-**Context:** Need consistent error handling.
+**Date:** 2024-12-20 | **Status:** ✅ Accepted
 **Decision:** Use Either from dartz package
-**Reason:** Forces explicit handling, type-safe, clear contracts
-**Alternatives:** Try-catch (easy to forget), nullable returns (loses info)
+**Reason:** Forces explicit handling, type-safe
 
 ---
 
 ### [DEC-003]: publicId (UUID) for API
-
-**Date:** 2024-12-18
-**Status:** ✅ Accepted
-
-**Context:** Don't want to expose internal DB IDs.
-**Decision:** Every entity has `id` (internal Long) + `publicId` (UUID)
-**Reason:** Security, flexibility, works across distributed systems
-**Alternatives:** Expose internal ID (security risk), UUID as PK (performance)
+**Date:** 2024-12-18 | **Status:** ✅ Accepted
+**Decision:** Every entity has `id` (internal) + `publicId` (UUID)
+**Reason:** Security, don't expose auto-increment IDs
 
 ---
 
 ### [DEC-004]: Soft Delete
-
-**Date:** 2024-12-22
-**Status:** ✅ Accepted
-
-**Context:** Preserve data for variations, allow recovery.
-**Decision:** Use `deleted_at` timestamp instead of hard delete
-**Reason:** Maintains references, audit trail, recovery
-**Alternatives:** Hard delete (loses data), archive table (complex)
+**Date:** 2024-12-22 | **Status:** ✅ Accepted
+**Decision:** Use `deleted_at` timestamp
+**Reason:** Maintains references, allows recovery
 
 ---
 
 ### [DEC-005]: Firebase Auth + Backend JWT
-
-**Date:** 2024-12-10
-**Status:** ✅ Accepted
-
-**Context:** Need social login without managing OAuth.
+**Date:** 2024-12-10 | **Status:** ✅ Accepted
 **Decision:** Firebase for social login, exchange for our JWT
-**Reason:** Firebase handles complexity, we control our JWT
-**Alternatives:** Firebase only (vendor lock), self-hosted OAuth (complex)
+**Reason:** Firebase handles OAuth, we control JWT
 
 ---
 
-### [DEC-006]: PostgreSQL for Idempotency Keys
+### [DEC-006]: Optimistic UI Updates
+**Date:** 2025-01-08 | **Status:** ✅ Accepted
+**Decision:** Use optimistic updates for follow/like/save
+**Reason:** Better UX, instant feedback
 
-**Date:** 2026-01-08
-**Status:** ✅ Accepted
+---
 
-**Context:** Need storage for idempotency keys with 24h TTL.
-**Decision:** Use PostgreSQL table with scheduled cleanup
-**Reason:** No new infrastructure, transactional with main data, simpler deployment
-**Alternatives:** Redis (faster, built-in TTL, but extra dependency and sync complexity)
+### [DEC-007]: Firebase Flavors (Dev/Staging/Prod)
+**Date:** 2025-01-08 | **Status:** ✅ Accepted
+**Decision:** Three separate Firebase projects
+**Reason:** Isolate environments, safe testing
+
+---
+
+### [DEC-008]: Feature Locking for Multi-Instance
+**Date:** 2025-01-08 | **Status:** ✅ Accepted
+**Decision:** Lock features in FEATURES.md when working
+**Reason:** Prevent conflicts between Claude Code instances
+
+---
+
+### [DEC-009]: Multiple Backend Ports for Parallel Development
+**Date:** 2025-01-08 | **Status:** ✅ Accepted
+**Decision:** Use different ports (4001, 4002, 4003) when running multiple backends
+**Reason:** Allow multiple Claude Code instances to run simultaneously
+**Command:** `./gradlew bootRun --args='--server.port=4002'`
 
 ---
 
@@ -605,43 +402,33 @@ Client                                  Server
 |------|------------|
 | **Recipe** | Dish with ingredients and steps |
 | **Original Recipe** | Recipe with no parent (`parentPublicId = null`) |
-| **Variation** | Recipe modified from another, has `parentPublicId` + `rootPublicId` |
-| **Parent Recipe** | Direct recipe a variation was created from |
-| **Root Recipe** | Original at top of variation tree |
-| **Log Post** | Cooking attempt record with photos and outcome |
-| **publicId** | UUID exposed in API (never expose internal `id`) |
-| **Slice** | Spring paginated response with `content` array |
-| **TTL** | Time To Live - cache validity duration |
-| **Idempotency Key** | Client-generated UUID to prevent duplicate writes on retry |
+| **Variation** | Recipe modified from another |
+| **Log Post** | Cooking attempt record |
+| **publicId** | UUID exposed in API |
+| **Slice** | Spring paginated response with `content` |
+| **TTL** | Time To Live - cache validity |
+| **Optimistic UI** | Update UI immediately, rollback if fails |
+| **Flavor** | Build variant for different Firebase project |
+| **Lock** | Marker in FEATURES.md showing who's working on feature |
+| **Server port** | Backend port (4001 default, 4002/4003 for parallel instances) |
 
 ---
 
-# 📊 FEATURE INDEX
+# 📊 QUICK REFERENCE
 
-| ID | Feature | Status |
-|----|---------|--------|
-| FEAT-001 | Social Login | ✅ |
-| FEAT-002 | Recipe List | ✅ |
-| FEAT-003 | Recipe Detail | ✅ |
-| FEAT-004 | Create Recipe | ✅ |
-| FEAT-005 | Recipe Variations | ✅ |
-| FEAT-006 | Cooking Logs | ✅ |
-| FEAT-007 | Save/Bookmark | ✅ |
-| FEAT-008 | User Profile | ✅ |
-| FEAT-009 | Follow System | ✅ |
-| FEAT-010 | Push Notifications | ✅ |
-| FEAT-011 | Profile Caching | ✅ |
-| FEAT-012 | Social Sharing | ✅ |
-| FEAT-013 | Profile Edit | ✅ |
-| FEAT-014 | Image Variants | ✅ |
-| FEAT-015 | Enhanced Search | ✅ |
-| FEAT-016 | Improved Onboarding | 📋 |
-| FEAT-017 | Full-Text Search | 📋 |
-| FEAT-018 | Achievement Badges | 📋 |
-| FEAT-019 | Batch Photo Upload | ✅ |
-| FEAT-020 | Recipe Locale | ✅ |
-| FEAT-021 | Recipe Draft Auto-Save | ✅ |
-| FEAT-022 | Guest Access | ✅ |
-| FEAT-023 | Mandatory Fields | 📋 |
-| FEAT-024 | Settings & Account Deletion | ✅ |
-| FEAT-025 | Idempotency Keys | ✅ |
+| ID | Feature | Status | Locked By | Port |
+|----|---------|--------|-----------|------|
+| FEAT-001 | Social Login | ✅ | - | - |
+| FEAT-002 | Recipe List | ✅ | - | - |
+| FEAT-003 | Recipe Detail | ✅ | - | - |
+| FEAT-004 | Create Recipe | ✅ | - | - |
+| FEAT-005 | Recipe Variations | ✅ | - | - |
+| FEAT-006 | Cooking Logs | ✅ | - | - |
+| FEAT-007 | Save/Bookmark | ✅ | - | - |
+| FEAT-008 | User Profile | ✅ | - | - |
+| FEAT-009 | Follow System | 📋 | - | - |
+| FEAT-010 | Push Notifications | 📋 | - | - |
+| FEAT-011 | Profile Caching | 📋 | - | - |
+| FEAT-012 | Recipe Search | 📋 | - | - |
+| FEAT-013 | Recipe Categories | 📋 | - | - |
+| FEAT-014 | User Settings | 📋 | - | - |
