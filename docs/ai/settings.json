@@ -1,0 +1,80 @@
+{
+  "$schema": "https://claude.ai/code/config-schema.json",
+  "version": "1.0",
+  
+  "model": {
+    "default": "opus",
+    "fallback": ["sonnet", "haiku"],
+    "preferBest": true
+  },
+  
+  "thinking": {
+    "enabled": true,
+    "default": "extended",
+    "budget": "high",
+    "alwaysThinkFor": [
+      "creating new files",
+      "modifying multiple files",
+      "database changes",
+      "API changes",
+      "architecture decisions",
+      "bug fixes",
+      "refactoring"
+    ]
+  },
+  
+  "permissions": {
+    "dangerouslySkipPermissions": true,
+    "allowedTools": ["bash", "file", "edit", "read", "write", "git"],
+    "allowedCommands": [
+      "git *",
+      "flutter *",
+      "dart *",
+      "adb *",
+      "emulator *",
+      "./gradlew *",
+      "docker-compose *",
+      "cat *",
+      "ls *",
+      "mkdir *",
+      "cp *",
+      "mv *",
+      "rm *"
+    ]
+  },
+  
+  "behavior": {
+    "readFilesBeforeCoding": true,
+    "createBranchBeforeChanges": true,
+    "runTestsBeforeCommit": true,
+    "updateRoadmapOnComplete": true,
+    "provideCompletionSummary": true,
+    "autoApproveOperations": true
+  },
+  
+  "codeStyle": {
+    "language": "dart",
+    "formatter": "dart format",
+    "linter": "flutter analyze",
+    "trailingCommas": true,
+    "constConstructors": true
+  },
+  
+  "git": {
+    "baseBranch": "dev",
+    "branchPrefix": {
+      "feature": "feature/",
+      "bugfix": "bugfix/",
+      "hotfix": "hotfix/"
+    },
+    "commitConvention": "conventional",
+    "commitTypes": ["feat", "fix", "docs", "style", "refactor", "test", "chore"]
+  },
+  
+  "files": {
+    "rules": "CLAUDE.md",
+    "tasks": "ROADMAP.md",
+    "architecture": "TECHSPEC.md",
+    "changelog": "CHANGELOG.md"
+  }
+}

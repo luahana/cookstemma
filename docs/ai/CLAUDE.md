@@ -43,21 +43,180 @@ claude --dangerously-skip-permissions --model opus
 
 0. **Model** → Use opus with extended thinking, skip permissions
 1. **Before coding** → Create branch from dev
-2. **Before ANY feature** → Document in FEATURES.md first:
-   - If feature exists → Update status to 🟡 In Progress
-   - If feature is NEW → Write full spec, get approval, THEN implement
-3. **After feature** → Write and run tests (must pass)
-4. **Before commit** → Run pre-commit checklist (see below)
-5. **Push & PR** → `git push origin HEAD` then `gh pr create --base dev`
-6. **After DTOs/Isar** → Run `dart run build_runner build --delete-conflicting-outputs`
-7. **After `await`** → Check `if (!context.mounted) return;`
-8. **API IDs** → Use `publicId` (UUID), never internal `id`
-9. **Providers in callbacks** → `ref.read()`, not `ref.watch()`
-10. **Entities** → Never import `json_annotation` or `isar`
-11. **Backend Slice** → Field is `content`, not `items`
-12. **Recipe variants** → Include `parentPublicId` + `rootPublicId`
-13. **Error handling** → Return `Either<Failure, T>`, never throw
-14. **Commits** → `feat|fix|docs|chore(scope): description`
+2. **Before ANY feature** → Plan with ultrathink + research best practices (see below)
+3. **After planning** → Document in FEATURES.md, get approval
+4. **After feature** → Write and run tests (must pass)
+5. **Before commit** → Run pre-commit checklist
+6. **Push & PR** → `git push origin HEAD` then `gh pr create --base dev`
+7. **After DTOs/Isar** → Run `dart run build_runner build --delete-conflicting-outputs`
+8. **After `await`** → Check `if (!context.mounted) return;`
+9. **API IDs** → Use `publicId` (UUID), never internal `id`
+10. **Providers in callbacks** → `ref.read()`, not `ref.watch()`
+11. **Entities** → Never import `json_annotation` or `isar`
+12. **Backend Slice** → Field is `content`, not `items`
+13. **Recipe variants** → Include `parentPublicId` + `rootPublicId`
+14. **Error handling** → Return `Either<Failure, T>`, never throw
+15. **Commits** → `feat|fix|docs|chore(scope): description`
+
+---
+
+## 🧠 PLANNING WITH ULTRATHINK
+
+**Before implementing ANY feature, use extended thinking to:**
+
+```
+1. UNDERSTAND the feature deeply
+   - What problem does it solve?
+   - Who uses it and how?
+   - What are edge cases?
+
+2. RESEARCH best practices
+   - How do successful apps implement this?
+   - What are industry standards?
+   - What mistakes should we avoid?
+
+3. DESIGN the solution
+   - Data models needed
+   - API endpoints needed
+   - UI/UX flow
+   - Error handling
+
+4. PLAN implementation steps
+   - What order to build?
+   - What tests to write?
+   - What could go wrong?
+```
+
+**Always think deeply before writing code.**
+
+---
+
+## 🔍 BEST PRACTICES RESEARCH
+
+**Before implementing a feature, research how real-world apps do it:**
+
+### What to Research
+| Feature Type | Research These Apps | Look For |
+|--------------|---------------------|----------|
+| Follow system | Instagram, Twitter, TikTok | Optimistic UI, follower counts, mutual follows |
+| Notifications | Slack, Discord, WhatsApp | Grouping, read/unread, push vs in-app |
+| Search | Pinterest, Spotify, YouTube | Autocomplete, filters, recent searches |
+| Feed/List | Instagram, Reddit, TikTok | Infinite scroll, caching, pull-to-refresh |
+| Profile | Instagram, LinkedIn, Twitter | Tabs, edit flow, stats display |
+| Image upload | Instagram, WhatsApp, Imgur | Compression, progress, retry |
+| Caching | Any offline-first app | TTL, invalidation, sync strategy |
+| Auth | Any modern app | Token refresh, session management, logout |
+
+### Research Checklist
+```
+□ How do top 3 apps implement this feature?
+□ What UX patterns are standard?
+□ What are common pitfalls to avoid?
+□ What accessibility concerns exist?
+□ What performance optimizations are used?
+□ How is error handling done?
+□ What edge cases do they handle?
+```
+
+### Example: Planning Follow System
+
+**Research findings:**
+```
+Instagram/Twitter patterns:
+- Optimistic UI: Button changes immediately, reverts on failure
+- Counts update instantly (local), sync with server later
+- Mutual follow detection ("Follows you" badge)
+- Rate limiting to prevent spam
+- Block list check before allowing follow
+
+Common pitfalls:
+- Race conditions with rapid tap
+- Count inconsistency between screens
+- Stale data after unfollow
+- Not handling blocked users
+
+Our implementation should:
+- Use optimistic updates with rollback
+- Cache follower counts locally
+- Debounce rapid taps
+- Show loading state on failure
+- Sync counts on screen focus
+```
+
+---
+
+## 🆕 NEW FEATURE WORKFLOW
+
+**When user requests a new feature:**
+
+```
+PHASE 1: UNDERSTAND (ultrathink)
+1. What exactly is the user asking for?
+2. Why do they need this?
+3. What's the scope?
+
+PHASE 2: RESEARCH (best practices)
+4. How do Instagram/Twitter/Pinterest do this?
+5. What are industry-standard UX patterns?
+6. What are common mistakes to avoid?
+
+PHASE 3: PLAN (ultrathink)
+7. Design data models
+8. Design API endpoints
+9. Design UI/UX flow
+10. Identify edge cases
+11. Plan error handling
+
+PHASE 4: DOCUMENT
+12. Write feature spec with:
+    - Description
+    - Acceptance criteria (from research)
+    - Technical notes (from planning)
+    - Edge cases identified
+13. Ask: "Here's the spec based on research. Approve?"
+
+PHASE 5: IMPLEMENT (only after approval)
+14. Create branch
+15. Backend first, frontend second
+16. Write tests
+17. Update FEATURES.md → ✅
+```
+
+---
+
+## 📝 FEATURE SPEC TEMPLATE (After Research)
+
+```markdown
+### [FEAT-XXX]: Feature Name
+
+**Status:** 📋 Planned
+**Branch:** `feature/xxx`
+
+**Description:** What it does
+
+**Research Findings:**
+- Instagram does X
+- Twitter does Y
+- Common pattern: Z
+- Pitfall to avoid: W
+
+**Acceptance Criteria:**
+- [ ] Criterion based on best practices
+- [ ] Edge case handling
+- [ ] Error handling
+- [ ] Performance consideration
+
+**Technical Notes:**
+- Backend: endpoints, models
+- Frontend: screens, providers
+- Caching strategy
+- Error handling approach
+
+**Edge Cases:**
+- What if network fails?
+- What if user does X rapidly?
+- What if data is stale?
+```
 
 ---
 
@@ -76,8 +235,6 @@ claude --dangerously-skip-permissions --model opus
   - Status → ✅ Done
   - Criteria → [x] checked
 ```
-
-**If any fail → Fix before committing**
 
 ---
 
@@ -132,8 +289,6 @@ gh pr create --base dev --title "feat(scope): description"
    - Check error handling
 ```
 
-**Why backend first?** API contract must be stable before frontend consumes it.
-
 ---
 
 ## 🏗️ IMPORT RULES BY LAYER
@@ -149,8 +304,6 @@ gh pr create --base dev --title "feat(scope): description"
 │ features/*      │ everything             │ -        │
 └─────────────────────────────────────────────────────┘
 ```
-
-**If import error → Wrong layer direction**
 
 ---
 
@@ -200,14 +353,6 @@ flutter test --coverage
 4. git push origin HEAD --force
 ```
 
-**If branch out of date:**
-```
-1. git fetch origin dev
-2. git rebase origin/dev
-3. Resolve conflicts if any
-4. git push origin HEAD --force
-```
-
 ---
 
 ## 📦 DATABASE MIGRATIONS
@@ -241,10 +386,6 @@ docker-compose up -d
 # Emulator
 emulator -avd $(emulator -list-avds | head -1) &
 adb logcat *:E
-
-# Debug
-flutter logs                         # Frontend logs
-./gradlew bootRun 2>&1 | tee log.txt # Backend logs
 ```
 
 ---
@@ -299,7 +440,7 @@ onTap: () => ref.read(recipesProvider.notifier).refresh();
 ### Context Check After Await
 ```dart
 await someAsyncOperation();
-if (!context.mounted) return;  // ALWAYS CHECK
+if (!context.mounted) return;
 Navigator.pop(context);
 ```
 
@@ -321,21 +462,27 @@ SESSION START:
 2. git status
 3. Read FEATURES.md → Find 🟡 task
 
+NEW FEATURE (with ultrathink + research):
+4. UNDERSTAND: What, why, scope?
+5. RESEARCH: How do Instagram/Twitter/etc do this?
+6. PLAN: Models, APIs, UI, edge cases
+7. DOCUMENT: Write spec with research findings
+8. GET APPROVAL: "Here's the spec. Approve?"
+
 IMPLEMENTATION:
-4. If no branch → git checkout -b feature/xxx
-5. If full-stack → Backend first, frontend second
-6. Code → Test → Fix → Repeat
+9. Create branch from dev
+10. Backend first, frontend second
+11. Code → Test → Fix → Repeat
 
 PRE-COMMIT:
-7. flutter analyze (no errors)
-8. flutter test (all pass)
-9. ./gradlew test (if backend)
-10. Update FEATURES.md → ✅ Done
+12. flutter analyze (no errors)
+13. flutter test (all pass)
+14. Update FEATURES.md → ✅ Done
 
 COMMIT & PUSH:
-11. git add . && git commit -m "feat(scope): description"
-12. git push origin HEAD
-13. gh pr create --base dev
+15. git add . && git commit
+16. git push origin HEAD
+17. gh pr create --base dev
 ```
 
 ---
@@ -361,41 +508,33 @@ gh issue close <number>
 
 ---
 
-## 🆕 NEW FEATURES
-
-**If user requests a feature NOT in FEATURES.md:**
-```
-1. STOP - Don't code yet
-2. Write spec: ID, description, acceptance criteria
-3. Ask: "Here's the spec. Approve?"
-4. Wait for approval
-5. Add to FEATURES.md
-6. THEN implement
-```
-
----
-
 ## 💡 PROMPTS
 
 ```
 Implement [FEAT-XXX] from FEATURES.md.
 Fix: [description]. Create GitHub issue if significant.
 Debug [issue]. Check logs, find root cause before fixing.
-Review [file] for: error handling, null safety, context.mounted.
 Continue from last session. Check git status first.
+
+Plan [feature]. Research best practices, then write spec.
+Research how [Instagram/Twitter/etc] implements [feature].
 ```
 
 ---
 
 ## 🛑 STOP AND CHECK
 
-**Before writing code, verify:**
+**Before planning, verify:**
+- [ ] Do I understand the feature fully?
+- [ ] Have I researched how other apps do this?
+- [ ] Have I identified edge cases?
+
+**Before coding, verify:**
+- [ ] Is the spec approved?
 - [ ] Am I on the correct branch?
-- [ ] Is the feature documented in FEATURES.md?
-- [ ] Do I understand the acceptance criteria?
+- [ ] Do I understand acceptance criteria?
 
 **Before committing, verify:**
 - [ ] All tests pass?
-- [ ] No print/console.log left?
 - [ ] FEATURES.md updated?
 - [ ] Commit message follows convention?
