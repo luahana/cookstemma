@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -55,8 +56,8 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: EnhancedSearchAppBar(
-        title: '요리 기록',
-        hintText: '요리 기록 검색...',
+        title: 'logPost.title'.tr(),
+        hintText: 'logPost.searchHint'.tr(),
         currentQuery: logPostsAsync.valueOrNull?.searchQuery,
         searchType: SearchType.logPost,
         onSearch: (query) {
@@ -116,7 +117,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                       padding: const EdgeInsets.all(24),
                       child: Center(
                         child: Text(
-                          "모든 요리 기록을 불러왔습니다",
+                          'logPost.allLoaded'.tr(),
                           style: TextStyle(
                             color: Colors.grey[500],
                             fontSize: 13,
@@ -248,7 +249,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
     if (searchQuery != null && searchQuery.isNotEmpty) {
       return SearchEmptyState(
         query: searchQuery,
-        entityName: '요리 기록',
+        entityName: 'logPost.title'.tr(),
         onClearSearch: () {
           ref.read(logPostPaginatedListProvider.notifier).clearSearch();
         },
@@ -270,7 +271,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                "아직 요리 기록이 없어요",
+                'logPost.noLogsYet'.tr(),
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey[600],
@@ -279,7 +280,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                "레시피를 따라 요리하고\n기록을 남겨보세요!",
+                'logPost.noLogsHint'.tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
@@ -301,7 +302,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
           const Icon(Icons.error_outline, size: 48, color: Colors.red),
           const SizedBox(height: 16),
           Text(
-            '로그를 불러올 수 없습니다',
+            'logPost.couldNotLoad'.tr(),
             style: TextStyle(fontSize: 16, color: Colors.grey[700]),
           ),
           const SizedBox(height: 8),
@@ -315,7 +316,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
             onPressed: () {
               ref.invalidate(logPostPaginatedListProvider);
             },
-            child: const Text('다시 시도'),
+            child: Text('common.tryAgain'.tr()),
           ),
         ],
       ),

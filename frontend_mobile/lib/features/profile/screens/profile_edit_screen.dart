@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/network/dio_provider.dart';
@@ -8,6 +9,7 @@ import 'package:pairing_planet2_frontend/core/services/toast_service.dart';
 import 'package:pairing_planet2_frontend/data/datasources/user/user_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/user/update_profile_request_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/user_dto.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/profile_provider.dart';
 
 class ProfileEditScreen extends ConsumerStatefulWidget {
@@ -21,27 +23,27 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   DateTime? _selectedBirthDate;
   String? _selectedGender;
   String? _selectedLocale;
+  String? _originalLocale;  // Track original locale to detect changes
   bool _isLoading = false;
   bool _hasChanges = false;
 
-  // Gender options
-  static const Map<String, String> _genderOptions = {
-    'MALE': '남성',
-    'FEMALE': '여성',
-    'OTHER': '기타',
-  };
-
-  static const Map<String, String> _genderOptionsEn = {
-    'MALE': 'Male',
-    'FEMALE': 'Female',
-    'OTHER': 'Other',
-  };
+  // Gender options - keys for translation
+  static const List<String> _genderKeys = ['MALE', 'FEMALE', 'OTHER'];
 
   // Locale options
   static const Map<String, String> _localeOptions = {
     'ko-KR': '한국어',
     'en-US': 'English',
   };
+
+  String _getGenderLabel(String key) {
+    return switch (key) {
+      'MALE' => 'profile.male'.tr(),
+      'FEMALE' => 'profile.female'.tr(),
+      'OTHER' => 'profile.other'.tr(),
+      _ => key,
+    };
+  }
 
   @override
   void initState() {
@@ -62,13 +64,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         }
         _selectedGender = profile.user.gender;
         _selectedLocale = profile.user.locale ?? ref.read(localeProvider);
+        _originalLocale = _selectedLocale;  // Store original locale
       });
     });
-  }
-
-  bool get _isKorean {
-    final locale = ref.watch(localeProvider);
-    return locale.startsWith('ko');
   }
 
   @override
@@ -78,7 +76,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text(_isKorean ? '프로필 수정' : 'Edit Profile'),
+        title: Text('profile.editProfile'.tr()),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -96,7 +94,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Text(
-                    _isKorean ? '저장' : 'Save',
+                    'common.save'.tr(),
                     style: TextStyle(
                       color: _hasChanges ? const Color(0xFF1A237E) : Colors.grey,
                       fontWeight: FontWeight.bold,
@@ -109,7 +107,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         data: (profile) => _buildForm(profile.user),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
-          child: Text(_isKorean ? '프로필을 불러올 수 없습니다' : 'Could not load profile'),
+          child: Text('profile.couldNotLoad'.tr()),
         ),
       ),
     );
@@ -122,26 +120,24 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Birthday Section
-          _buildSectionTitle(_isKorean ? '생년월일' : 'Birthday'),
+          _buildSectionTitle('profile.birthday'.tr()),
           const SizedBox(height: 8),
           _buildBirthdayPicker(),
           const SizedBox(height: 24),
 
           // Gender Section
-          _buildSectionTitle(_isKorean ? '성별' : 'Gender'),
+          _buildSectionTitle('profile.gender'.tr()),
           const SizedBox(height: 8),
           _buildGenderDropdown(),
           const SizedBox(height: 24),
 
           // Language Section
-          _buildSectionTitle(_isKorean ? '언어 설정' : 'Language'),
+          _buildSectionTitle('profile.language'.tr()),
           const SizedBox(height: 8),
           _buildLocaleDropdown(),
           const SizedBox(height: 16),
           Text(
-            _isKorean
-                ? '언어를 변경하면 앱 전체가 해당 언어로 표시됩니다.'
-                : 'Changing language will update the entire app.',
+            'profile.languageHint'.tr(),
             style: TextStyle(
               fontSize: 13,
               color: Colors.grey[600],
@@ -166,7 +162,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   Widget _buildBirthdayPicker() {
     final dateText = _selectedBirthDate != null
         ? '${_selectedBirthDate!.year}-${_selectedBirthDate!.month.toString().padLeft(2, '0')}-${_selectedBirthDate!.day.toString().padLeft(2, '0')}'
-        : (_isKorean ? '생년월일을 선택하세요' : 'Select your birthday');
+        : 'profile.selectBirthday'.tr();
 
     return InkWell(
       onTap: _showDatePicker,
@@ -198,13 +194,14 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   Future<void> _showDatePicker() async {
     final now = DateTime.now();
     final initialDate = _selectedBirthDate ?? DateTime(now.year - 25);
+    final currentLocale = context.locale;
 
     final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(1900),
       lastDate: now,
-      locale: _isKorean ? const Locale('ko', 'KR') : const Locale('en', 'US'),
+      locale: currentLocale,
     );
 
     if (picked != null && picked != _selectedBirthDate) {
@@ -216,8 +213,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   }
 
   Widget _buildGenderDropdown() {
-    final options = _isKorean ? _genderOptions : _genderOptionsEn;
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -229,12 +224,12 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedGender,
-          hint: Text(_isKorean ? '성별을 선택하세요' : 'Select gender'),
+          hint: Text('profile.selectGender'.tr()),
           isExpanded: true,
-          items: options.entries.map((entry) {
+          items: _genderKeys.map((key) {
             return DropdownMenuItem<String>(
-              value: entry.key,
-              child: Text(entry.value),
+              value: key,
+              child: Text(_getGenderLabel(key)),
             );
           }).toList(),
           onChanged: (value) {
@@ -260,7 +255,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedLocale,
-          hint: Text(_isKorean ? '언어를 선택하세요' : 'Select language'),
+          hint: Text('profile.selectLanguage'.tr()),
           isExpanded: true,
           items: _localeOptions.entries.map((entry) {
             return DropdownMenuItem<String>(
@@ -298,27 +293,45 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
       await dataSource.updateProfile(request);
 
-      // Update locale in the app if changed
+      // Check if locale changed
+      final localeChanged = _selectedLocale != _originalLocale;
+
+      // Update locale in the app if changed (await to ensure save completes)
       if (_selectedLocale != null) {
-        _updateAppLocale(_selectedLocale!);
+        await _updateAppLocale(_selectedLocale!);
       }
 
       // Refresh profile
       ref.invalidate(myProfileProvider);
 
-      // Show success message
-      ToastService.showSuccess(
-        _isKorean ? '프로필이 수정되었습니다' : 'Profile updated',
-      );
+      if (!mounted) return;
 
-      // Go back
-      if (mounted) {
+      // If locale changed, show restart dialog
+      if (localeChanged) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: Text('profile.languageChangeTitle'.tr()),
+            content: Text('profile.languageChangeMessage'.tr()),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Phoenix.rebirth(context);
+                },
+                child: Text('profile.restart'.tr()),
+              ),
+            ],
+          ),
+        );
+      } else {
+        // Show success message and go back
+        ToastService.showSuccess('profile.profileUpdated'.tr());
         context.pop();
       }
     } catch (e) {
-      ToastService.showError(
-        _isKorean ? '프로필 수정에 실패했습니다' : 'Failed to update profile',
-      );
+      ToastService.showError('profile.profileUpdateFailed'.tr());
     } finally {
       if (mounted) {
         setState(() {
@@ -328,41 +341,35 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     }
   }
 
-  void _updateAppLocale(String localeString) {
+  Future<void> _updateAppLocale(String localeString) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Save to our key (this is read by LocaleApplier after Phoenix.rebirth())
+    await prefs.setString('app_locale', localeString);
+
     // Update the localeProvider
     ref.read(localeProvider.notifier).state = localeString;
-
-    // Update EasyLocalization
-    final parts = localeString.split('-');
-    if (parts.length == 2) {
-      final newLocale = Locale(parts[0], parts[1]);
-      context.setLocale(newLocale);
-    }
   }
 
   void _handleBack(BuildContext context) {
     if (_hasChanges) {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text(_isKorean ? '변경사항 삭제' : 'Discard changes'),
-          content: Text(
-            _isKorean
-                ? '저장하지 않은 변경사항이 있습니다. 나가시겠습니까?'
-                : 'You have unsaved changes. Are you sure you want to leave?',
-          ),
+        builder: (dialogContext) => AlertDialog(
+          title: Text('profile.discardChanges'.tr()),
+          content: Text('profile.unsavedChanges'.tr()),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(_isKorean ? '취소' : 'Cancel'),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text('common.cancel'.tr()),
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
-                this.context.pop();
+                Navigator.pop(dialogContext);
+                context.pop();
               },
               child: Text(
-                _isKorean ? '나가기' : 'Leave',
+                'profile.leave'.tr(),
                 style: const TextStyle(color: Colors.red),
               ),
             ),

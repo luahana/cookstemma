@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
@@ -18,7 +19,7 @@ class LoginScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pairing Planet 로그인'),
+        title: Text('Pairing Planet ${'login.title'.tr()}'),
         centerTitle: true,
       ),
       body: Center(
@@ -27,9 +28,9 @@ class LoginScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                '환영합니다!',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Text(
+                'login.welcome'.tr(),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 40),
               SizedBox(
@@ -37,7 +38,7 @@ class LoginScreen extends ConsumerWidget {
                 height: 50,
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.login),
-                  label: const Text('Google 계정으로 시작하기'),
+                  label: Text('login.googleLogin'.tr()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,

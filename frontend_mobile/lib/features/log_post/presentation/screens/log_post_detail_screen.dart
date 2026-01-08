@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -18,7 +19,7 @@ class LogPostDetailScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("요리 로그 상세"),
+        title: Text('logPost.detail'.tr()),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -58,9 +59,9 @@ class LogPostDetailScreen extends ConsumerWidget {
                           const SizedBox(height: 20),
 
                           // 3. 로그 본문 내용
-                          const Text(
-                            "나의 요리 후기",
-                            style: TextStyle(
+                          Text(
+                            'logPost.myReview'.tr(),
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -78,9 +79,9 @@ class LogPostDetailScreen extends ConsumerWidget {
                           // 4. 해시태그
                           if (log.hashtags.isNotEmpty) ...[
                             const SizedBox(height: 24),
-                            const Text(
-                              "해시태그",
-                              style: TextStyle(
+                            Text(
+                              'logPost.hashtags'.tr(),
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -100,7 +101,7 @@ class LogPostDetailScreen extends ConsumerWidget {
           ],
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text("에러 발생: $err")),
+        error: (err, stack) => Center(child: Text('common.errorWithMessage'.tr(namedArgs: {'message': err.toString()}))),
       ),
     );
   }

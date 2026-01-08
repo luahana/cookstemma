@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -38,9 +39,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          '마이페이지',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          'profile.myPage'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -73,10 +74,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 labelColor: const Color(0xFF1A237E),
                 unselectedLabelColor: Colors.grey[600],
                 indicatorColor: const Color(0xFF1A237E),
-                tabs: const [
-                  Tab(text: '내 레시피'),
-                  Tab(text: '내 로그'),
-                  Tab(text: '저장됨'),
+                tabs: [
+                  Tab(text: 'profile.myRecipes'.tr()),
+                  Tab(text: 'profile.myLogs'.tr()),
+                  Tab(text: 'profile.saved'.tr()),
                 ],
               ),
             ),
@@ -101,13 +102,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
               Text(
-                '프로필을 불러올 수 없습니다',
+                'profile.couldNotLoad'.tr(),
                 style: TextStyle(fontSize: 16, color: Colors.grey[700]),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.invalidate(myProfileProvider),
-                child: const Text('다시 시도'),
+                child: Text('common.tryAgain'.tr()),
               ),
             ],
           ),
@@ -147,11 +148,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildStatItem('레시피', profile.recipeCount),
+              _buildStatItem('profile.recipes'.tr(), profile.recipeCount),
               _buildStatDivider(),
-              _buildStatItem('로그', profile.logCount),
+              _buildStatItem('profile.logs'.tr(), profile.logCount),
               _buildStatDivider(),
-              _buildStatItem('저장', profile.savedCount),
+              _buildStatItem('profile.savedCount'.tr(), profile.savedCount),
             ],
           ),
           const SizedBox(height: 16),
@@ -161,7 +162,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             children: [
               _buildTappableStatItem(
                 context,
-                '팔로워',
+                'profile.followers'.tr(),
                 profile.user.followerCount,
                 () => context.push(
                   RouteConstants.followersPath(profile.user.id),
@@ -170,7 +171,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               const SizedBox(width: 32),
               _buildTappableStatItem(
                 context,
-                '팔로잉',
+                'profile.following'.tr(),
                 profile.user.followingCount,
                 () => context.push(
                   '${RouteConstants.followersPath(profile.user.id)}?tab=1',
@@ -249,19 +250,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('로그아웃'),
-        content: const Text('정말 로그아웃 하시겠습니까?'),
+        title: Text('profile.logout'.tr()),
+        content: Text('profile.logoutConfirm'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ref.read(authStateProvider.notifier).logout();
             },
-            child: const Text('로그아웃', style: TextStyle(color: Colors.red)),
+            child: Text('profile.logout'.tr(), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -280,11 +281,11 @@ Widget _buildCacheIndicator({
   final diff = DateTime.now().difference(cachedAt);
   String timeText;
   if (diff.inMinutes < 1) {
-    timeText = "방금 전";
+    timeText = 'common.justNow'.tr();
   } else if (diff.inMinutes < 60) {
-    timeText = "${diff.inMinutes}분 전";
+    timeText = 'common.minutesAgo'.tr(namedArgs: {'count': diff.inMinutes.toString()});
   } else {
-    timeText = "${diff.inHours}시간 전";
+    timeText = 'common.hoursAgo'.tr(namedArgs: {'count': diff.inHours.toString()});
   }
 
   return Container(
@@ -296,7 +297,7 @@ Widget _buildCacheIndicator({
         Icon(Icons.access_time, size: 14, color: Colors.orange[700]),
         const SizedBox(width: 6),
         Text(
-          "마지막 업데이트: $timeText",
+          'common.lastUpdatedTime'.tr(namedArgs: {'time': timeText}),
           style: TextStyle(fontSize: 12, color: Colors.orange[700]),
         ),
         if (isLoading) ...[
@@ -365,8 +366,8 @@ class _MyRecipesTabState extends ConsumerState<_MyRecipesTab> {
     if (state.items.isEmpty) {
       return _buildEmptyState(
         icon: Icons.restaurant_menu,
-        message: '아직 만든 레시피가 없어요',
-        subMessage: '나만의 레시피를 만들어보세요!',
+        message: 'profile.noRecipesYet'.tr(),
+        subMessage: 'profile.createRecipe'.tr(),
       );
     }
 
@@ -530,8 +531,8 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
     if (state.items.isEmpty) {
       return _buildEmptyState(
         icon: Icons.history_edu,
-        message: '아직 요리 기록이 없어요',
-        subMessage: '레시피를 따라 요리하고 기록을 남겨보세요!',
+        message: 'profile.noLogsYet'.tr(),
+        subMessage: 'profile.tryRecipe'.tr(),
       );
     }
 
@@ -698,8 +699,8 @@ class _SavedRecipesTabState extends ConsumerState<_SavedRecipesTab> {
     if (state.items.isEmpty) {
       return _buildEmptyState(
         icon: Icons.bookmark_border,
-        message: '저장한 레시피가 없어요',
-        subMessage: '마음에 드는 레시피를 저장해보세요!',
+        message: 'profile.noSavedYet'.tr(),
+        subMessage: 'profile.saveRecipe'.tr(),
       );
     }
 
@@ -867,13 +868,13 @@ Widget _buildErrorState(VoidCallback onRetry) {
         const Icon(Icons.error_outline, size: 48, color: Colors.red),
         const SizedBox(height: 16),
         Text(
-          '데이터를 불러올 수 없습니다',
+          'common.couldNotLoad'.tr(),
           style: TextStyle(fontSize: 16, color: Colors.grey[700]),
         ),
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: onRetry,
-          child: const Text('다시 시도'),
+          child: Text('common.tryAgain'.tr()),
         ),
       ],
     ),
