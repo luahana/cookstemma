@@ -32,6 +32,8 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Enable anonymous authentication for guest access
+                .anonymous(anonymous -> {})
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 401 처리
                 )
@@ -43,17 +45,22 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/home/**").permitAll()
                         .requestMatchers("/share/**").permitAll()
 
-                        // Protected user endpoints (must come before wildcard rules)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/recipes/my").authenticated()
+                        // Protected user-specific endpoints (must come before wildcard rules)
+                        .requestMatchers("/api/v1/users/me").authenticated()
+                        .requestMatchers("/api/v1/recipes/my").authenticated()
+                        .requestMatchers("/api/v1/recipes/saved").authenticated()
+
+                        // Protected write operations (POST, PUT, PATCH, DELETE)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/**").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/**").authenticated()
 
                         // Guest access: Allow anonymous read (GET) for browsing
-                        .requestMatchers(HttpMethod.GET, "/api/v1/recipes").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/recipes/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/log_posts").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/log_posts/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/users/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/hashtags/**").permitAll()
+                        .requestMatchers("/api/v1/recipes", "/api/v1/recipes/**").permitAll()
+                        .requestMatchers("/api/v1/log_posts", "/api/v1/log_posts/**").permitAll()
+                        .requestMatchers("/api/v1/users/**").permitAll()
+                        .requestMatchers("/api/v1/hashtags/**").permitAll()
 
                         // Protected endpoints (auth required)
                         .requestMatchers("/api/v1/images/**").authenticated()

@@ -8,4 +8,7 @@ abstract class AuthRepository {
   Future<Either<Failure, Unit>> reissueToken();
 
   Future<Either<Failure, Unit>> logout();
+
+  /// 로컬 토큰만 삭제합니다 (게스트 모드 진입 시 사용).
+  Future<void> clearTokens();
 }

@@ -8,12 +8,14 @@ import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
 import 'package:pairing_planet2_frontend/domain/entities/autocomplete/autocomplete_result.dart';
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 import '../../../../core/providers/image_providers.dart';
+import 'locale_dropdown.dart';
 import 'minimal_header.dart';
 
 class HookSection extends ConsumerStatefulWidget {
   final TextEditingController titleController;
   final TextEditingController foodNameController;
   final TextEditingController descriptionController;
+  final TextEditingController localeController;
   final List<UploadItem> finishedImages; // 💡 상위에서 관리되는 완료 이미지 리스트
   final Function(String?) onFoodPublicIdSelected;
   final VoidCallback onStateChanged;
@@ -24,6 +26,7 @@ class HookSection extends ConsumerStatefulWidget {
     required this.titleController,
     required this.foodNameController,
     required this.descriptionController,
+    required this.localeController,
     required this.finishedImages,
     required this.onFoodPublicIdSelected,
     required this.onStateChanged,
@@ -154,6 +157,21 @@ class _HookSectionState extends ConsumerState<HookSection> {
           label: "레시피 설명",
           hint: "이 레시피의 특징을 간단히 적어주세요.",
           maxLines: 3,
+        ),
+        const SizedBox(height: 16),
+
+        // Culinary locale dropdown
+        LocaleDropdown(
+          value: widget.localeController.text.isNotEmpty
+              ? widget.localeController.text
+              : null,
+          enabled: !widget.isReadOnly,
+          onChanged: (value) {
+            if (value != null) {
+              widget.localeController.text = value;
+              widget.onStateChanged();
+            }
+          },
         ),
       ],
     );

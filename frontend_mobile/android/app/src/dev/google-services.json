@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "823521388124-frhgsai52kvr30g68c80e0kklcpode9l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pairingplanet.pairingplanetfrontend.dev",
+            "certificate_hash": "dbb2b7320c0e54a5649545252b7942b46368b511"
+          }
+        },
+        {
           "client_id": "823521388124-786gfugmb3pr2bo002bj9ggn5vju13om.apps.googleusercontent.com",
           "client_type": 3
         }
