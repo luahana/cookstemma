@@ -3,6 +3,7 @@ package com.pairingplanet.pairing_planet.controller;
 import com.pairingplanet.pairing_planet.dto.log_post.*;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import com.pairingplanet.pairing_planet.service.LogPostService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -24,7 +25,7 @@ public class LogPostController {
      */
     @PostMapping
     public ResponseEntity<LogPostDetailResponseDto> createLog(
-            @RequestBody CreateLogRequestDto req,
+            @Valid @RequestBody CreateLogRequestDto req,
             @AuthenticationPrincipal UserPrincipal principal) {
         return ResponseEntity.ok(logPostService.createLog(req, principal));
     }

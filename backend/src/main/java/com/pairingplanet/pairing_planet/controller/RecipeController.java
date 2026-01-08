@@ -5,6 +5,7 @@ import com.pairingplanet.pairing_planet.dto.log_post.*;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import com.pairingplanet.pairing_planet.service.RecipeService;
 import com.pairingplanet.pairing_planet.service.SavedRecipeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -60,7 +61,7 @@ public class RecipeController {
      */
     @PostMapping
     public ResponseEntity<RecipeDetailResponseDto> createRecipe(
-            @RequestBody CreateRecipeRequestDto req,
+            @Valid @RequestBody CreateRecipeRequestDto req,
             @AuthenticationPrincipal UserPrincipal principal) { // JWT에서 유저 정보 추출
         return ResponseEntity.ok(recipeService.createRecipe(req, principal));
     }

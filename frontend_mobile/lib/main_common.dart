@@ -64,6 +64,7 @@ Future<void> mainCommon(AppConfig config, FirebaseOptions firebaseOptions) async
   await Hive.openBox('recipe_box');
   await Hive.openBox('profile_cache_box');
   await Hive.openBox('search_history_box');
+  await Hive.openBox('recipe_draft_box');
 
   // Initialize Isar database for event tracking
   final isar = await initializeIsar();

@@ -285,6 +285,20 @@
     "deleteSuccess": "Account scheduled for deletion",
     "deleteFailed": "Failed to delete account"
   },
+  "draft": {
+    "saving": "Saving...",
+    "saved": "Saved",
+    "saveFailed": "Save failed",
+    "continueTitle": "Continue editing?",
+    "continueMessage": "You have an unsaved recipe draft",
+    "continue": "Continue",
+    "startFresh": "Start Fresh",
+    "untitled": "Untitled recipe",
+    "justNow": "Just now",
+    "minutesAgo": "{} min ago",
+    "hoursAgo": "{} hours ago",
+    "daysAgo": "{} days ago"
+  },
   "steps": {
     "header": "Cooking Steps (drag to reorder)",
     "addStep": "Add Step",

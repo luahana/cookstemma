@@ -15,6 +15,7 @@ public class TestContainersConfig {
         return new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"))
                 .withDatabaseName("testdb")
                 .withUsername("testuser")
-                .withPassword("testpass");
+                .withPassword("testpass")
+                .withInitScript("db/init-extensions.sql");
     }
 }
