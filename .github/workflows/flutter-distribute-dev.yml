@@ -41,6 +41,20 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Patch isar_flutter_libs for AGP 8.0+ compatibility
+        run: |
+          # Find and patch isar_flutter_libs AndroidManifest.xml to remove package attribute
+          # AGP 8.0+ requires namespace in build.gradle, not package in manifest
+          ISAR_MANIFEST=$(find ~/.pub-cache/hosted/pub.dev -path "*/isar_flutter_libs-*/android/src/main/AndroidManifest.xml" 2>/dev/null | head -1)
+          if [ -n "$ISAR_MANIFEST" ] && [ -f "$ISAR_MANIFEST" ]; then
+            echo "Patching isar_flutter_libs manifest at: $ISAR_MANIFEST"
+            sed -i 's/package="[^"]*"//g' "$ISAR_MANIFEST"
+            echo "Patched manifest contents:"
+            cat "$ISAR_MANIFEST"
+          else
+            echo "isar_flutter_libs manifest not found, skipping patch"
+          fi
+
       - name: Build Release APK
         run: flutter build apk --flavor dev -t lib/main_dev.dart --release
 
