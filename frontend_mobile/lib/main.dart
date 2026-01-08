@@ -16,7 +16,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:pairing_planet2_frontend/core/services/fcm_service.dart';
 
 void main() async {
   // 1. 초기화 작업
@@ -24,6 +26,9 @@ void main() async {
 
   // 1. Firebase 초기화
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Set up FCM background message handler
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   await GoogleSignIn.instance.initialize(
     serverClientId:

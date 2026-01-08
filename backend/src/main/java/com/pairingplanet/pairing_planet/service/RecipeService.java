@@ -53,6 +53,7 @@ public class RecipeService {
     private final RecipeCategoryDetectionService categoryDetectionService;
     private final SavedRecipeRepository savedRecipeRepository;
     private final HashtagService hashtagService;
+    private final NotificationService notificationService;
 
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
@@ -116,6 +117,13 @@ public class RecipeService {
         }
         saveIngredientsAndSteps(recipe, req);
         imageService.activateImages(req.imagePublicIds(), recipe);
+
+        // Notify parent recipe owner if this is a variation
+        if (parent != null) {
+            User sender = userRepository.findById(creatorId)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            notificationService.notifyRecipeVariation(parent, recipe, sender);
+        }
 
         return getRecipeDetail(recipe.getPublicId());
     }

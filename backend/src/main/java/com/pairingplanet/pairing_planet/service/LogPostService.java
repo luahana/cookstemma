@@ -37,6 +37,7 @@ public class LogPostService {
     private final ImageService imageService;
     private final UserRepository userRepository;
     private final HashtagService hashtagService;
+    private final NotificationService notificationService;
 
     @Value("${file.upload.url-prefix}") // [추가] URL 조합을 위해 필요
     private String urlPrefix;
@@ -73,6 +74,11 @@ public class LogPostService {
             Set<Hashtag> hashtags = hashtagService.getOrCreateHashtags(req.hashtags());
             logPost.setHashtags(hashtags);
         }
+
+        // Notify recipe owner that someone cooked their recipe
+        User sender = userRepository.findById(creatorId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        notificationService.notifyRecipeCooked(recipe, logPost, sender);
 
         return getLogDetail(logPost.getPublicId());
     }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/features/notification/providers/notification_provider.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends ConsumerWidget {
   const MainScreen({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
@@ -14,7 +16,9 @@ class MainScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Initialize FCM when main screen is shown (user is authenticated)
+    ref.watch(fcmInitializerProvider);
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
