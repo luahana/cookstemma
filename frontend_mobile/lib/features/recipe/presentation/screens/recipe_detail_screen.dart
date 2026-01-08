@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -43,7 +44,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("레시피 상세"),
+        title: Text('recipe.detail'.tr()),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -142,33 +143,33 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                             HashtagChips(hashtags: recipe.hashtags),
                           ],
                           const Divider(height: 48),
-                          const Text(
-                            "준비 재료",
-                            style: TextStyle(
+                          Text(
+                            'recipe.prepareIngredients'.tr(),
+                            style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 16),
                           _buildIngredientSection(
-                            "주재료",
+                            'recipe.mainIngredients'.tr(),
                             recipe.ingredients,
                             IngredientType.MAIN,
                           ),
                           _buildIngredientSection(
-                            "부재료",
+                            'recipe.secondaryIngredients'.tr(),
                             recipe.ingredients,
                             IngredientType.SECONDARY,
                           ),
                           _buildIngredientSection(
-                            "양념",
+                            'recipe.seasonings'.tr(),
                             recipe.ingredients,
                             IngredientType.SEASONING,
                           ),
                           const Divider(height: 48),
-                          const Text(
-                            "조리 순서",
-                            style: TextStyle(
+                          Text(
+                            'recipe.steps'.tr(),
+                            style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -206,11 +207,11 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("데이터를 가져오지 못했습니다: $err"),
+              Text('common.errorWithMessage'.tr(namedArgs: {'message': err.toString()})),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.refresh(recipeDetailProvider(widget.recipeId)),
-                child: const Text("다시 시도"),
+                child: Text('common.tryAgain'.tr()),
               ),
             ],
           ),
@@ -243,7 +244,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                 context.push(RouteConstants.logPostCreate, extra: recipe);
               },
               icon: const Icon(Icons.history_edu),
-              label: const Text("로그 기록"),
+              label: Text('recipe.logRecord'.tr()),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 side: const BorderSide(color: Color(0xFF1A237E)),
@@ -262,7 +263,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               onPressed: () =>
                   context.push(RouteConstants.recipeCreate, extra: recipe),
               icon: const Icon(Icons.alt_route, color: Colors.white),
-              label: const Text("변형하기", style: TextStyle(color: Colors.white)),
+              label: Text('recipe.makeVariant'.tr(), style: const TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1A237E), // 남색 스타일 적용
                 padding: const EdgeInsets.symmetric(vertical: 15),
@@ -286,7 +287,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        isVariant ? "변형 레시피" : "오리지널 레시피",
+        isVariant ? 'recipe.variantRecipe'.tr() : 'recipe.originalRecipe'.tr(),
         style: TextStyle(
           color: isVariant ? Colors.orange[800] : Colors.indigo[800],
           fontSize: 12,
@@ -355,7 +356,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text("단계", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('recipe.step'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 12),

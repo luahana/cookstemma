@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -41,7 +42,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
     if (_images.length >= 3) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('이미지는 최대 3장까지 등록할 수 있습니다.')));
+      ).showSnackBar(SnackBar(content: Text('logPost.maxPhotosError'.tr())));
       return;
     }
     final picker = ImagePicker();
@@ -100,7 +101,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
 
         if (currentState.hasError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('등록 실패: ${currentState.error}')),
+            SnackBar(content: Text('logPost.submitFailed'.tr(namedArgs: {'error': currentState.error.toString()}))),
           );
           return;
         }
@@ -111,7 +112,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
         if (logDetail != null) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('로그가 등록되었습니다!')));
+          ).showSnackBar(SnackBar(content: Text('logPost.createSuccess'.tr())));
 
           // 성공한 데이터의 publicId를 사용하여 상세 페이지로 이동
           context.pushReplacement(
@@ -131,7 +132,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: const Text("요리 로그 기록"),
+          title: Text('logPost.createTitle'.tr()),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           elevation: 0,
@@ -148,9 +149,9 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
                     const SizedBox(height: 32),
 
                     // 💡 2. 이미지 업로드 섹션 추가
-                    const Text(
-                      "요리 사진 (최대 3장)",
-                      style: TextStyle(
+                    Text(
+                      'logPost.photosMax'.tr(),
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -160,9 +161,9 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
                     const SizedBox(height: 32),
 
                     // 💡 3. 요리 결과 섹션 (이모지 선택)
-                    const Text(
-                      "어땠나요?",
-                      style: TextStyle(
+                    Text(
+                      'logPost.howWasIt'.tr(),
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -171,9 +172,9 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
                     _buildOutcomeSelector(),
                     const SizedBox(height: 32),
 
-                    const Text(
-                      "오늘 요리는 어떠셨나요?",
-                      style: TextStyle(
+                    Text(
+                      'logPost.howWasToday'.tr(),
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -392,9 +393,9 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildOutcomeOption('SUCCESS', '😊', '성공했어요'),
-        _buildOutcomeOption('PARTIAL', '😐', '반쯤 성공'),
-        _buildOutcomeOption('FAILED', '😢', '망했어요'),
+        _buildOutcomeOption('SUCCESS', '😊', 'logPost.successLabel'.tr()),
+        _buildOutcomeOption('PARTIAL', '😐', 'logPost.partialLabel'.tr()),
+        _buildOutcomeOption('FAILED', '😢', 'logPost.failedLabel'.tr()),
       ],
     );
   }
@@ -442,10 +443,10 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
       child: TextField(
         controller: _contentController,
         maxLines: 5,
-        decoration: const InputDecoration(
-          hintText: "맛은 어땠나요? 나만의 팁이 있다면 적어주세요.",
+        decoration: InputDecoration(
+          hintText: 'logPost.contentHint'.tr(),
           border: InputBorder.none,
-          hintStyle: TextStyle(fontSize: 14),
+          hintStyle: const TextStyle(fontSize: 14),
         ),
       ),
     );
@@ -466,7 +467,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
             ),
           ),
           child: Text(
-            _isLoading ? "기록 중..." : "로그 등록 완료",
+            _isLoading ? 'logPost.submitting'.tr() : 'logPost.submit'.tr(),
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,

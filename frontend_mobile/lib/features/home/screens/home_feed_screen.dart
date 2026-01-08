@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -48,7 +49,7 @@ class HomeFeedScreen extends ConsumerWidget {
 
     final feed = feedState.data;
     if (feed == null) {
-      return _buildErrorState(context, ref, "데이터가 없습니다");
+      return _buildErrorState(context, ref, 'common.noData'.tr());
     }
 
     return SingleChildScrollView(
@@ -62,14 +63,14 @@ class HomeFeedScreen extends ConsumerWidget {
 
           // Section 1: Recent Activity
           if (feed.recentActivity.isNotEmpty) ...[
-            _buildSectionHeader("최근 요리 활동"),
+            _buildSectionHeader('home.recentActivity'.tr()),
             ...feed.recentActivity.map((activity) => _buildActivityCard(context, activity)),
           ],
 
           // Section 2: Trending Trees
           if (feed.trendingTrees.isNotEmpty) ...[
             const SizedBox(height: 24),
-            _buildSectionHeader("이 레시피, 이렇게 바뀌고 있어요"),
+            _buildSectionHeader('home.trendingVariants'.tr()),
             SizedBox(
               height: 200,
               child: ListView.builder(
@@ -86,7 +87,7 @@ class HomeFeedScreen extends ConsumerWidget {
           // Section 3: Recent Recipes
           if (feed.recentRecipes.isNotEmpty) ...[
             const SizedBox(height: 24),
-            _buildSectionHeader("최근 등록된 레시피"),
+            _buildSectionHeader('home.recentRecipes'.tr()),
             ...feed.recentRecipes.map((recipe) => _buildRecipeCard(context, recipe)),
           ],
 
@@ -103,11 +104,11 @@ class HomeFeedScreen extends ConsumerWidget {
     final diff = DateTime.now().difference(cachedAt);
     String timeText;
     if (diff.inMinutes < 1) {
-      timeText = "방금 전";
+      timeText = 'common.justNow'.tr();
     } else if (diff.inMinutes < 60) {
-      timeText = "${diff.inMinutes}분 전";
+      timeText = 'common.minutesAgo'.tr(namedArgs: {'count': diff.inMinutes.toString()});
     } else {
-      timeText = "${diff.inHours}시간 전";
+      timeText = 'common.hoursAgo'.tr(namedArgs: {'count': diff.inHours.toString()});
     }
 
     return Container(
@@ -119,7 +120,7 @@ class HomeFeedScreen extends ConsumerWidget {
           Icon(Icons.access_time, size: 14, color: Colors.orange[700]),
           const SizedBox(width: 6),
           Text(
-            "마지막 업데이트: $timeText",
+            'common.lastUpdatedTime'.tr(namedArgs: {'time': timeText}),
             style: TextStyle(fontSize: 12, color: Colors.orange[700]),
           ),
           if (state.isLoading) ...[
@@ -217,7 +218,7 @@ class HomeFeedScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "@${activity.creatorName}님이 요리했어요",
+                    'home.cookedThis'.tr(namedArgs: {'name': activity.creatorName}),
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey[600],
@@ -400,14 +401,14 @@ class HomeFeedScreen extends ConsumerWidget {
                     children: [
                       if ((recipe.variantCount ?? 0) > 0)
                         Text(
-                          "🔀 ${recipe.variantCount}개 변형",
+                          "🔀 ${'home.variants'.tr(namedArgs: {'count': recipe.variantCount.toString()})}",
                           style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                         ),
                       if ((recipe.variantCount ?? 0) > 0 && (recipe.logCount ?? 0) > 0)
                         Text(" · ", style: TextStyle(color: Colors.grey[400], fontSize: 11)),
                       if ((recipe.logCount ?? 0) > 0)
                         Text(
-                          "📝 ${recipe.logCount}개 로그",
+                          "📝 ${'home.logs'.tr(namedArgs: {'count': recipe.logCount.toString()})}",
                           style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                         ),
                     ],
@@ -432,10 +433,10 @@ class HomeFeedScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text("오류가 발생했습니다: $err"),
+              Text('common.errorWithMessage'.tr(namedArgs: {'message': err.toString()})),
               TextButton(
                 onPressed: () => ref.invalidate(homeFeedProvider),
-                child: const Text("다시 시도"),
+                child: Text('common.tryAgain'.tr()),
               ),
             ],
           ),

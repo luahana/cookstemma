@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -38,11 +39,11 @@ class MainScreen extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.home, '홈'),
-                _buildNavItem(1, Icons.restaurant, '레시피'),
+                _buildNavItem(0, Icons.home, 'nav.home'.tr()),
+                _buildNavItem(1, Icons.restaurant, 'nav.recipes'.tr()),
                 _buildCenterButton(context),
-                _buildNavItem(2, Icons.book, '로그'),
-                _buildNavItem(3, Icons.person, '마이'),
+                _buildNavItem(2, Icons.book, 'nav.logs'.tr()),
+                _buildNavItem(3, Icons.person, 'nav.my'.tr()),
               ],
             ),
           ),
