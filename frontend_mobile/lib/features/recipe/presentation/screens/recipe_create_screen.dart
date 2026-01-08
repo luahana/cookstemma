@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -141,6 +142,22 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
         'isOriginal': false,
         'isDeleted': false,
       });
+    });
+  }
+
+  void _addMultipleSteps(List<File> images) {
+    setState(() {
+      for (final image in images) {
+        _steps.add({
+          'stepNumber': _steps.length + 1,
+          'description': '',
+          'imageUrl': '',
+          'imagePublicId': null,
+          'uploadItem': UploadItem(file: image),
+          'isOriginal': false,
+          'isDeleted': false,
+        });
+      }
     });
   }
 
@@ -360,6 +377,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
                     StepSection(
                       steps: _steps,
                       onAddStep: _addStep,
+                      onAddMultipleSteps: _addMultipleSteps,
                       onRemoveStep: _onRemoveStep,
                       onRestoreStep: _onRestoreStep,
                       onReorder: _onReorderSteps,
