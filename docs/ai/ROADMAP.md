@@ -23,7 +23,7 @@
   - DB: `user_follows` table, add `follower_count`/`following_count` to users
 
 - [x] **Push Notifications (FCM)** — Bring users back with notifications (2026-01-07)
-  - Types: RECIPE_COOKED, RECIPE_VARIATION
+  - Types: RECIPE_COOKED, RECIPE_VARIATION, NEW_FOLLOWER
   - Backend: `notifications` table, `user_fcm_tokens` table
   - Frontend: FCM integration, notification handling
 
