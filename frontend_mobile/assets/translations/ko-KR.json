@@ -298,5 +298,14 @@
     "minutesAgo": "{}분 전",
     "hoursAgo": "{}시간 전",
     "daysAgo": "{}일 전"
+  },
+  "steps": {
+    "header": "요리 단계 (드래그하여 순서 변경)",
+    "addStep": "단계 추가",
+    "addMultiple": "사진 여러장",
+    "descriptionHint": "과정 설명...",
+    "deleted": "삭제됨",
+    "step": "단계",
+    "restore": "복원"
   }
 }

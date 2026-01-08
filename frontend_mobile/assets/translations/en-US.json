@@ -298,5 +298,14 @@
     "minutesAgo": "{} min ago",
     "hoursAgo": "{} hours ago",
     "daysAgo": "{} days ago"
+  },
+  "steps": {
+    "header": "Cooking Steps (drag to reorder)",
+    "addStep": "Add Step",
+    "addMultiple": "Add Photos",
+    "descriptionHint": "Describe this step...",
+    "deleted": "Deleted",
+    "step": "Step",
+    "restore": "Restore"
   }
 }
