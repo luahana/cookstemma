@@ -1,675 +1,454 @@
 # FEATURES.md — Pairing Planet
 
-> Functional specification of all features. Used for documentation and test planning.
+> All features, technical decisions, and domain terminology in one place.
 
 ---
 
-## How to Use This File
+# 📋 FEATURES
 
-1. **Before implementing any feature** → Document it here first
-2. **Writing tests** → Use acceptance criteria as test cases
-3. **Code review** → Verify implementation matches spec
-4. **Onboarding** → Understand all features in one place
-
----
-
-## Feature Template
+## Template
 
 ```markdown
-### [Feature ID]: Feature Name
+### [FEAT-XXX]: Feature Name
 
-**Status:** 🟡 In Progress | ✅ Implemented | 📋 Planned
+**Status:** 📋 Planned | 🟡 In Progress | ✅ Done
+**Branch:** `feature/xxx`
 
-**Branch:** `feature/feature-name`
+**Description:** What it does
 
-**Description:**
-Brief description of what this feature does.
-
-**User Story:**
-As a [user type], I want to [action], so that [benefit].
+**User Story:** As a [user], I want [action], so that [benefit]
 
 **Acceptance Criteria:**
 - [ ] Criterion 1
 - [ ] Criterion 2
-- [ ] Criterion 3
 
-**UI/UX:**
-- Screen: `ScreenName`
-- Entry point: How user accesses this feature
-- Flow: Step-by-step user journey
-
-**Technical Details:**
-- Frontend files: `lib/features/xxx/`
-- Backend endpoint: `POST /api/v1/xxx`
-- Database: Tables affected
-
-**Edge Cases:**
-- What happens when X?
-- What happens when Y?
-
-**Error Handling:**
-- Error scenario 1 → Show message "..."
-- Error scenario 2 → Retry with exponential backoff
-
-**Test Cases:**
-- [ ] Test case 1
-- [ ] Test case 2
-- [ ] Test case 3
+**Technical Notes:** Implementation details, edge cases
 ```
 
 ---
 
-# 🔐 Authentication
+## Implemented ✅
 
-### [AUTH-001]: Social Login (Google/Apple)
+### [FEAT-001]: Social Login (Google/Apple)
 
-**Status:** ✅ Implemented
+**Status:** ✅ Done
 
-**Description:**
-Users can sign in using Google or Apple accounts via Firebase Authentication.
-
-**User Story:**
-As a new user, I want to sign in with my Google/Apple account, so that I don't need to create a new password.
+**Description:** Users sign in with Google/Apple via Firebase Auth, exchanged for app JWT.
 
 **Acceptance Criteria:**
-- [x] Google Sign-In button on login screen
-- [x] Apple Sign-In button on login screen (iOS only)
-- [x] Anonymous sign-in for browsing without account
-- [x] Firebase token exchanged for app JWT tokens
-- [x] Tokens stored securely in flutter_secure_storage
-- [x] Auto-refresh of expired access tokens
+- [x] Google Sign-In button
+- [x] Apple Sign-In (iOS)
+- [x] Anonymous browsing
+- [x] Token refresh
 
-**UI/UX:**
-- Screen: `LoginScreen`
-- Entry point: App launch (if not logged in) or profile menu
-- Flow: Tap button → OAuth popup → Redirect back → Home screen
-
-**Technical Details:**
-- Frontend: `lib/features/auth/`
-- Backend: `POST /api/v1/auth/social-login`
-- Database: `users`, `social_accounts` tables
-
-**Edge Cases:**
-- User cancels OAuth flow → Return to login screen
-- Network error during login → Show retry option
-- Firebase token expired → Request new token
-- User has existing account with same email → Link accounts
-
-**Error Handling:**
-- Invalid Firebase token → "인증에 실패했습니다. 다시 시도해주세요."
-- Network error → "네트워크 연결을 확인해주세요."
-
-**Test Cases:**
-- [ ] Successful Google login creates user and returns tokens
-- [ ] Successful Apple login creates user and returns tokens
-- [ ] Invalid Firebase token returns 401
-- [ ] Existing user login returns existing user data
-- [ ] Token refresh works when access token expires
+**Technical Notes:** Firebase token → Backend → JWT pair (access + refresh)
 
 ---
 
-### [AUTH-002]: Anonymous Browsing
+### [FEAT-002]: Recipe List (Home Feed)
 
-**Status:** ✅ Implemented
+**Status:** ✅ Done
 
-**Description:**
-Users can browse recipes without creating an account.
-
-**User Story:**
-As a visitor, I want to browse recipes without signing up, so that I can evaluate the app before committing.
+**Description:** Paginated recipe feed with infinite scroll, offline cache.
 
 **Acceptance Criteria:**
-- [x] Can view recipe list without login
-- [x] Can view recipe details without login
-- [x] Prompted to login when trying to create content
-- [x] Anonymous session converted to full account on login
+- [x] Recipe cards with thumbnail, title, author
+- [x] Infinite scroll (20/page)
+- [x] Pull-to-refresh
+- [x] Offline cache with indicator
 
-**Test Cases:**
-- [ ] Anonymous user can view recipe list
-- [ ] Anonymous user can view recipe detail
-- [ ] Anonymous user prompted to login on create recipe
-- [ ] Anonymous user prompted to login on create log
+**Technical Notes:** Cache-first pattern, Isar local storage, 5min TTL
 
 ---
 
-# 🍳 Recipes
+### [FEAT-003]: Recipe Detail
 
-### [RCP-001]: Recipe List (Home Feed)
+**Status:** ✅ Done
 
-**Status:** ✅ Implemented
-
-**Description:**
-Paginated list of recipes with infinite scroll.
-
-**User Story:**
-As a user, I want to browse recipes in a feed, so that I can discover new dishes.
+**Description:** Full recipe view with ingredients, steps, logs, variants tabs.
 
 **Acceptance Criteria:**
-- [x] Display recipe cards with thumbnail, title, author
-- [x] Show variant count and log count on cards
-- [x] Infinite scroll pagination (20 items per page)
-- [x] Pull-to-refresh functionality
-- [x] Offline cache with cache indicator
-- [x] Empty state when no recipes
-
-**UI/UX:**
-- Screen: `HomeScreen`
-- Entry point: Bottom navigation "Home" tab
-- Flow: Scroll → Load more → Tap card → Recipe detail
-
-**Technical Details:**
-- Frontend: `lib/features/home/`
-- Backend: `GET /api/v1/recipes?page=0&size=20`
-- Cache: Isar `RecipeCacheDto`
-
-**Edge Cases:**
-- Empty feed → Show "첫 번째 레시피를 만들어보세요!" with CTA
-- Network error + no cache → Show error with retry
-- Network error + has cache → Show cached data with indicator
-
-**Test Cases:**
-- [ ] Recipe list loads first page
-- [ ] Scroll to bottom loads next page
-- [ ] Pull-to-refresh reloads first page
-- [ ] Cached data shown when offline
-- [ ] Cache indicator shows last update time
-
----
-
-### [RCP-002]: Recipe Detail
-
-**Status:** ✅ Implemented
-
-**Description:**
-Full recipe view with ingredients, steps, and tabs for logs/variants.
-
-**User Story:**
-As a user, I want to view recipe details, so that I can cook the dish.
-
-**Acceptance Criteria:**
-- [x] Display recipe images in carousel
-- [x] Show title, description, author info
-- [x] List ingredients with amounts and types
-- [x] List cooking steps in order
-- [x] Tab for cooking logs
-- [x] Tab for recipe variants
+- [x] Image carousel
+- [x] Ingredients by type (MAIN, SECONDARY, SEASONING)
+- [x] Numbered steps
+- [x] Tabs: Logs, Variants
 - [x] Save/bookmark button
-- [x] Create variation button
-- [x] Create log button
-
-**Test Cases:**
-- [ ] Recipe detail loads correctly
-- [ ] Image carousel swipes between images
-- [ ] Ingredients grouped by type (MAIN, SECONDARY, SEASONING)
-- [ ] Steps numbered correctly
-- [ ] Logs tab shows related logs
-- [ ] Variants tab shows child recipes
 
 ---
 
-### [RCP-003]: Create Recipe
+### [FEAT-004]: Create Recipe
 
-**Status:** ✅ Implemented
+**Status:** ✅ Done
 
-**Description:**
-Multi-step form to create a new recipe.
-
-**User Story:**
-As a cook, I want to create a recipe, so that I can share my dishes with others.
+**Description:** Multi-step form to create recipes.
 
 **Acceptance Criteria:**
-- [x] Step 1: Add title and description
-- [x] Step 2: Add ingredients (name, amount, type)
-- [x] Step 3: Add cooking steps with optional images
-- [x] Step 4: Add recipe photos
-- [x] Step 5: Review and publish
-- [x] Draft saved locally if interrupted
-- [x] Requires login to publish
-
-**UI/UX:**
-- Screen: `CreateRecipeScreen` (multi-page form)
-- Entry point: FAB on home screen, "+" button
-- Flow: Step 1 → Step 2 → Step 3 → Step 4 → Review → Publish
-
-**Technical Details:**
-- Frontend: `lib/features/recipe/screens/create/`
-- Backend: `POST /api/v1/recipes`
-- Images: Upload first, then attach publicIds
-
-**Edge Cases:**
-- User exits mid-creation → Save draft locally
-- Image upload fails → Show retry option
-- Network error on publish → Queue for retry
-
-**Test Cases:**
-- [ ] Can add title and description
-- [ ] Can add multiple ingredients
-- [ ] Can add multiple steps
-- [ ] Can upload recipe images
-- [ ] Draft saved on exit
-- [ ] Successful publish creates recipe
+- [x] Add title, description
+- [x] Add ingredients
+- [x] Add steps with images
+- [x] Add recipe photos
+- [x] Draft saved locally
 
 ---
 
-### [RCP-004]: Create Recipe Variation
+### [FEAT-005]: Recipe Variations
 
-**Status:** ✅ Implemented
+**Status:** ✅ Done
 
-**Description:**
-Create a modified version of an existing recipe with change tracking.
-
-**User Story:**
-As a cook, I want to create a variation of a recipe, so that I can document my modifications.
+**Description:** Create modified versions of recipes with change tracking.
 
 **Acceptance Criteria:**
-- [x] Pre-fill form with parent recipe data
-- [x] Track changes (added/removed/modified ingredients)
-- [x] Select change category (INGREDIENT, TECHNIQUE, SEASONING, etc.)
-- [x] Link to parent recipe (parentPublicId)
-- [x] Link to root recipe (rootPublicId)
-- [x] Show "inspired by" attribution
+- [x] Pre-fill from parent recipe
+- [x] Track changes
+- [x] parentPublicId + rootPublicId linking
 
-**Technical Details:**
-- Frontend: `lib/features/recipe/screens/create_variation/`
-- Backend: `POST /api/v1/recipes` with parentPublicId, rootPublicId
-- Lineage: parentPublicId = direct parent, rootPublicId = original
-
-**Test Cases:**
-- [ ] Variation created with correct parentPublicId
-- [ ] Variation created with correct rootPublicId
-- [ ] Changes highlighted in diff view
-- [ ] Change category saved correctly
+**Technical Notes:**
+- `parentPublicId` = direct parent
+- `rootPublicId` = original recipe (top of tree)
 
 ---
 
-# 📝 Cooking Logs
+### [FEAT-006]: Cooking Logs
 
-### [LOG-001]: Create Cooking Log
+**Status:** ✅ Done
 
-**Status:** ✅ Implemented
-
-**Description:**
-Log a cooking attempt with photos, notes, and emoji outcome.
-
-**User Story:**
-As a cook, I want to log my cooking attempts, so that I can track my progress.
+**Description:** Log cooking attempts with photos, notes, outcome.
 
 **Acceptance Criteria:**
-- [x] Select outcome: SUCCESS 😊 / PARTIAL 😐 / FAILED 😢
-- [x] Add photos of the result
-- [x] Add notes/review text
-- [x] Link to recipe
-- [x] Timestamp recorded
-
-**UI/UX:**
-- Screen: `CreateLogScreen`
-- Entry point: "Log" button on recipe detail
-- Flow: Select outcome → Add photos → Add notes → Publish
-
-**Technical Details:**
-- Frontend: `lib/features/log_post/`
-- Backend: `POST /api/v1/log-posts`
-
-**Test Cases:**
-- [ ] Can create log with SUCCESS outcome
-- [ ] Can create log with PARTIAL outcome
-- [ ] Can create log with FAILED outcome
-- [ ] Log linked to correct recipe
-- [ ] Photos uploaded and attached
+- [x] Outcome: SUCCESS 😊 / PARTIAL 😐 / FAILED 😢
+- [x] Photos
+- [x] Notes
+- [x] Linked to recipe
 
 ---
 
-# ⭐ Save/Bookmark
+### [FEAT-007]: Save/Bookmark
 
-### [SAVE-001]: Save Recipe
+**Status:** ✅ Done
 
-**Status:** ✅ Implemented
-
-**Description:**
-Users can save recipes to their personal collection.
-
-**User Story:**
-As a user, I want to save recipes, so that I can find them later.
+**Description:** Save recipes to personal collection.
 
 **Acceptance Criteria:**
 - [x] Save button on recipe detail
 - [x] Toggle save/unsave
-- [x] Saved recipes in profile "Saved" tab
-- [x] Visual indicator for saved state
-
-**Test Cases:**
-- [ ] Tapping save button saves recipe
-- [ ] Tapping again unsaves recipe
-- [ ] Saved recipes appear in profile
-- [ ] Save state persists after app restart
+- [x] Saved tab in profile
 
 ---
 
-# 👤 Profile
+### [FEAT-008]: User Profile
 
-### [PROF-001]: User Profile
+**Status:** ✅ Done
 
-**Status:** ✅ Implemented
-
-**Description:**
-User profile page with tabs for created content.
-
-**User Story:**
-As a user, I want to view my profile, so that I can see my recipes and logs.
+**Description:** Profile page with tabs for user content.
 
 **Acceptance Criteria:**
-- [x] Display profile photo and username
-- [x] "My Recipes" tab
-- [x] "My Logs" tab
-- [x] "Saved" tab
-- [x] Edit profile button
-- [x] Settings/logout access
-
-**Test Cases:**
-- [ ] Profile loads user info
-- [ ] My Recipes tab shows user's recipes
-- [ ] My Logs tab shows user's logs
-- [ ] Saved tab shows bookmarked recipes
+- [x] Profile photo, username
+- [x] My Recipes tab
+- [x] My Logs tab
+- [x] Saved tab
 
 ---
 
-# 📋 PLANNED FEATURES
+### [FEAT-009]: Follow System
 
-### [FOLLOW-001]: Follow System
-
-**Status:** 📋 Planned
-
+**Status:** ✅ Done
 **Branch:** `feature/follow-system`
+**PR:** #8
 
-**Description:**
-Users can follow other users to build a social graph.
-
-**User Story:**
-As a user, I want to follow other cooks, so that I can see their new recipes.
+**Description:** Follow other users to build social graph.
 
 **Acceptance Criteria:**
-- [ ] Follow button on user profiles
-- [ ] Followers count displayed
-- [ ] Following count displayed
-- [ ] Followers list screen
-- [ ] Following list screen
-- [ ] Unfollow functionality
+- [x] Follow/unfollow button
+- [x] Follower/following counts
+- [x] Followers list screen
+- [x] Following list screen
+- [x] Pull-to-refresh for empty states
 
-**UI/UX:**
-- Screen: `ProfileScreen` (follow button), `FollowersListScreen`
-- Entry point: User profile
-- Flow: Tap follow → Button changes to "Following" → Count updates
-
-**Technical Details:**
-- Frontend: `lib/features/profile/providers/follow_provider.dart`
-- Backend: `POST /api/v1/users/{id}/follow`, `DELETE /api/v1/users/{id}/follow`
-- Database: `user_follows` table
-
-**Edge Cases:**
-- Follow yourself → Disabled/hidden
-- Follow then quickly unfollow → Debounce requests
-- Network error → Show retry, revert UI optimistic update
-
-**Error Handling:**
-- Network error → "팔로우에 실패했습니다. 다시 시도해주세요."
-- User not found → "사용자를 찾을 수 없습니다."
-
-**Test Cases:**
-- [ ] Can follow a user
-- [ ] Can unfollow a user
-- [ ] Follower count increments on follow
-- [ ] Follower count decrements on unfollow
-- [ ] Cannot follow yourself
-- [ ] Followers list loads correctly
-- [ ] Following list loads correctly
+**Technical Notes:**
+- Backend: `user_follows` table, atomic count updates
+- API: `POST/DELETE /api/v1/users/{id}/follow`
+- Optimistic UI update with rollback on error
 
 ---
 
-### [NOTIF-001]: Push Notifications
+### [FEAT-010]: Push Notifications
 
-**Status:** 📋 Planned
-
+**Status:** ✅ Done
 **Branch:** `feature/push-notifications`
+**PR:** #7
 
-**Description:**
-FCM push notifications for social interactions.
-
-**User Story:**
-As a user, I want to receive notifications, so that I know when someone interacts with my content.
+**Description:** FCM notifications for social interactions.
 
 **Acceptance Criteria:**
-- [ ] NEW_FOLLOWER: "@김씨님이 팔로우했어요"
-- [ ] RECIPE_COOKED: "@이씨님이 내 레시피로 요리했어요 😊"
-- [ ] RECIPE_VARIATION: "@박씨님이 내 레시피를 변형했어요"
-- [ ] Notification list screen
-- [ ] Mark as read functionality
-- [ ] Tap notification → Navigate to relevant screen
+- [x] NEW_FOLLOWER notification
+- [x] RECIPE_COOKED notification
+- [x] RECIPE_VARIATION notification
+- [x] Notification list screen
+- [x] Mark as read
+- [x] Unread count badge
 
-**Test Cases:**
-- [ ] FCM token registered on login
-- [ ] NEW_FOLLOWER notification received
-- [ ] RECIPE_COOKED notification received
-- [ ] RECIPE_VARIATION notification received
-- [ ] Tapping notification opens correct screen
+**Technical Notes:**
+- Backend: `notifications` + `user_fcm_tokens` tables
+- Frontend: Firebase Messaging integration
+- Deep linking to relevant screens
 
 ---
 
-### [CACHE-001]: Profile Page Local Caching
+### [FEAT-011]: Profile Caching
 
-**Status:** ✅ Implemented
-
+**Status:** ✅ Done
 **Branch:** `feature/profile-caching`
+**PR:** #4
 
-**Description:**
-Cache profile tabs locally to avoid hitting server every time. Uses Hive for simpler key-value storage instead of Isar.
-
-**User Story:**
-As a user, I want my profile to load instantly, so that I don't wait for network requests.
+**Description:** Cache profile tabs locally for offline access.
 
 **Acceptance Criteria:**
-- [x] "My Recipes" cached in Hive (5 min TTL)
-- [x] "My Logs" cached in Hive (5 min TTL)
-- [x] "Saved" cached in Hive (5 min TTL)
-- [x] Cache indicator showing last update time (orange banner)
-- [x] Pull-to-refresh forces cache invalidation
-- [x] Cache invalidated on create/delete
+- [x] My Recipes cached (5min TTL)
+- [x] My Logs cached
+- [x] Saved cached
+- [x] Cache indicator with timestamp
+- [x] Background refresh
 
-**Technical Details:**
-- Frontend: `lib/features/profile/providers/`, Hive boxes
-- Pattern: Cache-first with CachedData<T> wrapper
-- See: DEC-006, DEC-010 in DECISIONS.md
-
-**Test Cases:**
-- [x] First load fetches from network and caches
-- [x] Second load shows cached data immediately
-- [x] Pull-to-refresh updates cache
-- [ ] Creating recipe invalidates My Recipes cache
-- [ ] Deleting recipe invalidates My Recipes cache
+**Technical Notes:** Isar-based caching with cache-first pattern
 
 ---
 
-### [SEARCH-001]: Enhanced Search
+### [FEAT-012]: Social Sharing
 
-**Status:** ✅ Implemented
-
-**Branch:** `feature/enhanced-search`
-
-**Description:**
-Improved search experience with suggestions, search history, and better visual design.
-
-**User Story:**
-As a user, I want to see my search history and get suggestions, so that I can find recipes faster.
-
-**Acceptance Criteria:**
-- [x] Search history stored per SearchType (recipe vs log)
-- [x] Recent searches shown below search bar
-- [x] Clear individual search or all history
-- [x] Rounded search bar with improved styling
-- [x] Search suggestions overlay while typing
-
-**Technical Details:**
-- Frontend: `lib/features/search/widgets/enhanced_search_app_bar.dart`
-- Frontend: `lib/features/search/widgets/search_suggestions_overlay.dart`
-- Frontend: `lib/core/services/search_history_service.dart`
-- Storage: Hive for search history persistence
-
-**Test Cases:**
-- [x] Search query saved to history on submit
-- [x] History grouped by SearchType
-- [x] Can clear individual search item
-- [x] Can clear all search history
-- [ ] Suggestions appear while typing
-
----
-
-### [IMG-001]: Server-Side Image Variants
-
-**Status:** ✅ Implemented
-
-**Branch:** `feature/image-variants`
-
-**Description:**
-Server generates multiple image sizes for bandwidth optimization. Client selects optimal size based on display requirements.
-
-**User Story:**
-As a user on mobile data, I want images to load fast, so that I don't waste bandwidth on oversized images.
-
-**Acceptance Criteria:**
-- [x] Server generates 5 variants: ORIGINAL, LARGE_1200, MEDIUM_800, THUMB_400, THUMB_200
-- [x] Async processing after upload (non-blocking)
-- [x] WebP format for better compression
-- [x] Client selects optimal variant via getBestUrl()
-- [x] AppCachedImage updated to use variants
-
-**Technical Details:**
-- Backend: `ImageProcessingService.java` with @Async processing
-- Backend: `ImageVariant.java` enum
-- Backend: `V10__add_image_variants.sql` migration
-- Frontend: `ImageVariants` entity
-- Frontend: `AppCachedImage` updated for variant selection
-- See: DEC-009 in DECISIONS.md
-
-**Test Cases:**
-- [x] Upload generates all variant sizes
-- [x] Variants stored with correct metadata
-- [x] Client receives variant URLs in response
-- [x] getBestUrl returns appropriate size for display width
-- [ ] Graceful fallback if variant missing
-
----
-
-### [EVENT-001]: Event Tracking System
-
-**Status:** ✅ Implemented
-
-**Branch:** `feature/event-tracking`
-
-**Description:**
-Reliable event tracking with offline support using outbox pattern. Events queued locally in Isar, synced to server with priority-based batching.
-
-**User Story:**
-As the product team, I want reliable analytics, so that I don't lose events due to network issues.
-
-**Acceptance Criteria:**
-- [x] Events stored locally in Isar before sync
-- [x] Priority-based sync (IMMEDIATE for writes, LOW for analytics)
-- [x] Idempotency keys prevent duplicate events
-- [x] Background sync when connectivity available
-- [x] Failed events retried with backoff
-
-**Technical Details:**
-- Frontend: `lib/core/services/event_sync_manager.dart`
-- Frontend: Isar collections for event queue
-- Pattern: Outbox pattern with priority enum
-- See: DEC-007, DEC-008 in DECISIONS.md
-
-**Test Cases:**
-- [x] Event queued locally on creation
-- [x] IMMEDIATE priority events sync instantly
-- [x] LOW priority events batched
-- [x] Duplicate events rejected by idempotency key
-- [ ] Retry logic on sync failure
-
----
-
-# 📤 Sharing
-
-### [SHARE-001]: Social Sharing
-
-**Status:** 🟡 In Progress
-
+**Status:** ✅ Done
 **Branch:** `feature/social-sharing`
 
-**Description:**
-Share recipes to social platforms (KakaoTalk, Twitter, Instagram, etc.) with rich link previews showing recipe image, title, and description.
-
-**User Story:**
-As a user, I want to share a recipe to KakaoTalk or Twitter, so that my friends can see a preview and open the recipe directly.
+**Description:** Share recipes with Open Graph meta tags for rich link previews.
 
 **Acceptance Criteria:**
-- [ ] Share button on recipe detail screen
-- [ ] Rich link preview with Open Graph meta tags
-- [ ] Preview shows: recipe image, title, description, creator name
-- [ ] Deep link opens recipe detail screen in app
-- [ ] Fallback to web URL if app not installed
-- [ ] KakaoTalk share with custom template
-- [ ] Twitter/X share with card preview
-- [ ] Copy link to clipboard option
+- [x] Share button on recipe detail
+- [x] Open Graph HTML endpoint for crawlers
+- [x] Locale-aware share options (KakaoTalk for Korea, WhatsApp for others)
+- [x] Native share sheet via share_plus
+- [x] Copy link functionality
 
-**UI/UX:**
-- Screen: `RecipeDetailScreen`
-- Entry point: Share icon button in app bar
-- Flow: Tap share → Bottom sheet with options → Select platform → Open platform share dialog
-
-**Technical Details:**
-- Frontend: `lib/features/recipe/widgets/share_bottom_sheet.dart`
-- Frontend: `share_plus` package for native share
-- Backend: `GET /api/v1/recipes/{publicId}/og` returns Open Graph HTML
-- Backend: Dynamic Open Graph meta tags for crawlers
-- Deep linking: `pairingplanet://recipe/{publicId}`
-
-**Edge Cases:**
-- Recipe has no image → Use default app image
-- Recipe title too long → Truncate to 60 chars
-- Recipe is private → Show "비공개 레시피입니다" message
-- User not logged in → Still allow sharing public recipes
-
-**Error Handling:**
-- Share failed → "공유에 실패했습니다. 다시 시도해주세요."
-- Link copy failed → "클립보드 복사에 실패했습니다."
-
-**Test Cases:**
-- [ ] Share button visible on recipe detail
-- [ ] Bottom sheet shows all share options
-- [ ] Open Graph endpoint returns valid HTML
-- [ ] Deep link opens correct recipe
-- [ ] Copy link works and shows confirmation
+**Technical Notes:**
+- Backend: `/share/recipe/{publicId}` returns HTML with og:title, og:image, og:description
+- Frontend: ShareBottomSheet with locale detection via localeProvider
+- Deep link support for app opening
 
 ---
 
-## Feature Index
+### [FEAT-013]: Profile Edit
 
-| ID | Feature | Status | Category |
-|----|---------|--------|----------|
-| AUTH-001 | Social Login | ✅ | Authentication |
-| AUTH-002 | Anonymous Browsing | ✅ | Authentication |
-| RCP-001 | Recipe List | ✅ | Recipes |
-| RCP-002 | Recipe Detail | ✅ | Recipes |
-| RCP-003 | Create Recipe | ✅ | Recipes |
-| RCP-004 | Create Variation | ✅ | Recipes |
-| LOG-001 | Create Log | ✅ | Cooking Logs |
-| SAVE-001 | Save Recipe | ✅ | Save/Bookmark |
-| PROF-001 | User Profile | ✅ | Profile |
-| FOLLOW-001 | Follow System | 📋 | Social |
-| NOTIF-001 | Push Notifications | 📋 | Notifications |
-| CACHE-001 | Profile Caching | ✅ | Performance |
-| SEARCH-001 | Enhanced Search | ✅ | Search |
-| IMG-001 | Image Variants | ✅ | Performance |
-| EVENT-001 | Event Tracking | ✅ | Analytics |
-| SHARE-001 | Social Sharing | 🟡 | Sharing |
+**Status:** ✅ Done
+**Branch:** `feature/social-sharing`
+
+**Description:** Edit profile with birthday, gender, and language preference.
+
+**Acceptance Criteria:**
+- [x] Birthday date picker
+- [x] Gender dropdown (Male/Female/Other)
+- [x] Language dropdown (Korean/English)
+- [x] Language change updates app locale dynamically
+- [x] Unsaved changes warning
+
+**Technical Notes:**
+- Backend: `PATCH /api/v1/users/me` with locale field
+- Frontend: EasyLocalization for dynamic locale switching
+- Profile refresh after save
 
 ---
 
-See [ROADMAP.md](ROADMAP.md) for implementation priorities.
-See [CLAUDE.md](CLAUDE.md) for coding rules.
-See [TECHSPEC.md](TECHSPEC.md) for technical architecture.
+### [FEAT-014]: Image Variants
+
+**Status:** ✅ Done
+
+**Description:** Server-side image resizing for optimized delivery.
+
+**Acceptance Criteria:**
+- [x] Thumbnail variant (300px)
+- [x] Display variant (800px)
+- [x] Original preserved
+- [x] AppCachedImage supports variant parameter
+
+**Technical Notes:**
+- Backend generates variants on upload
+- URL pattern: `/images/{id}?variant=thumbnail`
+
+---
+
+### [FEAT-015]: Enhanced Search
+
+**Status:** ✅ Done
+
+**Description:** Search with autocomplete suggestions and history.
+
+**Acceptance Criteria:**
+- [x] Search suggestions from API
+- [x] Recent search history (local)
+- [x] Clear history option
+- [x] Search by recipe title, food name
+
+**Technical Notes:**
+- Autocomplete endpoint: `/api/v1/autocomplete`
+- Local history stored in SharedPreferences
+
+---
+
+## Planned 📋
+
+### [FEAT-016]: Improved Onboarding
+
+**Status:** 📋 Planned
+
+**Description:** 5-screen flow explaining recipe variation concept.
+
+**Acceptance Criteria:**
+- [ ] Welcome screen
+- [ ] Recipe concept explanation
+- [ ] Variation concept explanation
+- [ ] Cooking log explanation
+- [ ] Get started button
+
+---
+
+### [FEAT-017]: Full-Text Search
+
+**Status:** 📋 Planned
+
+**Description:** PostgreSQL trigram search for recipes.
+
+**Acceptance Criteria:**
+- [ ] Search by ingredients
+- [ ] Search by description
+- [ ] Fuzzy matching
+- [ ] Search ranking
+
+---
+
+### [FEAT-018]: Achievement Badges
+
+**Status:** 📋 Planned
+
+**Description:** Gamification badges for cooking milestones.
+
+**Acceptance Criteria:**
+- [ ] "첫 요리" - First log
+- [ ] "용감한 요리사" - First variation
+- [ ] "꾸준한 요리사" - 10 logs
+- [ ] Badge display on profile
+
+---
+
+# 🏛️ DECISIONS
+
+## Template
+
+```markdown
+### [DEC-XXX]: Decision Title
+
+**Date:** YYYY-MM-DD
+**Status:** ✅ Accepted | ❌ Rejected
+
+**Context:** Problem we faced
+**Decision:** What we chose
+**Reason:** Why
+**Alternatives:** What else we considered
+```
+
+---
+
+### [DEC-001]: Isar for Local Database
+
+**Date:** 2024-12-15
+**Status:** ✅ Accepted
+
+**Context:** Need offline caching with query support.
+**Decision:** Use Isar
+**Reason:** Type-safe, fast, supports queries (unlike Hive)
+**Alternatives:** Hive (no queries), SQLite (too heavy), Drift (SQL-based)
+
+---
+
+### [DEC-002]: Either<Failure, T> for Error Handling
+
+**Date:** 2024-12-20
+**Status:** ✅ Accepted
+
+**Context:** Need consistent error handling.
+**Decision:** Use Either from dartz package
+**Reason:** Forces explicit handling, type-safe, clear contracts
+**Alternatives:** Try-catch (easy to forget), nullable returns (loses info)
+
+---
+
+### [DEC-003]: publicId (UUID) for API
+
+**Date:** 2024-12-18
+**Status:** ✅ Accepted
+
+**Context:** Don't want to expose internal DB IDs.
+**Decision:** Every entity has `id` (internal Long) + `publicId` (UUID)
+**Reason:** Security, flexibility, works across distributed systems
+**Alternatives:** Expose internal ID (security risk), UUID as PK (performance)
+
+---
+
+### [DEC-004]: Soft Delete
+
+**Date:** 2024-12-22
+**Status:** ✅ Accepted
+
+**Context:** Preserve data for variations, allow recovery.
+**Decision:** Use `deleted_at` timestamp instead of hard delete
+**Reason:** Maintains references, audit trail, recovery
+**Alternatives:** Hard delete (loses data), archive table (complex)
+
+---
+
+### [DEC-005]: Firebase Auth + Backend JWT
+
+**Date:** 2024-12-10
+**Status:** ✅ Accepted
+
+**Context:** Need social login without managing OAuth.
+**Decision:** Firebase for social login, exchange for our JWT
+**Reason:** Firebase handles complexity, we control our JWT
+**Alternatives:** Firebase only (vendor lock), self-hosted OAuth (complex)
+
+---
+
+# 📖 GLOSSARY
+
+| Term | Definition |
+|------|------------|
+| **Recipe** | Dish with ingredients and steps |
+| **Original Recipe** | Recipe with no parent (`parentPublicId = null`) |
+| **Variation** | Recipe modified from another, has `parentPublicId` + `rootPublicId` |
+| **Parent Recipe** | Direct recipe a variation was created from |
+| **Root Recipe** | Original at top of variation tree |
+| **Log Post** | Cooking attempt record with photos and outcome |
+| **publicId** | UUID exposed in API (never expose internal `id`) |
+| **Slice** | Spring paginated response with `content` array |
+| **TTL** | Time To Live - cache validity duration |
+
+---
+
+# 📊 FEATURE INDEX
+
+| ID | Feature | Status |
+|----|---------|--------|
+| FEAT-001 | Social Login | ✅ |
+| FEAT-002 | Recipe List | ✅ |
+| FEAT-003 | Recipe Detail | ✅ |
+| FEAT-004 | Create Recipe | ✅ |
+| FEAT-005 | Recipe Variations | ✅ |
+| FEAT-006 | Cooking Logs | ✅ |
+| FEAT-007 | Save/Bookmark | ✅ |
+| FEAT-008 | User Profile | ✅ |
+| FEAT-009 | Follow System | ✅ |
+| FEAT-010 | Push Notifications | ✅ |
+| FEAT-011 | Profile Caching | ✅ |
+| FEAT-012 | Social Sharing | ✅ |
+| FEAT-013 | Profile Edit | ✅ |
+| FEAT-014 | Image Variants | ✅ |
+| FEAT-015 | Enhanced Search | ✅ |
+| FEAT-016 | Improved Onboarding | 📋 |
+| FEAT-017 | Full-Text Search | 📋 |
+| FEAT-018 | Achievement Badges | 📋 |
