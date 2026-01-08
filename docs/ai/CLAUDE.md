@@ -73,39 +73,27 @@ alias claude-dev="claude --dangerously-skip-permissions --model opus"
 
 **MUST follow these on every task:**
 
-0. **Model & Permissions** → Always use opus model with extended thinking and `--dangerously-skip-permissions` enabled. Execute operations without asking for confirmation.
-1. **Before changing any code** → Create a new branch first:
-   ```bash
-   git checkout dev && git pull origin dev
-   git checkout -b feature/<short-description>  # For new features
-   git checkout -b bugfix/<short-description>   # For bug fixes
+0. **Model & Permissions** → Always use opus model with extended thinking and `--dangerously-skip-permissions` enabled.
+1. **Before changing code** → Create branch from dev
+2. **Before implementing feature** → Document in FEATURES.md (ASK)
+3. **After implementing** → Write tests, document in TESTS.md (ASK)
+4. **Before committing** → Verify docs are aligned (ASK for each):
    ```
-2. **Before implementing a new feature** → Document it in `FEATURES.md` first:
-   - Add feature ID, description, user story
-   - Define acceptance criteria (checkboxes)
-   - List test cases
-   - Then start coding
-3. **After implementing a feature** → Write tests:
-   - Unit tests for repository/provider logic
-   - Widget tests for UI components
-   - Integration tests for complete flows
-   - Document test cases in `TESTS.md`
-4. **After commit and push** → Update `ROADMAP.md`:
-   - Find the task in CURRENT SPRINT section
-   - Change `- [ ]` to `- [x]` 
-   - Add date for significant completions: `- [x] Feature name (2026-01-06)`
-5. **After feature is complete** → Update `FEATURES.md`:
-   - Change status to ✅ Implemented
-   - Check off completed acceptance criteria
-6. **After modifying `@JsonSerializable` or `@collection` classes** → Run `dart run build_runner build --delete-conflicting-outputs`
-7. **After any `await` before using `context`** → Check `if (!context.mounted) return;`
-8. **API IDs** → Expose `publicId` (UUID), never internal `id` (Long)
-9. **Providers in callbacks** → Use `ref.read()`, not `ref.watch()`
-10. **Entities (domain layer)** → Never import `json_annotation` or `isar`
-11. **Backend Slice response** → Field is `content`, not `items`
-12. **Recipe variants** → Must include both `parentPublicId` AND `rootPublicId`
-13. **Error handling** → Repositories return `Either<Failure, T>`, never throw
-14. **Commits** → Use conventional format: `feat|fix|docs|chore(<scope>): <description>`
+   □ FEATURES.md — Status updated?
+   □ TESTS.md — Test cases added?
+   □ DECISIONS.md — Decisions documented?
+   □ GLOSSARY.md — New terms added?
+   □ ROADMAP.md — Task marked [x]? (auto)
+   ```
+5. **After modifying DTOs/Isar classes** → Run `dart run build_runner build --delete-conflicting-outputs`
+6. **After `await`** → Check `if (!context.mounted) return;`
+7. **API IDs** → Use `publicId` (UUID), never internal `id`
+8. **Providers in callbacks** → Use `ref.read()`, not `ref.watch()`
+9. **Entities** → Never import `json_annotation` or `isar`
+10. **Backend Slice** → Field is `content`, not `items`
+11. **Recipe variants** → Include `parentPublicId` + `rootPublicId`
+12. **Error handling** → Return `Either<Failure, T>`, never throw
+13. **Commits** → Conventional format: `feat|fix|docs|chore(scope): description`
 
 ---
 
@@ -286,13 +274,38 @@ flutter analyze                    # Frontend
 flutter test                       # Frontend
 ./gradlew test                     # Backend
 
-# 3. If all pass, commit and push immediately
+# 3. Documentation alignment check (ASK user for each)
+```
+
+**3. Before committing, verify docs are aligned:**
+
+| File | Check | Question to Ask |
+|------|-------|-----------------|
+| **FEATURES.md** | Feature documented? Status updated? | "FEATURES.md: Update status to ✅?" |
+| **TESTS.md** | Test cases documented? | "TESTS.md: Add test cases?" |
+| **DECISIONS.md** | Any technical decisions made? | "DECISIONS.md: Document any decisions?" |
+| **GLOSSARY.md** | Any new terms introduced? | "GLOSSARY.md: Add new terms?" |
+| **ROADMAP.md** | Task marked complete? | (Auto-update, no ask) |
+
+**Commit only after docs are aligned:**
+```bash
+# 4. Commit and push to YOUR branch (not main/dev)
 git add .
 git commit -m "feat(scope): description"
-git push origin <branch-name>
+git push origin HEAD    # Pushes to current branch name on remote
+```
 
-# 4. Update ROADMAP.md
-# Change [ ] to [x] for completed task
+**⚠️ Never push directly to main, staging, or dev. Always push to your feature/bugfix branch.**
+
+**Pre-commit checklist (Claude Code must verify):**
+```
+□ Code compiles (flutter analyze passed)
+□ Tests pass (flutter test passed)
+□ FEATURES.md — Feature status updated to ✅ (if new feature)
+□ TESTS.md — Test cases documented (if tests written)
+□ DECISIONS.md — Decisions documented (if significant choices made)
+□ GLOSSARY.md — New terms added (if new terminology)
+□ ROADMAP.md — Task marked [x] (always)
 ```
 
 **If tests fail:** Fix the issue and re-run. Don't commit broken code.
@@ -304,39 +317,29 @@ Provide a summary:
 ✅ Completed: <task description>
 
 📁 Files changed:
-- lib/features/recipe/screens/recipe_detail_screen.dart (added share button)
-- lib/features/recipe/providers/share_provider.dart (new file)
+- lib/features/xxx/...
 
-🧪 Tests: All passing (or specify what needs testing)
+🧪 Tests: All passing
 
-⚠️ Notes: <any warnings, TODOs, or follow-up items>
+📝 Docs updated:
+- FEATURES.md: [FEAT-XXX] → ✅
+- TESTS.md: Added [TEST-XXX]
+- ROADMAP.md: Marked [x]
+
+⚠️ Notes: <any warnings, TODOs>
 ```
 
 ### Updating Documentation
 
-**ROADMAP.md** — Update after every task:
-```markdown
-# Change this:
-- [ ] Profile Page Local Caching
+**Auto-update (no asking):**
+- **ROADMAP.md** → Mark `[x]` when task done
 
-# To this:
-- [x] Profile Page Local Caching (2026-01-06)
-```
-
-**TECHSPEC.md** — Update when adding:
-- New database tables → Add to "Database Schema" section
-- New API endpoints → Add to "API Contracts" section
-- New entities → Add to "Content Model" section
-- New architectural patterns → Add to relevant section
-
-**CHANGELOG.md** — Update when merging to main:
-```markdown
-## [1.2.0] - 2026-01-06
-### Added
-- Profile page local caching with Isar
-### Fixed
-- Token refresh race condition
-```
+**ASK before updating:**
+- **FEATURES.md** → Update status, check acceptance criteria
+- **TESTS.md** → Add test suite entry
+- **DECISIONS.md** → Add if significant technical choice
+- **GLOSSARY.md** → Add if new terms introduced
+- **TECHSPEC.md** → Add new entities/endpoints (auto-update OK)
 
 ### When Stuck or Uncertain
 
@@ -426,6 +429,28 @@ git checkout -b feature/<task-name>
 | `firebase_auth` | Google OAuth |
 | `firebase_crashlytics` | Crash reporting |
 | `firebase_analytics` | Event tracking |
+
+---
+
+## 🔀 GIT COMMANDS
+
+**Always use `HEAD` to push current branch:**
+```bash
+git push origin HEAD                    # Pushes current branch (safest)
+git push -u origin HEAD                 # Set upstream + push (first push)
+```
+
+**⚠️ Never do this:**
+```bash
+git push origin main                    # Don't push to main directly
+git push                                # Might push to wrong branch
+```
+
+**Recommended git config (run once):**
+```bash
+git config --global push.default current    # Always push to same-named branch
+git config --global push.autoSetupRemote true   # Auto set upstream on first push
+```
 
 ---
 
@@ -1060,7 +1085,7 @@ git add .
 git commit -m "feat: add share button to recipe detail"
 
 # 3. Push and create PR to dev
-git push origin feature/add-recipe-sharing
+git push origin HEAD    # Pushes current branch to remote
 # Create PR: feature/add-recipe-sharing → dev
 
 # 4. After PR merged to dev, delete feature branch
@@ -1086,7 +1111,7 @@ git checkout -b hotfix/fix-login-crash
 
 # 2. Fix and push
 git commit -m "fix: resolve null pointer in login flow"
-git push origin hotfix/fix-login-crash
+git push origin HEAD    # Pushes current branch to remote
 
 # 3. Create PRs to main AND dev (keep branches in sync)
 # PR: hotfix/fix-login-crash → main
