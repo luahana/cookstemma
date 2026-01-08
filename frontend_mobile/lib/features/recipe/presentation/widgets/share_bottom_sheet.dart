@@ -1,10 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
 import 'package:pairing_planet2_frontend/core/services/toast_service.dart';
+import 'package:share_plus/share_plus.dart';
+
+/// Data class for share option configuration.
+class _ShareOptionData {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final Color? iconColor;
+  final VoidCallback onTap;
+
+  const _ShareOptionData({
+    required this.icon,
+    required this.label,
+    required this.color,
+    this.iconColor,
+    required this.onTap,
+  });
+}
 
 /// Bottom sheet for sharing a recipe to various platforms.
-class ShareBottomSheet extends StatelessWidget {
+/// Shows locale-specific share options (e.g., KakaoTalk for Korea, WhatsApp for others).
+class ShareBottomSheet extends ConsumerWidget {
   final String recipePublicId;
   final String recipeTitle;
 
@@ -34,7 +55,11 @@ class ShareBottomSheet extends StatelessWidget {
   String get shareUrl => 'https://api.pairingplanet.com/share/recipe/$recipePublicId';
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
+    final isKorean = locale.startsWith('ko');
+    final shareOptions = _buildShareOptions(context, isKorean);
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
       child: Column(
@@ -54,7 +79,7 @@ class ShareBottomSheet extends StatelessWidget {
           ),
           SizedBox(height: 16.h),
           Text(
-            '공유하기',
+            isKorean ? '공유하기' : 'Share',
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
@@ -75,33 +100,15 @@ class ShareBottomSheet extends StatelessWidget {
           // Share options grid
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _ShareOption(
-                icon: Icons.link,
-                label: '링크 복사',
-                color: Colors.grey[700]!,
-                onTap: () => _copyLink(context),
-              ),
-              _ShareOption(
-                icon: Icons.chat_bubble,
-                label: '카카오톡',
-                color: const Color(0xFFFEE500),
-                iconColor: Colors.black,
-                onTap: () => _shareToKakao(context),
-              ),
-              _ShareOption(
-                icon: Icons.alternate_email,
-                label: 'X (트위터)',
-                color: Colors.black,
-                onTap: () => _shareToTwitter(context),
-              ),
-              _ShareOption(
-                icon: Icons.more_horiz,
-                label: '더보기',
-                color: Colors.grey[600]!,
-                onTap: () => _shareMore(context),
-              ),
-            ],
+            children: shareOptions
+                .map((option) => _ShareOption(
+                      icon: option.icon,
+                      label: option.label,
+                      color: option.color,
+                      iconColor: option.iconColor,
+                      onTap: option.onTap,
+                    ))
+                .toList(),
           ),
           SizedBox(height: 20.h),
 
@@ -128,7 +135,7 @@ class ShareBottomSheet extends StatelessWidget {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => _copyLink(context),
+                  onTap: () => _copyLink(context, isKorean),
                   child: Icon(Icons.copy, size: 16.sp, color: Colors.indigo),
                 ),
               ],
@@ -140,10 +147,58 @@ class ShareBottomSheet extends StatelessWidget {
     );
   }
 
-  void _copyLink(BuildContext context) {
+  /// Build share options based on user's locale.
+  List<_ShareOptionData> _buildShareOptions(BuildContext context, bool isKorean) {
+    return [
+      // Universal: Copy Link (always first)
+      _ShareOptionData(
+        icon: Icons.link,
+        label: isKorean ? '링크 복사' : 'Copy Link',
+        color: Colors.grey[700]!,
+        onTap: () => _copyLink(context, isKorean),
+      ),
+
+      // Korea-only: KakaoTalk
+      if (isKorean)
+        _ShareOptionData(
+          icon: Icons.chat_bubble,
+          label: '카카오톡',
+          color: const Color(0xFFFEE500),
+          iconColor: Colors.black,
+          onTap: () => _shareToKakao(context),
+        ),
+
+      // Non-Korea: WhatsApp
+      if (!isKorean)
+        _ShareOptionData(
+          icon: Icons.message,
+          label: 'WhatsApp',
+          color: const Color(0xFF25D366),
+          onTap: () => _shareToWhatsApp(context, isKorean),
+        ),
+
+      // Universal: X (Twitter)
+      _ShareOptionData(
+        icon: Icons.alternate_email,
+        label: isKorean ? 'X (트위터)' : 'X',
+        color: Colors.black,
+        onTap: () => _shareToTwitter(context, isKorean),
+      ),
+
+      // Universal: More (native share sheet)
+      _ShareOptionData(
+        icon: Icons.more_horiz,
+        label: isKorean ? '더보기' : 'More',
+        color: Colors.grey[600]!,
+        onTap: () => _shareMore(context),
+      ),
+    ];
+  }
+
+  void _copyLink(BuildContext context, bool isKorean) {
     Clipboard.setData(ClipboardData(text: shareUrl));
     Navigator.pop(context);
-    ToastService.showSuccess('링크가 복사되었습니다');
+    ToastService.showSuccess(isKorean ? '링크가 복사되었습니다' : 'Link copied');
   }
 
   void _shareToKakao(BuildContext context) {
@@ -154,19 +209,32 @@ class ShareBottomSheet extends StatelessWidget {
     ToastService.showInfo('카카오톡 공유는 준비 중입니다. 링크가 복사되었습니다.');
   }
 
-  void _shareToTwitter(BuildContext context) {
+  void _shareToWhatsApp(BuildContext context, bool isKorean) {
+    // TODO: Implement WhatsApp deep linking
+    // For now, copy link and show message
+    Clipboard.setData(ClipboardData(text: shareUrl));
+    Navigator.pop(context);
+    ToastService.showInfo(isKorean
+        ? '왓츠앱 공유는 준비 중입니다. 링크가 복사되었습니다.'
+        : 'WhatsApp sharing coming soon. Link copied.');
+  }
+
+  void _shareToTwitter(BuildContext context, bool isKorean) {
     // TODO: Implement Twitter sharing
     // For now, copy link and show message
     Clipboard.setData(ClipboardData(text: shareUrl));
     Navigator.pop(context);
-    ToastService.showInfo('트위터 공유는 준비 중입니다. 링크가 복사되었습니다.');
+    ToastService.showInfo(isKorean
+        ? '트위터 공유는 준비 중입니다. 링크가 복사되었습니다.'
+        : 'X sharing coming soon. Link copied.');
   }
 
-  void _shareMore(BuildContext context) {
-    // TODO: Use share_plus for native share sheet
-    Clipboard.setData(ClipboardData(text: shareUrl));
+  void _shareMore(BuildContext context) async {
     Navigator.pop(context);
-    ToastService.showInfo('링크가 복사되었습니다. 원하는 앱에 붙여넣기 해주세요.');
+    await Share.share(
+      '$recipeTitle\n$shareUrl',
+      subject: recipeTitle,
+    );
   }
 }
 
