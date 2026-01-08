@@ -2,10 +2,17 @@ package com.pairingplanet.pairing_planet.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pairingplanet.pairing_planet.domain.entity.food.FoodMaster;
+import com.pairingplanet.pairing_planet.domain.entity.image.Image;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
+import com.pairingplanet.pairing_planet.domain.enums.ImageStatus;
+import com.pairingplanet.pairing_planet.domain.enums.ImageType;
+import com.pairingplanet.pairing_planet.domain.enums.IngredientType;
 import com.pairingplanet.pairing_planet.dto.recipe.CreateRecipeRequestDto;
+import com.pairingplanet.pairing_planet.dto.recipe.IngredientDto;
+import com.pairingplanet.pairing_planet.dto.recipe.StepDto;
 import com.pairingplanet.pairing_planet.repository.food.FoodMasterRepository;
+import com.pairingplanet.pairing_planet.repository.image.ImageRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.RecipeRepository;
 import com.pairingplanet.pairing_planet.support.BaseIntegrationTest;
 import com.pairingplanet.pairing_planet.support.TestJwtTokenProvider;
@@ -20,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -46,8 +54,12 @@ class RecipeControllerTest extends BaseIntegrationTest {
     @Autowired
     private FoodMasterRepository foodMasterRepository;
 
+    @Autowired
+    private ImageRepository imageRepository;
+
     private FoodMaster testFood;
     private User testUser;
+    private Image testImage;
 
     @BeforeEach
     void setUp() {
@@ -58,6 +70,15 @@ class RecipeControllerTest extends BaseIntegrationTest {
                 .isVerified(true)
                 .build();
         foodMasterRepository.save(testFood);
+
+        testImage = Image.builder()
+                .storedFilename("test-image.jpg")
+                .originalFilename("test.jpg")
+                .status(ImageStatus.ACTIVE)
+                .type(ImageType.COVER)
+                .uploaderId(testUser.getId())
+                .build();
+        imageRepository.save(testImage);
     }
 
     @Nested
@@ -183,9 +204,9 @@ class RecipeControllerTest extends BaseIntegrationTest {
                     "ko-KR",
                     testFood.getPublicId(),
                     null,
-                    List.of(),
-                    List.of(),
-                    List.of(),
+                    List.of(new IngredientDto("Salt", "1 tsp", IngredientType.SEASONING)),
+                    List.of(new StepDto(1, "Mix ingredients", null, null)),
+                    List.of(testImage.getPublicId()),
                     null,
                     null,
                     null,
@@ -273,11 +294,11 @@ class RecipeControllerTest extends BaseIntegrationTest {
                     "Variant Recipe",
                     "My variant",
                     "ko-KR",
+                    testFood.getPublicId(),
                     null,
-                    null,
-                    List.of(),
-                    List.of(),
-                    List.of(),
+                    List.of(new IngredientDto("Extra Spice", "2 tsp", IngredientType.SEASONING)),
+                    List.of(new StepDto(1, "Add spice and mix well", null, null)),
+                    List.of(testImage.getPublicId()),
                     "INGREDIENT_CHANGE",
                     parentRecipe.getPublicId(),
                     null,
