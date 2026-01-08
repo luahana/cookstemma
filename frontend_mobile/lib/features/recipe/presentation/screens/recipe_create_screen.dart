@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -55,7 +56,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
 
   void _initVariantData() {
     final p = widget.parentRecipe!;
-    _titleController.text = "${p.title} (변형)";
+    _titleController.text = "${p.title} ${'recipe.variantSuffix'.tr()}";
     _descriptionController.text = p.description ?? "";
     _foodNameController.text = p.foodName; // 💡 실제 요리명 매핑 권장
 
@@ -223,7 +224,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
     if (isVariantMode && _changeReasonController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('레시피를 변형한 이유를 입력해주세요.')));
+      ).showSnackBar(SnackBar(content: Text('recipe.changeReasonError'.tr())));
       return;
     }
     setState(() => _isLoading = true);
@@ -289,7 +290,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
           }
         },
         error: (error, _) => ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('실패: $error'))),
+            .showSnackBar(SnackBar(content: Text('recipe.submitFailed'.tr(namedArgs: {'error': error.toString()})))),
         loading: () {},
       );
     } finally {
@@ -372,7 +373,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
       icon: const Icon(Icons.close),
       onPressed: () => context.pop(),
     ),
-    title: Text(isVariantMode ? "레시피 변형하기" : "새 레시피 등록"),
+    title: Text(isVariantMode ? 'recipe.createVariantTitle'.tr() : 'recipe.createNew'.tr()),
   );
 
   Widget _buildChangeReasonField() {
@@ -383,9 +384,9 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
           children: [
             const Icon(Icons.auto_awesome, color: Colors.orange, size: 20),
             const SizedBox(width: 8),
-            const Text(
-              "변경 이유 (필수)",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              'recipe.changeReasonRequired'.tr(),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -401,9 +402,9 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
             controller: _changeReasonController, // 💡 사용자가 언급한 컨트롤러 연결
             onChanged: (_) => setState(() {}), // 💡 입력 시 등록 버튼 활성화를 위해 호출
             maxLines: 2,
-            decoration: const InputDecoration(
-              hintText: "예: 더 매콤한 맛을 위해 청양고추를 추가하고 조리 순서를 바꿨어요.",
-              hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+            decoration: InputDecoration(
+              hintText: 'recipe.changeReasonHint'.tr(),
+              hintStyle: const TextStyle(fontSize: 14, color: Colors.grey),
               border: InputBorder.none,
             ),
           ),
@@ -436,7 +437,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
             ),
           ),
           child: Text(
-            _isLoading ? "등록 중..." : "등록 완료",
+            _isLoading ? 'recipe.submitting'.tr() : 'recipe.submit'.tr(),
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,

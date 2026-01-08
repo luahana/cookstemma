@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -46,8 +47,8 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: EnhancedSearchAppBar(
-        title: "레시피 탐색",
-        hintText: "레시피, 재료 검색...",
+        title: 'recipe.browse'.tr(),
+        hintText: 'recipe.searchHint'.tr(),
         currentQuery: recipesAsync.valueOrNull?.searchQuery,
         searchType: SearchType.recipe,
         onSearch: (query) {
@@ -73,7 +74,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
               if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
                 return SearchEmptyState(
                   query: state.searchQuery!,
-                  entityName: '레시피',
+                  entityName: 'recipe.title'.tr(),
                   onClearSearch: () {
                     ref.read(recipeListProvider.notifier).clearSearch();
                   },
@@ -87,19 +88,19 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                   if (state.isFromCache && state.cachedAt != null)
                     _buildCacheIndicator(state),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                  const Center(
+                  Center(
                     child: Column(
                       children: [
-                        Icon(Icons.receipt_long, size: 64, color: Colors.grey),
-                        SizedBox(height: 16),
+                        const Icon(Icons.receipt_long, size: 64, color: Colors.grey),
+                        const SizedBox(height: 16),
                         Text(
-                          "등록된 레시피가 없습니다.",
-                          style: TextStyle(color: Colors.grey, fontSize: 16),
+                          'recipe.noRecipesYet'.tr(),
+                          style: const TextStyle(color: Colors.grey, fontSize: 16),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          "화면을 당겨서 새로고침 해보세요.",
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                          'recipe.pullToRefresh'.tr(),
+                          style: const TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                       ],
                     ),
@@ -136,11 +137,11 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                         return Column(
                           children: [
                             card,
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 24),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
                               child: Text(
-                                "모든 레시피를 불러왔습니다.",
-                                style: TextStyle(color: Colors.grey, fontSize: 13),
+                                'recipe.allLoaded'.tr(),
+                                style: const TextStyle(color: Colors.grey, fontSize: 13),
                               ),
                             ),
                           ],
@@ -168,10 +169,10 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                       color: Colors.red,
                     ),
                     const SizedBox(height: 16),
-                    Text("오류가 발생했습니다: $err"),
+                    Text('common.errorWithMessage'.tr(namedArgs: {'message': err.toString()})),
                     TextButton(
                       onPressed: () => ref.invalidate(recipeListProvider),
-                      child: const Text("다시 시도"),
+                      child: Text('common.tryAgain'.tr()),
                     ),
                   ],
                 ),
@@ -269,7 +270,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                       // Show root link for variants
                       if (recipe.isVariant && recipe.rootTitle != null)
                         Text(
-                          "📌 원본: ${recipe.rootTitle}",
+                          '📌 ${'recipe.basedOnRecipe'.tr(namedArgs: {'title': recipe.rootTitle!})}',
                           style: TextStyle(
                             color: Colors.orange[700],
                             fontSize: 12,
@@ -295,7 +296,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        isVariant ? "변형" : "오리지널",
+        isVariant ? 'recipe.variant'.tr() : 'recipe.originalBadge'.tr(),
         style: const TextStyle(
           color: Colors.white,
           fontSize: 11,
@@ -319,7 +320,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
       children: [
         if (hasVariants) ...[
           Text(
-            "🔀 ${recipe.variantCount}개 변형",
+            '🔀 ${'recipe.variantCountLabel'.tr(namedArgs: {'count': recipe.variantCount.toString()})}',
             style: TextStyle(
               color: Colors.grey[700],
               fontSize: 12,
@@ -335,7 +336,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         ],
         if (hasLogs) ...[
           Text(
-            "📝 ${recipe.logCount}개 로그",
+            '📝 ${'recipe.logCountLabel'.tr(namedArgs: {'count': recipe.logCount.toString()})}',
             style: TextStyle(
               color: Colors.grey[700],
               fontSize: 12,
@@ -355,11 +356,11 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
     final diff = DateTime.now().difference(cachedAt);
     String timeText;
     if (diff.inMinutes < 1) {
-      timeText = "방금 전";
+      timeText = 'common.justNow'.tr();
     } else if (diff.inMinutes < 60) {
-      timeText = "${diff.inMinutes}분 전";
+      timeText = 'common.minutesAgo'.tr(namedArgs: {'count': diff.inMinutes.toString()});
     } else {
-      timeText = "${diff.inHours}시간 전";
+      timeText = 'common.hoursAgo'.tr(namedArgs: {'count': diff.inHours.toString()});
     }
 
     return Container(
@@ -371,7 +372,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
           Icon(Icons.access_time, size: 14, color: Colors.orange[700]),
           const SizedBox(width: 6),
           Text(
-            "오프라인 데이터 · 마지막 업데이트: $timeText",
+            'recipe.offlineData'.tr(namedArgs: {'time': timeText}),
             style: TextStyle(fontSize: 12, color: Colors.orange[700]),
           ),
         ],
