@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerWidget {
@@ -8,12 +10,25 @@ class LoginScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 💡 AuthState를 구독하여 에러 메시지가 있으면 스낵바를 띄웁니다.
+    // Listen for auth state changes
     ref.listen<AuthState>(authStateProvider, (previous, next) {
+      // Show error snackbar if login failed
       if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage!)),
+        );
+      }
+
+      // On successful login, execute pending action and navigate home
+      if (next.status == AuthStatus.authenticated &&
+          previous?.status != AuthStatus.authenticated) {
+        // Execute pending action if any (e.g., save recipe, follow user)
+        ref.read(authStateProvider.notifier).executePendingAction();
+
+        // Navigate to home
+        if (context.mounted) {
+          context.go(RouteConstants.home);
+        }
       }
     });
 
@@ -33,6 +48,7 @@ class LoginScreen extends ConsumerWidget {
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 40),
+              // Google Sign-In button
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -45,9 +61,26 @@ class LoginScreen extends ConsumerWidget {
                     side: const BorderSide(color: Colors.grey),
                   ),
                   onPressed: () async {
-                    // 💡 UI에서는 로직을 직접 수행하지 않고 Notifier에게 로그인하라고 시키기만 합니다.
-                    // 이렇게 하면 위젯이 Dispose되어도 Notifier 안에서 비즈니스 로직은 안전하게 끝납니다.
                     await ref.read(authStateProvider.notifier).login();
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Browse as Guest button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.visibility),
+                  label: Text('login.browseAsGuest'.tr()),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey[700],
+                    side: BorderSide(color: Colors.grey[400]!),
+                  ),
+                  onPressed: () async {
+                    await ref.read(authStateProvider.notifier).enterGuestMode();
+                    if (!context.mounted) return;
+                    context.go(RouteConstants.home);
                   },
                 ),
               ),

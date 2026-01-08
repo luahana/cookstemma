@@ -83,9 +83,20 @@
     "googleLogin": "Google로 계속하기",
     "appleLogin": "Apple로 계속하기",
     "kakaoLogin": "카카오로 계속하기",
+    "browseAsGuest": "둘러보기",
     "terms": "로그인 시 서비스 이용약관 및 개인정보 처리방침에 동의하게 됩니다.",
     "loginFailed": "로그인에 실패했습니다",
     "loginCancelled": "로그인이 취소되었습니다"
+  },
+  "guest": {
+    "signInRequired": "로그인이 필요합니다",
+    "signInToSave": "레시피를 저장하려면 로그인하세요",
+    "signInToFollow": "이 사용자를 팔로우하려면 로그인하세요",
+    "signInToCreate": "콘텐츠를 만들려면 로그인하세요",
+    "signIn": "로그인",
+    "profileTitle": "페어링 플래닛에 가입하세요",
+    "profileSubtitle": "로그인하면 레시피 저장, 요리사 팔로우, 나만의 요리 여정을 공유할 수 있어요!",
+    "continueAsGuest": "둘러보기 계속하기"
   },
   "recipe": {
     "title": "레시피",
@@ -236,6 +247,20 @@
     "gallery": "갤러리",
     "delete": "삭제",
     "permissionDenied": "권한이 필요합니다"
+  },
+  "locale": {
+    "korean": "한식",
+    "american": "미국식",
+    "japanese": "일식",
+    "chinese": "중식",
+    "italian": "이탈리안",
+    "mexican": "멕시칸",
+    "thai": "태국식",
+    "indian": "인도식",
+    "french": "프랑스식",
+    "other": "기타/퓨전",
+    "all": "전체",
+    "selectLocale": "요리 종류"
   },
   "settings": {
     "title": "설정",

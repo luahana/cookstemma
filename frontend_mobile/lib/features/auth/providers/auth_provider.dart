@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/network/dio_provider.dart';
@@ -11,7 +13,7 @@ import 'package:pairing_planet2_frontend/data/repositories/auth_repository_impl.
 import 'package:pairing_planet2_frontend/domain/repositories/auth_repository.dart';
 
 // --- State 정의 ---
-enum AuthStatus { authenticated, unauthenticated, initial }
+enum AuthStatus { authenticated, unauthenticated, guest, initial }
 
 class AuthState extends Equatable {
   // 💡 Equatable 상속
@@ -29,6 +31,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final LoginUseCase _loginUseCase;
   final LogoutUseCase _logoutUseCase;
   final AuthRepository _repository;
+
+  // Pending action to execute after login (for guest -> authenticated flow)
+  VoidCallback? _pendingAction;
 
   AuthNotifier({
     required LoginUseCase loginUseCase,
@@ -70,6 +75,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (!mounted) return;
     state = AuthState(status: AuthStatus.authenticated);
   }
+
+  /// Enter guest mode to browse without signing in
+  Future<void> enterGuestMode() async {
+    // Clear any existing tokens to ensure clean guest state
+    await _repository.clearTokens();
+    if (!mounted) return;
+    state = AuthState(status: AuthStatus.guest);
+  }
+
+  /// Store a pending action to execute after successful login
+  void setPendingAction(VoidCallback action) {
+    _pendingAction = action;
+  }
+
+  /// Execute and clear the pending action (called after login success)
+  void executePendingAction() {
+    _pendingAction?.call();
+    _pendingAction = null;
+  }
+
+  /// Check if there's a pending action waiting
+  bool get hasPendingAction => _pendingAction != null;
 
   Future<void> checkAuthStatus() async {
     final result = await _repository.reissueToken();

@@ -6,6 +6,7 @@ import com.pairingplanet.pairing_planet.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -31,18 +32,38 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Enable anonymous authentication for guest access
+                .anonymous(anonymous -> {})
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 401 처리
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll() // [중요] reissue 포함 인증 API는 전체 허용
+                        // Public endpoints (no auth required)
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/contexts/**").permitAll()
                         .requestMatchers("/api/v1/autocomplete/**").permitAll()
-                        .requestMatchers("/api/v1/home/**").permitAll() // 홈 피드는 공개
-                        .requestMatchers("/share/**").permitAll() // 소셜 공유 Open Graph (크롤러 접근용)
+                        .requestMatchers("/api/v1/home/**").permitAll()
+                        .requestMatchers("/share/**").permitAll()
 
+                        // Protected user-specific endpoints (must come before wildcard rules)
+                        .requestMatchers("/api/v1/users/me").authenticated()
+                        .requestMatchers("/api/v1/recipes/my").authenticated()
+                        .requestMatchers("/api/v1/recipes/saved").authenticated()
+
+                        // Protected write operations (POST, PUT, PATCH, DELETE)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/**").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/**").authenticated()
+
+                        // Guest access: Allow anonymous read (GET) for browsing
+                        .requestMatchers("/api/v1/recipes", "/api/v1/recipes/**").permitAll()
+                        .requestMatchers("/api/v1/log_posts", "/api/v1/log_posts/**").permitAll()
+                        .requestMatchers("/api/v1/users/**").permitAll()
+                        .requestMatchers("/api/v1/hashtags/**").permitAll()
+
+                        // Protected endpoints (auth required)
                         .requestMatchers("/api/v1/images/**").authenticated()
-                        .requestMatchers("/api/v1/users/**").authenticated()
 
                         .anyRequest().authenticated()
                 )

@@ -18,6 +18,7 @@ import 'package:pairing_planet2_frontend/features/profile/screens/delete_account
 import 'package:pairing_planet2_frontend/features/profile/screens/followers_list_screen.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart'; // 💡 추가
 import 'package:pairing_planet2_frontend/features/notification/screens/notification_inbox_screen.dart';
+import 'package:pairing_planet2_frontend/features/splash/screens/splash_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/recipe/presentation/screens/recipe_detail_screen.dart';
 
@@ -38,21 +39,64 @@ final routerProvider = Provider<GoRouter>((ref) {
   final routerNotifier = ref.read(routerNotifierProvider);
 
   return GoRouter(
-    initialLocation: RouteConstants.home,
+    initialLocation: RouteConstants.splash,
     refreshListenable: routerNotifier,
     observers: [
       FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
     ],
     redirect: (context, state) {
       final authState = ref.read(authStateProvider);
-      if (authState.status == AuthStatus.initial) return null;
-      final isLoggedIn = authState.status == AuthStatus.authenticated;
-      final isLoggingIn = state.matchedLocation == RouteConstants.login;
-      if (!isLoggedIn && !isLoggingIn) return RouteConstants.login;
-      if (isLoggedIn && isLoggingIn) return RouteConstants.home;
+      final status = authState.status;
+      final location = state.matchedLocation;
+      final isLoggingIn = location == RouteConstants.login;
+      final isSplash = location == RouteConstants.splash;
+
+      // Skip redirect for splash screen - it handles its own navigation
+      if (isSplash) return null;
+
+      // Wait for auth check to complete
+      if (status == AuthStatus.initial) return null;
+
+      // Authenticated user on login page -> go home
+      if (status == AuthStatus.authenticated && isLoggingIn) {
+        return RouteConstants.home;
+      }
+
+      // Guest or unauthenticated: allow browsing, block protected routes
+      if (status == AuthStatus.guest || status == AuthStatus.unauthenticated) {
+        // Protected paths that require authentication
+        final protectedPaths = [
+          RouteConstants.recipeCreate,
+          RouteConstants.logPostCreate,
+          RouteConstants.profileEdit,
+          RouteConstants.settings,
+          RouteConstants.deleteAccount,
+        ];
+
+        // Block access to protected routes for guests
+        if (protectedPaths.any((path) => location.startsWith(path))) {
+          return RouteConstants.login;
+        }
+
+        // Allow guests to browse all other routes (except already on login)
+        if (status == AuthStatus.guest) {
+          return null; // Allow navigation
+        }
+
+        // Unauthenticated (not guest) - redirect to login
+        if (!isLoggingIn) {
+          return RouteConstants.login;
+        }
+      }
+
       return null;
     },
     routes: [
+      GoRoute(
+        path: RouteConstants.splash,
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: RouteConstants.login,
         name: 'login',

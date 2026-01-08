@@ -34,6 +34,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+    final authStatus = ref.watch(authStateProvider).status;
+
+    // Show guest view for unauthenticated users
+    if (authStatus == AuthStatus.guest || authStatus == AuthStatus.unauthenticated) {
+      return _buildGuestView(context);
+    }
+
     final profileAsync = ref.watch(myProfileProvider);
 
     return Scaffold(
@@ -265,6 +272,83 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             child: Text('profile.logout'.tr(), style: const TextStyle(color: Colors.red)),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGuestView(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: Text(
+          'profile.myPage'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.person_outline,
+                  size: 64,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Title
+              Text(
+                'guest.profileTitle'.tr(),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              // Subtitle
+              Text(
+                'guest.profileSubtitle'.tr(),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              // Sign in button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.login),
+                  label: Text('guest.signIn'.tr()),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    context.push(RouteConstants.login);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

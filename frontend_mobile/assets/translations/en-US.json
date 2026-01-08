@@ -83,9 +83,20 @@
     "googleLogin": "Continue with Google",
     "appleLogin": "Continue with Apple",
     "kakaoLogin": "Continue with Kakao",
+    "browseAsGuest": "Browse as Guest",
     "terms": "By logging in, you agree to our Terms of Service and Privacy Policy.",
     "loginFailed": "Login failed",
     "loginCancelled": "Login cancelled"
+  },
+  "guest": {
+    "signInRequired": "Sign in required",
+    "signInToSave": "Sign in to save this recipe",
+    "signInToFollow": "Sign in to follow this user",
+    "signInToCreate": "Sign in to create content",
+    "signIn": "Sign In",
+    "profileTitle": "Join Pairing Planet",
+    "profileSubtitle": "Sign in to save recipes, follow cooks, and share your cooking journey!",
+    "continueAsGuest": "Continue as Guest"
   },
   "recipe": {
     "title": "Recipes",
@@ -236,6 +247,20 @@
     "gallery": "Gallery",
     "delete": "Delete",
     "permissionDenied": "Permission required"
+  },
+  "locale": {
+    "korean": "Korean",
+    "american": "American",
+    "japanese": "Japanese",
+    "chinese": "Chinese",
+    "italian": "Italian",
+    "mexican": "Mexican",
+    "thai": "Thai",
+    "indian": "Indian",
+    "french": "French",
+    "other": "Other/Fusion",
+    "all": "All",
+    "selectLocale": "Cuisine Type"
   },
   "settings": {
     "title": "Settings",
