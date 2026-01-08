@@ -23,10 +23,12 @@ project-root/
 **Every new session, do this first:**
 ```
 1. Read CLAUDE.md (this file)
-2. Check current branch: git branch --show-current
-3. Check status: git status
-4. Read FEATURES.md → Find current task (🟡 In Progress)
-5. If no 🟡 task → Ask user what to work on
+2. git pull origin dev
+3. git branch --show-current
+4. git status
+5. Read FEATURES.md → Check for my existing 🟡 lock
+6. If I have an existing lock → Resume that work
+7. If no lock → Wait for user to request a feature
 ```
 
 ---
@@ -41,22 +43,28 @@ claude --dangerously-skip-permissions --model opus
 
 ## 🔴 CRITICAL RULES
 
-0. **Model** → Use opus with extended thinking, skip permissions
-1. **Before coding** → Create branch from dev
-2. **Before ANY feature** → Plan with ultrathink + research best practices (see below)
-3. **After planning** → Document in FEATURES.md, get approval
-4. **After feature** → Write and run tests (must pass)
-5. **Before commit** → Run pre-commit checklist
-6. **Push & PR** → `git push origin HEAD` then `gh pr create --base dev`
-7. **After DTOs/Isar** → Run `dart run build_runner build --delete-conflicting-outputs`
-8. **After `await`** → Check `if (!context.mounted) return;`
-9. **API IDs** → Use `publicId` (UUID), never internal `id`
-10. **Providers in callbacks** → `ref.read()`, not `ref.watch()`
-11. **Entities** → Never import `json_annotation` or `isar`
-12. **Backend Slice** → Field is `content`, not `items`
-13. **Recipe variants** → Include `parentPublicId` + `rootPublicId`
-14. **Error handling** → Return `Either<Failure, T>`, never throw
-15. **Commits** → `feat|fix|docs|chore(scope): description`
+0. **Model** → Use opus with extended thinking; skip all permission requests.
+1. **Before coding** → Create branch from dev.
+2. **When user says "implement/work on [feature]"** → Lock FEATURES.md first, push, THEN code.
+3. **Plan with ultrathink** → Research best practices before implementing ANY feature.
+4. **After planning** → Document in FEATURES.md, get approval.
+5. **After feature** → Write and run tests (must pass).
+6. **Before commit** → Run pre-commit checklist.
+7. **Push & PR** → `git push origin HEAD` then `gh pr create --base dev`.
+8. **Run app** → Use `--flavor dev -t lib/main_dev.dart` (NEVER main.dart).
+9. **UI strings** → Use `.tr`, add to BOTH en.json AND ko.json.
+10. **UI sizes** → Use `.w`, `.h`, `.sp`, `.r` (NEVER hardcode pixels).
+11. **Buttons** → Debounce 300ms, check state before API call.
+12. **After DTOs/Isar** → Run `dart run build_runner build --delete-conflicting-outputs`.
+13. **After await** → Check `if (!context.mounted) return;`.
+14. **API IDs** → Use `publicId` (UUID), never internal `id`.
+15. **Providers in callbacks** → `ref.read()`, not `ref.watch()`.
+16. **Entities** → Never import `json_annotation` or `isar`.
+17. **Backend Slice** → Field is `content`, not `items`.
+18. **Recipe variants** → Include `parentPublicId` + `rootPublicId`.
+19. **Error handling** → Return `Either<Failure, T>`, never throw.
+20. **Commits** → `feat|fix|docs|chore(scope): description`.
+21. **When done** → Remove lock, mark ✅ Done in FEATURES.md.
 
 ---
 
@@ -229,10 +237,15 @@ PHASE 5: IMPLEMENT (only after approval)
 □ ./gradlew test (if backend)        → All pass
 □ No print() or console.log left
 □ No TODO comments (fix or remove)
+□ No hardcoded UI strings (use .tr)
+□ No hardcoded pixels (use .w .h .sp .r)
 □ No hardcoded strings (use constants)
+□ New text in BOTH en.json AND ko.json
+□ Buttons debounced
 □ Imports clean (no unused)
 □ FEATURES.md updated:
   - Status → ✅ Done
+  - Remove lock lines
   - Criteria → [x] checked
 ```
 
@@ -368,20 +381,38 @@ flutter test --coverage
 
 ---
 
+---
+
+## 🔥 FIREBASE ENVIRONMENTS
+
+| Env | Project | Package ID | Flavor |
+|-----|---------|------------|--------|
+| Dev | pairing-planet-dev | com.pairingplanet.app.dev | dev |
+| Staging | pairing-planet-stg | com.pairingplanet.app.stg | staging |
+| Prod | pairing-planet-prod | com.pairingplanet.app | prod |
+
+**❌ NEVER create main.dart** - Use flavored entry points only.
+
+---
+
 ## 🛠️ COMMANDS
 
 ```bash
-# Frontend
-flutter pub get
+# Run app
+flutter run --flavor dev -t lib/main_dev.dart
+
+# Testing
 flutter analyze
 flutter test --coverage
-flutter run -d android
+./gradlew test jacocoTestReport
+
+# Build
 dart run build_runner build --delete-conflicting-outputs
 
 # Backend
 docker-compose up -d
 ./gradlew bootRun
-./gradlew test jacocoTestReport
+./gradlew bootRun --args='--server.port=4002'  # Different port
 
 # Emulator
 emulator -avd $(emulator -list-avds | head -1) &
@@ -393,6 +424,19 @@ adb logcat *:E
 ## 📐 ARCHITECTURE
 
 ```
+frontend_mobile/
+├── assets/translations/
+│   ├── en.json
+│   └── ko.json
+├── lib/
+│   ├── main_dev.dart         # USE THIS
+│   ├── main_staging.dart
+│   ├── main_prod.dart
+│   ├── core/
+│   ├── data/
+│   ├── domain/
+│   └── features/
+
 lib/
 ├── core/
 │   ├── network/dio_client.dart
@@ -411,6 +455,20 @@ lib/
     ├── widgets/
     └── providers/
 ```
+
+---
+
+## 🌍 TRANSLATIONS
+
+```dart
+Text('home.title'.tr)
+Text('recipe.by'.tr(args: [name]))
+```
+
+- NEVER hardcode strings
+- Add to BOTH en.json AND ko.json
+
+---
 
 ---
 
@@ -442,6 +500,38 @@ onTap: () => ref.read(recipesProvider.notifier).refresh();
 await someAsyncOperation();
 if (!context.mounted) return;
 Navigator.pop(context);
+```
+
+---
+
+## 📏 RESPONSIVE UI
+
+```dart
+Container(width: 16.w, height: 200.h)
+Text('Hi', style: TextStyle(fontSize: 14.sp))
+BorderRadius.circular(8.r)
+```
+
+---
+
+## 💾 CACHING
+
+- TTL: 24 hours
+- Pull-to-refresh: Bypass cache
+- Image cache: 30 days
+
+---
+
+## ⚡ IDEMPOTENCY
+
+```dart
+Timer? _debounce;
+void onTap() {
+  _debounce?.cancel();
+  _debounce = Timer(Duration(milliseconds: 300), () {
+    if (!state.isFollowing) follow(userId);
+  });
+}
 ```
 
 ---
@@ -533,8 +623,10 @@ Research how [Instagram/Twitter/etc] implements [feature].
 - [ ] Is the spec approved?
 - [ ] Am I on the correct branch?
 - [ ] Do I understand acceptance criteria?
+- [ ] Which port am I using?
 
 **Before committing, verify:**
 - [ ] All tests pass?
+- [ ] No hardcoded strings/pixels?
 - [ ] FEATURES.md updated?
 - [ ] Commit message follows convention?
