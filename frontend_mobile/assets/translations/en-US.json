@@ -284,5 +284,14 @@
     "deleteButton": "Delete Account",
     "deleteSuccess": "Account scheduled for deletion",
     "deleteFailed": "Failed to delete account"
+  },
+  "steps": {
+    "header": "Cooking Steps (drag to reorder)",
+    "addStep": "Add Step",
+    "addMultiple": "Add Photos",
+    "descriptionHint": "Describe this step...",
+    "deleted": "Deleted",
+    "step": "Step",
+    "restore": "Restore"
   }
 }

@@ -284,5 +284,14 @@
     "deleteButton": "계정 삭제",
     "deleteSuccess": "계정 삭제가 예약되었습니다",
     "deleteFailed": "계정 삭제에 실패했습니다"
+  },
+  "steps": {
+    "header": "요리 단계 (드래그하여 순서 변경)",
+    "addStep": "단계 추가",
+    "addMultiple": "사진 여러장",
+    "descriptionHint": "과정 설명...",
+    "deleted": "삭제됨",
+    "step": "단계",
+    "restore": "복원"
   }
 }
