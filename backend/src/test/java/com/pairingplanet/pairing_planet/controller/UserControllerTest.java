@@ -128,12 +128,14 @@ class UserControllerTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should return 401 without token")
-        void getOtherUserProfile_NoToken_Returns401() throws Exception {
+        @DisplayName("Should return profile without token (guest access)")
+        void getOtherUserProfile_NoToken_ReturnsProfile() throws Exception {
             User user = testUserFactory.createTestUser();
 
+            // Guest users can view other user profiles
             mockMvc.perform(get("/api/v1/users/" + user.getPublicId()))
-                    .andExpect(status().isUnauthorized());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.username").value(user.getUsername()));
         }
     }
 }

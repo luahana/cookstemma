@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
+import 'package:pairing_planet2_frontend/core/widgets/login_prompt_sheet.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/ingredient_dto.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
+import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 import '../../providers/recipe_providers.dart';
 import '../widgets/lineage_breadcrumb.dart';
 import '../widgets/recent_logs_gallery.dart';
@@ -74,6 +76,17 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                 color: isSaved ? const Color(0xFF1A237E) : Colors.grey[600],
               ),
               onPressed: () {
+                final authStatus = ref.read(authStateProvider).status;
+                if (authStatus != AuthStatus.authenticated) {
+                  LoginPromptSheet.show(
+                    context: context,
+                    actionKey: 'guest.signInToSave',
+                    pendingAction: () {
+                      ref.read(saveRecipeProvider(widget.recipeId).notifier).toggle();
+                    },
+                  );
+                  return;
+                }
                 ref.read(saveRecipeProvider(widget.recipeId).notifier).toggle();
               },
             ),
@@ -240,7 +253,17 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
           Expanded(
             child: OutlinedButton.icon(
               onPressed: () {
-                // 💡 로그 작성을 위한 경로로 이동 (RouteConstants에 정의 필요)
+                final authStatus = ref.read(authStateProvider).status;
+                if (authStatus != AuthStatus.authenticated) {
+                  LoginPromptSheet.show(
+                    context: context,
+                    actionKey: 'guest.signInToCreate',
+                    pendingAction: () {
+                      context.push(RouteConstants.logPostCreate, extra: recipe);
+                    },
+                  );
+                  return;
+                }
                 context.push(RouteConstants.logPostCreate, extra: recipe);
               },
               icon: const Icon(Icons.history_edu),
@@ -260,8 +283,20 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
           Expanded(
             flex: 1,
             child: ElevatedButton.icon(
-              onPressed: () =>
-                  context.push(RouteConstants.recipeCreate, extra: recipe),
+              onPressed: () {
+                final authStatus = ref.read(authStateProvider).status;
+                if (authStatus != AuthStatus.authenticated) {
+                  LoginPromptSheet.show(
+                    context: context,
+                    actionKey: 'guest.signInToCreate',
+                    pendingAction: () {
+                      context.push(RouteConstants.recipeCreate, extra: recipe);
+                    },
+                  );
+                  return;
+                }
+                context.push(RouteConstants.recipeCreate, extra: recipe);
+              },
               icon: const Icon(Icons.alt_route, color: Colors.white),
               label: Text('recipe.makeVariant'.tr(), style: const TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(

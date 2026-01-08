@@ -45,11 +45,45 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
     redirect: (context, state) {
       final authState = ref.read(authStateProvider);
-      if (authState.status == AuthStatus.initial) return null;
-      final isLoggedIn = authState.status == AuthStatus.authenticated;
-      final isLoggingIn = state.matchedLocation == RouteConstants.login;
-      if (!isLoggedIn && !isLoggingIn) return RouteConstants.login;
-      if (isLoggedIn && isLoggingIn) return RouteConstants.home;
+      final status = authState.status;
+      final location = state.matchedLocation;
+      final isLoggingIn = location == RouteConstants.login;
+
+      // Wait for auth check to complete
+      if (status == AuthStatus.initial) return null;
+
+      // Authenticated user on login page -> go home
+      if (status == AuthStatus.authenticated && isLoggingIn) {
+        return RouteConstants.home;
+      }
+
+      // Guest or unauthenticated: allow browsing, block protected routes
+      if (status == AuthStatus.guest || status == AuthStatus.unauthenticated) {
+        // Protected paths that require authentication
+        final protectedPaths = [
+          RouteConstants.recipeCreate,
+          RouteConstants.logPostCreate,
+          RouteConstants.profileEdit,
+          RouteConstants.settings,
+          RouteConstants.deleteAccount,
+        ];
+
+        // Block access to protected routes for guests
+        if (protectedPaths.any((path) => location.startsWith(path))) {
+          return RouteConstants.login;
+        }
+
+        // Allow guests to browse all other routes (except already on login)
+        if (status == AuthStatus.guest) {
+          return null; // Allow navigation
+        }
+
+        // Unauthenticated (not guest) - redirect to login
+        if (!isLoggingIn) {
+          return RouteConstants.login;
+        }
+      }
+
       return null;
     },
     routes: [
