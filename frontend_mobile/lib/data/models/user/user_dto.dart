@@ -10,6 +10,8 @@ class UserDto {
   final String? profileImageUrl;
   final String? gender;
   final String? birthDate;
+  final int followerCount;
+  final int followingCount;
 
   UserDto({
     required this.id,
@@ -18,6 +20,8 @@ class UserDto {
     this.profileImageUrl,
     this.gender,
     this.birthDate,
+    this.followerCount = 0,
+    this.followingCount = 0,
   });
 
   factory UserDto.fromJson(Map<String, dynamic> json) => _$UserDtoFromJson(json);

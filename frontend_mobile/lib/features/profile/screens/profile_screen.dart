@@ -148,6 +148,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               _buildStatItem('저장', profile.savedCount),
             ],
           ),
+          const SizedBox(height: 16),
+          // Follow Stats Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildTappableStatItem(
+                context,
+                '팔로워',
+                profile.user.followerCount,
+                () => context.push(
+                  RouteConstants.followersPath(profile.user.id),
+                ),
+              ),
+              const SizedBox(width: 32),
+              _buildTappableStatItem(
+                context,
+                '팔로잉',
+                profile.user.followingCount,
+                () => context.push(
+                  '${RouteConstants.followersPath(profile.user.id)}?tab=1',
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -181,6 +205,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       height: 30,
       width: 1,
       color: Colors.grey[300],
+    );
+  }
+
+  Widget _buildTappableStatItem(
+    BuildContext context,
+    String label,
+    int count,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(
+            count.toString(),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A237E),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

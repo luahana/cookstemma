@@ -13,6 +13,8 @@ UserDto _$UserDtoFromJson(Map<String, dynamic> json) => UserDto(
       profileImageUrl: json['profileImageUrl'] as String?,
       gender: json['gender'] as String?,
       birthDate: json['birthDate'] as String?,
+      followerCount: (json['followerCount'] as num?)?.toInt() ?? 0,
+      followingCount: (json['followingCount'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
@@ -22,4 +24,6 @@ Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
       'profileImageUrl': instance.profileImageUrl,
       'gender': instance.gender,
       'birthDate': instance.birthDate,
+      'followerCount': instance.followerCount,
+      'followingCount': instance.followingCount,
     };
