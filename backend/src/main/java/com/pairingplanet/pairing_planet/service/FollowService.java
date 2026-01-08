@@ -30,6 +30,7 @@ public class FollowService {
 
     private final UserFollowRepository userFollowRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
@@ -65,6 +66,9 @@ public class FollowService {
         // Increment counts
         incrementFollowerCount(followingId);
         incrementFollowingCount(followerId);
+
+        // Send notification to the followed user
+        notificationService.notifyNewFollower(following, follower);
 
         log.info("User {} followed user {}", followerId, followingId);
     }

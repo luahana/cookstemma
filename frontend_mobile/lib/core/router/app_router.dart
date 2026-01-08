@@ -14,6 +14,7 @@ import 'package:pairing_planet2_frontend/features/recipe/presentation/screens/re
 import 'package:pairing_planet2_frontend/features/profile/screens/profile_screen.dart';
 import 'package:pairing_planet2_frontend/features/profile/screens/followers_list_screen.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart'; // 💡 추가
+import 'package:pairing_planet2_frontend/features/notification/screens/notification_inbox_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/recipe/presentation/screens/recipe_detail_screen.dart';
 
@@ -81,6 +82,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['id']!;
           return LogPostDetailScreen(logId: id);
         },
+      ),
+      GoRoute(
+        path: RouteConstants.notifications,
+        name: 'notifications',
+        builder: (context, state) => const NotificationInboxScreen(),
       ),
       GoRoute(
         path: RouteConstants.followers, // '/users/:userId/followers'
