@@ -16,7 +16,7 @@
 ### Medium Priority
 | ID | Feature | Status | Locked By |
 |----|---------|--------|-----------|
-| FEAT-012 | Recipe Search | 📋 Planned | - |
+| FEAT-012 | Recipe Search | ✅ Done | - |
 | FEAT-013 | Recipe Categories | 📋 Planned | - |
 | FEAT-014 | User Settings | 📋 Planned | - |
 
@@ -287,19 +287,25 @@ git push origin dev
 ---
 
 ### [FEAT-012]: Recipe Search
-**Status:** 📋 Planned
-**Branch:** `feature/recipe-search`
+**Status:** ✅ Done
 
-**Description:** Search recipes with filters.
+**Description:** Search recipes with filters and relevance ranking.
 
 **Acceptance Criteria:**
-- [ ] Search by title (debounced 300ms)
-- [ ] Filter by ingredient
-- [ ] Recent searches (local, max 10)
-- [ ] Empty state with suggestions
+- [x] Search by title (debounced 300ms)
+- [x] Search by description
+- [x] Search by ingredient name
+- [x] Search ranking (pg_trgm SIMILARITY-based ordering)
+- [x] Filter by ingredient (via search query)
+- [x] Recent searches (local, max 10) - search_history_provider.dart
+- [x] Empty state with suggestions - search_empty_state.dart, search_suggestions_overlay.dart
 
 **Technical Notes:**
-- Backend: PostgreSQL full-text search
+- Backend: PostgreSQL pg_trgm extension for trigram matching (V9__add_search_indexes.sql)
+- Uses `%` operator for fuzzy matching + ILIKE for substring fallback
+- SIMILARITY() function for relevance-based ordering
+- GIN indexes on title, description, and ingredient names
+- Frontend: enhanced_search_app_bar.dart, search_local_data_source.dart
 
 ---
 
@@ -429,6 +435,6 @@ git push origin dev
 | FEAT-009 | Follow System | 📋 | - | - |
 | FEAT-010 | Push Notifications | 📋 | - | - |
 | FEAT-011 | Profile Caching | 📋 | - | - |
-| FEAT-012 | Recipe Search | 📋 | - | - |
+| FEAT-012 | Recipe Search | ✅ | - | - |
 | FEAT-013 | Recipe Categories | 📋 | - | - |
 | FEAT-014 | User Settings | 📋 | - | - |
