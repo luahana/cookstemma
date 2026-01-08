@@ -71,20 +71,29 @@ jobs:
 
       - name: Upload Crashlytics mapping file
         if: success()
+        continue-on-error: true
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
         run: |
           # Install Firebase CLI
           npm install -g firebase-tools
+
+          # Set up service account authentication
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/sa.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
 
           # Upload mapping file for Crashlytics symbol resolution
           MAPPING_FILE="build/app/outputs/mapping/devRelease/mapping.txt"
           if [ -f "$MAPPING_FILE" ]; then
             firebase crashlytics:mappingfile:upload \
               --app=${{ secrets.FIREBASE_APP_ID_ANDROID_DEV }} \
-              --token="${{ secrets.FIREBASE_TOKEN_DEV }}" \
               "$MAPPING_FILE"
           else
-            echo "No mapping file found at $MAPPING_FILE (expected for debug builds)"
+            echo "No mapping file found at $MAPPING_FILE (ProGuard not enabled for dev builds)"
           fi
+
+          # Cleanup
+          rm -f /tmp/sa.json
 
       - name: Distribution Summary
         run: |
