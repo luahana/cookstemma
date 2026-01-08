@@ -10,20 +10,20 @@
 
 ### Priority 0 — Critical (Do These First)
 
-- [ ] **Profile Page Local Caching** — Cache "My Recipes", "My Logs", "Saved" tabs in Isar
-  - Files: `profile_provider.dart`, `profile_local_data_source.dart`
+- [x] **Profile Page Local Caching** — Cache "My Recipes", "My Logs", "Saved" tabs in Hive (2026-01-07)
+  - Files: `profile_provider.dart`, `user_local_data_source.dart`
   - Pattern: Cache-first, show cached data immediately, then refresh from network
   - Add cache indicator like home feed
 
 ### Priority 1 — High Impact
 
-- [ ] **Follow System** — Users can follow each other
+- [x] **Follow System** — Users can follow each other (2026-01-07)
   - Backend: `UserFollow.java`, `FollowService.java`, `FollowController.java`
   - Frontend: `follow_provider.dart`, `follow_button.dart`, `followers_list_screen.dart`
   - DB: `user_follows` table, add `follower_count`/`following_count` to users
 
-- [ ] **Push Notifications (FCM)** — Bring users back with notifications
-  - Types: NEW_FOLLOWER, RECIPE_COOKED, RECIPE_VARIATION
+- [x] **Push Notifications (FCM)** — Bring users back with notifications (2026-01-07)
+  - Types: RECIPE_COOKED, RECIPE_VARIATION
   - Backend: `notifications` table, `user_fcm_tokens` table
   - Frontend: FCM integration, notification handling
 

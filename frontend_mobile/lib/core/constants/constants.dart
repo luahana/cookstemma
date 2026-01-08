@@ -20,6 +20,12 @@ class ApiEndpoints {
   static const String myLogs = '/log_posts/my';
   static const String savedRecipes = '/recipes/saved';
 
+  // Follow 관련
+  static String follow(String userId) => '/users/$userId/follow';
+  static String followStatus(String userId) => '/users/$userId/follow-status';
+  static String followers(String userId) => '/users/$userId/followers';
+  static String following(String userId) => '/users/$userId/following';
+
   // Analytics 관련
   static const String events = '/events'; // 단일 이벤트 추적
   static const String eventsBatch = '/events/batch'; // 배치 이벤트 추적
@@ -42,9 +48,13 @@ class RouteConstants {
   static const String profile = '/profile';
   static const String notifications = '/notifications';
 
+  // Follow 관련
+  static const String followers = '/users/:userId/followers';
+
   // 이동 시 사용할 전체 경로 헬퍼
   static String recipeDetailPath(String id) => '/recipes/$id';
   static String logPostDetailPath(String id) => '/log_post/$id';
+  static String followersPath(String userId) => '/users/$userId/followers';
 }
 
 class HttpStatus {
