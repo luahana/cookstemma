@@ -51,4 +51,14 @@ public class UserController {
         UserDto response = userService.getUserProfile(userId);
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * 계정 삭제 (소프트 삭제 - 30일 유예 기간)
+     * 30일 이내 재로그인 시 계정 복구 가능
+     */
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMyAccount(@AuthenticationPrincipal UserPrincipal principal) {
+        userService.deleteAccount(principal);
+        return ResponseEntity.noContent().build();
+    }
 }

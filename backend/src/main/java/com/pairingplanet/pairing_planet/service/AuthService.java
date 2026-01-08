@@ -28,6 +28,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserService userService;
 
     @Transactional
     public AuthResponseDto socialLogin(SocialLoginRequestDto req) {
@@ -90,6 +91,9 @@ public class AuthService {
     }
 
     private AuthResponseDto performLogin(User user) {
+        // 소프트 삭제된 계정이면 복구 (30일 유예 기간 내 재로그인)
+        userService.restoreDeletedAccount(user);
+
         // [수정] user.getRole() (Enum) -> .name() (String) 으로 변환하여 전달
         String accessToken = jwtTokenProvider.createAccessToken(user.getPublicId(), user.getRole().name());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getPublicId());

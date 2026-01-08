@@ -236,5 +236,28 @@
     "gallery": "Gallery",
     "delete": "Delete",
     "permissionDenied": "Permission required"
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "account": "Account",
+    "dangerZone": "Danger Zone",
+    "language": "Language",
+    "notifications": "Notifications",
+    "notificationsSubtitle": "Manage push notifications",
+    "logout": "Logout",
+    "logoutConfirm": "Are you sure you want to logout?",
+    "deleteAccount": "Delete Account",
+    "deleteWarningTitle": "Delete your account?",
+    "deleteWarningBody": "This action cannot be undone. The following will be permanently deleted:",
+    "deleteItemRecipes": "All your recipes",
+    "deleteItemLogs": "All your cooking logs",
+    "deleteItemFollowers": "Your followers and following",
+    "deleteGracePeriod": "You have 30 days to restore your account by logging back in.",
+    "typeToConfirm": "Type DELETE to confirm",
+    "deleteConfirmWord": "DELETE",
+    "deleteButton": "Delete Account",
+    "deleteSuccess": "Account scheduled for deletion",
+    "deleteFailed": "Failed to delete account"
   }
 }

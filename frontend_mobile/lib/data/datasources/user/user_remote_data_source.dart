@@ -105,4 +105,18 @@ class UserRemoteDataSource {
       throw ServerException(e.toString());
     }
   }
+
+  /// 계정 삭제 (30일 유예 기간 후 완전 삭제)
+  Future<void> deleteAccount() async {
+    try {
+      final response = await _dio.delete(ApiEndpoints.myProfile);
+
+      if (response.statusCode != HttpStatus.ok &&
+          response.statusCode != HttpStatus.noContent) {
+        throw ServerException();
+      }
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
 }

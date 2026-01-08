@@ -2,6 +2,7 @@ package com.pairingplanet.pairing_planet.service;
 
 import com.pairingplanet.pairing_planet.domain.entity.image.Image;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
+import com.pairingplanet.pairing_planet.domain.enums.AccountStatus;
 import com.pairingplanet.pairing_planet.dto.user.MyProfileResponseDto;
 import com.pairingplanet.pairing_planet.dto.user.UpdateProfileRequestDto;
 import com.pairingplanet.pairing_planet.dto.user.UserDto;
@@ -16,6 +17,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -101,5 +104,49 @@ public class UserService {
         }
 
         return UserDto.from(user, urlPrefix);
+    }
+
+    /**
+     * 계정 삭제 (소프트 삭제)
+     * 30일 유예 기간 후 실제 삭제 처리
+     */
+    @Transactional
+    public void deleteAccount(UserPrincipal principal) {
+        User user = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Instant now = Instant.now();
+        user.setStatus(AccountStatus.DELETED);
+        user.setDeletedAt(now);
+        user.setDeleteScheduledAt(now.plus(30, ChronoUnit.DAYS));
+        user.setAppRefreshToken(null); // 모든 세션 무효화
+    }
+
+    /**
+     * 삭제된 계정 복구 (로그인 시 호출)
+     */
+    @Transactional
+    public void restoreDeletedAccount(User user) {
+        if (user.getStatus() == AccountStatus.DELETED && user.getDeletedAt() != null) {
+            user.setStatus(AccountStatus.ACTIVE);
+            user.setDeletedAt(null);
+            user.setDeleteScheduledAt(null);
+        }
+    }
+
+    /**
+     * 유예 기간이 지난 삭제된 계정 영구 삭제 (스케줄러에서 호출)
+     * 30일 유예 기간이 지나면 계정 및 관련 데이터 영구 삭제
+     */
+    @Transactional
+    public void purgeExpiredDeletedAccounts() {
+        Instant now = Instant.now();
+        List<User> expiredUsers = userRepository.findByStatusAndDeleteScheduledAtBefore(
+                AccountStatus.DELETED, now);
+
+        for (User user : expiredUsers) {
+            // 관련 데이터 삭제는 cascade 설정에 따라 처리됨
+            userRepository.delete(user);
+        }
     }
 }

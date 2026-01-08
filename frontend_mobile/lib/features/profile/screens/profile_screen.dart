@@ -54,9 +54,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             },
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () {
-              _showLogoutDialog(context);
+              context.push(RouteConstants.settings);
             },
           ),
         ],
