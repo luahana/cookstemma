@@ -270,5 +270,19 @@
     "deleteButton": "계정 삭제",
     "deleteSuccess": "계정 삭제가 예약되었습니다",
     "deleteFailed": "계정 삭제에 실패했습니다"
+  },
+  "draft": {
+    "saving": "저장 중...",
+    "saved": "저장됨",
+    "saveFailed": "저장 실패",
+    "continueTitle": "이어서 작성하시겠습니까?",
+    "continueMessage": "저장되지 않은 레시피 초안이 있습니다",
+    "continue": "이어서 작성",
+    "startFresh": "새로 시작",
+    "untitled": "제목 없는 레시피",
+    "justNow": "방금 전",
+    "minutesAgo": "{}분 전",
+    "hoursAgo": "{}시간 전",
+    "daysAgo": "{}일 전"
   }
 }

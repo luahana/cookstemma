@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,14 +7,18 @@ import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/create_recipe_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/ingredient.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_step.dart';
-import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart'; // 💡 추가
+import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
+import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_draft.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/ingredient_section.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
+import 'package:uuid/uuid.dart';
 import '../widgets/hook_section.dart';
 import '../widgets/step_section.dart';
 import '../widgets/hashtag_input_section.dart';
+import '../widgets/draft_status_indicator.dart';
+import '../widgets/continue_draft_dialog.dart';
 
 class RecipeCreateScreen extends ConsumerStatefulWidget {
   final RecipeDetail? parentRecipe; // 💡 변경: ID 대신 객체 수신
@@ -24,7 +29,8 @@ class RecipeCreateScreen extends ConsumerStatefulWidget {
   ConsumerState<RecipeCreateScreen> createState() => _RecipeCreateScreenState();
 }
 
-class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
+class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
+    with WidgetsBindingObserver {
   final _titleController = TextEditingController();
   final _foodNameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -40,18 +46,34 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
 
   String? _food1MasterPublicId;
   bool _isLoading = false;
+  String? _draftId;
+  bool _draftChecked = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     if (isVariantMode) {
-      _initVariantData(); // 💡 변형 데이터 초기화
+      _initVariantData();
+      _draftChecked = true; // Skip draft check in variant mode
     } else {
       _addIngredient('MAIN');
       _addStep();
+      // Check for existing draft after frame is built
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkForExistingDraft();
+      });
     }
     _titleController.addListener(_rebuild);
     _foodNameController.addListener(_rebuild);
+
+    // Start auto-save timer (skip for variant mode)
+    if (!isVariantMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(recipeDraftProvider.notifier).startAutoSave(_collectCurrentDraft);
+      });
+    }
   }
 
   void _initVariantData() {
@@ -87,12 +109,210 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (!isVariantMode) {
+      ref.read(recipeDraftProvider.notifier).stopAutoSave();
+    }
     _titleController.dispose();
     _foodNameController.dispose();
     _descriptionController.dispose();
     _localeController.dispose();
     _changeReasonController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Save draft when app goes to background
+    if (!isVariantMode &&
+        (state == AppLifecycleState.paused ||
+            state == AppLifecycleState.inactive)) {
+      _triggerSave();
+    }
+  }
+
+  /// Collect current form state into a RecipeDraft object
+  RecipeDraft _collectCurrentDraft() {
+    final now = DateTime.now();
+    return RecipeDraft(
+      id: _draftId ?? const Uuid().v4(),
+      title: _titleController.text,
+      description: _descriptionController.text,
+      culinaryLocale:
+          _localeController.text.isEmpty ? null : _localeController.text,
+      food1MasterPublicId: _food1MasterPublicId,
+      foodName: _foodNameController.text.isEmpty
+          ? null
+          : _foodNameController.text,
+      ingredients: _ingredients
+          .map((i) => DraftIngredient(
+                name: i['name'] as String,
+                amount: i['amount'] as String?,
+                type: i['type'] as String,
+                isOriginal: i['isOriginal'] as bool? ?? false,
+                isDeleted: i['isDeleted'] as bool? ?? false,
+              ))
+          .toList(),
+      steps: _steps
+          .map((s) => DraftStep(
+                stepNumber: s['stepNumber'] as int,
+                description: s['description'] as String?,
+                imageUrl: s['imageUrl'] as String?,
+                imagePublicId: s['imagePublicId'] as String?,
+                localImagePath: (s['uploadItem'] as UploadItem?)?.file.path,
+                isOriginal: s['isOriginal'] as bool? ?? false,
+                isDeleted: s['isDeleted'] as bool? ?? false,
+              ))
+          .toList(),
+      images: _finishedImages
+          .map((img) => DraftImage(
+                localPath: img.file.path,
+                serverUrl: img.serverUrl,
+                publicId: img.publicId,
+                status: img.status.name,
+              ))
+          .toList(),
+      hashtags: _hashtags,
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
+  /// Trigger a save of the current draft
+  Future<void> _triggerSave() async {
+    if (isVariantMode) return;
+    final draft = _collectCurrentDraft();
+    if (draft.hasContent) {
+      await ref.read(recipeDraftProvider.notifier).saveDraft(draft);
+    }
+  }
+
+  /// Check for existing draft and show dialog
+  Future<void> _checkForExistingDraft() async {
+    if (_draftChecked || isVariantMode) return;
+    _draftChecked = true;
+
+    final draft = await ref.read(recipeDraftProvider.notifier).loadDraft();
+
+    if (draft != null && mounted) {
+      final shouldContinue = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => ContinueDraftDialog(
+          draft: draft,
+          onContinue: () => Navigator.pop(context, true),
+          onDiscard: () => Navigator.pop(context, false),
+        ),
+      );
+
+      if (shouldContinue == true) {
+        _restoreDraft(draft);
+      } else {
+        await ref.read(recipeDraftProvider.notifier).clearDraft();
+      }
+    }
+  }
+
+  /// Restore form state from a draft
+  void _restoreDraft(RecipeDraft draft) {
+    _draftId = draft.id;
+    _titleController.text = draft.title;
+    _descriptionController.text = draft.description;
+    _localeController.text = draft.culinaryLocale ?? '';
+    _foodNameController.text = draft.foodName ?? '';
+    _food1MasterPublicId = draft.food1MasterPublicId;
+
+    // Restore ingredients
+    _ingredients.clear();
+    for (final ing in draft.ingredients) {
+      _ingredients.add({
+        'name': ing.name,
+        'amount': ing.amount,
+        'type': ing.type,
+        'isOriginal': ing.isOriginal,
+        'isDeleted': ing.isDeleted,
+      });
+    }
+    // Add default ingredient if empty
+    if (_ingredients.isEmpty) {
+      _addIngredient('MAIN');
+    }
+
+    // Restore steps
+    _steps.clear();
+    for (final step in draft.steps) {
+      UploadItem? uploadItem;
+      // Check if local image file still exists
+      if (step.localImagePath != null) {
+        final file = File(step.localImagePath!);
+        if (file.existsSync()) {
+          uploadItem = UploadItem(
+            file: file,
+            status: step.imagePublicId != null
+                ? UploadStatus.success
+                : UploadStatus.initial,
+            serverUrl: step.imageUrl,
+            publicId: step.imagePublicId,
+          );
+        }
+      }
+      _steps.add({
+        'stepNumber': step.stepNumber,
+        'description': step.description,
+        'imageUrl': step.imageUrl,
+        'imagePublicId': step.imagePublicId,
+        'uploadItem': uploadItem,
+        'isOriginal': step.isOriginal,
+        'isDeleted': step.isDeleted,
+      });
+    }
+    // Add default step if empty
+    if (_steps.isEmpty) {
+      _addStep();
+    }
+
+    // Restore finished images
+    _finishedImages.clear();
+    for (final img in draft.images) {
+      final file = File(img.localPath);
+      if (file.existsSync()) {
+        _finishedImages.add(UploadItem(
+          file: file,
+          status: _parseUploadStatus(img.status),
+          serverUrl: img.serverUrl,
+          publicId: img.publicId,
+        ));
+      }
+    }
+
+    // Restore hashtags
+    _hashtags.clear();
+    _hashtags.addAll(draft.hashtags);
+
+    setState(() {});
+  }
+
+  UploadStatus _parseUploadStatus(String status) {
+    switch (status) {
+      case 'uploading':
+        return UploadStatus.uploading;
+      case 'success':
+        return UploadStatus.success;
+      case 'error':
+        return UploadStatus.error;
+      default:
+        return UploadStatus.initial;
+    }
+  }
+
+  /// Handle back navigation with draft save
+  Future<void> _handleClose() async {
+    if (!isVariantMode) {
+      await _triggerSave();
+    }
+    if (mounted) {
+      context.pop();
+    }
   }
 
   void _rebuild() => setState(() {});
@@ -283,6 +503,10 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
       state.when(
         data: (newId) {
           if (newId != null) {
+            // Clear draft on successful publish (skip for variants)
+            if (!isVariantMode) {
+              ref.read(recipeDraftProvider.notifier).clearDraft();
+            }
             // Invalidate profile providers so they refresh when user visits profile
             ref.invalidate(myRecipesProvider);
             ref.invalidate(myProfileProvider);
@@ -300,12 +524,24 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: _buildAppBar(),
-        body: Column(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await _handleClose();
+      },
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+          // Trigger save on unfocus (skip for variants)
+          if (!isVariantMode) {
+            _triggerSave();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          appBar: _buildAppBar(),
+          body: Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
@@ -363,6 +599,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
             _buildSubmitButton(),
           ],
         ),
+        ),
       ),
     );
   }
@@ -371,9 +608,17 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen> {
     backgroundColor: Colors.white,
     leading: IconButton(
       icon: const Icon(Icons.close),
-      onPressed: () => context.pop(),
+      onPressed: _handleClose,
     ),
     title: Text(isVariantMode ? 'recipe.createVariantTitle'.tr() : 'recipe.createNew'.tr()),
+    actions: [
+      // Show draft status indicator (only for new recipes, not variants)
+      if (!isVariantMode)
+        const Padding(
+          padding: EdgeInsets.only(right: 16),
+          child: DraftStatusIndicator(),
+        ),
+    ],
   );
 
   Widget _buildChangeReasonField() {

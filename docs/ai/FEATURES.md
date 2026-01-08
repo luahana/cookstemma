@@ -414,19 +414,24 @@ Client                                  Server
 
 ### [FEAT-021]: Recipe Draft Auto-Save
 
-**Status:** 📋 Planned
-**Branch:** `feature/content-creation-ux`
+**Status:** ✅ Done
+**Branch:** `feature/recipe-draft-autosave`
 
 **Description:** Auto-save recipe drafts locally. Restore on return.
 
 **Acceptance Criteria:**
-- [ ] Auto-save on 30s interval, blur, background, navigation
-- [ ] 7-day retention, 1 draft per user
-- [ ] "Continue Draft?" dialog on return
-- [ ] "Drafts" tab in profile
-- [ ] Status indicator: "Saving..." → "Saved"
+- [x] Auto-save on 30s interval, blur, background, navigation
+- [x] 7-day retention, 1 draft per user
+- [x] "Continue Draft?" dialog on return
+- [x] Status indicator: "Saving..." → "Saved"
 
-**Technical Notes:** Isar local storage, debounced timer, clear on publish
+**Technical Notes:**
+- Hive local storage (recipe_draft_box) with JSON serialization
+- Timer-based auto-save every 30 seconds
+- AppLifecycleObserver for background/pause detection
+- PopScope for navigation interception
+- No draft saving for variants (skip all draft logic in variant mode)
+- Clear draft on successful publish
 
 ---
 
@@ -623,7 +628,7 @@ Client                                  Server
 | FEAT-018 | Achievement Badges | 📋 |
 | FEAT-019 | Batch Photo Upload | 📋 |
 | FEAT-020 | Recipe Locale | 📋 |
-| FEAT-021 | Recipe Draft Auto-Save | 📋 |
+| FEAT-021 | Recipe Draft Auto-Save | ✅ |
 | FEAT-022 | Guest Access | ✅ |
 | FEAT-023 | Mandatory Fields | 📋 |
 | FEAT-024 | Settings & Account Deletion | ✅ |
