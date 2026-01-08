@@ -33,7 +33,19 @@
     "recentRecipes": "Recently Added Recipes",
     "cookedThis": "@{name} cooked this",
     "variants": "{count} variants",
-    "logs": "{count} logs"
+    "logs": "{count} logs",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "welcome": "Welcome",
+    "searchHint": "Search recipes...",
+    "mostEvolved": "Most Evolved",
+    "hotRightNow": "Hot Right Now",
+    "freshUploads": "Fresh Uploads",
+    "seeAll": "See All",
+    "offlineData": "Viewing offline data",
+    "recentSearches": "Recent searches",
+    "clearHistory": "Clear"
   },
   "profile": {
     "myPage": "My Page",

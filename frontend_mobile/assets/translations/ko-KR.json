@@ -33,7 +33,19 @@
     "recentRecipes": "최근 등록된 레시피",
     "cookedThis": "@{name}님이 요리했어요",
     "variants": "{count}개 변형",
-    "logs": "{count}개 로그"
+    "logs": "{count}개 로그",
+    "goodMorning": "좋은 아침이에요",
+    "goodAfternoon": "좋은 오후에요",
+    "goodEvening": "좋은 저녁이에요",
+    "welcome": "환영해요",
+    "searchHint": "레시피 검색...",
+    "mostEvolved": "가장 많이 진화한 레시피",
+    "hotRightNow": "지금 핫한",
+    "freshUploads": "새로 올라온",
+    "seeAll": "전체보기",
+    "offlineData": "오프라인 데이터 보는 중",
+    "recentSearches": "최근 검색",
+    "clearHistory": "삭제"
   },
   "profile": {
     "myPage": "마이페이지",
