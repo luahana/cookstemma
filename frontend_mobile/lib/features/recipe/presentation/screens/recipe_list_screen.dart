@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
-import 'package:pairing_planet2_frontend/core/widgets/search_app_bar.dart';
+import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
+import 'package:pairing_planet2_frontend/core/widgets/search/enhanced_search_app_bar.dart';
+import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
+import 'package:pairing_planet2_frontend/data/datasources/search/search_local_data_source.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_list_provider.dart';
 
@@ -42,10 +45,11 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: SearchAppBar(
+      appBar: EnhancedSearchAppBar(
         title: "레시피 탐색",
         hintText: "레시피, 재료 검색...",
         currentQuery: recipesAsync.valueOrNull?.searchQuery,
+        searchType: SearchType.recipe,
         onSearch: (query) {
           ref.read(recipeListProvider.notifier).search(query);
         },
@@ -67,29 +71,12 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
             if (recipes.isEmpty) {
               // 검색 결과가 없는 경우
               if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
-                return ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                    Center(
-                      child: Column(
-                        children: [
-                          const Icon(Icons.search_off, size: 64, color: Colors.grey),
-                          const SizedBox(height: 16),
-                          Text(
-                            "'${state.searchQuery}'에 대한 검색 결과가 없습니다.",
-                            style: const TextStyle(color: Colors.grey, fontSize: 16),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            "다른 키워드로 검색해보세요.",
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                return SearchEmptyState(
+                  query: state.searchQuery!,
+                  entityName: '레시피',
+                  onClearSearch: () {
+                    ref.read(recipeListProvider.notifier).clearSearch();
+                  },
                 );
               }
               // 일반 빈 상태
@@ -142,7 +129,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                       }
 
                       final recipe = recipes[index];
-                      final card = _buildRecipeCard(context, recipe);
+                      final card = _buildRecipeCard(context, recipe, state.searchQuery);
 
                       // 더 이상 데이터가 없을 때 하단에 안내 문구 표시
                       if (!hasNext && index == recipes.length - 1) {
@@ -196,7 +183,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
     );
   }
 
-  Widget _buildRecipeCard(BuildContext context, RecipeSummary recipe) {
+  Widget _buildRecipeCard(BuildContext context, RecipeSummary recipe, String? searchQuery) {
     final isVariant = recipe.rootPublicId != null;
     return GestureDetector(
       onTap: () =>
@@ -235,8 +222,9 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    recipe.foodName,
+                  HighlightedText(
+                    text: recipe.foodName,
+                    query: searchQuery,
                     style: TextStyle(
                       color: Colors.indigo[900],
                       fontSize: 12,
@@ -244,16 +232,18 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    recipe.title,
+                  HighlightedText(
+                    text: recipe.title,
+                    query: searchQuery,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    recipe.description,
+                  HighlightedText(
+                    text: recipe.description,
+                    query: searchQuery,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: Colors.grey[600], fontSize: 14),

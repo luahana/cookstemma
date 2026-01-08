@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.pairingplanet'
 version = '0.0.1-SNAPSHOT'
-description = 'pairing planet backend '
+description = 'pairing planet backend - monorepo'
 
 java {
 	toolchain {
@@ -66,6 +66,9 @@ dependencies {
     implementation 'io.minio:minio:8.5.7'
 
     implementation 'com.google.firebase:firebase-admin:9.2.0'
+
+    // Image processing for variant generation
+    implementation 'net.coobird:thumbnailator:0.4.20'
 }
 
 tasks.named('test') {

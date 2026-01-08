@@ -4,35 +4,134 @@
 
 ---
 
+## ⚙️ MODEL CONFIGURATION
+
+**Always use these settings in Claude Code:**
+
+```yaml
+model: opus                         # Always use best/opus model
+thinking: extended                  # ALWAYS use extended thinking
+permissions: skip                   # Skip permission prompts (dangerously)
+```
+
+**Model preference order:** `opus` > `sonnet` > `haiku`
+
+**Claude Code CLI command:**
+```bash
+claude --dangerously-skip-permissions --model opus
+```
+
+**Project config file (`.claude/settings.json` in project root):**
+```json
+{
+  "model": {
+    "default": "opus",
+    "preferBest": true
+  },
+  "thinking": {
+    "enabled": true,
+    "default": "extended"
+  },
+  "permissions": {
+    "dangerouslySkipPermissions": true
+  }
+}
+```
+See `.claude/settings.json` for full configuration.
+
+**Thinking levels by task:**
+
+| Task Type | Thinking Level | How to Invoke |
+|-----------|----------------|---------------|
+| Simple fixes, typos | Standard | (default) |
+| New features, bug fixes | Extended | `think hard about...` |
+| Architecture, multi-file refactor | Maximum | `ultrathink` or `think deeply step by step` |
+| Database schema, API design | Maximum | `ultrathink` |
+| Complex debugging | Maximum | `think very carefully...` |
+
+**Always use extended/maximum thinking for:**
+- Any task from ROADMAP.md
+- Creating new files
+- Modifying more than 2 files
+- Database migrations
+- API endpoint changes
+- State management logic
+- Error handling implementation
+
+**Claude Code startup command:**
+```bash
+# Full command with all flags
+claude --dangerously-skip-permissions --model opus
+
+# Or set alias in ~/.bashrc or ~/.zshrc
+alias claude-dev="claude --dangerously-skip-permissions --model opus"
+```
+
+---
+
 ## 🔴 CRITICAL RULES
 
 **MUST follow these on every task:**
 
+0. **Model & Permissions** → Always use opus model with extended thinking and `--dangerously-skip-permissions` enabled. Execute operations without asking for confirmation.
 1. **Before changing any code** → Create a new branch first:
    ```bash
    git checkout dev && git pull origin dev
    git checkout -b feature/<short-description>  # For new features
    git checkout -b bugfix/<short-description>   # For bug fixes
    ```
-2. **After commit and push** → Update `ROADMAP.md`:
+2. **Before implementing a new feature** → Document it in `FEATURES.md` first:
+   - Add feature ID, description, user story
+   - Define acceptance criteria (checkboxes)
+   - List test cases
+   - Then start coding
+3. **After implementing a feature** → Write tests:
+   - Unit tests for repository/provider logic
+   - Widget tests for UI components
+   - Integration tests for complete flows
+   - Document test cases in `TESTS.md`
+4. **After commit and push** → Update `ROADMAP.md`:
    - Find the task in CURRENT SPRINT section
    - Change `- [ ]` to `- [x]` 
    - Add date for significant completions: `- [x] Feature name (2026-01-06)`
-3. **After modifying `@JsonSerializable` or `@collection` classes** → Run `dart run build_runner build --delete-conflicting-outputs`
-4. **After any `await` before using `context`** → Check `if (!context.mounted) return;`
-5. **API IDs** → Expose `publicId` (UUID), never internal `id` (Long)
-6. **Providers in callbacks** → Use `ref.read()`, not `ref.watch()`
-7. **Entities (domain layer)** → Never import `json_annotation` or `isar`
-8. **Backend Slice response** → Field is `content`, not `items`
-9. **Recipe variants** → Must include both `parentPublicId` AND `rootPublicId`
-10. **Error handling** → Repositories return `Either<Failure, T>`, never throw
-11. **Commits** → Use conventional format: `feat|fix|docs|chore(<scope>): <description>`
+5. **After feature is complete** → Update `FEATURES.md`:
+   - Change status to ✅ Implemented
+   - Check off completed acceptance criteria
+6. **After modifying `@JsonSerializable` or `@collection` classes** → Run `dart run build_runner build --delete-conflicting-outputs`
+7. **After any `await` before using `context`** → Check `if (!context.mounted) return;`
+8. **API IDs** → Expose `publicId` (UUID), never internal `id` (Long)
+9. **Providers in callbacks** → Use `ref.read()`, not `ref.watch()`
+10. **Entities (domain layer)** → Never import `json_annotation` or `isar`
+11. **Backend Slice response** → Field is `content`, not `items`
+12. **Recipe variants** → Must include both `parentPublicId` AND `rootPublicId`
+13. **Error handling** → Repositories return `Either<Failure, T>`, never throw
+14. **Commits** → Use conventional format: `feat|fix|docs|chore(<scope>): <description>`
+
+---
+
+## 📝 DOCUMENTATION RULES (ASK BEFORE UPDATING)
+
+| File | When | Ask |
+|------|------|-----|
+| **FEATURES.md** | Before implementing | "Add to FEATURES.md?" |
+| **TESTS.md** | After writing tests | "Document in TESTS.md?" |
+| **BUGS.md** | When finding bugs | "Add to BUGS.md or quick fix?" |
+| **DECISIONS.md** | Technical decisions | "Document in DECISIONS.md?" |
+| **GLOSSARY.md** | New terms | "Add to GLOSSARY.md?" |
+| **PROMPTS.md** | Effective prompts | "Save to PROMPTS.md?" |
+
+**Auto-update (no asking):** ROADMAP.md, TECHSPEC.md, CHANGELOG.md
 
 ---
 
 ## 🤖 CLAUDE CODE INSTRUCTIONS
 
 ### Before Starting Any Task
+
+**Enable extended thinking first:**
+```
+I'll use extended thinking for this task to ensure thorough analysis.
+```
 
 ```bash
 # 1. Check current branch
@@ -47,12 +146,123 @@ cat ROADMAP.md | head -50  # View CURRENT SPRINT
 git checkout dev && git pull origin dev
 git checkout -b feature/<task-name>
 
-# 5. If task has implementation spec in ROADMAP.md, read it
+# 5. Document the feature in FEATURES.md BEFORE coding (Rule #2)
+#    - Add feature entry with ID, description, acceptance criteria, test cases
+#    - See FEATURES.md for template
 
-# 6. If task needs architecture context, read relevant TECHSPEC.md section
+# 6. If task has implementation spec in ROADMAP.md, read it
+
+# 7. If task needs architecture context, read relevant TECHSPEC.md section
+
+# 8. NOW start coding
+```
+
+### Documenting Features (Rule #2)
+
+**Before writing any code for a new feature, add to FEATURES.md:**
+
+```markdown
+### [FEAT-XXX]: Feature Name
+
+**Status:** 🟡 In Progress
+
+**Branch:** `feature/feature-name`
+
+**Description:**
+What this feature does.
+
+**User Story:**
+As a [user], I want to [action], so that [benefit].
+
+**Acceptance Criteria:**
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
+
+**Test Cases:**
+- [ ] Test case 1
+- [ ] Test case 2
+- [ ] Test case 3
+```
+
+**Why document first?**
+1. Forces you to think through the feature before coding
+2. Acceptance criteria become your checklist
+3. Test cases can be written from this spec
+4. Future reference for all project features
+
+### Writing Tests (Rule #3)
+
+**After implementing a feature, write tests in this order:**
+
+```
+1. Unit Tests (test/unit/)
+   └── Test repository methods, providers, services
+   
+2. Widget Tests (test/widget/)
+   └── Test UI components, screens
+   
+3. Integration Tests (integration_test/)
+   └── Test complete user flows on emulator
+```
+
+**Test file naming:**
+```
+Feature: Recipe Detail
+├── test/unit/repositories/recipe_repository_test.dart
+├── test/widget/screens/recipe_detail_screen_test.dart
+└── integration_test/recipe_detail_test.dart
+```
+
+**Minimum test coverage per feature:**
+
+| Feature Type | Required Tests |
+|--------------|----------------|
+| Repository method | Unit test for success + failure cases |
+| Provider | Unit test for state changes |
+| Screen with form | Widget test for validation |
+| User flow | Integration test for happy path |
+| Bug fix | Regression test proving fix works |
+
+**After writing tests:**
+```
+"I've written X tests for [FEATURE_NAME]:
+- Unit: test/unit/repositories/xxx_test.dart
+- Widget: test/widget/screens/xxx_test.dart
+
+Should I document these test cases in TESTS.md?"
+```
+
+**Running tests:**
+```bash
+# Run all tests
+flutter test
+
+# Run specific test
+flutter test test/unit/repositories/recipe_repository_test.dart
+
+# Run with coverage
+flutter test --coverage
+
+# Run integration tests on emulator
+flutter test integration_test/
 ```
 
 ### Task Execution Rules
+
+**With `--dangerously-skip-permissions` enabled, execute without asking:**
+
+| Operation | Auto-Approve | Just Do It |
+|-----------|--------------|------------|
+| Read files | ✅ | Yes |
+| Create files | ✅ | Yes |
+| Edit files | ✅ | Yes |
+| Delete files | ✅ | Yes, if task-related |
+| Git commands | ✅ | Yes |
+| Run flutter/dart commands | ✅ | Yes |
+| Run gradlew commands | ✅ | Yes |
+| Run tests | ✅ | Yes |
+| Install packages | ⚠️ | Ask first (Rule #5 below) |
 
 | Rule | Description |
 |------|-------------|
@@ -60,10 +270,12 @@ git checkout -b feature/<task-name>
 | **Stay focused** | Only modify files directly related to the task. Don't refactor unrelated code. |
 | **Match patterns** | Follow existing code style and patterns in the codebase. |
 | **Small changes** | Make incremental changes. Don't rewrite entire files unless asked. |
-| **No new deps** | Don't add new packages/dependencies without asking user first. |
+| **No new deps without asking** | Don't add new packages/dependencies without asking user first. |
 | **No secrets** | Never hardcode API keys, passwords, or secrets. Use environment variables. |
 
 ### Before Committing
+
+**Execute these checks automatically (no confirmation needed):**
 
 ```bash
 # 1. Verify code compiles
@@ -74,17 +286,16 @@ flutter analyze                    # Frontend
 flutter test                       # Frontend
 ./gradlew test                     # Backend
 
-# 3. Check for secrets (never commit these)
-grep -r "sk-" .                    # API keys
-grep -r "password=" .              # Hardcoded passwords
-
-# 4. If all pass, commit and push
+# 3. If all pass, commit and push immediately
 git add .
 git commit -m "feat(scope): description"
 git push origin <branch-name>
 
-# 5. Update roadmap.md (Rule #2)
+# 4. Update ROADMAP.md
+# Change [ ] to [x] for completed task
 ```
+
+**If tests fail:** Fix the issue and re-run. Don't commit broken code.
 
 ### After Completing Task
 
@@ -129,14 +340,22 @@ Provide a summary:
 
 ### When Stuck or Uncertain
 
+**With skip permissions, minimize asking. Only ask for:**
+
 | Situation | Action |
 |-----------|--------|
-| Unclear requirements | Ask user for clarification before coding |
-| Multiple valid approaches | Present options, recommend one, ask user to choose |
+| Unclear requirements | Ask user for clarification |
+| Multiple valid architectural approaches | Just pick the simpler one, document decision |
 | Need new dependency | Ask user: "This requires package X. Should I add it?" |
-| Breaking change needed | Warn user and explain impact before proceeding |
-| Tests failing | Report failure, suggest fix, ask before auto-fixing |
-| Unfamiliar pattern | Read existing similar code first, or ask user |
+| Breaking change needed | Just do it, but document in commit message |
+| Tests failing | Fix it, don't ask |
+| Unfamiliar pattern | Read existing code and follow the pattern |
+
+**Just execute, don't ask for:**
+- File operations (create, edit, delete)
+- Git operations (branch, commit, push)
+- Running tests and builds
+- Installing dev dependencies for the project
 
 ### File Reading Priority
 
@@ -146,29 +365,16 @@ Provide a summary:
 |-----------|---------------|
 | **Any task** | 1. CLAUDE.md (this file) |
 | **Pick what to work on** | 2. ROADMAP.md → CURRENT SPRINT section |
-| **Implement feature** | 3. ROADMAP.md → Implementation spec (if exists) |
-| **Architecture decision** | 4. TECHSPEC.md → Relevant section only |
-| **Add new endpoint** | 5. TECHSPEC.md → API Contracts section |
-| **Database changes** | 6. TECHSPEC.md → Database Schema section |
-
-**File Purposes:**
-
-```
-CLAUDE.md (this file)
-├── ALWAYS read first
-├── Contains: Rules, patterns, conventions, commands
-└── Update: Never (unless adding new rules)
-
-ROADMAP.md
-├── Read: To find next task
-├── Contains: Current sprint, task specs, completion status
-└── Update: Mark [x] when task completed
-
-TECHSPEC.md  
-├── Read: Only when needed for architecture
-├── Contains: Entity models, API contracts, database schemas
-└── Update: When adding new entities/endpoints
-```
+| **New feature** | 3. FEATURES.md → Check if documented, ASK to add if not |
+| **Bug fix** | 4. BUGS.md → Check if already tracked, ASK to add if significant |
+| **Technical decision** | 5. DECISIONS.md → Check for prior decisions, ASK to add new ones |
+| **Implement feature** | 6. ROADMAP.md → Implementation spec (if exists) |
+| **Writing tests** | 7. FEATURES.md → Use acceptance criteria & test cases |
+| **After writing tests** | 8. TESTS.md → ASK to document test cases |
+| **Architecture decision** | 9. TECHSPEC.md → Relevant section only |
+| **Add new endpoint** | 10. TECHSPEC.md → API Contracts section |
+| **Database changes** | 11. TECHSPEC.md → Database Schema section |
+| **Confused by term** | 12. GLOSSARY.md → Look up definition |
 
 **Quick Start for New Task:**
 ```bash
@@ -177,14 +383,20 @@ cat ROADMAP.md | head -60
 
 # 2. Pick first uncompleted [ ] task
 
-# 3. If implementation spec exists, expand and read it
-
-# 4. Create branch and start coding
+# 3. Create branch
 git checkout -b feature/<task-name>
+
+# 4. ASK: "Should I document this in FEATURES.md?"
+# If yes, add feature spec with acceptance criteria
+
+# 5. If implementation spec exists in ROADMAP.md, read it
+
+# 6. NOW start coding
 ```
 
 ### Do NOT
 
+- ❌ Start coding a new feature without documenting in FEATURES.md first
 - ❌ Modify files outside task scope
 - ❌ Add dependencies without asking
 - ❌ Commit directly to `dev`, `staging`, or `main`
@@ -1181,17 +1393,16 @@ if (condition) {
 
 ## 📚 RELATED DOCS
 
-| File | Purpose | When to Read |
-|------|---------|--------------|
-| [ROADMAP.md](ROADMAP.md) | Task list, priorities, implementation specs | To pick tasks, mark complete |
-| [TECHSPEC.md](TECHSPEC.md) | Architecture, entities, API contracts, schemas | For architecture decisions |
-| [CHANGELOG.md](CHANGELOG.md) | Version history, what changed when | After releases |
+| File | Purpose | Update |
+|------|---------|--------|
+| FEATURES.md | Features + acceptance criteria | 🔶 ASK |
+| TESTS.md | Test cases | 🔶 ASK |
+| BUGS.md | Known issues | 🔶 ASK |
+| DECISIONS.md | Why decisions made | 🔶 ASK |
+| GLOSSARY.md | Domain terms | 🔶 ASK |
+| PROMPTS.md | Saved prompts | 🔶 ASK |
+| ROADMAP.md | Tasks | ✅ AUTO |
+| TECHSPEC.md | Architecture | ✅ AUTO |
+| CHANGELOG.md | Version history | ✅ AUTO |
 
-**File Update Rules:**
-
-| File | Who Updates | When |
-|------|-------------|------|
-| CLAUDE.md | Human only | Adding new rules/patterns |
-| ROADMAP.md | Claude Code | Mark tasks complete `[x]` |
-| TECHSPEC.md | Claude Code | Adding new entities/endpoints |
-| CHANGELOG.md | Claude Code | After merging to main |
+🔶 ASK = Ask before editing | ✅ AUTO = Update without asking

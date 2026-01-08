@@ -16,7 +16,9 @@ public record UserDto(
         UUID profileImageId,     // [추가] 프로필 이미지의 UUID
         String profileImageUrl,  // [유지] 화면 표시용 전체 URL
         Gender gender,
-        LocalDate birthDate
+        LocalDate birthDate,
+        int followerCount,
+        int followingCount
 ) {
     public static UserDto from(User user, String urlPrefix) {
         if (user == null) return null;
@@ -41,6 +43,8 @@ public record UserDto(
                 .profileImageUrl(profileUrl)
                 .gender(user.getGender())
                 .birthDate(user.getBirthDate())
+                .followerCount(user.getFollowerCount())
+                .followingCount(user.getFollowingCount())
                 .build();
     }
 }
