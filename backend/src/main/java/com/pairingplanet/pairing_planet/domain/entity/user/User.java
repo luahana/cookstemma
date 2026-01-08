@@ -62,4 +62,10 @@ public class User extends BaseEntity {
     @Column(name = "following_count", nullable = false)
     @Builder.Default
     private int followingCount = 0;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Column(name = "delete_scheduled_at")
+    private Instant deleteScheduledAt;
 }

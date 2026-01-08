@@ -13,6 +13,8 @@ import 'package:pairing_planet2_frontend/features/recipe/presentation/screens/re
 import 'package:pairing_planet2_frontend/features/recipe/presentation/screens/recipe_list_screen.dart';
 import 'package:pairing_planet2_frontend/features/profile/screens/profile_screen.dart';
 import 'package:pairing_planet2_frontend/features/profile/screens/profile_edit_screen.dart';
+import 'package:pairing_planet2_frontend/features/profile/screens/settings_screen.dart';
+import 'package:pairing_planet2_frontend/features/profile/screens/delete_account_screen.dart';
 import 'package:pairing_planet2_frontend/features/profile/screens/followers_list_screen.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart'; // 💡 추가
 import 'package:pairing_planet2_frontend/features/notification/screens/notification_inbox_screen.dart';
@@ -102,6 +104,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteConstants.profileEdit,
         name: 'profile_edit',
         builder: (context, state) => const ProfileEditScreen(),
+      ),
+      GoRoute(
+        path: RouteConstants.settings,
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: RouteConstants.deleteAccount,
+        name: 'delete_account',
+        builder: (context, state) => const DeleteAccountScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

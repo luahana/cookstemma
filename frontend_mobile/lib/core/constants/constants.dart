@@ -47,6 +47,8 @@ class RouteConstants {
   static const String search = '/search';
   static const String profile = '/profile';
   static const String profileEdit = '/profile/edit';
+  static const String settings = '/settings';
+  static const String deleteAccount = '/settings/delete-account';
   static const String notifications = '/notifications';
 
   // Follow 관련
@@ -61,6 +63,7 @@ class RouteConstants {
 class HttpStatus {
   static const int ok = 200;
   static const int created = 201;
+  static const int noContent = 204;
   static const int badRequest = 400;
   static const int unauthorized = 401;
   static const int forbidden = 403;
