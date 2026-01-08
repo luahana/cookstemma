@@ -63,6 +63,33 @@ class SecurityConfigTest extends BaseIntegrationTest {
     }
 
     @Nested
+    @DisplayName("Guest Access Endpoints")
+    class GuestAccessEndpoints {
+
+        @Test
+        @DisplayName("Recipe list endpoint is accessible without authentication")
+        void recipeList_NoAuth_Returns200() throws Exception {
+            mockMvc.perform(get("/api/v1/recipes"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("User profile endpoint is accessible without authentication")
+        void userProfile_NoAuth_Returns200() throws Exception {
+            var user = testUserFactory.createTestUser();
+            mockMvc.perform(get("/api/v1/users/" + user.getPublicId()))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("Log posts list endpoint is accessible without authentication")
+        void logPostsList_NoAuth_Returns200() throws Exception {
+            mockMvc.perform(get("/api/v1/log_posts"))
+                    .andExpect(status().isOk());
+        }
+    }
+
+    @Nested
     @DisplayName("Protected Endpoints")
     class ProtectedEndpoints {
 
