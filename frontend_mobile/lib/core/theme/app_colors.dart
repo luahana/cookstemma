@@ -27,4 +27,12 @@ class AppColors {
   static const Color shimmerHighlight = Color(0xFFF5F5F5);
   static const Color badgeBackground = Color(0xFFF5F5F5);
   static const Color overlayGradientEnd = Color(0xCC000000);
+
+  // 💡 Living Blueprint: Diff colors
+  static const Color diffAdded = Color(0xFF27AE60);       // Green
+  static const Color diffRemoved = Color(0xFFE74C3C);     // Red
+  static const Color diffModified = Color(0xFFF39C12);    // Orange
+  static const Color diffAddedBg = Color(0xFFE8F5E9);     // Light green
+  static const Color diffRemovedBg = Color(0xFFFFEBEE);   // Light red
+  static const Color diffModifiedBg = Color(0xFFFFF3E0);  // Light orange
 }

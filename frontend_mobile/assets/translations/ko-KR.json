@@ -185,7 +185,38 @@
     "changeReasonError": "레시피를 변형한 이유를 입력해주세요.",
     "submitting": "등록 중...",
     "submit": "등록 완료",
-    "submitFailed": "실패: {error}"
+    "submitFailed": "실패: {error}",
+    "ingredients": {
+      "title": "재료",
+      "main": "주재료",
+      "secondary": "부재료",
+      "seasoning": "양념"
+    },
+    "diff": {
+      "whatChanged": "변경 내용",
+      "show": "차이 보기",
+      "hide": "차이 숨기기",
+      "ingredients": "재료 변경",
+      "steps": "조리 순서 변경"
+    },
+    "family": {
+      "title": "레시피 가족",
+      "basedOn": "원본 레시피",
+      "otherVariations": "다른 변형들",
+      "current": "현재"
+    },
+    "action": {
+      "logRecord": "로그 기록",
+      "logSubtitle": "나도 만들어봤어요!",
+      "createVariation": "변형 만들기",
+      "variationSubtitle": "나만의 레시피로"
+    },
+    "category": {
+      "ingredient": "재료",
+      "technique": "기법",
+      "amount": "용량",
+      "seasoning": "양념"
+    }
   },
   "logPost": {
     "title": "요리 로그",

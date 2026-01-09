@@ -26,7 +26,11 @@ public record RecipeDetailResponseDto(
         List<RecipeSummaryDto> variants,
         List<LogPostSummaryDto> logs,
         List<HashtagDto> hashtags,    // Hashtags for this recipe
-        Boolean isSavedByCurrentUser  // P1: 북마크 저장 여부
+        Boolean isSavedByCurrentUser, // P1: 북마크 저장 여부
+        // Living Blueprint: Diff fields for variation tracking
+        Map<String, Object> changeDiff,      // Ingredient/step changes from parent
+        List<String> changeCategories,       // Auto-detected: INGREDIENT, TECHNIQUE, AMOUNT, SEASONING
+        String changeReason                  // User-provided reason for changes
 ) {
     public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix, Boolean isSavedByCurrentUser) {
         Recipe root = recipe.getRootRecipe();
@@ -113,6 +117,9 @@ public record RecipeDetailResponseDto(
                 .logs(logs)
                 .hashtags(hashtagDtos)
                 .isSavedByCurrentUser(isSavedByCurrentUser)
+                .changeDiff(recipe.getChangeDiff())
+                .changeCategories(recipe.getChangeCategories())
+                .changeReason(recipe.getChangeReason())
                 .build();
     }
 }

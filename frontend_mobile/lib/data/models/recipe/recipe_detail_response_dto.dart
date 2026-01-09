@@ -31,6 +31,11 @@ class RecipeDetailResponseDto {
   final List<HashtagDto>? hashtags;
   final bool? isSavedByCurrentUser;
 
+  // Living Blueprint: Diff fields for variation tracking
+  final Map<String, dynamic>? changeDiff;
+  final List<String>? changeCategories;
+  final String? changeReason;
+
   RecipeDetailResponseDto({
     required this.publicId,
     required this.foodName,
@@ -48,6 +53,9 @@ class RecipeDetailResponseDto {
     this.logs,
     this.hashtags,
     this.isSavedByCurrentUser,
+    this.changeDiff,
+    this.changeCategories,
+    this.changeReason,
   });
 
   factory RecipeDetailResponseDto.fromJson(Map<String, dynamic> json) =>
@@ -77,5 +85,8 @@ class RecipeDetailResponseDto {
     logs: logs?.map((e) => e.toEntity()).toList() ?? [],
     hashtags: hashtags?.map((e) => e.toEntity()).toList() ?? [],
     isSavedByCurrentUser: isSavedByCurrentUser,
+    changeDiff: changeDiff,
+    changeCategories: changeCategories,
+    changeReason: changeReason,
   );
 }
