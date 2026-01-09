@@ -7,7 +7,6 @@ import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_step.dart';
-import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/quick_log_sheet.dart';
 
 /// Full-screen cooking mode with step-by-step navigation
@@ -255,44 +254,16 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
           if (step.imageUrl != null && step.imageUrl!.isNotEmpty)
             const SizedBox(height: 24),
           // Step description
-          Text(
-            step.description,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w500,
-              height: 1.5,
-            ),
-          ),
-          // Tip if available
-          if (step.tip != null && step.tip!.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.lightbulb_outline, color: AppColors.primary),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      step.tip!,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontSize: 16,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ],
+          if (step.description != null && step.description!.isNotEmpty)
+            Text(
+              step.description!,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w500,
+                height: 1.5,
               ),
             ),
-          ],
         ],
       ),
     );
