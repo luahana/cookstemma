@@ -173,7 +173,38 @@
     "changeReasonError": "Please enter the reason for this variation.",
     "submitting": "Submitting...",
     "submit": "Submit",
-    "submitFailed": "Failed: {error}"
+    "submitFailed": "Failed: {error}",
+    "ingredients": {
+      "title": "Ingredients",
+      "main": "Main Ingredients",
+      "secondary": "Secondary Ingredients",
+      "seasoning": "Seasonings"
+    },
+    "diff": {
+      "whatChanged": "What Changed",
+      "show": "Show Diff",
+      "hide": "Hide Diff",
+      "ingredients": "Ingredient Changes",
+      "steps": "Step Changes"
+    },
+    "family": {
+      "title": "Recipe Family",
+      "basedOn": "Based on",
+      "otherVariations": "Other Variations",
+      "current": "Current"
+    },
+    "action": {
+      "logRecord": "Log Record",
+      "logSubtitle": "I tried this!",
+      "createVariation": "Create Variation",
+      "variationSubtitle": "Make it my own"
+    },
+    "category": {
+      "ingredient": "Ingredient",
+      "technique": "Technique",
+      "amount": "Amount",
+      "seasoning": "Seasoning"
+    }
   },
   "logPost": {
     "title": "Cooking Log",

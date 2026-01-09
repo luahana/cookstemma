@@ -42,6 +42,11 @@ RecipeDetailResponseDto _$RecipeDetailResponseDtoFromJson(
           ?.map((e) => HashtagDto.fromJson(e as Map<String, dynamic>))
           .toList(),
       isSavedByCurrentUser: json['isSavedByCurrentUser'] as bool?,
+      changeDiff: json['changeDiff'] as Map<String, dynamic>?,
+      changeCategories: (json['changeCategories'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      changeReason: json['changeReason'] as String?,
     );
 
 Map<String, dynamic> _$RecipeDetailResponseDtoToJson(
@@ -63,4 +68,7 @@ Map<String, dynamic> _$RecipeDetailResponseDtoToJson(
       'logs': instance.logs,
       'hashtags': instance.hashtags,
       'isSavedByCurrentUser': instance.isSavedByCurrentUser,
+      'changeDiff': instance.changeDiff,
+      'changeCategories': instance.changeCategories,
+      'changeReason': instance.changeReason,
     };

@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/login_prompt_sheet.dart';
-import 'package:pairing_planet2_frontend/data/models/recipe/ingredient_dto.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 import '../../providers/recipe_providers.dart';
@@ -15,6 +14,11 @@ import '../widgets/variants_gallery.dart';
 import '../widgets/hashtag_chips.dart';
 import '../widgets/share_bottom_sheet.dart';
 import '../widgets/locale_badge.dart';
+// Living Blueprint widgets
+import '../widgets/kitchen_proof_ingredients.dart';
+import '../widgets/change_diff_section.dart';
+import '../widgets/recipe_family_section.dart';
+import '../widgets/action_hub_bar.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final String recipeId;
@@ -163,37 +167,61 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                             const SizedBox(height: 16),
                             HashtagChips(hashtags: recipe.hashtags),
                           ],
-                          const Divider(height: 48),
-                          Text(
-                            'recipe.prepareIngredients'.tr(),
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildIngredientSection(
-                            'recipe.mainIngredients'.tr(),
-                            recipe.ingredients,
-                            IngredientType.MAIN,
-                          ),
-                          _buildIngredientSection(
-                            'recipe.secondaryIngredients'.tr(),
-                            recipe.ingredients,
-                            IngredientType.SECONDARY,
-                          ),
-                          _buildIngredientSection(
-                            'recipe.seasonings'.tr(),
-                            recipe.ingredients,
-                            IngredientType.SEASONING,
-                          ),
-                          const Divider(height: 48),
-                          Text(
-                            'recipe.steps'.tr(),
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        ],
+                      ),
+                    ),
+                    // Recipe Family Section (for variant recipes - star layout)
+                    if (recipe.isVariant && recipe.rootInfo != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: RecipeFamilySection(
+                          rootInfo: recipe.rootInfo!,
+                          allVariants: recipe.variants,
+                          currentRecipeId: recipe.publicId,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                    // Change Diff Section (for variant recipes)
+                    if (recipe.isVariant && recipe.hasChanges) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: ChangeDiffSection(
+                          changeDiff: recipe.changeDiff!,
+                          changeCategories: recipe.changeCategories,
+                          changeReason: recipe.changeReason,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                    // Kitchen-Proof Ingredients Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: KitchenProofIngredients(
+                        ingredients: recipe.ingredients,
+                        changeDiff: recipe.changeDiff,
+                        showDiffBadges: recipe.isVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Steps Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.format_list_numbered, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'recipe.steps'.tr(),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
                           ...recipe.steps.map((step) => _buildStepItem(step)),
@@ -201,26 +229,29 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                       ),
                     ),
                     // Variants Gallery section (only for ROOT recipes with variants)
-                    if (recipe.variants.isNotEmpty && recipe.rootInfo == null) ...[
-                      const Divider(height: 48),
+                    if (recipe.variants.isNotEmpty && !recipe.isVariant) ...[
+                      const SizedBox(height: 24),
                       VariantsGallery(
                         variants: recipe.variants,
                         recipeId: recipe.publicId,
                       ),
                     ],
                     // Recent Logs Gallery section
-                    const Divider(height: 48),
+                    const SizedBox(height: 24),
                     RecentLogsGallery(
                       logs: recipe.logs,
                       recipeId: recipe.publicId,
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
             ),
-            // 💡 하단 고정 버튼 섹션 추가
-            _buildBottomActionButtons(context, recipe),
+            // Action Hub Bar
+            ActionHubBar(
+              onLogPressed: () => _handleLogPress(context, recipe),
+              onVariationPressed: () => _handleVariationPress(context, recipe),
+            ),
           ],
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -241,84 +272,36 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     );
   }
 
-  // 💡 하단 변형하기 & 로그 기록하기 버튼 레이아웃
-  Widget _buildBottomActionButtons(BuildContext context, RecipeDetail recipe) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // 1. 로그 기록하기 버튼 (좌측)
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () {
-                final authStatus = ref.read(authStateProvider).status;
-                if (authStatus != AuthStatus.authenticated) {
-                  LoginPromptSheet.show(
-                    context: context,
-                    actionKey: 'guest.signInToCreate',
-                    pendingAction: () {
-                      context.push(RouteConstants.logPostCreate, extra: recipe);
-                    },
-                  );
-                  return;
-                }
-                context.push(RouteConstants.logPostCreate, extra: recipe);
-              },
-              icon: const Icon(Icons.history_edu),
-              label: Text('recipe.logRecord'.tr()),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                side: const BorderSide(color: Color(0xFF1A237E)),
-                foregroundColor: const Color(0xFF1A237E),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          // 2. 변형하기 버튼 (우측)
-          Expanded(
-            flex: 1,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                final authStatus = ref.read(authStateProvider).status;
-                if (authStatus != AuthStatus.authenticated) {
-                  LoginPromptSheet.show(
-                    context: context,
-                    actionKey: 'guest.signInToCreate',
-                    pendingAction: () {
-                      context.push(RouteConstants.recipeCreate, extra: recipe);
-                    },
-                  );
-                  return;
-                }
-                context.push(RouteConstants.recipeCreate, extra: recipe);
-              },
-              icon: const Icon(Icons.alt_route, color: Colors.white),
-              label: Text('recipe.makeVariant'.tr(), style: const TextStyle(color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A237E), // 남색 스타일 적용
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  // Handle log button press
+  void _handleLogPress(BuildContext context, RecipeDetail recipe) {
+    final authStatus = ref.read(authStateProvider).status;
+    if (authStatus != AuthStatus.authenticated) {
+      LoginPromptSheet.show(
+        context: context,
+        actionKey: 'guest.signInToCreate',
+        pendingAction: () {
+          context.push(RouteConstants.logPostCreate, extra: recipe);
+        },
+      );
+      return;
+    }
+    context.push(RouteConstants.logPostCreate, extra: recipe);
+  }
+
+  // Handle variation button press
+  void _handleVariationPress(BuildContext context, RecipeDetail recipe) {
+    final authStatus = ref.read(authStateProvider).status;
+    if (authStatus != AuthStatus.authenticated) {
+      LoginPromptSheet.show(
+        context: context,
+        actionKey: 'guest.signInToCreate',
+        pendingAction: () {
+          context.push(RouteConstants.recipeCreate, extra: recipe);
+        },
+      );
+      return;
+    }
+    context.push(RouteConstants.recipeCreate, extra: recipe);
   }
 
   Widget _buildLineageTag(RecipeDetail recipe) {
@@ -336,48 +319,6 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
           fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
-      ),
-    );
-  }
-
-  Widget _buildIngredientSection(
-    String title,
-    List<dynamic> allIngredients,
-    IngredientType type,
-  ) {
-    final items = allIngredients.where((i) => i.type == type.name).toList();
-    if (items.isEmpty) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.indigo[900],
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...items.map(
-            (i) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(i.name, style: const TextStyle(fontSize: 15)),
-                  Text(
-                    i.amount ?? "",
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
