@@ -43,7 +43,7 @@ final recipeStarProvider = FutureProvider.family<RecipeStarState, String>(
       foodMasterPublicId: rootDetail.foodMasterPublicId,
       title: rootDetail.title,
       description: rootDetail.description ?? '',
-      culinaryLocale: rootDetail.culinaryLocale ?? 'ko',
+      culinaryLocale: rootDetail.culinaryLocale ?? 'ko-KR',
       thumbnailUrl: rootDetail.imageUrls.isNotEmpty ? rootDetail.imageUrls.first : null,
       creatorName: '', // Not available in detail, could be added
       variantCount: rootDetail.variants.length,

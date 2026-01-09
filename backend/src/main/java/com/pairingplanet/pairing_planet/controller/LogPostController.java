@@ -3,6 +3,7 @@ package com.pairingplanet.pairing_planet.controller;
 import com.pairingplanet.pairing_planet.dto.log_post.*;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import com.pairingplanet.pairing_planet.service.LogPostService;
+import com.pairingplanet.pairing_planet.service.SavedLogService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class LogPostController {
 
     private final LogPostService logPostService;
+    private final SavedLogService savedLogService;
 
     /**
      * 새 로그 등록: 레시피를 만들어 본 경험 기록
@@ -47,13 +49,14 @@ public class LogPostController {
 
     /**
      * 내 로그 목록 조회 (마이페이지용)
-     * GET /api/v1/log_posts/my?page=0&size=10
+     * GET /api/v1/log_posts/my?page=0&size=10&outcome=SUCCESS|PARTIAL|FAILED
      */
     @GetMapping("/my")
     public ResponseEntity<Slice<LogPostSummaryDto>> getMyLogs(
             @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam(name = "outcome", required = false) String outcome,
             Pageable pageable) {
-        return ResponseEntity.ok(logPostService.getMyLogs(principal.getId(), pageable));
+        return ResponseEntity.ok(logPostService.getMyLogs(principal.getId(), outcome, pageable));
     }
 
     // --- [LOG DETAIL] ---
@@ -61,7 +64,47 @@ public class LogPostController {
      * 로그 상세: 사진, 메모, 연결된 레시피 카드 포함
      */
     @GetMapping("/{publicId}")
-    public ResponseEntity<LogPostDetailResponseDto> getLogDetail(@PathVariable("publicId") UUID publicId) {
-        return ResponseEntity.ok(logPostService.getLogDetail(publicId));
+    public ResponseEntity<LogPostDetailResponseDto> getLogDetail(
+            @PathVariable("publicId") UUID publicId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        Long userId = principal != null ? principal.getId() : null;
+        return ResponseEntity.ok(logPostService.getLogDetail(publicId, userId));
+    }
+
+    // --- [SAVED LOGS (BOOKMARKS)] ---
+
+    /**
+     * 저장한 로그 목록 조회
+     * GET /api/v1/log_posts/saved?page=0&size=20
+     */
+    @GetMapping("/saved")
+    public ResponseEntity<Slice<LogPostSummaryDto>> getSavedLogs(
+            @AuthenticationPrincipal UserPrincipal principal,
+            Pageable pageable) {
+        return ResponseEntity.ok(savedLogService.getSavedLogs(principal.getId(), pageable));
+    }
+
+    /**
+     * 로그 저장 (북마크)
+     * POST /api/v1/log_posts/{publicId}/save
+     */
+    @PostMapping("/{publicId}/save")
+    public ResponseEntity<Void> saveLog(
+            @PathVariable("publicId") UUID publicId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        savedLogService.saveLog(publicId, principal.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 로그 저장 취소
+     * DELETE /api/v1/log_posts/{publicId}/save
+     */
+    @DeleteMapping("/{publicId}/save")
+    public ResponseEntity<Void> unsaveLog(
+            @PathVariable("publicId") UUID publicId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        savedLogService.unsaveLog(publicId, principal.getId());
+        return ResponseEntity.ok().build();
     }
 }

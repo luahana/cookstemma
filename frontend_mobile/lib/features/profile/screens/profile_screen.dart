@@ -1,13 +1,17 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
+import '../providers/cooking_dna_provider.dart';
+import '../widgets/cooking_dna_header.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -42,236 +46,98 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     }
 
     final profileAsync = ref.watch(myProfileProvider);
+    final cookingDnaState = ref.watch(cookingDnaProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: Text(
-          'profile.myPage'.tr(),
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: () {
-              context.push(RouteConstants.profileEdit);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {
-              context.push(RouteConstants.settings);
-            },
-          ),
-        ],
-      ),
       body: profileAsync.when(
-        data: (profile) => Column(
-          children: [
-            // Profile Header
-            _buildProfileHeader(profile),
-            // Tab Bar
-            Container(
-              color: Colors.white,
-              child: TabBar(
-                controller: _tabController,
-                labelColor: const Color(0xFF1A237E),
-                unselectedLabelColor: Colors.grey[600],
-                indicatorColor: const Color(0xFF1A237E),
-                tabs: [
-                  Tab(text: 'profile.myRecipes'.tr()),
-                  Tab(text: 'profile.myLogs'.tr()),
-                  Tab(text: 'profile.saved'.tr()),
-                ],
+        data: (profile) => NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            // Pinned app bar
+            SliverAppBar(
+              pinned: true,
+              floating: false,
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              elevation: innerBoxIsScrolled ? 1 : 0,
+              title: Text(
+                '@${profile.user.username}',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.edit_outlined, size: 22.sp),
+                  onPressed: () => context.push(RouteConstants.profileEdit),
+                ),
+                IconButton(
+                  icon: Icon(Icons.settings_outlined, size: 22.sp),
+                  onPressed: () => context.push(RouteConstants.settings),
+                ),
+              ],
+            ),
+            // Header content - sizes naturally to content
+            SliverToBoxAdapter(
+              child: CookingDnaHeader(
+                profile: profile,
+                cookingDna: cookingDnaState.data,
+                isLoading: cookingDnaState.isLoading,
+                onRecipesTap: () => _tabController.animateTo(0),
+                onLogsTap: () => _tabController.animateTo(1),
               ),
             ),
-            // Tab Content
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: const [
-                  _MyRecipesTab(),
-                  _MyLogsTab(),
-                  _SavedRecipesTab(),
-                ],
+            // Sticky Tab Bar
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _StickyTabBarDelegate(
+                TabBar(
+                  controller: _tabController,
+                  labelColor: AppColors.primary,
+                  unselectedLabelColor: Colors.grey[600],
+                  indicatorColor: AppColors.primary,
+                  indicatorWeight: 3.h,
+                  tabs: [
+                    Tab(text: 'profile.myRecipes'.tr()),
+                    Tab(text: 'profile.myLogs'.tr()),
+                    Tab(text: 'profile.saved'.tr()),
+                  ],
+                ),
               ),
             ),
           ],
+          body: TabBarView(
+            controller: _tabController,
+            children: const [
+              _MyRecipesTab(),
+              _MyLogsTab(),
+              _SavedTab(),
+            ],
+          ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
+              Icon(Icons.error_outline, size: 48.sp, color: Colors.red),
+              SizedBox(height: 16.h),
               Text(
                 'profile.couldNotLoad'.tr(),
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                style: TextStyle(fontSize: 16.sp, color: Colors.grey[700]),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               ElevatedButton(
-                onPressed: () => ref.invalidate(myProfileProvider),
+                onPressed: () {
+                  ref.invalidate(myProfileProvider);
+                  ref.invalidate(cookingDnaProvider);
+                },
                 child: Text('common.tryAgain'.tr()),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildProfileHeader(dynamic profile) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          // Profile Image
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: Colors.grey[200],
-            backgroundImage: profile.user.profileImageUrl != null
-                ? NetworkImage(profile.user.profileImageUrl)
-                : null,
-            child: profile.user.profileImageUrl == null
-                ? Icon(Icons.person, size: 40, color: Colors.grey[400])
-                : null,
-          ),
-          const SizedBox(height: 12),
-          // Username
-          Text(
-            '@${profile.user.username}',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Stats Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildStatItem('profile.recipes'.tr(), profile.recipeCount),
-              _buildStatDivider(),
-              _buildStatItem('profile.logs'.tr(), profile.logCount),
-              _buildStatDivider(),
-              _buildStatItem('profile.savedCount'.tr(), profile.savedCount),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Follow Stats Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildTappableStatItem(
-                context,
-                'profile.followers'.tr(),
-                profile.user.followerCount,
-                () => context.push(
-                  RouteConstants.followersPath(profile.user.id),
-                ),
-              ),
-              const SizedBox(width: 32),
-              _buildTappableStatItem(
-                context,
-                'profile.following'.tr(),
-                profile.user.followingCount,
-                () => context.push(
-                  '${RouteConstants.followersPath(profile.user.id)}?tab=1',
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(String label, int count) {
-    return Column(
-      children: [
-        Text(
-          count.toString(),
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1A237E),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatDivider() {
-    return Container(
-      height: 30,
-      width: 1,
-      color: Colors.grey[300],
-    );
-  }
-
-  Widget _buildTappableStatItem(
-    BuildContext context,
-    String label,
-    int count,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Text(
-            count.toString(),
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1A237E),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('profile.logout'.tr()),
-        content: Text('profile.logoutConfirm'.tr()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('common.cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ref.read(authStateProvider.notifier).logout();
-            },
-            child: Text('profile.logout'.tr(), style: const TextStyle(color: Colors.red)),
-          ),
-        ],
       ),
     );
   }
@@ -290,55 +156,55 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.all(32.r),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Icon
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(24.r),
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.person_outline,
-                  size: 64,
+                  size: 64.sp,
                   color: Theme.of(context).primaryColor,
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24.h),
               // Title
               Text(
                 'guest.profileTitle'.tr(),
-                style: const TextStyle(
-                  fontSize: 22,
+                style: TextStyle(
+                  fontSize: 22.sp,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
               // Subtitle
               Text(
                 'guest.profileSubtitle'.tr(),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   color: Colors.grey[600],
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32.h),
               // Sign in button
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 50.h,
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.login),
                   label: Text('guest.signIn'.tr()),
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
                   onPressed: () {
@@ -351,6 +217,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         ),
       ),
     );
+  }
+}
+
+/// Delegate for sticky tab bar in NestedScrollView
+class _StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar tabBar;
+
+  _StickyTabBarDelegate(this.tabBar);
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Colors.white,
+      child: tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_StickyTabBarDelegate oldDelegate) {
+    return tabBar != oldDelegate.tabBar;
   }
 }
 
@@ -374,23 +266,23 @@ Widget _buildCacheIndicator({
 
   return Container(
     width: double.infinity,
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
     color: Colors.orange[50],
     child: Row(
       children: [
-        Icon(Icons.access_time, size: 14, color: Colors.orange[700]),
-        const SizedBox(width: 6),
+        Icon(Icons.access_time, size: 14.sp, color: Colors.orange[700]),
+        SizedBox(width: 6.w),
         Text(
           'common.lastUpdatedTime'.tr(namedArgs: {'time': timeText}),
-          style: TextStyle(fontSize: 12, color: Colors.orange[700]),
+          style: TextStyle(fontSize: 12.sp, color: Colors.orange[700]),
         ),
         if (isLoading) ...[
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           SizedBox(
-            width: 12,
-            height: 12,
+            width: 12.r,
+            height: 12.r,
             child: CircularProgressIndicator(
-              strokeWidth: 2,
+              strokeWidth: 2.r,
               color: Colors.orange[700],
             ),
           ),
@@ -433,6 +325,7 @@ class _MyRecipesTabState extends ConsumerState<_MyRecipesTab> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(myRecipesProvider);
+    final notifier = ref.read(myRecipesProvider.notifier);
 
     // Initial loading (no cached data)
     if (state.isLoading && state.items.isEmpty) {
@@ -446,16 +339,7 @@ class _MyRecipesTabState extends ConsumerState<_MyRecipesTab> {
       });
     }
 
-    // Empty state
-    if (state.items.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.restaurant_menu,
-        message: 'profile.noRecipesYet'.tr(),
-        subMessage: 'profile.createRecipe'.tr(),
-      );
-    }
-
-    // Data available
+    // Data available or empty (with filter chips)
     return RefreshIndicator(
       onRefresh: () => ref.read(myRecipesProvider.notifier).refresh(),
       child: Column(
@@ -465,25 +349,85 @@ class _MyRecipesTabState extends ConsumerState<_MyRecipesTab> {
             cachedAt: state.cachedAt,
             isLoading: state.isLoading,
           ),
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: state.items.length + (state.hasNext ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= state.items.length) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-                return _buildRecipeCard(context, state.items[index]);
-              },
+          // Filter chips
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            child: Row(
+              children: [
+                _buildRecipeFilterChip(
+                  label: 'profile.filter.all'.tr(),
+                  isSelected: notifier.currentFilter == RecipeTypeFilter.all,
+                  onTap: () => notifier.setFilter(RecipeTypeFilter.all),
+                ),
+                SizedBox(width: 8.w),
+                _buildRecipeFilterChip(
+                  label: 'profile.filter.original'.tr(),
+                  isSelected: notifier.currentFilter == RecipeTypeFilter.original,
+                  onTap: () => notifier.setFilter(RecipeTypeFilter.original),
+                ),
+                SizedBox(width: 8.w),
+                _buildRecipeFilterChip(
+                  label: 'profile.filter.variants'.tr(),
+                  isSelected: notifier.currentFilter == RecipeTypeFilter.variants,
+                  onTap: () => notifier.setFilter(RecipeTypeFilter.variants),
+                ),
+              ],
             ),
           ),
+          // Empty state or list
+          if (state.items.isEmpty)
+            Expanded(
+              child: _buildEmptyState(
+                icon: Icons.restaurant_menu,
+                message: 'profile.noRecipesYet'.tr(),
+                subMessage: 'profile.createRecipe'.tr(),
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: EdgeInsets.all(16.r),
+                itemCount: state.items.length + (state.hasNext ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index >= state.items.length) {
+                    return Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.r),
+                        child: const CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  return _buildRecipeCard(context, state.items[index]);
+                },
+              ),
+            ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRecipeFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.grey[200],
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w500,
+            color: isSelected ? Colors.white : Colors.grey[700],
+          ),
+        ),
       ),
     );
   }
@@ -492,10 +436,10 @@ class _MyRecipesTabState extends ConsumerState<_MyRecipesTab> {
     return GestureDetector(
       onTap: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: EdgeInsets.only(bottom: 12.h),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -507,41 +451,41 @@ class _MyRecipesTabState extends ConsumerState<_MyRecipesTab> {
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(12.r)),
               child: recipe.thumbnail != null
                   ? AppCachedImage(
                       imageUrl: recipe.thumbnail!,
-                      width: 100,
-                      height: 100,
+                      width: 100.w,
+                      height: 100.h,
                       borderRadius: 0,
                     )
                   : Container(
-                      width: 100,
-                      height: 100,
+                      width: 100.w,
+                      height: 100.h,
                       color: Colors.grey[200],
                       child: Icon(Icons.restaurant, color: Colors.grey[400]),
                     ),
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12.r),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       recipe.title,
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: TextStyle(
+                        fontSize: 15.sp,
                         fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Text(
                       recipe.foodName,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 13.sp,
                         color: Colors.grey[600],
                       ),
                     ),
@@ -598,6 +542,7 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(myLogsProvider);
+    final notifier = ref.read(myLogsProvider.notifier);
 
     // Initial loading (no cached data)
     if (state.isLoading && state.items.isEmpty) {
@@ -611,16 +556,7 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
       });
     }
 
-    // Empty state
-    if (state.items.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.history_edu,
-        message: 'profile.noLogsYet'.tr(),
-        subMessage: 'profile.tryRecipe'.tr(),
-      );
-    }
-
-    // Data available
+    // Data available or empty (with filter chips)
     return RefreshIndicator(
       onRefresh: () => ref.read(myLogsProvider.notifier).refresh(),
       child: Column(
@@ -630,26 +566,92 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
             cachedAt: state.cachedAt,
             isLoading: state.isLoading,
           ),
-          Expanded(
-            child: GridView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(12),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.85,
-              ),
-              itemCount: state.items.length + (state.hasNext ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= state.items.length) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                return _buildLogCard(context, state.items[index]);
-              },
+          // Filter chips with emojis
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            child: Row(
+              children: [
+                _buildLogFilterChip(
+                  label: 'profile.filter.all'.tr(),
+                  isSelected: notifier.currentFilter == LogOutcomeFilter.all,
+                  onTap: () => notifier.setFilter(LogOutcomeFilter.all),
+                ),
+                SizedBox(width: 8.w),
+                _buildLogFilterChip(
+                  label: '😊 ${'profile.filter.wins'.tr()}',
+                  isSelected: notifier.currentFilter == LogOutcomeFilter.wins,
+                  onTap: () => notifier.setFilter(LogOutcomeFilter.wins),
+                ),
+                SizedBox(width: 8.w),
+                _buildLogFilterChip(
+                  label: '😐 ${'profile.filter.learning'.tr()}',
+                  isSelected: notifier.currentFilter == LogOutcomeFilter.learning,
+                  onTap: () => notifier.setFilter(LogOutcomeFilter.learning),
+                ),
+                SizedBox(width: 8.w),
+                _buildLogFilterChip(
+                  label: '😢 ${'profile.filter.lessons'.tr()}',
+                  isSelected: notifier.currentFilter == LogOutcomeFilter.lessons,
+                  onTap: () => notifier.setFilter(LogOutcomeFilter.lessons),
+                ),
+              ],
             ),
           ),
+          // Empty state or grid
+          if (state.items.isEmpty)
+            Expanded(
+              child: _buildEmptyState(
+                icon: Icons.history_edu,
+                message: 'profile.noLogsYet'.tr(),
+                subMessage: 'profile.tryRecipe'.tr(),
+              ),
+            )
+          else
+            Expanded(
+              child: GridView.builder(
+                controller: _scrollController,
+                padding: EdgeInsets.all(12.r),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12.h,
+                  crossAxisSpacing: 12.w,
+                  childAspectRatio: 0.85,
+                ),
+                itemCount: state.items.length + (state.hasNext ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index >= state.items.length) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return _buildLogCard(context, state.items[index]);
+                },
+              ),
+            ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLogFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.grey[200],
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w500,
+            color: isSelected ? Colors.white : Colors.grey[700],
+          ),
+        ),
       ),
     );
   }
@@ -660,7 +662,7 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -676,7 +678,7 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
                     child: log.thumbnailUrl != null
                         ? AppCachedImage(
                             imageUrl: log.thumbnailUrl!,
@@ -687,17 +689,17 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
                         : Container(
                             width: double.infinity,
                             color: Colors.grey[200],
-                            child: Icon(Icons.restaurant, size: 40, color: Colors.grey[400]),
+                            child: Icon(Icons.restaurant, size: 40.sp, color: Colors.grey[400]),
                           ),
                   ),
                   Positioned(
-                    right: 8,
-                    bottom: 8,
+                    right: 8.w,
+                    bottom: 8.h,
                     child: Container(
-                      padding: const EdgeInsets.all(6),
+                      padding: EdgeInsets.all(6.r),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(16.r),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.15),
@@ -707,7 +709,7 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
                       ),
                       child: Text(
                         _getOutcomeEmoji(log.outcome),
-                        style: const TextStyle(fontSize: 18),
+                        style: TextStyle(fontSize: 18.sp),
                       ),
                     ),
                   ),
@@ -715,11 +717,11 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(10.r),
               child: Text(
                 log.title ?? '',
-                style: const TextStyle(
-                  fontSize: 13,
+                style: TextStyle(
+                  fontSize: 13.sp,
                   fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
@@ -733,53 +735,179 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
   }
 }
 
-/// 저장한 레시피 탭
-class _SavedRecipesTab extends ConsumerStatefulWidget {
-  const _SavedRecipesTab();
+/// 저장한 탭 (레시피 + 로그)
+class _SavedTab extends ConsumerStatefulWidget {
+  const _SavedTab();
 
   @override
-  ConsumerState<_SavedRecipesTab> createState() => _SavedRecipesTabState();
+  ConsumerState<_SavedTab> createState() => _SavedTabState();
 }
 
-class _SavedRecipesTabState extends ConsumerState<_SavedRecipesTab> {
-  final ScrollController _scrollController = ScrollController();
+class _SavedTabState extends ConsumerState<_SavedTab> {
+  final ScrollController _recipesScrollController = ScrollController();
+  final ScrollController _logsScrollController = ScrollController();
+  SavedTypeFilter _currentFilter = SavedTypeFilter.all;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
+    _recipesScrollController.addListener(_onRecipesScroll);
+    _logsScrollController.addListener(_onLogsScroll);
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _recipesScrollController.dispose();
+    _logsScrollController.dispose();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent * 0.8) {
+  void _onRecipesScroll() {
+    if (_recipesScrollController.position.pixels >=
+        _recipesScrollController.position.maxScrollExtent * 0.8) {
       ref.read(savedRecipesProvider.notifier).fetchNextPage();
     }
   }
 
+  void _onLogsScroll() {
+    if (_logsScrollController.position.pixels >=
+        _logsScrollController.position.maxScrollExtent * 0.8) {
+      ref.read(savedLogsProvider.notifier).fetchNextPage();
+    }
+  }
+
+  String _getOutcomeEmoji(String? outcome) {
+    return switch (outcome) {
+      'SUCCESS' => '😊',
+      'PARTIAL' => '😐',
+      'FAILED' => '😢',
+      _ => '🍳',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(savedRecipesProvider);
+    final recipesState = ref.watch(savedRecipesProvider);
+    final logsState = ref.watch(savedLogsProvider);
 
-    // Initial loading (no cached data)
-    if (state.isLoading && state.items.isEmpty) {
+    // Initial loading
+    final isLoading = (_currentFilter == SavedTypeFilter.all || _currentFilter == SavedTypeFilter.recipes)
+        ? (recipesState.isLoading && recipesState.items.isEmpty)
+        : (logsState.isLoading && logsState.items.isEmpty);
+
+    if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Error with no data
-    if (state.error != null && state.items.isEmpty) {
-      return _buildErrorState(() {
-        ref.read(savedRecipesProvider.notifier).refresh();
-      });
+    return RefreshIndicator(
+      onRefresh: () async {
+        await Future.wait([
+          ref.read(savedRecipesProvider.notifier).refresh(),
+          ref.read(savedLogsProvider.notifier).refresh(),
+        ]);
+      },
+      child: Column(
+        children: [
+          // Filter chips
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            child: Row(
+              children: [
+                _buildFilterChip(
+                  label: 'profile.filter.all'.tr(),
+                  isSelected: _currentFilter == SavedTypeFilter.all,
+                  onTap: () => setState(() => _currentFilter = SavedTypeFilter.all),
+                ),
+                SizedBox(width: 8.w),
+                _buildFilterChip(
+                  label: 'profile.filter.recipes'.tr(),
+                  isSelected: _currentFilter == SavedTypeFilter.recipes,
+                  onTap: () => setState(() => _currentFilter = SavedTypeFilter.recipes),
+                ),
+                SizedBox(width: 8.w),
+                _buildFilterChip(
+                  label: 'profile.filter.logs'.tr(),
+                  isSelected: _currentFilter == SavedTypeFilter.logs,
+                  onTap: () => setState(() => _currentFilter = SavedTypeFilter.logs),
+                ),
+              ],
+            ),
+          ),
+          // Content
+          Expanded(
+            child: _buildFilteredContent(recipesState, logsState),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilteredContent(SavedRecipesState recipesState, SavedLogsState logsState) {
+    switch (_currentFilter) {
+      case SavedTypeFilter.all:
+        return _buildCombinedList(recipesState, logsState);
+      case SavedTypeFilter.recipes:
+        return _buildRecipesList(recipesState);
+      case SavedTypeFilter.logs:
+        return _buildLogsList(logsState);
+    }
+  }
+
+  Widget _buildCombinedList(SavedRecipesState recipesState, SavedLogsState logsState) {
+    final hasRecipes = recipesState.items.isNotEmpty;
+    final hasLogs = logsState.items.isNotEmpty;
+
+    if (!hasRecipes && !hasLogs) {
+      return _buildEmptyState(
+        icon: Icons.bookmark_border,
+        message: 'profile.noSavedYet'.tr(),
+        subMessage: 'profile.saveRecipe'.tr(),
+      );
     }
 
-    // Empty state
+    return ListView(
+      padding: EdgeInsets.all(16.r),
+      children: [
+        if (hasRecipes) ...[
+          Text(
+            'profile.filter.recipes'.tr(),
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+          ),
+          SizedBox(height: 8.h),
+          ...recipesState.items.take(3).map((recipe) => _buildSavedRecipeCard(context, recipe)),
+          if (recipesState.items.length > 3)
+            TextButton(
+              onPressed: () => setState(() => _currentFilter = SavedTypeFilter.recipes),
+              child: Text('+ ${recipesState.items.length - 3} more'),
+            ),
+          SizedBox(height: 16.h),
+        ],
+        if (hasLogs) ...[
+          Text(
+            'profile.filter.logs'.tr(),
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+          ),
+          SizedBox(height: 8.h),
+          ...logsState.items.take(3).map((log) => _buildSavedLogCard(context, log)),
+          if (logsState.items.length > 3)
+            TextButton(
+              onPressed: () => setState(() => _currentFilter = SavedTypeFilter.logs),
+              child: Text('+ ${logsState.items.length - 3} more'),
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildRecipesList(SavedRecipesState state) {
     if (state.items.isEmpty) {
       return _buildEmptyState(
         icon: Icons.bookmark_border,
@@ -788,35 +916,72 @@ class _SavedRecipesTabState extends ConsumerState<_SavedRecipesTab> {
       );
     }
 
-    // Data available
-    return RefreshIndicator(
-      onRefresh: () => ref.read(savedRecipesProvider.notifier).refresh(),
-      child: Column(
-        children: [
-          _buildCacheIndicator(
-            isFromCache: state.isFromCache,
-            cachedAt: state.cachedAt,
-            isLoading: state.isLoading,
-          ),
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: state.items.length + (state.hasNext ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= state.items.length) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-                return _buildSavedRecipeCard(context, state.items[index]);
-              },
+    return ListView.builder(
+      controller: _recipesScrollController,
+      padding: EdgeInsets.all(16.r),
+      itemCount: state.items.length + (state.hasNext ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index >= state.items.length) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.r),
+              child: const CircularProgressIndicator(),
             ),
+          );
+        }
+        return _buildSavedRecipeCard(context, state.items[index]);
+      },
+    );
+  }
+
+  Widget _buildLogsList(SavedLogsState state) {
+    if (state.items.isEmpty) {
+      return _buildEmptyState(
+        icon: Icons.bookmark_border,
+        message: 'profile.noSavedYet'.tr(),
+        subMessage: 'profile.saveRecipe'.tr(),
+      );
+    }
+
+    return ListView.builder(
+      controller: _logsScrollController,
+      padding: EdgeInsets.all(16.r),
+      itemCount: state.items.length + (state.hasNext ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index >= state.items.length) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.r),
+              child: const CircularProgressIndicator(),
+            ),
+          );
+        }
+        return _buildSavedLogCard(context, state.items[index]);
+      },
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.grey[200],
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w500,
+            color: isSelected ? Colors.white : Colors.grey[700],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -825,10 +990,10 @@ class _SavedRecipesTabState extends ConsumerState<_SavedRecipesTab> {
     return GestureDetector(
       onTap: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: EdgeInsets.only(bottom: 12.h),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -840,24 +1005,24 @@ class _SavedRecipesTabState extends ConsumerState<_SavedRecipesTab> {
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(12.r)),
               child: recipe.thumbnail != null
                   ? AppCachedImage(
                       imageUrl: recipe.thumbnail!,
-                      width: 100,
-                      height: 100,
+                      width: 80.w,
+                      height: 80.h,
                       borderRadius: 0,
                     )
                   : Container(
-                      width: 100,
-                      height: 100,
+                      width: 80.w,
+                      height: 80.h,
                       color: Colors.grey[200],
                       child: Icon(Icons.restaurant, color: Colors.grey[400]),
                     ),
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12.r),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -866,39 +1031,106 @@ class _SavedRecipesTabState extends ConsumerState<_SavedRecipesTab> {
                         Expanded(
                           child: Text(
                             recipe.title,
-                            style: const TextStyle(
-                              fontSize: 15,
+                            style: TextStyle(
+                              fontSize: 14.sp,
                               fontWeight: FontWeight.w600,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const Icon(
+                        Icon(
                           Icons.bookmark,
-                          size: 18,
-                          color: Color(0xFF1A237E),
+                          size: 16.sp,
+                          color: AppColors.primary,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 2.h),
                     Text(
                       recipe.foodName,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12.sp,
                         color: Colors.grey[600],
                       ),
                     ),
-                    if (recipe.creatorName != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        'by ${recipe.creatorName}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[500],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSavedLogCard(BuildContext context, LogPostSummaryDto log) {
+    return GestureDetector(
+      onTap: () => context.push(RouteConstants.logPostDetailPath(log.publicId)),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 12.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(12.r)),
+              child: log.thumbnailUrl != null
+                  ? AppCachedImage(
+                      imageUrl: log.thumbnailUrl!,
+                      width: 80.w,
+                      height: 80.h,
+                      borderRadius: 0,
+                    )
+                  : Container(
+                      width: 80.w,
+                      height: 80.h,
+                      color: Colors.grey[200],
+                      child: Icon(Icons.restaurant, color: Colors.grey[400]),
+                    ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(12.r),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            log.title ?? 'Cooking Log',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
+                        Text(
+                          _getOutcomeEmoji(log.outcome),
+                          style: TextStyle(fontSize: 16.sp),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      'by ${log.creatorName}',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.grey[600],
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),
@@ -920,22 +1152,22 @@ Widget _buildEmptyState({
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, size: 64, color: Colors.grey[400]),
-        const SizedBox(height: 16),
+        Icon(icon, size: 64.sp, color: Colors.grey[400]),
+        SizedBox(height: 16.h),
         Text(
           message,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 16.sp,
             color: Colors.grey[600],
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         Text(
           subMessage,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 14.sp,
             color: Colors.grey[500],
           ),
         ),
@@ -949,13 +1181,13 @@ Widget _buildErrorState(VoidCallback onRetry) {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.error_outline, size: 48, color: Colors.red),
-        const SizedBox(height: 16),
+        Icon(Icons.error_outline, size: 48.sp, color: Colors.red),
+        SizedBox(height: 16.h),
         Text(
           'common.couldNotLoad'.tr(),
-          style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+          style: TextStyle(fontSize: 16.sp, color: Colors.grey[700]),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
         ElevatedButton(
           onPressed: onRetry,
           child: Text('common.tryAgain'.tr()),

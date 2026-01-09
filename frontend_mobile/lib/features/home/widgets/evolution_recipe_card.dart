@@ -85,7 +85,7 @@ class EvolutionRecipeCard extends StatelessWidget {
                         recipe.foodName,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.indigo[700],
+                          color: AppColors.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

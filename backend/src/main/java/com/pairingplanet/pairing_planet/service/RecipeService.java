@@ -169,19 +169,32 @@ public class RecipeService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<RecipeSummaryDto> findRecipes(String locale, boolean onlyRoot, Pageable pageable) {
+    public Slice<RecipeSummaryDto> findRecipes(String locale, boolean onlyRoot, String typeFilter, Pageable pageable) {
         Slice<Recipe> recipes;
+
+        // typeFilter takes precedence over onlyRoot for clarity
+        // "original" = only root recipes, "variant" = only variant recipes
+        boolean isOriginalFilter = "original".equalsIgnoreCase(typeFilter) || onlyRoot;
+        boolean isVariantFilter = "variant".equalsIgnoreCase(typeFilter);
 
         if (locale == null || locale.isBlank()) {
             // 로케일이 없을 때 (전체 글로벌 조회)
-            recipes = onlyRoot
-                    ? recipeRepository.findAllRootRecipes(pageable)
-                    : recipeRepository.findPublicRecipes(pageable);
+            if (isVariantFilter) {
+                recipes = recipeRepository.findOnlyVariantsPublic(pageable);
+            } else if (isOriginalFilter) {
+                recipes = recipeRepository.findAllRootRecipes(pageable);
+            } else {
+                recipes = recipeRepository.findPublicRecipes(pageable);
+            }
         } else {
             // 특정 로케일 필터링 시
-            recipes = onlyRoot
-                    ? recipeRepository.findRootRecipesByLocale(locale, pageable)
-                    : recipeRepository.findPublicRecipesByLocale(locale, pageable);
+            if (isVariantFilter) {
+                recipes = recipeRepository.findOnlyVariantsByLocale(locale, pageable);
+            } else if (isOriginalFilter) {
+                recipes = recipeRepository.findRootRecipesByLocale(locale, pageable);
+            } else {
+                recipes = recipeRepository.findPublicRecipesByLocale(locale, pageable);
+            }
         }
 
         return recipes.map(this::convertToSummary);
@@ -402,10 +415,20 @@ public class RecipeService {
 
     /**
      * 내가 만든 레시피 목록 조회
+     * @param typeFilter null=all, "original"=only originals, "variants"=only variants
      */
-    public Slice<RecipeSummaryDto> getMyRecipes(Long userId, Pageable pageable) {
-        return recipeRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable)
-                .map(this::convertToSummary);
+    public Slice<RecipeSummaryDto> getMyRecipes(Long userId, String typeFilter, Pageable pageable) {
+        Slice<Recipe> recipes;
+
+        if ("original".equalsIgnoreCase(typeFilter)) {
+            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseAndParentRecipeIsNullOrderByCreatedAtDesc(userId, pageable);
+        } else if ("variants".equalsIgnoreCase(typeFilter)) {
+            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseAndParentRecipeIsNotNullOrderByCreatedAtDesc(userId, pageable);
+        } else {
+            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+        }
+
+        return recipes.map(this::convertToSummary);
     }
 
     /**

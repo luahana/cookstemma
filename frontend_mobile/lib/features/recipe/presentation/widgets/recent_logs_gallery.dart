@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 
@@ -31,9 +33,9 @@ class RecentLogsGallery extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "최근 요리 기록",
-                style: TextStyle(
+              Text(
+                'recipe.recentLogs.title'.tr(),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -44,9 +46,9 @@ class RecentLogsGallery extends StatelessWidget {
                     // Navigate to full log list (future feature)
                   },
                   child: Text(
-                    "모두 보기",
+                    'recipe.recentLogs.viewAll'.tr(),
                     style: TextStyle(
-                      color: Colors.indigo[700],
+                      color: AppColors.primary,
                       fontSize: 13,
                     ),
                   ),
@@ -172,7 +174,7 @@ class RecentLogsGallery extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            "아직 요리 기록이 없어요",
+            'recipe.recentLogs.emptyTitle'.tr(),
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 14,
@@ -180,7 +182,7 @@ class RecentLogsGallery extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            "첫 번째로 이 레시피를 요리해보세요!",
+            'recipe.recentLogs.emptySubtitle'.tr(),
             style: TextStyle(
               color: Colors.grey[500],
               fontSize: 12,

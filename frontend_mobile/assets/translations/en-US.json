@@ -18,7 +18,13 @@
     "justNow": "just now",
     "minutesAgo": "{count}m ago",
     "hoursAgo": "{count}h ago",
-    "couldNotLoad": "Could not load data"
+    "couldNotLoad": "Could not load data",
+    "back": "Back",
+    "continue": "Continue",
+    "skip": "Skip",
+    "done": "Done",
+    "discard": "Discard",
+    "retry": "Retry"
   },
   "nav": {
     "home": "Home",
@@ -69,6 +75,19 @@
     "tryRecipe": "Try cooking a recipe and leave a log!",
     "noSavedYet": "No saved recipes",
     "saveRecipe": "Save recipes you like!",
+    "cookingDna": "Cooking DNA",
+    "beginner": "Beginner Cook",
+    "homeCook": "Home Cook",
+    "skilledCook": "Skilled Cook",
+    "homeChef": "Home Chef",
+    "expertChef": "Expert Chef",
+    "masterChef": "Master Chef",
+    "dayStreak": "day streak",
+    "best": "Best: {count}",
+    "successRate": "success",
+    "cuisineDistribution": "Cuisine Distribution",
+    "noCuisineData": "Cook some recipes to see your cuisine preferences!",
+    "startCookingToUnlock": "Start cooking to unlock your Cooking DNA!",
     "birthday": "Birthday",
     "selectBirthday": "Select your birthday",
     "gender": "Gender",
@@ -86,7 +105,17 @@
     "leave": "Leave",
     "languageChangeTitle": "Language Changed",
     "languageChangeMessage": "The app needs to restart to apply the language change.",
-    "restart": "Restart"
+    "restart": "Restart",
+    "filter": {
+      "all": "All",
+      "original": "Original",
+      "variants": "Variants",
+      "wins": "Wins",
+      "learning": "Learning",
+      "lessons": "Lessons",
+      "recipes": "Recipes",
+      "logs": "Logs"
+    }
   },
   "login": {
     "title": "Login",
@@ -113,7 +142,6 @@
   "recipe": {
     "title": "Recipes",
     "detail": "Recipe Detail",
-    "ingredients": "Ingredients",
     "steps": "Steps",
     "create": "Create Recipe",
     "edit": "Edit Recipe",
@@ -163,7 +191,6 @@
     "mainIngredients": "Main",
     "secondaryIngredients": "Secondary",
     "seasonings": "Seasonings",
-    "step": "Step",
     "logRecord": "Log",
     "makeVariant": "Make Variant",
     "browse": "Browse Recipes",
@@ -225,6 +252,73 @@
       "technique": "Technique",
       "amount": "Amount",
       "seasoning": "Seasoning"
+    },
+    "hashtag": {
+      "title": "Hashtags",
+      "hint": "Enter hashtag and press Enter",
+      "example": "e.g. quick-meal, korean, spicy",
+      "maxError": "You can add up to {max} hashtags",
+      "duplicateError": "This hashtag is already added"
+    },
+    "hook": {
+      "basicInfo": "Recipe Basic Info",
+      "finishedPhotos": "Finished Photos (max 3)",
+      "thumbnail": "Thumbnail",
+      "title": "Recipe Title",
+      "titleHint": "e.g. My Spicy Kimchi Stew",
+      "foodName": "Dish Name",
+      "foodNameHint": "What dish is this? (e.g. Kimchi Stew)",
+      "description": "Recipe Description",
+      "descriptionHint": "Briefly describe this recipe's features"
+    },
+    "ingredient": {
+      "name": "Ingredient Name",
+      "amount": "Amount",
+      "add": "Add {type}",
+      "deleted": "Deleted",
+      "restore": "Restore"
+    },
+    "step": {
+      "deleted": "Deleted",
+      "stepLabel": "Step: {text}",
+      "restore": "Restore",
+      "hintText": "Describe this step..."
+    },
+    "lineage": {
+      "original": "Original",
+      "parent": "Parent"
+    },
+    "recentLogs": {
+      "title": "Recent Cooking Logs",
+      "viewAll": "View All",
+      "emptyTitle": "No cooking logs yet",
+      "emptySubtitle": "Be the first to cook this recipe!"
+    },
+    "variantsGallery": {
+      "title": "Variations of this Recipe",
+      "viewAll": "View All"
+    },
+    "shareSheet": {
+      "title": "Share",
+      "copyLink": "Copy Link",
+      "kakao": "KakaoTalk",
+      "whatsapp": "WhatsApp",
+      "twitter": "X (Twitter)",
+      "more": "More",
+      "linkCopied": "Link copied",
+      "comingSoon": "{platform} sharing is coming soon. Link copied."
+    },
+    "cooking": {
+      "step": "Step {current} of {total}",
+      "stepNumber": "Step {number}",
+      "done": "Done",
+      "complete": "Cooking Complete!",
+      "logPrompt": "Would you like to log this cooking session?",
+      "logNow": "Log Now",
+      "exitTitle": "Exit Cooking Mode?",
+      "exitMessage": "Your progress won't be saved.",
+      "exit": "Exit",
+      "timerComingSoon": "Timer feature coming soon!"
     }
   },
   "logPost": {
@@ -268,7 +362,120 @@
     "failedLabel": "Failed",
     "submitting": "Submitting...",
     "submit": "Submit Log",
-    "submitFailed": "Failed: {error}"
+    "submitFailed": "Failed: {error}",
+    "card": {
+      "tapToView": "Tap to view details"
+    },
+    "outcome": {
+      "success": "Nailed It!",
+      "partial": "Learning",
+      "failed": "Lesson"
+    },
+    "filter": {
+      "all": "All",
+      "wins": "Wins",
+      "learning": "Learning",
+      "lessons": "Lessons",
+      "withPhotos": "With Photos",
+      "activeFilters": "{count} filters active",
+      "clearAll": "Clear all",
+      "time": {
+        "all": "All Time",
+        "today": "Today",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month"
+      },
+      "sort": {
+        "recent": "Recent",
+        "oldest": "Oldest",
+        "winsFirst": "Wins First",
+        "lessonsFirst": "Lessons First"
+      }
+    },
+    "quickLog": {
+      "fabLabel": "Quick Log",
+      "fabHint": "Tap to quickly log your cooking",
+      "button": "Quick Log",
+      "howDidItGo": "How did it go?",
+      "tapToSelect": "Tap to select",
+      "step": {
+        "outcome": "Result",
+        "photo": "Photo",
+        "notes": "Notes",
+        "hashtags": "Tags"
+      },
+      "captureEvidence": "Capture the Evidence",
+      "showRealResult": "Show the real result - messy or perfect!",
+      "takePhoto": "Take Photo",
+      "fromGallery": "Gallery",
+      "linkRecipe": "Link to Recipe",
+      "linkRecipeHint": "Which recipe did you cook?",
+      "searchRecipe": "Search recipes",
+      "recentRecipesHint": "Or select from recent recipes",
+      "addNotes": "Add Notes",
+      "notesOptional": "Optional - add any notes about your cooking",
+      "notesHint": "What would you do differently next time?",
+      "addHashtags": "Add Hashtags",
+      "hashtagsOptional": "Optional - add hashtags to categorize your log",
+      "saveLog": "Save Log",
+      "saving": "Saving...",
+      "logged": "Logged!",
+      "syncingBackground": "Syncing in background...",
+      "logAnother": "Log Another",
+      "error": "Something went wrong",
+      "discardTitle": "Discard log?",
+      "discardMessage": "Your progress will be lost.",
+      "missingRequired": "Please complete the required fields"
+    },
+    "sync": {
+      "pendingItems": "{count} items waiting to sync",
+      "waiting": "Waiting",
+      "uploading": "Uploading",
+      "syncing": "Syncing",
+      "retrying": "Retry {count}",
+      "failed": "Failed",
+      "offline": "Offline"
+    },
+    "progress": {
+      "overview": "Your cooking progress",
+      "yourJourney": "Your Cooking Journey",
+      "totalLogs": "{count} cooking logs",
+      "startLogging": "Start your journey!",
+      "wins": "Wins",
+      "learning": "Learning",
+      "lessons": "Lessons",
+      "successRate": "Success Rate"
+    },
+    "streak": {
+      "legendary": "You're a cooking legend!",
+      "amazing": "Amazing dedication!",
+      "great": "You're on fire!",
+      "nice": "Nice streak going!",
+      "started": "Great start!"
+    },
+    "empty": {
+      "noLogs": {
+        "title": "Start Your Cooking Journey",
+        "description": "Document your cooking adventures - the wins, the learning moments, and yes, even the disasters. They're all part of becoming a better cook!"
+      },
+      "noResults": {
+        "title": "No Logs Found",
+        "description": "No cooking logs match your current filters.",
+        "tryDifferent": "Try adjusting your filters"
+      },
+      "offline": {
+        "title": "You're Offline",
+        "description": "Your logs will sync when you're back online.",
+        "pending": "Pending sync"
+      },
+      "startLogging": "Start Logging",
+      "tips": {
+        "title": "Quick Tips",
+        "success": "Nailed it! The recipe worked perfectly.",
+        "partial": "Almost there - some tweaks needed.",
+        "failed": "Learning moment - noted for next time!"
+      }
+    }
   },
   "notification": {
     "title": "Notifications",
@@ -283,6 +490,20 @@
     "noResults": "No results found",
     "recentSearches": "Recent searches",
     "clearHistory": "Clear history"
+  },
+  "speedDial": {
+    "newRecipe": "New Recipe",
+    "quickLog": "Quick Log"
+  },
+  "fabAction": {
+    "newRecipeSubtitle": "Create a new recipe",
+    "quickLogSubtitle": "Log a cooking session"
+  },
+  "recipePicker": {
+    "title": "Select Recipe",
+    "searchHint": "Search recipes...",
+    "noResults": "No recipes found",
+    "recentlyViewed": "Recently Viewed"
   },
   "share": {
     "title": "Share",
@@ -313,6 +534,29 @@
     "other": "Other/Fusion",
     "all": "All",
     "selectLocale": "Cuisine Type"
+  },
+  "cuisine": {
+    "korean": "Korean",
+    "japanese": "Japanese",
+    "chinese": "Chinese",
+    "italian": "Italian",
+    "mexican": "Mexican",
+    "thai": "Thai",
+    "indian": "Indian",
+    "french": "French",
+    "american": "American",
+    "baking": "Baking",
+    "dessert": "Dessert",
+    "seafood": "Seafood",
+    "meat": "Meat",
+    "vegetable": "Vegetable",
+    "soup": "Soup",
+    "salad": "Salad",
+    "pasta": "Pasta",
+    "rice": "Rice",
+    "noodle": "Noodles",
+    "bread": "Bread",
+    "other": "Other"
   },
   "settings": {
     "title": "Settings",

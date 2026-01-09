@@ -61,7 +61,7 @@ class CompactRecipeCard extends StatelessWidget {
                   Text(
                     recipe.foodName,
                     style: TextStyle(
-                      color: Colors.indigo[900],
+                      color: AppColors.primary,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -131,7 +131,7 @@ class CompactRecipeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: isOriginal ? const Color(0xFF1A237E) : AppColors.primary,
+        color: isOriginal ? AppColors.textPrimary : AppColors.primary,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
@@ -298,7 +298,7 @@ class CompactRecipeCardFixed extends StatelessWidget {
                     Text(
                       recipe.foodName,
                       style: TextStyle(
-                        color: Colors.indigo[900],
+                        color: AppColors.primary,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -370,7 +370,7 @@ class CompactRecipeCardFixed extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: isOriginal ? const Color(0xFF1A237E) : AppColors.primary,
+        color: isOriginal ? AppColors.textPrimary : AppColors.primary,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(

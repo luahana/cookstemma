@@ -81,8 +81,11 @@ public class ImageService {
                     .build();
 
         } catch (IOException e) {
-            log.error("Image upload failed", e);
-            throw new RuntimeException("Failed to upload image");
+            log.error("Image upload failed (IO error)", e);
+            throw new RuntimeException("Failed to upload image: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Image upload failed (S3/other error)", e);
+            throw new RuntimeException("Failed to upload image: " + e.getMessage());
         }
     }
 

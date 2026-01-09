@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -122,7 +123,7 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
       child: ListTile(
-        leading: Icon(icon, color: iconColor ?? const Color(0xFF1A237E)),
+        leading: Icon(icon, color: iconColor ?? AppColors.textPrimary),
         title: Text(
           title,
           style: TextStyle(

@@ -54,6 +54,21 @@ class LocaleDropdown extends StatelessWidget {
     this.enabled = true,
   });
 
+  /// Normalize legacy locale codes to match dropdown items
+  String? _normalizeValue(String? value) {
+    if (value == null || value.isEmpty) return null;
+
+    // Map legacy short codes to full codes
+    if (value == 'ko') return 'ko-KR';
+    if (value == 'en') return 'en-US';
+    if (value == 'ja') return 'ja-JP';
+    if (value == 'zh') return 'zh-CN';
+
+    // Check if value exists in options
+    final exists = CulinaryLocale.options.any((o) => o.code == value);
+    return exists ? value : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -73,7 +88,7 @@ class LocaleDropdown extends StatelessWidget {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: value,
+              value: _normalizeValue(value),
               isExpanded: true,
               hint: Text(
                 'locale.selectLocale'.tr(),

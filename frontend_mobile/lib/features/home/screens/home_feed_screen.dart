@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/trending_tree_dto.dart';
 import '../providers/home_feed_provider.dart';
 import '../widgets/enhanced_search_app_bar.dart';
@@ -80,6 +82,7 @@ class HomeFeedScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: SectionHeader(
               title: 'home.mostEvolved'.tr(),
+              onSeeAll: () => context.push(RouteConstants.recipes),
             ),
           ),
           SliverToBoxAdapter(
@@ -92,6 +95,7 @@ class HomeFeedScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: SectionHeader(
               title: 'home.hotRightNow'.tr(),
+              onSeeAll: () => context.push(RouteConstants.logPosts),
             ),
           ),
           SliverToBoxAdapter(
@@ -104,6 +108,7 @@ class HomeFeedScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: SectionHeader(
               title: 'home.freshUploads'.tr(),
+              onSeeAll: () => context.push(RouteConstants.recipes),
             ),
           ),
           SliverList(

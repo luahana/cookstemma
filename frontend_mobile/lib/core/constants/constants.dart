@@ -16,9 +16,12 @@ class ApiEndpoints {
 
   // User 관련
   static const String myProfile = '/users/me';
+  static const String myCookingDna = '/users/me/cooking-dna';
   static const String myRecipes = '/recipes/my';
   static const String myLogs = '/log_posts/my';
   static const String savedRecipes = '/recipes/saved';
+  static const String savedLogs = '/log_posts/saved';
+  static String logPostSave(String id) => '/log_posts/$id/save';
 
   // Follow 관련
   static String follow(String userId) => '/users/$userId/follow';

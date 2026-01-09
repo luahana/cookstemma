@@ -34,13 +34,14 @@ public class RecipeController {
     public ResponseEntity<Slice<RecipeSummaryDto>> getRecipes(
             @RequestParam(name = "locale", required = false) String locale,
             @RequestParam(name = "onlyRoot", defaultValue = "false") boolean onlyRoot,
+            @RequestParam(name = "typeFilter", required = false) String typeFilter,
             @RequestParam(name = "q", required = false) String searchKeyword,
             Pageable pageable) {
         // 검색어가 있으면 검색 모드
         if (searchKeyword != null && !searchKeyword.isBlank()) {
             return ResponseEntity.ok(recipeService.searchRecipes(searchKeyword, pageable));
         }
-        return ResponseEntity.ok(recipeService.findRecipes(locale, onlyRoot, pageable));
+        return ResponseEntity.ok(recipeService.findRecipes(locale, onlyRoot, typeFilter, pageable));
     }
 
     /**
@@ -69,12 +70,14 @@ public class RecipeController {
     // --- [MY RECIPES] ---
     /**
      * 내가 만든 레시피 목록
+     * GET /api/v1/recipes/my?typeFilter=original|variants
      */
     @GetMapping("/my")
     public ResponseEntity<Slice<RecipeSummaryDto>> getMyRecipes(
             @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam(name = "typeFilter", required = false) String typeFilter,
             Pageable pageable) {
-        return ResponseEntity.ok(recipeService.getMyRecipes(principal.getId(), pageable));
+        return ResponseEntity.ok(recipeService.getMyRecipes(principal.getId(), typeFilter, pageable));
     }
 
     // --- [SAVED RECIPES] ---

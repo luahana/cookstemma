@@ -4,6 +4,7 @@ import 'package:pairing_planet2_frontend/core/error/exceptions.dart';
 import 'package:pairing_planet2_frontend/data/models/common/slice_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/user/cooking_dna_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/my_profile_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/update_profile_request_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/user_dto.dart';
@@ -28,15 +29,37 @@ class UserRemoteDataSource {
     }
   }
 
+  /// 내 Cooking DNA 조회 (XP, 레벨, 성공률, 요리 분포 등)
+  Future<CookingDnaDto> getCookingDna() async {
+    try {
+      final response = await _dio.get(ApiEndpoints.myCookingDna);
+
+      if (response.statusCode == HttpStatus.ok) {
+        return CookingDnaDto.fromJson(response.data);
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
   /// 내 레시피 목록 조회
+  /// [typeFilter] - 'original', 'variants', or null for all
   Future<SliceResponseDto<RecipeSummaryDto>> getMyRecipes({
     required int page,
     int size = 10,
+    String? typeFilter,
   }) async {
     try {
+      final queryParams = <String, dynamic>{'page': page, 'size': size};
+      if (typeFilter != null && typeFilter.isNotEmpty) {
+        queryParams['typeFilter'] = typeFilter;
+      }
+
       final response = await _dio.get(
         ApiEndpoints.myRecipes,
-        queryParameters: {'page': page, 'size': size},
+        queryParameters: queryParams,
       );
 
       return SliceResponseDto.fromJson(
@@ -49,14 +72,21 @@ class UserRemoteDataSource {
   }
 
   /// 내 로그 목록 조회
+  /// [outcome] - 'SUCCESS', 'PARTIAL', 'FAILED', or null for all
   Future<SliceResponseDto<LogPostSummaryDto>> getMyLogs({
     required int page,
     int size = 10,
+    String? outcome,
   }) async {
     try {
+      final queryParams = <String, dynamic>{'page': page, 'size': size};
+      if (outcome != null && outcome.isNotEmpty) {
+        queryParams['outcome'] = outcome;
+      }
+
       final response = await _dio.get(
         ApiEndpoints.myLogs,
-        queryParameters: {'page': page, 'size': size},
+        queryParameters: queryParams,
       );
 
       return SliceResponseDto.fromJson(

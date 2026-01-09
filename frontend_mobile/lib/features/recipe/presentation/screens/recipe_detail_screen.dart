@@ -1,12 +1,16 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/login_prompt_sheet.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
+import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/quick_log_sheet.dart';
+import 'package:pairing_planet2_frontend/features/log_post/providers/quick_log_draft_provider.dart';
 import '../../providers/recipe_providers.dart';
 import '../widgets/lineage_breadcrumb.dart';
 import '../widgets/recent_logs_gallery.dart';
@@ -78,7 +82,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             data: (isSaved) => IconButton(
               icon: Icon(
                 isSaved ? Icons.bookmark : Icons.bookmark_border,
-                color: isSaved ? const Color(0xFF1A237E) : Colors.grey[600],
+                color: isSaved ? AppColors.primary : Colors.grey[600],
               ),
               onPressed: () {
                 final authStatus = ref.read(authStateProvider).status;
@@ -135,7 +139,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                             "[${recipe.foodName}]",
                             style: TextStyle(
                               fontSize: 18,
-                              color: Colors.indigo[900],
+                              color: AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -272,7 +276,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     );
   }
 
-  // Handle log button press
+  // Handle log button press - opens QuickLogSheet with pre-selected recipe
   void _handleLogPress(BuildContext context, RecipeDetail recipe) {
     final authStatus = ref.read(authStateProvider).status;
     if (authStatus != AuthStatus.authenticated) {
@@ -280,12 +284,23 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         context: context,
         actionKey: 'guest.signInToCreate',
         pendingAction: () {
-          context.push(RouteConstants.logPostCreate, extra: recipe);
+          _showQuickLogSheet(context, recipe);
         },
       );
       return;
     }
-    context.push(RouteConstants.logPostCreate, extra: recipe);
+    _showQuickLogSheet(context, recipe);
+  }
+
+  // Show QuickLogSheet with recipe pre-selected
+  void _showQuickLogSheet(BuildContext context, RecipeDetail recipe) {
+    HapticFeedback.mediumImpact();
+    // Pre-select the recipe before showing the sheet
+    ref.read(quickLogDraftProvider.notifier).startFlowWithRecipe(
+      recipe.publicId,
+      recipe.title,
+    );
+    QuickLogSheet.show(context);
   }
 
   // Handle variation button press
@@ -309,13 +324,13 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: isVariant ? Colors.orange[50] : Colors.indigo[50],
+        color: isVariant ? Colors.orange[50] : AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         isVariant ? 'recipe.variantRecipe'.tr() : 'recipe.originalRecipe'.tr(),
         style: TextStyle(
-          color: isVariant ? Colors.orange[800] : Colors.indigo[800],
+          color: isVariant ? Colors.orange[800] : AppColors.primary,
           fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
@@ -333,14 +348,14 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             children: [
               CircleAvatar(
                 radius: 12,
-                backgroundColor: Colors.indigo[900],
+                backgroundColor: AppColors.primary,
                 child: Text(
                   "${step.stepNumber}",
                   style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
               const SizedBox(width: 12),
-              Text('recipe.step'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text('steps.step'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 12),

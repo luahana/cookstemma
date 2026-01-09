@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 
@@ -31,9 +33,9 @@ class VariantsGallery extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "이 레시피의 변형",
-                style: TextStyle(
+              Text(
+                'recipe.variantsGallery.title'.tr(),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -44,9 +46,9 @@ class VariantsGallery extends StatelessWidget {
                     // Navigate to full variants list (future feature)
                   },
                   child: Text(
-                    "모두 보기",
+                    'recipe.variantsGallery.viewAll'.tr(),
                     style: TextStyle(
-                      color: Colors.indigo[700],
+                      color: AppColors.primary,
                       fontSize: 13,
                     ),
                   ),
@@ -148,7 +150,7 @@ class VariantsGallery extends StatelessWidget {
                 Icon(
                   Icons.history_edu,
                   size: 12,
-                  color: Colors.indigo[400],
+                  color: AppColors.primary,
                 ),
                 const SizedBox(width: 2),
                 Text(

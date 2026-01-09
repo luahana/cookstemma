@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info_impl.dart';
 import 'package:pairing_planet2_frontend/core/providers/analytics_providers.dart';
+import 'package:pairing_planet2_frontend/core/providers/recently_viewed_provider.dart';
 import 'package:pairing_planet2_frontend/domain/entities/analytics/app_event.dart';
 import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/create_recipe_request.dart';
@@ -197,6 +198,15 @@ final recipeDetailWithTrackingProvider =
         },
       ));
 
+      // Add to recently viewed recipes for quick log picker
+      ref.read(recentlyViewedRecipesProvider.notifier).addRecipe(
+            publicId: recipe.publicId,
+            title: recipe.title,
+            foodName: recipe.foodName,
+            thumbnailUrl:
+                recipe.imageUrls.isNotEmpty ? recipe.imageUrls.first : null,
+          );
+
       return recipe;
     },
   );
@@ -291,6 +301,7 @@ class RecipeDraftNotifier extends StateNotifier<RecipeDraftState> {
   final RecipeDraftLocalDataSource _localDataSource;
   Timer? _autoSaveTimer;
   bool _isSaving = false;
+  RecipeDraft? _lastSavedDraft; // Track last saved draft to detect changes
 
   RecipeDraftNotifier(this._localDataSource) : super(const RecipeDraftState());
 
@@ -299,7 +310,8 @@ class RecipeDraftNotifier extends StateNotifier<RecipeDraftState> {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       final draft = getCurrentDraft();
-      if (draft.hasContent) {
+      // Only save if content exists AND has changed since last save
+      if (draft.hasContent && draft != _lastSavedDraft) {
         saveDraft(draft);
       }
     });
@@ -327,6 +339,7 @@ class RecipeDraftNotifier extends StateNotifier<RecipeDraftState> {
 
     try {
       await _localDataSource.saveDraft(RecipeDraftDto.fromEntity(draft));
+      _lastSavedDraft = draft; // Update last saved draft after successful save
       state = state.copyWith(
         draft: draft,
         saveStatus: DraftSaveStatus.saved,
@@ -348,6 +361,14 @@ class RecipeDraftNotifier extends StateNotifier<RecipeDraftState> {
     final draftDto = await _localDataSource.getDraft();
     if (draftDto != null) {
       final draft = draftDto.toEntity();
+
+      // Don't restore drafts with no meaningful content
+      if (!draft.hasContent) {
+        await _localDataSource.clearDraft();
+        return null;
+      }
+
+      _lastSavedDraft = draft; // Track loaded draft as baseline
       state = RecipeDraftState(draft: draft);
       return draft;
     }
@@ -362,6 +383,7 @@ class RecipeDraftNotifier extends StateNotifier<RecipeDraftState> {
   /// Clear the draft from local storage
   Future<void> clearDraft() async {
     await _localDataSource.clearDraft();
+    _lastSavedDraft = null; // Clear baseline when draft is cleared
     state = const RecipeDraftState();
   }
 

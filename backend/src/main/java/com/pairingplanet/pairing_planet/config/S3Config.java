@@ -3,6 +3,7 @@ package com.pairingplanet.pairing_planet.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -29,6 +30,7 @@ public class S3Config {
     private String region;
 
     @Bean
+    @Primary
     public S3Client s3Client() {
         return S3Client.builder()
                 .region(Region.of(region))

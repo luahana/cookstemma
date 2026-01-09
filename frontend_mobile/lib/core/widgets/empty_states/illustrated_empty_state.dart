@@ -195,7 +195,7 @@ class NoFilterResultsEmptyState extends StatelessWidget {
       subtitle: 'Try adjusting your filters',
       actionLabel: onClearFilters != null ? 'Clear filters' : null,
       onAction: onClearFilters,
-      iconColor: Colors.blue[300],
+      iconColor: AppColors.growth,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:pairing_planet2_frontend/core/utils/cache_utils.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/user/cooking_dna_dto.dart';
 
 /// Local data source for caching profile tab data using Hive.
 class UserLocalDataSource {
@@ -10,6 +11,7 @@ class UserLocalDataSource {
   static const String _myRecipesKey = 'my_recipes_page_0';
   static const String _myLogsKey = 'my_logs_page_0';
   static const String _savedRecipesKey = 'saved_recipes_page_0';
+  static const String _cookingDnaKey = 'cooking_dna';
 
   // ============ My Recipes ============
 
@@ -150,6 +152,47 @@ class UserLocalDataSource {
   Future<void> clearSavedRecipesCache() async {
     final box = await Hive.openBox(_boxName);
     await box.delete(_savedRecipesKey);
+  }
+
+  // ============ Cooking DNA ============
+
+  /// Cache cooking DNA with current timestamp.
+  Future<void> cacheCookingDna(CookingDnaDto cookingDna) async {
+    final box = await Hive.openBox(_boxName);
+    final jsonData = {
+      'data': cookingDna.toJson(),
+      'cachedAt': DateTime.now().toIso8601String(),
+    };
+    await box.put(_cookingDnaKey, jsonEncode(jsonData));
+  }
+
+  /// Get cached cooking DNA with timestamp.
+  /// Returns null if no cached data exists.
+  Future<CachedData<CookingDnaDto>?> getCachedCookingDna() async {
+    final box = await Hive.openBox(_boxName);
+    final jsonString = box.get(_cookingDnaKey);
+
+    if (jsonString == null) return null;
+
+    try {
+      final json = jsonDecode(jsonString) as Map<String, dynamic>;
+      final data = CookingDnaDto.fromJson(json['data'] as Map<String, dynamic>);
+      final cachedAt = DateTime.parse(json['cachedAt'] as String);
+
+      return CachedData(
+        data: data,
+        cachedAt: cachedAt,
+      );
+    } catch (e) {
+      await clearCookingDnaCache();
+      return null;
+    }
+  }
+
+  /// Clear cached cooking DNA.
+  Future<void> clearCookingDnaCache() async {
+    final box = await Hive.openBox(_boxName);
+    await box.delete(_cookingDnaKey);
   }
 
   // ============ Clear All ============

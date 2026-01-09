@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/network/dio_provider.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
 import 'package:pairing_planet2_frontend/core/services/toast_service.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/data/datasources/user/user_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/user/update_profile_request_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/user_dto.dart';
@@ -96,7 +97,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 : Text(
                     'common.save'.tr(),
                     style: TextStyle(
-                      color: _hasChanges ? const Color(0xFF1A237E) : Colors.grey,
+                      color: _hasChanges ? AppColors.textPrimary : Colors.grey,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -151,10 +152,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF1A237E),
+        color: AppColors.textPrimary,
       ),
     );
   }

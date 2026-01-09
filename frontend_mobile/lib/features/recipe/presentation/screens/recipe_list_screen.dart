@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/illustrated_empty_state.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
@@ -283,7 +284,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: Colors.indigo[50],
+          color: AppColors.primary.withValues(alpha: 0.1),
           child: Row(
             children: [
               const Text('⭐', style: TextStyle(fontSize: 16)),
@@ -291,7 +292,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
               Expanded(
                 child: Text(
                   'star.tapToSelect'.tr(),
-                  style: TextStyle(fontSize: 13, color: Colors.indigo[700]),
+                  style: TextStyle(fontSize: 13, color: AppColors.primary),
                 ),
               ),
             ],
@@ -376,7 +377,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1A237E),
+                        color: AppColors.textPrimary,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -417,7 +418,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                     Text(
                       recipe.foodName,
                       style: TextStyle(
-                        color: Colors.indigo[900],
+                        color: AppColors.primary,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),

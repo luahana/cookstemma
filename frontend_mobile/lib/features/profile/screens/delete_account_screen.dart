@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/network/dio_provider.dart';
 import 'package:pairing_planet2_frontend/core/services/toast_service.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/data/datasources/user/user_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 
@@ -149,20 +150,20 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                color: AppColors.growth.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue[200]!),
+                border: Border.all(color: AppColors.growth.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.blue[700]),
+                  Icon(Icons.info_outline, color: AppColors.growth),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'settings.deleteGracePeriod'.tr(),
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.blue[900],
+                        color: AppColors.growth.withValues(alpha: 0.9),
                         height: 1.4,
                       ),
                     ),

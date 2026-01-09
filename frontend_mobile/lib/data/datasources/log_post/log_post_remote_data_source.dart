@@ -28,6 +28,7 @@ class LogPostRemoteDataSource {
     int page = 0,
     int size = 20,
     String? query,
+    List<String>? outcomes,
   }) async {
     final queryParams = <String, dynamic>{
       'page': page,
@@ -36,12 +37,41 @@ class LogPostRemoteDataSource {
     if (query != null && query.isNotEmpty) {
       queryParams['q'] = query;
     }
+    if (outcomes != null && outcomes.isNotEmpty) {
+      // Send outcomes as comma-separated string or array based on API spec
+      queryParams['outcomes'] = outcomes.join(',');
+    }
 
     final response = await _dio.get(
       ApiEndpoints.log_posts,
       queryParameters: queryParams,
     );
 
+    return SliceResponseDto.fromJson(
+      response.data as Map<String, dynamic>,
+      (json) => LogPostSummaryDto.fromJson(json),
+    );
+  }
+
+  /// 로그 저장 (북마크)
+  Future<void> saveLog(String publicId) async {
+    await _dio.post(ApiEndpoints.logPostSave(publicId));
+  }
+
+  /// 로그 저장 취소
+  Future<void> unsaveLog(String publicId) async {
+    await _dio.delete(ApiEndpoints.logPostSave(publicId));
+  }
+
+  /// 저장한 로그 목록 조회
+  Future<SliceResponseDto<LogPostSummaryDto>> getSavedLogs({
+    int page = 0,
+    int size = 20,
+  }) async {
+    final response = await _dio.get(
+      ApiEndpoints.savedLogs,
+      queryParameters: {'page': page, 'size': size},
+    );
     return SliceResponseDto.fromJson(
       response.data as Map<String, dynamic>,
       (json) => LogPostSummaryDto.fromJson(json),

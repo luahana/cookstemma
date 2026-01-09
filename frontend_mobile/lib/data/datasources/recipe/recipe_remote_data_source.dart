@@ -80,13 +80,20 @@ class RecipeRemoteDataSource {
         queryParams['q'] = query;
       }
       if (cuisineFilter != null && cuisineFilter.isNotEmpty) {
-        queryParams['cuisine'] = cuisineFilter;
+        queryParams['locale'] = cuisineFilter;
       }
-      if (typeFilter != null && typeFilter.isNotEmpty) {
-        queryParams['type'] = typeFilter;
+      // Map frontend filter to backend parameter
+      if (typeFilter == 'original') {
+        queryParams['onlyRoot'] = true;
       }
+      // Map frontend sort names to Spring Data sort format
       if (sortBy != null && sortBy.isNotEmpty) {
-        queryParams['sort'] = sortBy;
+        final sortMapping = {
+          'recent': 'createdAt,desc',
+          'trending': 'createdAt,desc', // TODO: implement trending sort on backend
+          'most_forked': 'createdAt,desc', // TODO: implement fork count sort
+        };
+        queryParams['sort'] = sortMapping[sortBy] ?? 'createdAt,desc';
       }
 
       final response = await _dio.get(

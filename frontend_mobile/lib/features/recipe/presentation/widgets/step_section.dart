@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 import '../../../../core/providers/image_providers.dart';
@@ -131,9 +132,12 @@ class _StepSectionState extends ConsumerState<StepSection> {
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.drag_handle,
-                    color: Colors.grey,
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: const Icon(
+                      Icons.drag_handle,
+                      color: Colors.grey,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   _buildStepNumber(index + 1),
@@ -174,7 +178,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
           icon: const Icon(Icons.photo_library, size: 20),
           label: Text('steps.addMultiple'.tr()),
           style: TextButton.styleFrom(
-            foregroundColor: Colors.indigo,
+            foregroundColor: AppColors.primary,
           ),
         ),
       ],
@@ -191,7 +195,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
         ),
       maxLines: null,
       decoration: InputDecoration(
-        hintText: isOriginal ? "" : "과정 설명...",
+        hintText: isOriginal ? "" : 'recipe.step.hintText'.tr(),
         border: InputBorder.none,
         filled: isOriginal,
         fillColor: isOriginal ? Colors.grey[100] : Colors.transparent,
@@ -247,7 +251,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "삭제됨",
+            'recipe.step.deleted'.tr(),
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey[600],
@@ -273,7 +277,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
         children: [
           Expanded(
             child: Text(
-              "단계: $displayText",
+              'recipe.step.stepLabel'.tr(namedArgs: {'text': displayText}),
               style: TextStyle(
                 decoration: TextDecoration.lineThrough,
                 color: Colors.grey[500],
@@ -286,9 +290,9 @@ class _StepSectionState extends ConsumerState<StepSection> {
           TextButton.icon(
             onPressed: () => widget.onRestoreStep(index),
             icon: const Icon(Icons.undo, size: 16),
-            label: const Text("복원", style: TextStyle(fontSize: 12)),
+            label: Text('recipe.step.restore'.tr(), style: const TextStyle(fontSize: 12)),
             style: TextButton.styleFrom(
-              foregroundColor: Colors.indigo,
+              foregroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 8),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,

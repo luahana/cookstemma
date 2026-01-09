@@ -18,7 +18,13 @@
     "justNow": "방금 전",
     "minutesAgo": "{count}분 전",
     "hoursAgo": "{count}시간 전",
-    "couldNotLoad": "데이터를 불러올 수 없습니다"
+    "couldNotLoad": "데이터를 불러올 수 없습니다",
+    "back": "뒤로",
+    "continue": "계속",
+    "skip": "건너뛰기",
+    "done": "완료",
+    "discard": "취소",
+    "retry": "재시도"
   },
   "nav": {
     "home": "홈",
@@ -69,6 +75,19 @@
     "tryRecipe": "레시피를 따라 요리하고 기록을 남겨보세요!",
     "noSavedYet": "저장한 레시피가 없어요",
     "saveRecipe": "마음에 드는 레시피를 저장해보세요!",
+    "cookingDna": "요리 DNA",
+    "beginner": "입문 요리사",
+    "homeCook": "홈쿡",
+    "skilledCook": "숙련 요리사",
+    "homeChef": "홈셰프",
+    "expertChef": "전문 셰프",
+    "masterChef": "마스터 셰프",
+    "dayStreak": "일 연속",
+    "best": "최고: {count}일",
+    "successRate": "성공률",
+    "cuisineDistribution": "요리 분포",
+    "noCuisineData": "요리를 해보면 선호 요리 분포를 확인할 수 있어요!",
+    "startCookingToUnlock": "요리를 시작하면 나만의 요리 DNA를 확인할 수 있어요!",
     "birthday": "생년월일",
     "selectBirthday": "생년월일을 선택하세요",
     "gender": "성별",
@@ -86,7 +105,17 @@
     "leave": "나가기",
     "languageChangeTitle": "언어 변경",
     "languageChangeMessage": "언어 변경을 적용하려면 앱을 다시 시작해야 합니다.",
-    "restart": "다시 시작"
+    "restart": "다시 시작",
+    "filter": {
+      "all": "전체",
+      "original": "오리지널",
+      "variants": "변형",
+      "wins": "성공",
+      "learning": "배움",
+      "lessons": "교훈",
+      "recipes": "레시피",
+      "logs": "로그"
+    }
   },
   "login": {
     "title": "로그인",
@@ -113,7 +142,6 @@
   "recipe": {
     "title": "레시피",
     "detail": "레시피 상세",
-    "ingredients": "재료",
     "steps": "조리 순서",
     "create": "레시피 만들기",
     "edit": "레시피 수정",
@@ -163,7 +191,6 @@
     "mainIngredients": "주재료",
     "secondaryIngredients": "부재료",
     "seasonings": "양념",
-    "step": "단계",
     "logRecord": "로그 기록",
     "makeVariant": "변형하기",
     "browse": "레시피 탐색",
@@ -221,6 +248,73 @@
       "technique": "기법",
       "amount": "용량",
       "seasoning": "양념"
+    },
+    "hashtag": {
+      "title": "해시태그",
+      "hint": "해시태그 입력 후 Enter",
+      "example": "예: 간편요리, 한식, 매운맛",
+      "maxError": "최대 {max}개의 해시태그만 추가할 수 있습니다",
+      "duplicateError": "이미 추가된 해시태그입니다"
+    },
+    "hook": {
+      "basicInfo": "레시피 기본 정보",
+      "finishedPhotos": "완성 사진 (최대 3장)",
+      "thumbnail": "대표 사진",
+      "title": "레시피 제목",
+      "titleHint": "예: 나만의 매콤한 김치찌개",
+      "foodName": "요리명",
+      "foodNameHint": "어떤 요리인가요? (예: 김치찌개)",
+      "description": "레시피 설명",
+      "descriptionHint": "이 레시피의 특징을 간단히 적어주세요"
+    },
+    "ingredient": {
+      "name": "재료명",
+      "amount": "양",
+      "add": "{type} 추가",
+      "deleted": "삭제됨",
+      "restore": "복원"
+    },
+    "step": {
+      "deleted": "삭제됨",
+      "stepLabel": "단계: {text}",
+      "restore": "복원",
+      "hintText": "과정 설명..."
+    },
+    "lineage": {
+      "original": "원본",
+      "parent": "부모"
+    },
+    "recentLogs": {
+      "title": "최근 요리 기록",
+      "viewAll": "모두 보기",
+      "emptyTitle": "아직 요리 기록이 없어요",
+      "emptySubtitle": "첫 번째로 이 레시피를 요리해보세요!"
+    },
+    "variantsGallery": {
+      "title": "이 레시피의 변형",
+      "viewAll": "모두 보기"
+    },
+    "shareSheet": {
+      "title": "공유하기",
+      "copyLink": "링크 복사",
+      "kakao": "카카오톡",
+      "whatsapp": "왓츠앱",
+      "twitter": "X (트위터)",
+      "more": "더보기",
+      "linkCopied": "링크가 복사되었습니다",
+      "comingSoon": "{platform} 공유는 준비 중입니다. 링크가 복사되었습니다."
+    },
+    "cooking": {
+      "step": "{total}단계 중 {current}단계",
+      "stepNumber": "{number}단계",
+      "done": "완료",
+      "complete": "요리 완료!",
+      "logPrompt": "이 요리를 기록하시겠어요?",
+      "logNow": "지금 기록하기",
+      "exitTitle": "요리 모드를 종료하시겠어요?",
+      "exitMessage": "진행 상황이 저장되지 않습니다.",
+      "exit": "종료",
+      "timerComingSoon": "타이머 기능이 곧 추가됩니다!"
     }
   },
   "logPost": {
@@ -264,7 +358,120 @@
     "failedLabel": "망했어요",
     "submitting": "기록 중...",
     "submit": "로그 등록 완료",
-    "submitFailed": "등록 실패: {error}"
+    "submitFailed": "등록 실패: {error}",
+    "card": {
+      "tapToView": "탭하여 자세히 보기"
+    },
+    "outcome": {
+      "success": "성공!",
+      "partial": "배우는 중",
+      "failed": "교훈"
+    },
+    "filter": {
+      "all": "전체",
+      "wins": "성공",
+      "learning": "배우는 중",
+      "lessons": "교훈",
+      "withPhotos": "사진 있음",
+      "activeFilters": "{count}개 필터 적용",
+      "clearAll": "필터 초기화",
+      "time": {
+        "all": "전체 기간",
+        "today": "오늘",
+        "thisWeek": "이번 주",
+        "thisMonth": "이번 달"
+      },
+      "sort": {
+        "recent": "최신순",
+        "oldest": "오래된순",
+        "winsFirst": "성공 먼저",
+        "lessonsFirst": "교훈 먼저"
+      }
+    },
+    "quickLog": {
+      "fabLabel": "빠른 기록",
+      "fabHint": "탭하여 빠르게 기록하기",
+      "button": "빠른 기록",
+      "howDidItGo": "어떻게 됐나요?",
+      "tapToSelect": "탭하여 선택",
+      "step": {
+        "outcome": "결과",
+        "photo": "사진",
+        "notes": "메모",
+        "hashtags": "태그"
+      },
+      "captureEvidence": "증거를 남겨보세요",
+      "showRealResult": "실제 결과를 보여주세요 - 지저분하든 완벽하든!",
+      "takePhoto": "사진 촬영",
+      "fromGallery": "갤러리",
+      "linkRecipe": "레시피 연결",
+      "linkRecipeHint": "어떤 레시피로 요리했나요?",
+      "searchRecipe": "레시피 검색",
+      "recentRecipesHint": "또는 최근 레시피에서 선택",
+      "addNotes": "메모 추가",
+      "notesOptional": "선택사항 - 요리에 대한 메모를 남겨보세요",
+      "notesHint": "다음에는 무엇을 다르게 하시겠어요?",
+      "addHashtags": "해시태그 추가",
+      "hashtagsOptional": "선택사항 - 로그를 분류할 해시태그를 추가하세요",
+      "saveLog": "로그 저장",
+      "saving": "저장 중...",
+      "logged": "기록 완료!",
+      "syncingBackground": "백그라운드에서 동기화 중...",
+      "logAnother": "다른 로그 작성",
+      "error": "문제가 발생했습니다",
+      "discardTitle": "로그를 버리시겠어요?",
+      "discardMessage": "작성 중인 내용이 사라집니다.",
+      "missingRequired": "필수 항목을 완료해주세요"
+    },
+    "sync": {
+      "pendingItems": "{count}개 항목 동기화 대기 중",
+      "waiting": "대기 중",
+      "uploading": "업로드 중",
+      "syncing": "동기화 중",
+      "retrying": "재시도 {count}",
+      "failed": "실패",
+      "offline": "오프라인"
+    },
+    "progress": {
+      "overview": "요리 진행 현황",
+      "yourJourney": "나의 요리 여정",
+      "totalLogs": "{count}개 요리 기록",
+      "startLogging": "여정을 시작하세요!",
+      "wins": "성공",
+      "learning": "배우는 중",
+      "lessons": "교훈",
+      "successRate": "성공률"
+    },
+    "streak": {
+      "legendary": "당신은 요리의 전설!",
+      "amazing": "놀라운 꾸준함!",
+      "great": "불타고 있어요!",
+      "nice": "좋은 연속 기록!",
+      "started": "좋은 시작!"
+    },
+    "empty": {
+      "noLogs": {
+        "title": "요리 여정을 시작하세요",
+        "description": "요리의 모든 순간을 기록하세요 - 성공, 배움의 순간, 그리고 실패까지도. 모두 더 나은 요리사가 되는 과정이에요!"
+      },
+      "noResults": {
+        "title": "로그가 없습니다",
+        "description": "현재 필터와 일치하는 요리 기록이 없습니다.",
+        "tryDifferent": "필터를 조정해 보세요"
+      },
+      "offline": {
+        "title": "오프라인 상태입니다",
+        "description": "온라인 상태가 되면 로그가 동기화됩니다.",
+        "pending": "동기화 대기 중"
+      },
+      "startLogging": "기록 시작하기",
+      "tips": {
+        "title": "빠른 팁",
+        "success": "성공! 레시피가 완벽하게 됐어요.",
+        "partial": "거의 다 왔어요 - 약간의 조정이 필요해요.",
+        "failed": "배움의 순간 - 다음을 위해 기록해둬요!"
+      }
+    }
   },
   "notification": {
     "title": "알림",
@@ -279,6 +486,20 @@
     "noResults": "검색 결과가 없습니다",
     "recentSearches": "최근 검색",
     "clearHistory": "기록 삭제"
+  },
+  "speedDial": {
+    "newRecipe": "새 레시피",
+    "quickLog": "빠른 기록"
+  },
+  "fabAction": {
+    "newRecipeSubtitle": "새로운 레시피 만들기",
+    "quickLogSubtitle": "요리 기록 남기기"
+  },
+  "recipePicker": {
+    "title": "레시피 선택",
+    "searchHint": "레시피 검색...",
+    "noResults": "레시피를 찾을 수 없습니다",
+    "recentlyViewed": "최근 본 레시피"
   },
   "share": {
     "title": "공유하기",
@@ -309,6 +530,29 @@
     "other": "기타/퓨전",
     "all": "전체",
     "selectLocale": "요리 종류"
+  },
+  "cuisine": {
+    "korean": "한식",
+    "japanese": "일식",
+    "chinese": "중식",
+    "italian": "이탈리안",
+    "mexican": "멕시칸",
+    "thai": "태국식",
+    "indian": "인도식",
+    "french": "프랑스식",
+    "american": "미국식",
+    "baking": "베이킹",
+    "dessert": "디저트",
+    "seafood": "해산물",
+    "meat": "육류",
+    "vegetable": "채소",
+    "soup": "국/찌개",
+    "salad": "샐러드",
+    "pasta": "파스타",
+    "rice": "밥류",
+    "noodle": "면류",
+    "bread": "빵",
+    "other": "기타"
   },
   "settings": {
     "title": "설정",

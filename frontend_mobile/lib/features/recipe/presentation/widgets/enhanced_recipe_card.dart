@@ -194,7 +194,7 @@ class EnhancedRecipeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: isOriginal ? const Color(0xFF1A237E) : AppColors.primary,
+        color: isOriginal ? AppColors.textPrimary : AppColors.primary,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -226,7 +226,7 @@ class EnhancedRecipeCard extends StatelessWidget {
           text: recipe.foodName,
           query: searchQuery,
           style: TextStyle(
-            color: Colors.indigo[900],
+            color: AppColors.primary,
             fontSize: 12,
             fontWeight: FontWeight.bold,
           ),

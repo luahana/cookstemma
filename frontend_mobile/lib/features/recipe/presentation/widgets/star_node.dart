@@ -48,7 +48,7 @@ class StarNode extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? AppColors.primary
-                : (isRoot ? const Color(0xFF1A237E) : Colors.grey[300]!),
+                : (isRoot ? AppColors.textPrimary : Colors.grey[300]!),
             width: isSelected ? 3 : (isRoot ? 3 : 2),
           ),
           boxShadow: [
@@ -96,7 +96,7 @@ class StarNode extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1A237E),
+                        color: AppColors.textPrimary,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
@@ -202,7 +202,7 @@ class StarNodeCard extends StatelessWidget {
                     Text(
                       recipe.foodName,
                       style: TextStyle(
-                        color: Colors.indigo[900],
+                        color: AppColors.primary,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -279,7 +279,7 @@ class StarNodeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isRoot ? const Color(0xFF1A237E) : AppColors.primary,
+        color: isRoot ? AppColors.textPrimary : AppColors.primary,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -420,7 +420,7 @@ class StarNodeLabel extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 80),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isRoot ? const Color(0xFF1A237E).withValues(alpha: 0.9) : Colors.white.withValues(alpha: 0.9),
+        color: isRoot ? AppColors.textPrimary.withValues(alpha: 0.9) : Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(4),
         boxShadow: [
           BoxShadow(

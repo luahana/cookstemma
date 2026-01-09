@@ -2,19 +2,41 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
+import 'package:pairing_planet2_frontend/core/widgets/login_prompt_sheet.dart';
+import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_providers.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/hashtag_chips.dart';
 import '../widgets/log_recipe_lineage.dart';
 
-class LogPostDetailScreen extends ConsumerWidget {
+class LogPostDetailScreen extends ConsumerStatefulWidget {
   final String logId;
 
   const LogPostDetailScreen({super.key, required this.logId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final logAsync = ref.watch(logPostDetailProvider(logId));
+  ConsumerState<LogPostDetailScreen> createState() => _LogPostDetailScreenState();
+}
+
+class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
+  bool _saveStateInitialized = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final logAsync = ref.watch(logPostDetailProvider(widget.logId));
+    final saveState = ref.watch(saveLogProvider(widget.logId));
+
+    // Initialize save state when log data loads
+    ref.listen(logPostDetailProvider(widget.logId), (_, next) {
+      next.whenData((log) {
+        if (!_saveStateInitialized && log.isSavedByCurrentUser != null) {
+          ref.read(saveLogProvider(widget.logId).notifier)
+              .setInitialState(log.isSavedByCurrentUser!);
+          _saveStateInitialized = true;
+        }
+      });
+    });
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -23,6 +45,43 @@ class LogPostDetailScreen extends ConsumerWidget {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
+        actions: [
+          // Bookmark button
+          saveState.when(
+            data: (isSaved) => IconButton(
+              icon: Icon(
+                isSaved ? Icons.bookmark : Icons.bookmark_border,
+                color: isSaved ? AppColors.primary : Colors.grey[600],
+              ),
+              onPressed: () {
+                final authStatus = ref.read(authStateProvider).status;
+                if (authStatus != AuthStatus.authenticated) {
+                  LoginPromptSheet.show(
+                    context: context,
+                    actionKey: 'guest.signInToSave',
+                    pendingAction: () {
+                      ref.read(saveLogProvider(widget.logId).notifier).toggle();
+                    },
+                  );
+                  return;
+                }
+                ref.read(saveLogProvider(widget.logId).notifier).toggle();
+              },
+            ),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(12.0),
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            error: (_, __) => IconButton(
+              icon: Icon(Icons.bookmark_border, color: Colors.grey[400]),
+              onPressed: null,
+            ),
+          ),
+        ],
       ),
       body: logAsync.when(
         data: (log) => Column(

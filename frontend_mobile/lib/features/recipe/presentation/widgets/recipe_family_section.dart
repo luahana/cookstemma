@@ -138,20 +138,20 @@ class _RootRecipeCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.indigo.withValues(alpha: 0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.pin_drop_outlined, size: 14, color: Colors.indigo),
+                  const Icon(Icons.pin_drop_outlined, size: 14, color: AppColors.primary),
                   const SizedBox(width: 4),
                   Text(
                     'recipe.family.basedOn'.tr(),
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: Colors.indigo,
+                      color: AppColors.primary,
                     ),
                   ),
                 ],

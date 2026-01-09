@@ -16,6 +16,7 @@ class LogPostDetailResponseDto {
   final RecipeSummaryDto? linkedRecipe;
   final String createdAt;
   final List<HashtagDto>? hashtags;
+  final bool? isSavedByCurrentUser;
 
   LogPostDetailResponseDto({
     required this.publicId,
@@ -26,6 +27,7 @@ class LogPostDetailResponseDto {
     required this.linkedRecipe,
     required this.createdAt,
     this.hashtags,
+    this.isSavedByCurrentUser,
   });
 
   factory LogPostDetailResponseDto.fromJson(Map<String, dynamic> json) =>
@@ -43,5 +45,6 @@ class LogPostDetailResponseDto {
         : null,
     createdAt: DateTime.parse(createdAt),
     hashtags: hashtags?.map((e) => e.toEntity()).toList() ?? [],
+    isSavedByCurrentUser: isSavedByCurrentUser,
   );
 }

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
@@ -11,6 +12,11 @@ import 'package:pairing_planet2_frontend/core/widgets/skeletons/log_post_card_sk
 import 'package:pairing_planet2_frontend/data/datasources/search/search_local_data_source.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_list_provider.dart';
+import 'package:pairing_planet2_frontend/features/log_post/providers/log_filter_provider.dart';
+import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
+import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/log_filter_bar.dart';
+import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/log_empty_state.dart';
+import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/sync_status_indicator.dart';
 
 class LogPostListScreen extends ConsumerStatefulWidget {
   const LogPostListScreen({super.key});
@@ -40,13 +46,8 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
     }
   }
 
-  String _getOutcomeEmoji(String? outcome) {
-    return switch (outcome) {
-      'SUCCESS' => '😊',
-      'PARTIAL' => '😐',
-      'FAILED' => '😢',
-      _ => '🍳',
-    };
+  LogOutcome _getOutcome(String? outcome) {
+    return LogOutcome.fromString(outcome) ?? LogOutcome.partial;
   }
 
   @override
@@ -81,6 +82,19 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
+                // Sync status banner (shows when there are pending items)
+                const SliverToBoxAdapter(
+                  child: SyncStatusIndicator(variant: SyncStatusVariant.banner),
+                ),
+                // Filter bar at the top
+                SliverToBoxAdapter(
+                  child: CompactLogFilterBar(
+                    onFilterChanged: () {
+                      // Provider auto-refreshes on filter change
+                      HapticFeedback.selectionClick();
+                    },
+                  ),
+                ),
                 // Grid of log posts
                 SliverPadding(
                   padding: const EdgeInsets.all(12),
@@ -137,115 +151,115 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
   }
 
   Widget _buildLogCard(BuildContext context, LogPostSummary logPost, String? searchQuery) {
-    return GestureDetector(
-      onTap: () => context.push(RouteConstants.logPostDetailPath(logPost.id)),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Photo with outcome overlay
-            Expanded(
-              flex: 3,
-              child: Stack(
-                children: [
-                  // Photo
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                    child: logPost.thumbnailUrl != null
-                        ? AppCachedImage(
-                            imageUrl: logPost.thumbnailUrl!,
-                            width: double.infinity,
-                            height: double.infinity,
-                            borderRadius: 0,
-                          )
-                        : Container(
-                            width: double.infinity,
-                            color: Colors.grey[200],
-                            child: Icon(
-                              Icons.restaurant,
-                              size: 40,
-                              color: Colors.grey[400],
-                            ),
-                          ),
-                  ),
-                  // Outcome emoji overlay
-                  Positioned(
-                    right: 8,
-                    bottom: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        _getOutcomeEmoji(logPost.outcome),
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                ],
+    final outcome = _getOutcome(logPost.outcome);
+
+    return Semantics(
+      button: true,
+      label: '${outcome.label}: ${logPost.title}',
+      hint: 'logPost.card.tapToView'.tr(),
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          context.push(RouteConstants.logPostDetailPath(logPost.id));
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            ),
-            // Text info
-            Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Photo with outcome badge overlay
+              Expanded(
+                flex: 3,
+                child: Stack(
                   children: [
-                    HighlightedText(
-                      text: logPost.title,
-                      query: searchQuery,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    // Photo
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      child: logPost.thumbnailUrl != null
+                          ? AppCachedImage(
+                              imageUrl: logPost.thumbnailUrl!,
+                              width: double.infinity,
+                              height: double.infinity,
+                              borderRadius: 0,
+                            )
+                          : Container(
+                              width: double.infinity,
+                              color: Colors.grey[200],
+                              child: Icon(
+                                Icons.restaurant,
+                                size: 40,
+                                color: Colors.grey[400],
+                              ),
+                            ),
                     ),
-                    const SizedBox(height: 2),
-                    if (logPost.creatorName != null)
-                      Text(
-                        "@${logPost.creatorName}",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
+                    // Outcome badge overlay (top-left for prominence)
+                    Positioned(
+                      left: 8,
+                      top: 8,
+                      child: OutcomeBadge(
+                        outcome: outcome,
+                        variant: OutcomeBadgeVariant.compact,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Text info
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      HighlightedText(
+                        text: logPost.title,
+                        query: searchQuery,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                  ],
+                      const SizedBox(height: 2),
+                      if (logPost.creatorName != null)
+                        Text(
+                          "@${logPost.creatorName}",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildEmptyState(String? searchQuery) {
-    // 검색 결과가 없는 경우
+    // Check if filters are active
+    final filterState = ref.watch(logFilterProvider);
+
+    // Search results empty
     if (searchQuery != null && searchQuery.isNotEmpty) {
       return SearchEmptyState(
         query: searchQuery,
@@ -256,41 +270,30 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
       );
     }
 
-    // 일반 빈 상태
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      children: [
-        SizedBox(height: MediaQuery.of(context).size.height * 0.25),
-        Center(
-          child: Column(
-            children: [
-              Icon(
-                Icons.history_edu,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'logPost.noLogsYet'.tr(),
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'logPost.noLogsHint'.tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-              ),
-            ],
+    // Filter results empty
+    if (filterState.hasActiveFilters) {
+      return FilterEmptyState(
+        onClearFilters: () {
+          HapticFeedback.lightImpact();
+          ref.read(logFilterProvider.notifier).clearAllFilters();
+        },
+      );
+    }
+
+    // No logs at all - show illustrated empty state
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(logPostPaginatedListProvider.notifier).refresh();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.8,
+          child: const LogEmptyState(
+            type: EmptyStateType.noLogs,
           ),
         ),
-      ],
+      ),
     );
   }
 

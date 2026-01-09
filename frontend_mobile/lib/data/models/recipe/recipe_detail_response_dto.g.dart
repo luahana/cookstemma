@@ -46,7 +46,7 @@ RecipeDetailResponseDto _$RecipeDetailResponseDtoFromJson(
       changeCategories: (json['changeCategories'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      changeReason: json['changeReason'] as String?,
+      changeReason: _parseChangeReason(json['changeReason']),
     );
 
 Map<String, dynamic> _$RecipeDetailResponseDtoToJson(

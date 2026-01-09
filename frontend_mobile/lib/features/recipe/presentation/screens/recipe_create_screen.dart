@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/create_recipe_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/ingredient.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_step.dart';
@@ -478,7 +479,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
         title: _titleController.text,
         description: _descriptionController.text,
         culinaryLocale: _localeController.text.isEmpty
-            ? "ko"
+            ? "ko-KR"
             : _localeController.text,
         food1MasterPublicId: _food1MasterPublicId,
         newFoodName: isVariantMode ? null : _foodNameController.text.trim(),
@@ -580,8 +581,14 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
                       // 💡 누락된 필수 파라미터 추가
                       onFoodPublicIdSelected: (publicId) =>
                           setState(() => _food1MasterPublicId = publicId),
-
                       onStateChanged: () => setState(() {}),
+                      onReorder: (oldIndex, newIndex) {
+                        setState(() {
+                          if (newIndex > oldIndex) newIndex--;
+                          final item = _finishedImages.removeAt(oldIndex);
+                          _finishedImages.insert(newIndex, item);
+                        });
+                      },
                     ),
 
                     const SizedBox(height: 24),
@@ -700,7 +707,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
         child: ElevatedButton(
           onPressed: isReady && !_isLoading ? _handleSubmit : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF1A237E),
+            backgroundColor: AppColors.primary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),

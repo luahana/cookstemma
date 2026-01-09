@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/domain/entities/autocomplete/autocomplete_result.dart';
 import '../../../../core/providers/autocomplete_providers.dart';
 import '../../../../core/providers/locale_provider.dart';
@@ -30,19 +32,19 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildCategorySection(
-          "주재료",
+          'recipe.ingredients.main'.tr(),
           "MAIN",
           Icons.set_meal_outlined,
         ),
         const SizedBox(height: 32),
         _buildCategorySection(
-          "부재료",
+          'recipe.ingredients.secondary'.tr(),
           "SECONDARY",
           Icons.bakery_dining_outlined,
         ),
         const SizedBox(height: 32),
         _buildCategorySection(
-          "양념",
+          'recipe.ingredients.seasoning'.tr(),
           "SEASONING",
           Icons.opacity_outlined,
         ),
@@ -77,11 +79,11 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
           onPressed: () => widget.onAddIngredient(type),
           icon: const Icon(Icons.add, size: 18),
           label: Text(
-            "$title 추가",
+            'recipe.ingredient.add'.tr(namedArgs: {'type': title}),
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           style: TextButton.styleFrom(
-            foregroundColor: Colors.indigo[600],
+            foregroundColor: AppColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 12),
           ),
         ),
@@ -124,7 +126,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
                       controller.text = ingredient["name"] ?? "";
                     }
                     return _smallField(
-                      "재료명",
+                      'recipe.ingredient.name'.tr(),
                       (v) => ingredient["name"] = v,
                       controller,
                       focusNode,
@@ -139,7 +141,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
           Expanded(
             flex: 1,
             child: _smallField(
-              "양",
+              'recipe.ingredient.amount'.tr(),
               (v) => ingredient["amount"] = v,
               TextEditingController(text: ingredient["amount"])
                 ..selection = TextSelection.collapsed(
@@ -238,7 +240,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "삭제됨",
+            'recipe.ingredient.deleted'.tr(),
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey[600],
@@ -270,9 +272,9 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
           TextButton.icon(
             onPressed: () => widget.onRestoreIngredient(index),
             icon: const Icon(Icons.undo, size: 16),
-            label: const Text("복원", style: TextStyle(fontSize: 12)),
+            label: Text('recipe.ingredient.restore'.tr(), style: const TextStyle(fontSize: 12)),
             style: TextButton.styleFrom(
-              foregroundColor: Colors.indigo,
+              foregroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 8),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,

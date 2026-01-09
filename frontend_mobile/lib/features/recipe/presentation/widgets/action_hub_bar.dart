@@ -98,7 +98,7 @@ class _ActionButton extends StatelessWidget {
 
   Widget _buildPrimaryButton() {
     return Material(
-      color: Colors.indigo,
+      color: AppColors.primary,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onPressed,

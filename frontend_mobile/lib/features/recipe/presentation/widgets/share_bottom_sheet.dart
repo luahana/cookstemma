@@ -1,9 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
 import 'package:pairing_planet2_frontend/core/services/toast_service.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// Data class for share option configuration.
@@ -79,7 +81,7 @@ class ShareBottomSheet extends ConsumerWidget {
           ),
           SizedBox(height: 16.h),
           Text(
-            isKorean ? '공유하기' : 'Share',
+            'recipe.shareSheet.title'.tr(),
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
@@ -135,8 +137,8 @@ class ShareBottomSheet extends ConsumerWidget {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => _copyLink(context, isKorean),
-                  child: Icon(Icons.copy, size: 16.sp, color: Colors.indigo),
+                  onTap: () => _copyLink(context),
+                  child: Icon(Icons.copy, size: 16.sp, color: AppColors.primary),
                 ),
               ],
             ),
@@ -153,16 +155,16 @@ class ShareBottomSheet extends ConsumerWidget {
       // Universal: Copy Link (always first)
       _ShareOptionData(
         icon: Icons.link,
-        label: isKorean ? '링크 복사' : 'Copy Link',
+        label: 'recipe.shareSheet.copyLink'.tr(),
         color: Colors.grey[700]!,
-        onTap: () => _copyLink(context, isKorean),
+        onTap: () => _copyLink(context),
       ),
 
       // Korea-only: KakaoTalk
       if (isKorean)
         _ShareOptionData(
           icon: Icons.chat_bubble,
-          label: '카카오톡',
+          label: 'recipe.shareSheet.kakao'.tr(),
           color: const Color(0xFFFEE500),
           iconColor: Colors.black,
           onTap: () => _shareToKakao(context),
@@ -172,33 +174,33 @@ class ShareBottomSheet extends ConsumerWidget {
       if (!isKorean)
         _ShareOptionData(
           icon: Icons.message,
-          label: 'WhatsApp',
+          label: 'recipe.shareSheet.whatsapp'.tr(),
           color: const Color(0xFF25D366),
-          onTap: () => _shareToWhatsApp(context, isKorean),
+          onTap: () => _shareToWhatsApp(context),
         ),
 
       // Universal: X (Twitter)
       _ShareOptionData(
         icon: Icons.alternate_email,
-        label: isKorean ? 'X (트위터)' : 'X',
+        label: 'recipe.shareSheet.twitter'.tr(),
         color: Colors.black,
-        onTap: () => _shareToTwitter(context, isKorean),
+        onTap: () => _shareToTwitter(context),
       ),
 
       // Universal: More (native share sheet)
       _ShareOptionData(
         icon: Icons.more_horiz,
-        label: isKorean ? '더보기' : 'More',
+        label: 'recipe.shareSheet.more'.tr(),
         color: Colors.grey[600]!,
         onTap: () => _shareMore(context),
       ),
     ];
   }
 
-  void _copyLink(BuildContext context, bool isKorean) {
+  void _copyLink(BuildContext context) {
     Clipboard.setData(ClipboardData(text: shareUrl));
     Navigator.pop(context);
-    ToastService.showSuccess(isKorean ? '링크가 복사되었습니다' : 'Link copied');
+    ToastService.showSuccess('recipe.shareSheet.linkCopied'.tr());
   }
 
   void _shareToKakao(BuildContext context) {
@@ -206,27 +208,23 @@ class ShareBottomSheet extends ConsumerWidget {
     // For now, copy link and show message
     Clipboard.setData(ClipboardData(text: shareUrl));
     Navigator.pop(context);
-    ToastService.showInfo('카카오톡 공유는 준비 중입니다. 링크가 복사되었습니다.');
+    ToastService.showInfo('recipe.shareSheet.comingSoon'.tr(namedArgs: {'platform': 'recipe.shareSheet.kakao'.tr()}));
   }
 
-  void _shareToWhatsApp(BuildContext context, bool isKorean) {
+  void _shareToWhatsApp(BuildContext context) {
     // TODO: Implement WhatsApp deep linking
     // For now, copy link and show message
     Clipboard.setData(ClipboardData(text: shareUrl));
     Navigator.pop(context);
-    ToastService.showInfo(isKorean
-        ? '왓츠앱 공유는 준비 중입니다. 링크가 복사되었습니다.'
-        : 'WhatsApp sharing coming soon. Link copied.');
+    ToastService.showInfo('recipe.shareSheet.comingSoon'.tr(namedArgs: {'platform': 'recipe.shareSheet.whatsapp'.tr()}));
   }
 
-  void _shareToTwitter(BuildContext context, bool isKorean) {
+  void _shareToTwitter(BuildContext context) {
     // TODO: Implement Twitter sharing
     // For now, copy link and show message
     Clipboard.setData(ClipboardData(text: shareUrl));
     Navigator.pop(context);
-    ToastService.showInfo(isKorean
-        ? '트위터 공유는 준비 중입니다. 링크가 복사되었습니다.'
-        : 'X sharing coming soon. Link copied.');
+    ToastService.showInfo('recipe.shareSheet.comingSoon'.tr(namedArgs: {'platform': 'recipe.shareSheet.twitter'.tr()}));
   }
 
   void _shareMore(BuildContext context) async {

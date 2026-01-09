@@ -60,7 +60,7 @@ class FeaturedStarCard extends StatelessWidget {
                     Text(
                       recipe.foodName,
                       style: TextStyle(
-                        color: Colors.indigo[900],
+                        color: AppColors.primary,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -176,7 +176,7 @@ class FeaturedStarCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A237E),
+        color: AppColors.textPrimary,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(

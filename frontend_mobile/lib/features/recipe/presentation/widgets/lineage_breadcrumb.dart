@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
@@ -47,7 +48,7 @@ class LineageBreadcrumb extends StatelessWidget {
             _buildLineageRow(
               context,
               icon: Icons.pin_drop_outlined,
-              label: "원본",
+              label: 'recipe.lineage.original'.tr(),
               recipeName: rootInfo!.title,
               creatorName: rootInfo!.creatorName,
               recipeId: rootInfo!.publicId,
@@ -59,7 +60,7 @@ class LineageBreadcrumb extends StatelessWidget {
             _buildLineageRow(
               context,
               icon: Icons.subdirectory_arrow_right,
-              label: "부모",
+              label: 'recipe.lineage.parent'.tr(),
               recipeName: parentInfo!.title,
               creatorName: parentInfo!.creatorName,
               recipeId: parentInfo!.publicId,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 import 'package:pairing_planet2_frontend/features/splash/providers/splash_provider.dart';
 
@@ -47,7 +48,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A237E), // Indigo brand color
+      backgroundColor: AppColors.textPrimary, // Brand color
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Center(
@@ -75,7 +76,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     style: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A237E),
+                      color: AppColors.textPrimary,
                       letterSpacing: 2,
                     ),
                   ),

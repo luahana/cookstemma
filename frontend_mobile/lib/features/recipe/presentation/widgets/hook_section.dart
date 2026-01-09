@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pairing_planet2_frontend/core/providers/autocomplete_providers.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
 import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
+import 'package:pairing_planet2_frontend/core/widgets/reorderable_image_picker.dart';
 import 'package:pairing_planet2_frontend/domain/entities/autocomplete/autocomplete_result.dart';
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 import '../../../../core/providers/image_providers.dart';
@@ -19,6 +21,7 @@ class HookSection extends ConsumerStatefulWidget {
   final List<UploadItem> finishedImages; // 💡 상위에서 관리되는 완료 이미지 리스트
   final Function(String?) onFoodPublicIdSelected;
   final VoidCallback onStateChanged;
+  final Function(int oldIndex, int newIndex) onReorder;
   final bool isReadOnly;
 
   const HookSection({
@@ -30,6 +33,7 @@ class HookSection extends ConsumerStatefulWidget {
     required this.finishedImages,
     required this.onFoodPublicIdSelected,
     required this.onStateChanged,
+    required this.onReorder,
     this.isReadOnly = false,
   });
 
@@ -82,28 +86,38 @@ class _HookSectionState extends ConsumerState<HookSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const MinimalHeader(icon: Icons.edit_note, title: "레시피 기본 정보"),
+        MinimalHeader(icon: Icons.edit_note, title: 'recipe.hook.basicInfo'.tr()),
         const SizedBox(height: 16),
 
         // 1. 이미지 등록 섹션 추가
-        const Text(
-          "완성 사진 (최대 5장)",
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        Text(
+          'recipe.hook.finishedPhotos'.tr(),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        _buildImagePickerList(),
+        ReorderableImagePicker(
+          images: widget.finishedImages,
+          maxImages: 3,
+          onReorder: widget.onReorder,
+          onRemove: _removeImage,
+          onRetry: _handleImageUpload,
+          onAdd: () => ImageSourceSheet.show(
+            context: context,
+            onSourceSelected: _pickImage,
+          ),
+        ),
         const SizedBox(height: 24),
 
         _buildTextField(
           controller: widget.titleController,
-          label: "레시피 제목",
-          hint: "예: 나만의 매콤한 김치찌개",
+          label: 'recipe.hook.title'.tr(),
+          hint: 'recipe.hook.titleHint'.tr(),
         ),
         const SizedBox(height: 16),
 
-        const Text(
-          "요리명",
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        Text(
+          'recipe.hook.foodName'.tr(),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Autocomplete<AutocompleteResult>(
@@ -140,7 +154,7 @@ class _HookSectionState extends ConsumerState<HookSection> {
             return _buildTextFieldRaw(
               controller: controller,
               focusNode: focusNode,
-              hint: "어떤 요리인가요? (예: 김치찌개)",
+              hint: 'recipe.hook.foodNameHint'.tr(),
               enabled: !widget.isReadOnly,
               backgroundColor: widget.isReadOnly
                   ? Colors.grey[100]
@@ -154,8 +168,8 @@ class _HookSectionState extends ConsumerState<HookSection> {
 
         _buildTextField(
           controller: widget.descriptionController,
-          label: "레시피 설명",
-          hint: "이 레시피의 특징을 간단히 적어주세요.",
+          label: 'recipe.hook.description'.tr(),
+          hint: 'recipe.hook.descriptionHint'.tr(),
           maxLines: 3,
         ),
         const SizedBox(height: 16),
@@ -260,153 +274,4 @@ class _HookSectionState extends ConsumerState<HookSection> {
     );
   }
 
-  // 💡 가로 스크롤 형태의 이미지 리스트 UI
-  Widget _buildImagePickerList() {
-    return SizedBox(
-      // 💡 높이를 110으로 늘려 상단 'X' 버튼이 잘리지 않게 합니다.
-      height: 110,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: widget.finishedImages.length + 1,
-        itemBuilder: (context, index) {
-          if (index == widget.finishedImages.length) {
-            if (widget.finishedImages.length >= 5)
-              return const SizedBox.shrink();
-            // 💡 추가 버튼도 높이를 맞춰줍니다.
-            return Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: _buildAddButton(),
-            );
-          }
-
-          final item = widget.finishedImages[index];
-          return _buildImageItem(item, index);
-        },
-      ),
-    );
-  }
-
-  Widget _buildAddButton() {
-    return GestureDetector(
-      onTap: () =>
-          ImageSourceSheet.show(context: context, onSourceSelected: _pickImage),
-      child: Container(
-        width: 100,
-        margin: const EdgeInsets.only(right: 12),
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: const Icon(Icons.add_a_photo, color: Colors.grey),
-      ),
-    );
-  }
-
-  Widget _buildImageItem(UploadItem item, int index) {
-    return Container(
-      width: 112, // 마진 포함 너비
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // 💡 이미지를 보여주는 메인 컨테이너
-          Padding(
-            padding: const EdgeInsets.only(top: 10, right: 12),
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: Colors.grey[200], // 이미지 로딩 전 배경색
-                borderRadius: BorderRadius.circular(12),
-              ),
-              // 💡 DecorationImage 대신 ClipRRect + Image.file 사용 (더 안정적임)
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.file(
-                      item.file,
-                      fit: BoxFit.cover,
-                      // 💡 상태에 따른 불투명도 조절
-                      opacity: AlwaysStoppedAnimation(
-                        item.status == UploadStatus.uploading
-                            ? 0.6
-                            : (item.status == UploadStatus.error ? 0.4 : 1.0),
-                      ),
-                    ),
-                    // 💡 이미지 위에 업로드 상태 표시 (스피너 등)
-                    _buildStatusOverlay(item),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // 💡 삭제 버튼 (위치를 더 정확히 조정)
-          Positioned(
-            top: 2,
-            right: 4,
-            child: GestureDetector(
-              onTap: () => _removeImage(index),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.close, size: 14, color: Colors.black),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusOverlay(UploadItem item) {
-    switch (item.status) {
-      case UploadStatus.uploading:
-        return Container(
-          color: Colors.black12,
-          child: const Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: Colors.white,
-            ),
-          ),
-        );
-      case UploadStatus.success:
-        return Align(
-          alignment: Alignment.bottomRight,
-          child: Container(
-            margin: const EdgeInsets.all(6),
-            padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
-              color: Colors.green,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.check, size: 14, color: Colors.white),
-          ),
-        );
-      case UploadStatus.error:
-        return Container(
-          color: Colors.black38,
-          child: Center(
-            child: IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.white, size: 28),
-              onPressed: () => _handleImageUpload(item),
-            ),
-          ),
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-  }
 }
