@@ -55,8 +55,12 @@ class RouteConstants {
   // Follow 관련
   static const String followers = '/users/:userId/followers';
 
+  // Star view for recipe family
+  static const String recipeStar = '/recipes/:id/star';
+
   // 이동 시 사용할 전체 경로 헬퍼
   static String recipeDetailPath(String id) => '/recipes/$id';
+  static String recipeStarPath(String id) => '/recipes/$id/star';
   static String logPostDetailPath(String id) => '/log_post/$id';
   static String followersPath(String userId) => '/users/$userId/followers';
 }

@@ -14,6 +14,9 @@ abstract class RecipeRepository {
     required int page,
     int size = 10,
     String? query,
+    String? cuisineFilter,
+    String? typeFilter,
+    String? sortBy,
   });
 
   // P1: 레시피 저장/저장취소

@@ -197,8 +197,13 @@
       "show": "차이 보기",
       "hide": "차이 숨기기",
       "ingredients": "재료 변경",
-      "steps": "조리 순서 변경"
+      "steps": "조리 순서 변경",
+      "changes": "변경:",
+      "added": "추가",
+      "removed": "삭제",
+      "modified": "수정"
     },
+    "starLabel": "스타",
     "family": {
       "title": "레시피 가족",
       "basedOn": "원본 레시피",
@@ -350,5 +355,35 @@
     "deleted": "삭제됨",
     "step": "단계",
     "restore": "복원"
+  },
+  "filter": {
+    "filters": "필터",
+    "all": "전체",
+    "originals": "원본",
+    "variants": "변형",
+    "sortRecent": "최신순",
+    "sortTrending": "인기순",
+    "sortMostForked": "포크순",
+    "clearAll": "초기화",
+    "viewList": "목록",
+    "viewGrid": "그리드",
+    "viewStar": "스타",
+    "noResults": "필터와 일치하는 레시피가 없습니다"
+  },
+  "grid": {
+    "variants": "변형",
+    "logs": "로그",
+    "featured": "주목받는 스타",
+    "viewAll": "전체 보기"
+  },
+  "star": {
+    "title": "레시피 패밀리",
+    "root": "원본",
+    "variants": "변형",
+    "logs": "로그",
+    "viewRecipe": "보기",
+    "tapToSelect": "노드를 탭하여 세부 정보 보기",
+    "noVariants": "아직 변형이 없습니다",
+    "createFirst": "첫 번째 변형을 만들어보세요!"
   }
 }

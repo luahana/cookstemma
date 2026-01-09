@@ -67,6 +67,9 @@ class RecipeRemoteDataSource {
     required int page,
     int size = 10,
     String? query,
+    String? cuisineFilter,
+    String? typeFilter, // 'original', 'variant', or null for all
+    String? sortBy, // 'recent', 'trending', 'most_forked'
   }) async {
     try {
       final queryParams = <String, dynamic>{
@@ -75,6 +78,15 @@ class RecipeRemoteDataSource {
       };
       if (query != null && query.isNotEmpty) {
         queryParams['q'] = query;
+      }
+      if (cuisineFilter != null && cuisineFilter.isNotEmpty) {
+        queryParams['cuisine'] = cuisineFilter;
+      }
+      if (typeFilter != null && typeFilter.isNotEmpty) {
+        queryParams['type'] = typeFilter;
+      }
+      if (sortBy != null && sortBy.isNotEmpty) {
+        queryParams['sort'] = sortBy;
       }
 
       final response = await _dio.get(

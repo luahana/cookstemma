@@ -197,8 +197,13 @@
       "show": "Show Diff",
       "hide": "Hide Diff",
       "ingredients": "Ingredient Changes",
-      "steps": "Step Changes"
+      "steps": "Step Changes",
+      "changes": "Changes:",
+      "added": "added",
+      "removed": "removed",
+      "modified": "modified"
     },
+    "starLabel": "STAR",
     "family": {
       "title": "Recipe Family",
       "basedOn": "Based on",
@@ -209,7 +214,11 @@
       "logRecord": "Log Record",
       "logSubtitle": "I tried this!",
       "createVariation": "Create Variation",
-      "variationSubtitle": "Make it my own"
+      "variationSubtitle": "Make it my own",
+      "log": "Log",
+      "fork": "Fork",
+      "star": "Star",
+      "root": "Root"
     },
     "category": {
       "ingredient": "Ingredient",
@@ -350,5 +359,35 @@
     "deleted": "Deleted",
     "step": "Step",
     "restore": "Restore"
+  },
+  "filter": {
+    "filters": "Filters",
+    "all": "All",
+    "originals": "Originals",
+    "variants": "Variants",
+    "sortRecent": "Recent",
+    "sortTrending": "Trending",
+    "sortMostForked": "Most Forked",
+    "clearAll": "Clear all",
+    "viewList": "List",
+    "viewGrid": "Grid",
+    "viewStar": "Star",
+    "noResults": "No recipes match your filters"
+  },
+  "grid": {
+    "variants": "variants",
+    "logs": "logs",
+    "featured": "Featured Stars",
+    "viewAll": "View all"
+  },
+  "star": {
+    "title": "Recipe Family",
+    "root": "Original",
+    "variants": "variants",
+    "logs": "logs",
+    "viewRecipe": "View",
+    "tapToSelect": "Tap a node to see details",
+    "noVariants": "No variants yet",
+    "createFirst": "Be the first to create a variant!"
   }
 }
