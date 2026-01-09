@@ -89,14 +89,26 @@ class RecipeRepositoryImpl implements RecipeRepository {
     required int page,
     int size = 10,
     String? query,
+    String? cuisineFilter,
+    String? typeFilter,
+    String? sortBy,
   }) async {
-    // Search mode: always fetch from network, no caching
-    if (query != null && query.isNotEmpty) {
+    // Check if any filters are active
+    final hasFilters = (query != null && query.isNotEmpty) ||
+        cuisineFilter != null ||
+        typeFilter != null ||
+        (sortBy != null && sortBy != 'recent');
+
+    // Filter/search mode: always fetch from network, no caching
+    if (hasFilters) {
       try {
         final sliceDto = await remoteDataSource.getRecipes(
           page: page,
           size: size,
           query: query,
+          cuisineFilter: cuisineFilter,
+          typeFilter: typeFilter,
+          sortBy: sortBy,
         );
         return Right(sliceDto.toEntity((dto) => dto.toEntity()));
       } on DioException catch (e) {
@@ -106,7 +118,7 @@ class RecipeRepositoryImpl implements RecipeRepository {
       }
     }
 
-    // Only cache first page (page 0) when not searching
+    // Only cache first page (page 0) when not searching/filtering
     if (page == 0) {
       return _getRecipesWithCache(size: size);
     }

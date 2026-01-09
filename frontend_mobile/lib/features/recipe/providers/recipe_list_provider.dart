@@ -1,14 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart';
 import '../../../domain/entities/recipe/recipe_summary.dart';
 
-/// State class for recipe list with pagination, cache info, and search.
+/// State class for recipe list with pagination, cache info, search, and filters.
 class RecipeListState {
   final List<RecipeSummary> items;
   final bool hasNext;
   final bool isFromCache;
   final DateTime? cachedAt;
   final String? searchQuery;
+  final BrowseFilterState? filterState;
 
   RecipeListState({
     required this.items,
@@ -16,6 +18,7 @@ class RecipeListState {
     this.isFromCache = false,
     this.cachedAt,
     this.searchQuery,
+    this.filterState,
   });
 
   RecipeListState copyWith({
@@ -25,6 +28,7 @@ class RecipeListState {
     DateTime? cachedAt,
     String? searchQuery,
     bool clearSearchQuery = false,
+    BrowseFilterState? filterState,
   }) {
     return RecipeListState(
       items: items ?? this.items,
@@ -32,6 +36,7 @@ class RecipeListState {
       isFromCache: isFromCache ?? this.isFromCache,
       cachedAt: cachedAt ?? this.cachedAt,
       searchQuery: clearSearchQuery ? null : (searchQuery ?? this.searchQuery),
+      filterState: filterState ?? this.filterState,
     );
   }
 }
@@ -43,18 +48,22 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
   bool _isFromCache = false;
   DateTime? _cachedAt;
   String? _searchQuery;
+  BrowseFilterState? _lastFilterState;
 
   @override
   Future<RecipeListState> build() async {
+    // Watch filter state changes and rebuild when they change
+    final filterState = ref.watch(browseFilterProvider);
+
     // 초기화 로직
     _currentPage = 0;
     _hasNext = true;
     _isFetchingNext = false;
     _isFromCache = false;
     _cachedAt = null;
-    _searchQuery = null;
+    _lastFilterState = filterState;
 
-    final items = await _fetchRecipes(page: _currentPage);
+    final items = await _fetchRecipes(page: _currentPage, filterState: filterState);
     // 초기 상태에 현재 리스트와 hasNext, 캐시 정보를 함께 담아 반환합니다.
     return RecipeListState(
       items: items,
@@ -62,21 +71,57 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
       isFromCache: _isFromCache,
       cachedAt: _cachedAt,
       searchQuery: _searchQuery,
+      filterState: filterState,
     );
   }
 
-  Future<List<RecipeSummary>> _fetchRecipes({required int page}) async {
+  Future<List<RecipeSummary>> _fetchRecipes({
+    required int page,
+    BrowseFilterState? filterState,
+  }) async {
     final repository = ref.read(recipeRepositoryProvider);
+    final filters = filterState ?? _lastFilterState;
+
+    // Convert filter state to API parameters
+    String? typeFilter;
+    if (filters?.typeFilter == RecipeTypeFilter.originals) {
+      typeFilter = 'original';
+    } else if (filters?.typeFilter == RecipeTypeFilter.variants) {
+      typeFilter = 'variant';
+    }
+
+    String? sortBy;
+    switch (filters?.sortOption) {
+      case RecipeSortOption.recent:
+        sortBy = 'recent';
+        break;
+      case RecipeSortOption.trending:
+        sortBy = 'trending';
+        break;
+      case RecipeSortOption.mostForked:
+        sortBy = 'most_forked';
+        break;
+      default:
+        sortBy = null;
+    }
+
     final result = await repository.getRecipes(
       page: page,
       size: 10,
       query: _searchQuery,
+      cuisineFilter: filters?.cuisineFilter,
+      typeFilter: typeFilter,
+      sortBy: sortBy,
     );
 
     return result.fold((failure) => throw failure, (sliceResponse) {
       _hasNext = sliceResponse.hasNext;
-      // Track cache status for first page (only when not searching)
-      if (page == 0 && _searchQuery == null) {
+      // Track cache status for first page (only when not searching/filtering)
+      final hasActiveFilters = _searchQuery != null ||
+          filters?.cuisineFilter != null ||
+          typeFilter != null ||
+          (sortBy != null && sortBy != 'recent');
+      if (page == 0 && !hasActiveFilters) {
         _isFromCache = sliceResponse.isFromCache;
         _cachedAt = sliceResponse.cachedAt;
       }
@@ -133,9 +178,40 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
     _isFetchingNext = true;
     final nextPage = _currentPage + 1;
 
-    final result = await ref
-        .read(recipeRepositoryProvider)
-        .getRecipes(page: nextPage, size: 10, query: _searchQuery);
+    // Get current filter state
+    final filters = _lastFilterState;
+
+    // Convert filter state to API parameters
+    String? typeFilter;
+    if (filters?.typeFilter == RecipeTypeFilter.originals) {
+      typeFilter = 'original';
+    } else if (filters?.typeFilter == RecipeTypeFilter.variants) {
+      typeFilter = 'variant';
+    }
+
+    String? sortBy;
+    switch (filters?.sortOption) {
+      case RecipeSortOption.recent:
+        sortBy = 'recent';
+        break;
+      case RecipeSortOption.trending:
+        sortBy = 'trending';
+        break;
+      case RecipeSortOption.mostForked:
+        sortBy = 'most_forked';
+        break;
+      default:
+        sortBy = null;
+    }
+
+    final result = await ref.read(recipeRepositoryProvider).getRecipes(
+          page: nextPage,
+          size: 10,
+          query: _searchQuery,
+          cuisineFilter: filters?.cuisineFilter,
+          typeFilter: typeFilter,
+          sortBy: sortBy,
+        );
 
     result.fold(
       (failure) {
@@ -155,6 +231,7 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
             items: [...previousItems, ...sliceResponse.content],
             hasNext: _hasNext,
             searchQuery: _searchQuery,
+            filterState: filters,
           ),
         );
       },
