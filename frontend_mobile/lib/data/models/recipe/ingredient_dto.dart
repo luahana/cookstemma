@@ -114,7 +114,7 @@ class IngredientDto {
     amount: amount,
     quantity: quantity,
     unit: unit?.name,
-    type: type.name,
+    type: type.name.toUpperCase(),
   );
 
   factory IngredientDto.fromEntity(Ingredient ingredient) {
@@ -129,7 +129,7 @@ class IngredientDto {
             )
           : null,
       type: IngredientType.values.firstWhere(
-        (e) => e.name == ingredient.type,
+        (e) => e.name.toUpperCase() == ingredient.type?.toUpperCase(),
         orElse: () => IngredientType.main,
       ),
     );

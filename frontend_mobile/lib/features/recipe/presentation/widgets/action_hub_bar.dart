@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
-/// Action Hub Bar - Enhanced bottom action bar
-/// High-visibility buttons for "Create Log" and "Create Variation"
+/// Action Hub Bar - Compact bottom action bar
+/// Single-line buttons for "Create Log" and "Create Variation"
 class ActionHubBar extends StatelessWidget {
   final VoidCallback onLogPressed;
   final VoidCallback onVariationPressed;
@@ -24,8 +24,8 @@ class ActionHubBar extends StatelessWidget {
       padding: EdgeInsets.only(
         left: 16.w,
         right: 16.w,
-        top: 12.h,
-        bottom: MediaQuery.of(context).padding.bottom + 12.h,
+        top: 8.h,
+        bottom: MediaQuery.of(context).padding.bottom + 8.h,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -44,7 +44,6 @@ class ActionHubBar extends StatelessWidget {
             child: _ActionButton(
               icon: Icons.history_edu,
               title: 'recipe.action.logRecord'.tr(),
-              subtitle: 'recipe.action.logSubtitle'.tr(),
               onPressed: isLoading ? null : () {
                 HapticFeedback.lightImpact();
                 onLogPressed();
@@ -58,7 +57,6 @@ class ActionHubBar extends StatelessWidget {
             child: _ActionButton(
               icon: Icons.fork_right,
               title: 'recipe.action.createVariation'.tr(),
-              subtitle: 'recipe.action.variationSubtitle'.tr(),
               onPressed: isLoading ? null : () {
                 HapticFeedback.lightImpact();
                 onVariationPressed();
@@ -72,18 +70,16 @@ class ActionHubBar extends StatelessWidget {
   }
 }
 
-/// Individual action button with icon, title, and subtitle
+/// Compact single-line action button with icon and title
 class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String subtitle;
   final VoidCallback? onPressed;
   final bool isPrimary;
 
   const _ActionButton({
     required this.icon,
     required this.title,
-    required this.subtitle,
     required this.onPressed,
     required this.isPrimary,
   });
@@ -105,37 +101,22 @@ class _ActionButton extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(12.r),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
+          padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: Colors.white, size: 22.sp),
+              Icon(icon, color: Colors.white, size: 20.sp),
               SizedBox(width: 8.w),
               Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 10.sp,
-                        color: Colors.white.withValues(alpha: 0.8),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -152,7 +133,7 @@ class _ActionButton extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(12.r),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
+          padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(color: AppColors.border, width: 1.5),
@@ -160,33 +141,18 @@ class _ActionButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppColors.textPrimary, size: 22.sp),
+              Icon(icon, color: AppColors.textPrimary, size: 20.sp),
               SizedBox(width: 8.w),
               Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 10.sp,
-                        color: AppColors.textSecondary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

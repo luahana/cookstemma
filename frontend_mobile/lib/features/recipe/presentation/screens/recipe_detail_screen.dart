@@ -161,6 +161,14 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                               LocaleBadgeLarge(localeCode: recipe.culinaryLocale),
                             ],
                           ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            'recipe.by'.tr(args: [recipe.creatorName]),
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey[600],
+                            ),
+                          ),
                           SizedBox(height: 8.h),
                           Text(
                             recipe.description ?? "",
