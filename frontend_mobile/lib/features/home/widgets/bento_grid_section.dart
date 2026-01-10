@@ -182,7 +182,7 @@ class _FeaturedTrendingCard extends StatelessWidget {
                   ? Image.network(
                       tree.thumbnail!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (_, _, _) => Container(
                         color: Colors.orange[200],
                         child: Icon(Icons.restaurant_menu, size: 60, color: Colors.orange[400]),
                       ),
@@ -306,7 +306,7 @@ class _SmallTrendingCard extends StatelessWidget {
                         tree.thumbnail!,
                         fit: BoxFit.cover,
                         height: double.infinity,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (_, _, _) => Container(
                           color: Colors.grey[200],
                           child: const Icon(Icons.restaurant_menu, color: Colors.grey, size: 20),
                         ),
@@ -386,7 +386,7 @@ class _SmallBentoCard extends StatelessWidget {
                         recipe.thumbnail!,
                         fit: BoxFit.cover,
                         height: double.infinity,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (_, _, _) => Container(
                           color: Colors.grey[200],
                           child: const Icon(Icons.restaurant_menu, color: Colors.grey, size: 20),
                         ),

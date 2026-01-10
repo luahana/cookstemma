@@ -167,7 +167,7 @@ class ProgressStatsNotifier extends AsyncNotifier<ProgressStats> {
         );
       },
       loading: () => localStats,
-      error: (_, __) => localStats,
+      error: (_, _) => localStats,
     );
   }
 

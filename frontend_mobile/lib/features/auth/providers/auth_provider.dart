@@ -20,7 +20,7 @@ class AuthState extends Equatable {
   final AuthStatus status;
   final String? errorMessage;
 
-  AuthState({required this.status, this.errorMessage});
+  const AuthState({required this.status, this.errorMessage});
 
   @override
   List<Object?> get props => [status, errorMessage]; // 💡 동등성 비교 기준 설정

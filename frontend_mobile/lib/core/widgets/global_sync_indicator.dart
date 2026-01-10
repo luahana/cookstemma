@@ -24,7 +24,7 @@ class GlobalSyncIndicator extends ConsumerWidget {
         return _SyncIndicatorContent(stats: stats);
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

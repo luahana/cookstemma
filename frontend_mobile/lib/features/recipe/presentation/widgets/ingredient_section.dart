@@ -108,8 +108,9 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
               displayStringForOption: (option) => option.name,
               // 💡 기존 재료인 경우 자동완성 작동 중지
               optionsBuilder: (TextEditingValue textEditingValue) async {
-                if (isOriginal || textEditingValue.text.isEmpty)
+                if (isOriginal || textEditingValue.text.isEmpty) {
                   return const Iterable.empty();
+                }
                 final result = await ref
                     .read(getAutocompleteUseCaseProvider)
                     .execute(textEditingValue.text, currentLocale);

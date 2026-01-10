@@ -11,7 +11,7 @@ class MinimalHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: AppColors.textPrimary.withOpacity(0.7)),
+        Icon(icon, size: 20, color: AppColors.textPrimary.withValues(alpha: 0.7)),
         const SizedBox(width: 8),
         Text(
           title,

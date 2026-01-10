@@ -21,6 +21,8 @@ class CreateLogPostRequestDto {
     this.hashtags,
   });
 
+  factory CreateLogPostRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$CreateLogPostRequestDtoFromJson(json);
   Map<String, dynamic> toJson() => _$CreateLogPostRequestDtoToJson(this);
 
   factory CreateLogPostRequestDto.fromEntity(CreateLogPostRequest request) {
