@@ -10,6 +10,7 @@ import com.pairingplanet.pairing_planet.dto.image.ImageResponseDto;
 import com.pairingplanet.pairing_planet.dto.log_post.LogPostDetailResponseDto;
 import com.pairingplanet.pairing_planet.dto.log_post.CreateLogRequestDto;
 import com.pairingplanet.pairing_planet.dto.log_post.LogPostSummaryDto;
+import com.pairingplanet.pairing_planet.dto.log_post.UpdateLogRequestDto;
 import com.pairingplanet.pairing_planet.dto.recipe.RecipeSummaryDto;
 import com.pairingplanet.pairing_planet.repository.log_post.LogPostRepository;
 import com.pairingplanet.pairing_planet.repository.log_post.SavedLogRepository;
@@ -153,7 +154,8 @@ public class LogPostService {
                 linkedRecipeSummary,
                 logPost.getCreatedAt(),
                 hashtagDtos,
-                isSavedByCurrentUser
+                isSavedByCurrentUser,
+                logPost.getCreatorId()
         );
     }
 
@@ -231,5 +233,57 @@ public class LogPostService {
         }
         return logPostRepository.searchLogPosts(keyword.trim(), pageable)
                 .map(this::convertToLogSummary);
+    }
+
+    /**
+     * 로그 수정
+     */
+    public LogPostDetailResponseDto updateLog(UUID publicId, UpdateLogRequestDto request, Long userId) {
+        LogPost logPost = logPostRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("Log not found"));
+
+        // Verify ownership
+        if (!logPost.getCreatorId().equals(userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("You are not the owner of this log");
+        }
+
+        // Update fields
+        if (request.title() != null) {
+            logPost.setTitle(request.title());
+        }
+        logPost.setContent(request.content());
+
+        // Update outcome via RecipeLog
+        RecipeLog recipeLog = logPost.getRecipeLog();
+        recipeLog.setOutcome(request.outcome());
+
+        // Update hashtags
+        if (request.hashtags() != null) {
+            Set<Hashtag> hashtags = hashtagService.getOrCreateHashtags(request.hashtags());
+            logPost.setHashtags(hashtags);
+        } else {
+            logPost.getHashtags().clear();
+        }
+
+        logPostRepository.save(logPost);
+
+        return getLogDetail(publicId, userId);
+    }
+
+    /**
+     * 로그 삭제 (소프트 삭제)
+     */
+    public void deleteLog(UUID publicId, Long userId) {
+        LogPost logPost = logPostRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("Log not found"));
+
+        // Verify ownership
+        if (!logPost.getCreatorId().equals(userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("You are not the owner of this log");
+        }
+
+        // Soft delete
+        logPost.setIsDeleted(true);
+        logPostRepository.save(logPost);
     }
 }

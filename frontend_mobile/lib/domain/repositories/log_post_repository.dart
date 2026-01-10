@@ -20,6 +20,18 @@ abstract class LogPostRepository {
     List<String>? outcomes,
   });
 
+  // 로그 수정
+  Future<Either<Failure, LogPostDetail>> updateLog(
+    String publicId, {
+    String? title,
+    required String content,
+    required String outcome,
+    List<String>? hashtags,
+  });
+
+  // 로그 삭제
+  Future<Either<Failure, void>> deleteLog(String publicId);
+
   // 로그 저장 (북마크)
   Future<Either<Failure, void>> saveLog(String publicId);
 

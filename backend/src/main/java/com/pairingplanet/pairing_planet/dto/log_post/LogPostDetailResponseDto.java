@@ -17,5 +17,6 @@ public record LogPostDetailResponseDto(
         RecipeSummaryDto linkedRecipe,
         Instant createdAt,
         List<HashtagDto> hashtags,
-        Boolean isSavedByCurrentUser  // null if not logged in
+        Boolean isSavedByCurrentUser,  // null if not logged in
+        Long creatorId  // for ownership check
 ) {}
