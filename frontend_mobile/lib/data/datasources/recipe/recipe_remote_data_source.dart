@@ -67,6 +67,9 @@ class RecipeRemoteDataSource {
     required int page,
     int size = 10,
     String? query,
+    String? cuisineFilter,
+    String? typeFilter, // 'original', 'variant', or null for all
+    String? sortBy, // 'recent', 'trending', 'most_forked'
   }) async {
     try {
       final queryParams = <String, dynamic>{
@@ -75,6 +78,22 @@ class RecipeRemoteDataSource {
       };
       if (query != null && query.isNotEmpty) {
         queryParams['q'] = query;
+      }
+      if (cuisineFilter != null && cuisineFilter.isNotEmpty) {
+        queryParams['locale'] = cuisineFilter;
+      }
+      // Map frontend filter to backend parameter
+      if (typeFilter == 'original') {
+        queryParams['onlyRoot'] = true;
+      }
+      // Map frontend sort names to Spring Data sort format
+      if (sortBy != null && sortBy.isNotEmpty) {
+        final sortMapping = {
+          'recent': 'createdAt,desc',
+          'trending': 'createdAt,desc', // TODO: implement trending sort on backend
+          'most_forked': 'createdAt,desc', // TODO: implement fork count sort
+        };
+        queryParams['sort'] = sortMapping[sortBy] ?? 'createdAt,desc';
       }
 
       final response = await _dio.get(

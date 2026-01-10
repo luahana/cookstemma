@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
@@ -9,8 +13,14 @@ import 'package:pairing_planet2_frontend/core/widgets/search/enhanced_search_app
 import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
 import 'package:pairing_planet2_frontend/core/widgets/skeletons/log_post_card_skeleton.dart';
 import 'package:pairing_planet2_frontend/data/datasources/search/search_local_data_source.dart';
+import 'package:pairing_planet2_frontend/data/models/sync/sync_queue_item.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_list_provider.dart';
+import 'package:pairing_planet2_frontend/features/log_post/providers/log_filter_provider.dart';
+import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
+import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/log_filter_bar.dart';
+import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/log_empty_state.dart';
+import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/sync_status_indicator.dart';
 
 class LogPostListScreen extends ConsumerStatefulWidget {
   const LogPostListScreen({super.key});
@@ -40,13 +50,8 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
     }
   }
 
-  String _getOutcomeEmoji(String? outcome) {
-    return switch (outcome) {
-      'SUCCESS' => '😊',
-      'PARTIAL' => '😐',
-      'FAILED' => '😢',
-      _ => '🍳',
-    };
+  LogOutcome _getOutcome(String? outcome) {
+    return LogOutcome.fromString(outcome) ?? LogOutcome.partial;
   }
 
   @override
@@ -69,10 +74,6 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
       ),
       body: logPostsAsync.when(
         data: (state) {
-          if (state.items.isEmpty) {
-            return _buildEmptyState(state.searchQuery);
-          }
-
           return RefreshIndicator(
             onRefresh: () async {
               await ref.read(logPostPaginatedListProvider.notifier).refresh();
@@ -81,51 +82,76 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                // Grid of log posts
-                SliverPadding(
-                  padding: const EdgeInsets.all(12),
-                  sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 0.75,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        if (index < state.items.length) {
-                          return _buildLogCard(context, state.items[index], state.searchQuery);
-                        }
-                        return null;
+                // Sync status banner (shows when there are pending items)
+                const SliverToBoxAdapter(
+                  child: SyncStatusIndicator(variant: SyncStatusVariant.banner),
+                ),
+                // Filter bar at the top (pinned/sticky)
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _FilterBarDelegate(
+                    height: 48.h,
+                    child: CompactLogFilterBar(
+                      onFilterChanged: () {
+                        // Provider auto-refreshes on filter change
+                        HapticFeedback.selectionClick();
                       },
-                      childCount: state.items.length,
                     ),
                   ),
                 ),
-                // Loading indicator at the bottom
-                if (state.hasNext)
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Center(child: CircularProgressIndicator()),
+                // Empty state or grid of log posts
+                if (state.items.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildEmptyStateContent(state.searchQuery),
+                  )
+                else ...[
+                  // Grid of log posts
+                  SliverPadding(
+                    padding: const EdgeInsets.all(12),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 0.75,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index < state.items.length) {
+                            return _buildLogCard(context, state.items[index], state.searchQuery);
+                          }
+                          return null;
+                        },
+                        childCount: state.items.length,
+                      ),
                     ),
                   ),
-                // End message when no more items
-                if (!state.hasNext && state.items.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Center(
-                        child: Text(
-                          'logPost.allLoaded'.tr(),
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 13,
+                  // Loading indicator at the bottom
+                  if (state.hasNext)
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    ),
+                  // End message when no more items
+                  if (!state.hasNext)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Center(
+                          child: Text(
+                            'logPost.allLoaded'.tr(),
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
+                ],
               ],
             ),
           );
@@ -137,115 +163,169 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
   }
 
   Widget _buildLogCard(BuildContext context, LogPostSummary logPost, String? searchQuery) {
-    return GestureDetector(
-      onTap: () => context.push(RouteConstants.logPostDetailPath(logPost.id)),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Photo with outcome overlay
-            Expanded(
-              flex: 3,
-              child: Stack(
-                children: [
-                  // Photo
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                    child: logPost.thumbnailUrl != null
-                        ? AppCachedImage(
-                            imageUrl: logPost.thumbnailUrl!,
-                            width: double.infinity,
-                            height: double.infinity,
-                            borderRadius: 0,
-                          )
-                        : Container(
-                            width: double.infinity,
-                            color: Colors.grey[200],
-                            child: Icon(
-                              Icons.restaurant,
-                              size: 40,
-                              color: Colors.grey[400],
-                            ),
-                          ),
-                  ),
-                  // Outcome emoji overlay
-                  Positioned(
-                    right: 8,
-                    bottom: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        _getOutcomeEmoji(logPost.outcome),
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                ],
+    final outcome = _getOutcome(logPost.outcome);
+
+    return Semantics(
+      button: true,
+      label: '${outcome.label}: ${logPost.title}',
+      hint: 'logPost.card.tapToView'.tr(),
+      child: GestureDetector(
+        onTap: () {
+          // Don't navigate to detail if pending (not yet synced)
+          if (logPost.isPending) {
+            HapticFeedback.lightImpact();
+            return;
+          }
+          HapticFeedback.selectionClick();
+          context.push(RouteConstants.logPostDetailPath(logPost.id));
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            ),
-            // Text info
-            Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Photo with outcome badge overlay
+              Expanded(
+                flex: 3,
+                child: Stack(
                   children: [
-                    HighlightedText(
-                      text: logPost.title,
-                      query: searchQuery,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    // Photo - handle both network URLs and local file paths
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      child: _buildThumbnail(logPost),
                     ),
-                    const SizedBox(height: 2),
-                    if (logPost.creatorName != null)
-                      Text(
-                        "@${logPost.creatorName}",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
+                    // Outcome badge overlay (top-left for prominence)
+                    Positioned(
+                      left: 8,
+                      top: 8,
+                      child: OutcomeBadge(
+                        outcome: outcome,
+                        variant: OutcomeBadgeVariant.compact,
+                      ),
+                    ),
+                    // Sync status indicator for pending items (top-right)
+                    if (logPost.isPending)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: CardSyncIndicator(
+                          status: SyncStatus.syncing,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                   ],
                 ),
               ),
-            ),
-          ],
+              // Text info
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      HighlightedText(
+                        text: logPost.title,
+                        query: searchQuery,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      if (logPost.isPending)
+                        Text(
+                          'logPost.sync.syncing'.tr(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.orange[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      else if (logPost.creatorName != null)
+                        Text(
+                          "@${logPost.creatorName}",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildEmptyState(String? searchQuery) {
-    // 검색 결과가 없는 경우
+  /// Build thumbnail widget - handles both network URLs and local file paths
+  Widget _buildThumbnail(LogPostSummary logPost) {
+    if (logPost.thumbnailUrl == null) {
+      return Container(
+        width: double.infinity,
+        color: Colors.grey[200],
+        child: Icon(
+          Icons.restaurant,
+          size: 40,
+          color: Colors.grey[400],
+        ),
+      );
+    }
+
+    // Handle local file URLs (for pending items)
+    if (logPost.thumbnailUrl!.startsWith('file://')) {
+      final filePath = logPost.thumbnailUrl!.replaceFirst('file://', '');
+      return Image.file(
+        File(filePath),
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: double.infinity,
+            color: Colors.grey[200],
+            child: Icon(
+              Icons.broken_image,
+              size: 40,
+              color: Colors.grey[400],
+            ),
+          );
+        },
+      );
+    }
+
+    // Network URL
+    return AppCachedImage(
+      imageUrl: logPost.thumbnailUrl!,
+      width: double.infinity,
+      height: double.infinity,
+      borderRadius: 0,
+    );
+  }
+
+  Widget _buildEmptyStateContent(String? searchQuery) {
+    // Check if filters are active
+    final filterState = ref.watch(logFilterProvider);
+
+    // Search results empty
     if (searchQuery != null && searchQuery.isNotEmpty) {
       return SearchEmptyState(
         query: searchQuery,
@@ -256,41 +336,19 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
       );
     }
 
-    // 일반 빈 상태
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      children: [
-        SizedBox(height: MediaQuery.of(context).size.height * 0.25),
-        Center(
-          child: Column(
-            children: [
-              Icon(
-                Icons.history_edu,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'logPost.noLogsYet'.tr(),
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'logPost.noLogsHint'.tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    // Filter results empty
+    if (filterState.hasActiveFilters) {
+      return FilterEmptyState(
+        onClearFilters: () {
+          HapticFeedback.lightImpact();
+          ref.read(logFilterProvider.notifier).clearAllFilters();
+        },
+      );
+    }
+
+    // No logs at all - show illustrated empty state
+    return const LogEmptyState(
+      type: EmptyStateType.noLogs,
     );
   }
 
@@ -321,5 +379,35 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
         ],
       ),
     );
+  }
+}
+
+/// Delegate for sticky filter bar header
+class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  final double height;
+
+  _FilterBarDelegate({required this.child, required this.height});
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return SizedBox.expand(
+      child: Material(
+        color: Colors.white,
+        elevation: overlapsContent ? 2 : 0,
+        child: child,
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => height;
+
+  @override
+  double get minExtent => height;
+
+  @override
+  bool shouldRebuild(covariant _FilterBarDelegate oldDelegate) {
+    return height != oldDelegate.height || child != oldDelegate.child;
   }
 }

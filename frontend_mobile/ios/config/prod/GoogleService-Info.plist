@@ -3,23 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>223256199574-tml2ekiekjqi5e7vb1sj8ragu327k2dg.apps.googleusercontent.com</string>
+	<string>1003324647842-pdml00e8ebsnudh7gk7kd4htbrerk0eo.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.223256199574-tml2ekiekjqi5e7vb1sj8ragu327k2dg</string>
-	<key>ANDROID_CLIENT_ID</key>
-	<string>223256199574-2df9qhloe95tkfup5d5kt7u8qc3bs17m.apps.googleusercontent.com</string>
+	<string>com.googleusercontent.apps.1003324647842-pdml00e8ebsnudh7gk7kd4htbrerk0eo</string>
 	<key>API_KEY</key>
-	<string>AIzaSyCcGoTEz1wYvRv-xuFATq--zIZTfXnyhCc</string>
+	<string>AIzaSyDUhuZuZ1ZiR3YI_7vqVyN9TYqrtPUYEas</string>
 	<key>GCM_SENDER_ID</key>
-	<string>223256199574</string>
+	<string>1003324647842</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.pairingplanet.pairingplanetfrontend</string>
 	<key>PROJECT_ID</key>
-	<string>pptest-b5da0</string>
+	<string>pairing-planet-prod</string>
 	<key>STORAGE_BUCKET</key>
-	<string>pptest-b5da0.firebasestorage.app</string>
+	<string>pairing-planet-prod.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -31,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:223256199574:ios:6dea0406ca02c63c341db7</string>
+	<string>1:1003324647842:ios:4f28e6d9917c2cdd5d6afb</string>
 </dict>
 </plist>

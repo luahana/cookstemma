@@ -69,7 +69,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Note: Build will fail until Firebase is configured and firebase_options_*.dart files are generated
-      # This is expected - the workflow will work after Phase 1 (Firebase setup) is complete
+      # Fix isar_flutter_libs namespace issue for AGP 8.0+
+      - name: Patch isar_flutter_libs for AGP 8.0+
+        run: |
+          ISAR_PATH="$HOME/.pub-cache/hosted/pub.dev/isar_flutter_libs-3.1.0+1/android/build.gradle"
+          if [ -f "$ISAR_PATH" ] && ! grep -q "namespace" "$ISAR_PATH"; then
+            sed -i "/android {/a\\    namespace 'dev.isar.isar_flutter_libs'" "$ISAR_PATH"
+            echo "Patched isar_flutter_libs build.gradle"
+          fi
+
       - name: Build APK
         run: flutter build apk --flavor ${{ matrix.flavor }} -t lib/main_${{ matrix.flavor }}.dart --debug

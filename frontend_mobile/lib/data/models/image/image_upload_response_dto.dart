@@ -16,6 +16,7 @@ class ImageUploadResponseDto {
 
   factory ImageUploadResponseDto.fromJson(Map<String, dynamic> json) =>
       _$ImageUploadResponseDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$ImageUploadResponseDtoToJson(this);
 }
 
 /// Extended result that includes both the upload response and compression metadata

@@ -68,6 +68,7 @@ class LogPostRepositoryImpl implements LogPostRepository {
     int page = 0,
     int size = 20,
     String? query,
+    List<String>? outcomes,
   }) async {
     if (await networkInfo.isConnected) {
       try {
@@ -75,6 +76,52 @@ class LogPostRepositoryImpl implements LogPostRepository {
           page: page,
           size: size,
           query: query,
+          outcomes: outcomes,
+        );
+        return Right(sliceDto.toEntity((dto) => dto.toEntity()));
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    }
+    return Left(ConnectionFailure());
+  }
+
+  @override
+  Future<Either<Failure, void>> saveLog(String publicId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.saveLog(publicId);
+        return const Right(null);
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    }
+    return Left(ConnectionFailure());
+  }
+
+  @override
+  Future<Either<Failure, void>> unsaveLog(String publicId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.unsaveLog(publicId);
+        return const Right(null);
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    }
+    return Left(ConnectionFailure());
+  }
+
+  @override
+  Future<Either<Failure, SliceResponse<LogPostSummary>>> getSavedLogs({
+    int page = 0,
+    int size = 20,
+  }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final sliceDto = await remoteDataSource.getSavedLogs(
+          page: page,
+          size: size,
         );
         return Right(sliceDto.toEntity((dto) => dto.toEntity()));
       } catch (e) {

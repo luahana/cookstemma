@@ -1,16 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pairing_planet2_frontend/data/datasources/sync/log_sync_engine.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_providers.dart';
+import 'package:pairing_planet2_frontend/features/log_post/providers/log_filter_provider.dart';
 
 class LogPostListState {
   final List<LogPostSummary> items;
   final bool hasNext;
   final String? searchQuery;
+  final LogFilterState? filterState;
 
   LogPostListState({
     required this.items,
     required this.hasNext,
     this.searchQuery,
+    this.filterState,
   });
 }
 
@@ -22,24 +26,87 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
 
   @override
   Future<LogPostListState> build() async {
+    // Watch filter state to rebuild when filters change
+    final filterState = ref.watch(logFilterProvider);
+
     _currentPage = 0;
     _hasNext = true;
     _searchQuery = null;
-    final items = await _fetchPage(0);
-    return LogPostListState(items: items, hasNext: _hasNext, searchQuery: _searchQuery);
+
+    // Fetch server items
+    final serverItems = await _fetchPage(0, filterState);
+
+    // Fetch pending items for optimistic display (no search query = show pending)
+    final pendingItems = await _fetchPendingItems();
+
+    // Combine: pending items first, then server items
+    final combinedItems = [...pendingItems, ...serverItems];
+
+    return LogPostListState(
+      items: combinedItems,
+      hasNext: _hasNext,
+      searchQuery: _searchQuery,
+      filterState: filterState,
+    );
   }
 
-  Future<List<LogPostSummary>> _fetchPage(int page) async {
+  /// Fetch pending log posts from sync queue for optimistic UI
+  Future<List<LogPostSummary>> _fetchPendingItems() async {
+    try {
+      final syncQueue = ref.read(syncQueueRepositoryProvider);
+      final pendingItems = await syncQueue.getPendingLogPosts();
+
+      // Convert to LogPostSummary
+      return pendingItems
+          .map((item) => LogPostSummary.fromSyncQueueItem(item))
+          .toList();
+    } catch (e) {
+      // If sync queue fails, just return empty list
+      return [];
+    }
+  }
+
+  Future<List<LogPostSummary>> _fetchPage(int page, [LogFilterState? filterState]) async {
     final useCase = ref.read(getLogPostListUseCaseProvider);
-    final result = await useCase(page: page, size: 20, query: _searchQuery);
+
+    // Get outcomes filter
+    List<String>? outcomes;
+    if (filterState != null && filterState.selectedOutcomes.isNotEmpty) {
+      outcomes = filterState.selectedOutcomes.map((o) => o.value).toList();
+    }
+
+    final result = await useCase(
+      page: page,
+      size: 20,
+      query: _searchQuery,
+      outcomes: outcomes,
+    );
 
     return result.fold(
       (failure) => throw failure,
       (sliceResponse) {
         _hasNext = sliceResponse.hasNext;
-        return sliceResponse.content;
+        // Apply client-side filtering for time and photos (if API doesn't support)
+        var items = sliceResponse.content;
+        if (filterState != null) {
+          items = _applyClientSideFilters(items, filterState);
+        }
+        return items;
       },
     );
+  }
+
+  /// Apply client-side filters for features not supported by API
+  List<LogPostSummary> _applyClientSideFilters(
+    List<LogPostSummary> items,
+    LogFilterState filterState,
+  ) {
+    // Note: These filters are applied client-side as a fallback
+    // Ideally, they should be implemented server-side for better performance
+
+    // For now, return items as-is since the API filtering handles outcomes
+    // Time filtering and photo filtering can be added here when needed
+    return items;
   }
 
   /// 검색 실행
@@ -57,11 +124,14 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
     state = const AsyncValue.loading();
 
     try {
-      final items = await _fetchPage(0);
+      final filterState = ref.read(logFilterProvider);
+      // Only fetch server items during search (no pending items)
+      final items = await _fetchPage(0, filterState);
       state = AsyncValue.data(LogPostListState(
         items: items,
         hasNext: _hasNext,
         searchQuery: _searchQuery,
+        filterState: filterState,
       ));
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -87,8 +157,9 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
       final currentState = state.value;
       if (currentState == null) return;
 
+      final filterState = ref.read(logFilterProvider);
       _currentPage++;
-      final newItems = await _fetchPage(_currentPage);
+      final newItems = await _fetchPage(_currentPage, filterState);
 
       final allItems = [...currentState.items, ...newItems];
       final uniqueItems = <String, LogPostSummary>{};
@@ -100,6 +171,7 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
         items: uniqueItems.values.toList(),
         hasNext: _hasNext,
         searchQuery: _searchQuery,
+        filterState: filterState,
       ));
     } finally {
       _isFetchingNext = false;
@@ -107,6 +179,13 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
   }
 
   Future<void> refresh() async {
+    _currentPage = 0;
+    _hasNext = true;
+    ref.invalidateSelf();
+  }
+
+  /// Refresh when filters change
+  void onFiltersChanged() {
     _currentPage = 0;
     _hasNext = true;
     ref.invalidateSelf();

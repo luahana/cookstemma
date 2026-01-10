@@ -5,7 +5,7 @@ class ApiEndpoints {
   static String recipeDetail(String id) => '/recipes/$id'; //
   static String recipeSave(String id) => '/recipes/$id/save'; // P1: 북마크
 
-  static const String log_posts = '/log_posts'; //
+  static const String logPosts = '/log_posts'; //
 
   // Feed 관련
   static const String homeFeed = '/home'; //
@@ -16,9 +16,12 @@ class ApiEndpoints {
 
   // User 관련
   static const String myProfile = '/users/me';
+  static const String myCookingDna = '/users/me/cooking-dna';
   static const String myRecipes = '/recipes/my';
   static const String myLogs = '/log_posts/my';
   static const String savedRecipes = '/recipes/saved';
+  static const String savedLogs = '/log_posts/saved';
+  static String logPostSave(String id) => '/log_posts/$id/save';
 
   // Follow 관련
   static String follow(String userId) => '/users/$userId/follow';
@@ -55,8 +58,12 @@ class RouteConstants {
   // Follow 관련
   static const String followers = '/users/:userId/followers';
 
+  // Star view for recipe family
+  static const String recipeStar = '/recipes/:id/star';
+
   // 이동 시 사용할 전체 경로 헬퍼
   static String recipeDetailPath(String id) => '/recipes/$id';
+  static String recipeStarPath(String id) => '/recipes/$id/star';
   static String logPostDetailPath(String id) => '/log_post/$id';
   static String followersPath(String userId) => '/users/$userId/followers';
 }

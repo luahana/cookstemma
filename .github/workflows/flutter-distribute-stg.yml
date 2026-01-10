@@ -1,13 +1,13 @@
 # Flutter Staging Distribution
-# Triggers on push to release branch
-# Builds APK and distributes to Firebase App Distribution for QA
+# Triggers on push to staging branch
+# Builds APK and distributes to Firebase App Distribution for QA testing
 
 name: Flutter Distribute Staging
 
 on:
   push:
     branches:
-      - release
+      - staging
     paths:
       - 'frontend_mobile/**'
       - '.github/workflows/flutter-distribute-stg.yml'
@@ -41,6 +41,20 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Patch isar_flutter_libs for AGP 8.0+ compatibility
+        run: |
+          # Find and patch isar_flutter_libs AndroidManifest.xml to remove package attribute
+          # AGP 8.0+ requires namespace in build.gradle, not package in manifest
+          ISAR_MANIFEST=$(find ~/.pub-cache/hosted/pub.dev -path "*/isar_flutter_libs-*/android/src/main/AndroidManifest.xml" 2>/dev/null | head -1)
+          if [ -n "$ISAR_MANIFEST" ] && [ -f "$ISAR_MANIFEST" ]; then
+            echo "Patching isar_flutter_libs manifest at: $ISAR_MANIFEST"
+            sed -i 's/package="[^"]*"//g' "$ISAR_MANIFEST"
+            echo "Patched manifest contents:"
+            cat "$ISAR_MANIFEST"
+          else
+            echo "isar_flutter_libs manifest not found, skipping patch"
+          fi
+
       - name: Build Release APK
         run: flutter build apk --flavor stg -t lib/main_stg.dart --release
 
@@ -58,20 +72,29 @@ jobs:
 
       - name: Upload Crashlytics mapping file
         if: success()
+        continue-on-error: true
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_STG }}
         run: |
           # Install Firebase CLI
           npm install -g firebase-tools
+
+          # Set up service account authentication
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/sa.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
 
           # Upload mapping file for Crashlytics symbol resolution
           MAPPING_FILE="build/app/outputs/mapping/stgRelease/mapping.txt"
           if [ -f "$MAPPING_FILE" ]; then
             firebase crashlytics:mappingfile:upload \
               --app=${{ secrets.FIREBASE_APP_ID_ANDROID_STG }} \
-              --token="${{ secrets.FIREBASE_TOKEN_STG }}" \
               "$MAPPING_FILE"
           else
-            echo "No mapping file found at $MAPPING_FILE (expected for debug builds)"
+            echo "No mapping file found at $MAPPING_FILE (ProGuard not enabled for staging builds)"
           fi
+
+          # Cleanup
+          rm -f /tmp/sa.json
 
       - name: Distribution Summary
         run: |

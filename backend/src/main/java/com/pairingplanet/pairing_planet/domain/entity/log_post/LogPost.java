@@ -44,4 +44,17 @@ public class LogPost extends BaseEntity {
             joinColumns = @JoinColumn(name = "log_post_id"),
             inverseJoinColumns = @JoinColumn(name = "hashtag_id"))
     private Set<Hashtag> hashtags = new HashSet<>();
+
+    // Bookmark counter
+    @Builder.Default
+    @Column(name = "saved_count")
+    private Integer savedCount = 0;
+
+    public void incrementSavedCount() {
+        this.savedCount = (this.savedCount == null ? 0 : this.savedCount) + 1;
+    }
+
+    public void decrementSavedCount() {
+        this.savedCount = Math.max(0, (this.savedCount == null ? 0 : this.savedCount) - 1);
+    }
 }

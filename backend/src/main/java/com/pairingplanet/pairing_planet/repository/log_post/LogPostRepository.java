@@ -19,6 +19,21 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // 2. 내 로그 목록 (최신순)
     Slice<LogPost> findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(Long creatorId, Pageable pageable);
 
+    // 2-1. 내 로그 목록 (outcome 필터링)
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        JOIN recipe_logs rl ON rl.log_post_id = lp.id
+        WHERE lp.creator_id = :creatorId
+        AND lp.is_deleted = false
+        AND rl.outcome = :outcome
+        ORDER BY lp.created_at DESC
+        """,
+        nativeQuery = true)
+    Slice<LogPost> findByCreatorIdAndOutcome(
+            @Param("creatorId") Long creatorId,
+            @Param("outcome") String outcome,
+            Pageable pageable);
+
     // 3. 특정 지역/언어 기반 최신 로그 피드
     Slice<LogPost> findByLocaleAndIsDeletedFalseAndIsPrivateFalseOrderByCreatedAtDesc(String locale, Pageable pageable);
 
