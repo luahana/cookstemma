@@ -142,25 +142,25 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
                   _buildOptionsView(onSelected, options),
             ),
           ),
-          SizedBox(width: 6.w),
+          SizedBox(width: 4.w),
           // Quantity field (number input)
           SizedBox(
-            width: 50.w,
+            width: 45.w,
             child: _quantityField(
               ingredient,
               enabled: !isOriginal,
             ),
           ),
-          SizedBox(width: 6.w),
+          SizedBox(width: 4.w),
           // Unit dropdown
           SizedBox(
-            width: 70.w,
+            width: 60.w,
             child: _unitDropdown(
               ingredient,
               enabled: !isOriginal,
             ),
           ),
-          SizedBox(width: 4.w),
+          SizedBox(width: 2.w),
           // 💡 삭제 버튼은 기존 재료라도 항상 활성화 (빼는 기능)
           IconButton(
             icon: Icon(Icons.close, color: Colors.grey, size: 18.sp),
@@ -180,10 +180,10 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     );
 
     return Container(
-      height: 44,
+      height: 44.h,
       decoration: BoxDecoration(
         color: enabled ? Colors.grey[50] : Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: enabled ? Colors.transparent : Colors.grey[300]!,
         ),
@@ -234,10 +234,10 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     final currentUnit = ingredient['unit'] as String?;
 
     return Container(
-      height: 44,
+      height: 44.h,
       decoration: BoxDecoration(
         color: enabled ? Colors.grey[50] : Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: enabled ? Colors.transparent : Colors.grey[300]!,
         ),

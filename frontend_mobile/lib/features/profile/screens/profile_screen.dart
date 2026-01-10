@@ -754,35 +754,36 @@ class _SavedTab extends ConsumerStatefulWidget {
 }
 
 class _SavedTabState extends ConsumerState<_SavedTab> {
-  final ScrollController _recipesScrollController = ScrollController();
-  final ScrollController _logsScrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
   SavedTypeFilter _currentFilter = SavedTypeFilter.all;
 
   @override
   void initState() {
     super.initState();
-    _recipesScrollController.addListener(_onRecipesScroll);
-    _logsScrollController.addListener(_onLogsScroll);
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _recipesScrollController.dispose();
-    _logsScrollController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _onRecipesScroll() {
-    if (_recipesScrollController.position.pixels >=
-        _recipesScrollController.position.maxScrollExtent * 0.8) {
-      ref.read(savedRecipesProvider.notifier).fetchNextPage();
-    }
-  }
-
-  void _onLogsScroll() {
-    if (_logsScrollController.position.pixels >=
-        _logsScrollController.position.maxScrollExtent * 0.8) {
-      ref.read(savedLogsProvider.notifier).fetchNextPage();
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.8) {
+      // Fetch next page based on current filter
+      switch (_currentFilter) {
+        case SavedTypeFilter.all:
+          // All filter shows limited items, no pagination needed
+          break;
+        case SavedTypeFilter.recipes:
+          ref.read(savedRecipesProvider.notifier).fetchNextPage();
+          break;
+        case SavedTypeFilter.logs:
+          ref.read(savedLogsProvider.notifier).fetchNextPage();
+          break;
+      }
     }
   }
 
@@ -809,7 +810,12 @@ class _SavedTabState extends ConsumerState<_SavedTab> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Column(
+    // Single scrollable ListView - filter chips + content together
+    // This ensures proper scroll integration with NestedScrollView/RefreshIndicator
+    return ListView(
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
       children: [
         // Filter chips
         Padding(
@@ -836,131 +842,144 @@ class _SavedTabState extends ConsumerState<_SavedTab> {
             ],
           ),
         ),
-        // Content
-        Expanded(
-          child: _buildFilteredContent(recipesState, logsState),
-        ),
+        // Content based on filter
+        ..._buildContentItems(recipesState, logsState),
       ],
     );
   }
 
-  Widget _buildFilteredContent(SavedRecipesState recipesState, SavedLogsState logsState) {
+  List<Widget> _buildContentItems(SavedRecipesState recipesState, SavedLogsState logsState) {
     switch (_currentFilter) {
       case SavedTypeFilter.all:
-        return _buildCombinedList(recipesState, logsState);
+        return _buildCombinedListItems(recipesState, logsState);
       case SavedTypeFilter.recipes:
-        return _buildRecipesList(recipesState);
+        return _buildRecipesListItems(recipesState);
       case SavedTypeFilter.logs:
-        return _buildLogsList(logsState);
+        return _buildLogsListItems(logsState);
     }
   }
 
-  Widget _buildCombinedList(SavedRecipesState recipesState, SavedLogsState logsState) {
+  List<Widget> _buildCombinedListItems(SavedRecipesState recipesState, SavedLogsState logsState) {
     final hasRecipes = recipesState.items.isNotEmpty;
     final hasLogs = logsState.items.isNotEmpty;
 
     if (!hasRecipes && !hasLogs) {
-      return _buildEmptyState(
-        icon: Icons.bookmark_border,
-        message: 'profile.noSavedYet'.tr(),
-        subMessage: 'profile.saveRecipe'.tr(),
-      );
+      return [
+        SizedBox(height: 100.h),
+        _buildEmptyState(
+          icon: Icons.bookmark_border,
+          message: 'profile.noSavedYet'.tr(),
+          subMessage: 'profile.saveRecipe'.tr(),
+        ),
+      ];
     }
 
-    return ListView(
-      padding: EdgeInsets.all(16.r),
-      children: [
-        if (hasRecipes) ...[
-          Text(
-            'profile.filter.recipes'.tr(),
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
-          ),
-          SizedBox(height: 8.h),
-          ...recipesState.items.take(3).map((recipe) => _buildSavedRecipeCard(context, recipe)),
-          if (recipesState.items.length > 3)
-            TextButton(
-              onPressed: () => setState(() => _currentFilter = SavedTypeFilter.recipes),
-              child: Text('+ ${recipesState.items.length - 3} more'),
-            ),
-          SizedBox(height: 16.h),
-        ],
-        if (hasLogs) ...[
-          Text(
-            'profile.filter.logs'.tr(),
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
-          ),
-          SizedBox(height: 8.h),
-          ...logsState.items.take(3).map((log) => _buildSavedLogCard(context, log)),
-          if (logsState.items.length > 3)
-            TextButton(
-              onPressed: () => setState(() => _currentFilter = SavedTypeFilter.logs),
-              child: Text('+ ${logsState.items.length - 3} more'),
-            ),
-        ],
-      ],
-    );
+    return [
+      Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (hasRecipes) ...[
+              Text(
+                'profile.filter.recipes'.tr(),
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+              SizedBox(height: 8.h),
+              ...recipesState.items.take(3).map((recipe) => _buildSavedRecipeCard(context, recipe)),
+              if (recipesState.items.length > 3)
+                TextButton(
+                  onPressed: () => setState(() => _currentFilter = SavedTypeFilter.recipes),
+                  child: Text('+ ${recipesState.items.length - 3} more'),
+                ),
+              SizedBox(height: 16.h),
+            ],
+            if (hasLogs) ...[
+              Text(
+                'profile.filter.logs'.tr(),
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+              SizedBox(height: 8.h),
+              ...logsState.items.take(3).map((log) => _buildSavedLogCard(context, log)),
+              if (logsState.items.length > 3)
+                TextButton(
+                  onPressed: () => setState(() => _currentFilter = SavedTypeFilter.logs),
+                  child: Text('+ ${logsState.items.length - 3} more'),
+                ),
+            ],
+            SizedBox(height: 16.h),
+          ],
+        ),
+      ),
+    ];
   }
 
-  Widget _buildRecipesList(SavedRecipesState state) {
+  List<Widget> _buildRecipesListItems(SavedRecipesState state) {
     if (state.items.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.bookmark_border,
-        message: 'profile.noSavedYet'.tr(),
-        subMessage: 'profile.saveRecipe'.tr(),
-      );
+      return [
+        SizedBox(height: 100.h),
+        _buildEmptyState(
+          icon: Icons.bookmark_border,
+          message: 'profile.noSavedYet'.tr(),
+          subMessage: 'profile.saveRecipe'.tr(),
+        ),
+      ];
     }
 
-    return ListView.builder(
-      controller: _recipesScrollController,
-      padding: EdgeInsets.all(16.r),
-      itemCount: state.items.length + (state.hasNext ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index >= state.items.length) {
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.all(16.r),
-              child: const CircularProgressIndicator(),
-            ),
-          );
-        }
-        return _buildSavedRecipeCard(context, state.items[index]);
-      },
-    );
+    return [
+      Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Column(
+          children: [
+            ...state.items.map((recipe) => _buildSavedRecipeCard(context, recipe)),
+            if (state.hasNext)
+              Padding(
+                padding: EdgeInsets.all(16.r),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            SizedBox(height: 16.h),
+          ],
+        ),
+      ),
+    ];
   }
 
-  Widget _buildLogsList(SavedLogsState state) {
+  List<Widget> _buildLogsListItems(SavedLogsState state) {
     if (state.items.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.bookmark_border,
-        message: 'profile.noSavedYet'.tr(),
-        subMessage: 'profile.saveRecipe'.tr(),
-      );
+      return [
+        SizedBox(height: 100.h),
+        _buildEmptyState(
+          icon: Icons.bookmark_border,
+          message: 'profile.noSavedYet'.tr(),
+          subMessage: 'profile.saveRecipe'.tr(),
+        ),
+      ];
     }
 
-    return ListView.builder(
-      controller: _logsScrollController,
-      padding: EdgeInsets.all(16.r),
-      itemCount: state.items.length + (state.hasNext ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index >= state.items.length) {
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.all(16.r),
-              child: const CircularProgressIndicator(),
-            ),
-          );
-        }
-        return _buildSavedLogCard(context, state.items[index]);
-      },
-    );
+    return [
+      Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Column(
+          children: [
+            ...state.items.map((log) => _buildSavedLogCard(context, log)),
+            if (state.hasNext)
+              Padding(
+                padding: EdgeInsets.all(16.r),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            SizedBox(height: 16.h),
+          ],
+        ),
+      ),
+    ];
   }
 
   Widget _buildFilterChip({
