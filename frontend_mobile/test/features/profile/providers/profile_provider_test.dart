@@ -1,37 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:pairing_planet2_frontend/core/network/network_info.dart';
 import 'package:pairing_planet2_frontend/data/datasources/sync/log_sync_engine.dart';
-import 'package:pairing_planet2_frontend/data/datasources/user/user_local_data_source.dart';
-import 'package:pairing_planet2_frontend/data/datasources/user/user_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/sync/sync_queue_item.dart';
 import 'package:pairing_planet2_frontend/data/repositories/sync_queue_repository.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 
 // Mocks
-class MockUserRemoteDataSource extends Mock implements UserRemoteDataSource {}
-
-class MockUserLocalDataSource extends Mock implements UserLocalDataSource {}
-
-class MockNetworkInfo extends Mock implements NetworkInfo {}
-
 class MockSyncQueueRepository extends Mock implements SyncQueueRepository {}
 
 class MockRef extends Mock implements Ref {}
 
 void main() {
   group('MyLogsNotifier', () {
-    late MockUserRemoteDataSource mockRemoteDataSource;
-    late MockUserLocalDataSource mockLocalDataSource;
-    late MockNetworkInfo mockNetworkInfo;
     late MockRef mockRef;
     late MockSyncQueueRepository mockSyncQueueRepository;
 
     setUp(() {
-      mockRemoteDataSource = MockUserRemoteDataSource();
-      mockLocalDataSource = MockUserLocalDataSource();
-      mockNetworkInfo = MockNetworkInfo();
       mockRef = MockRef();
       mockSyncQueueRepository = MockSyncQueueRepository();
     });

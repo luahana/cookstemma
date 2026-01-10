@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/providers/scroll_to_top_provider.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/enhanced_search_app_bar.dart';
@@ -50,12 +51,29 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
     }
   }
 
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   LogOutcome _getOutcome(String? outcome) {
     return LogOutcome.fromString(outcome) ?? LogOutcome.partial;
   }
 
   @override
   Widget build(BuildContext context) {
+    // Listen to scroll-to-top events for tab index 2 (Logs)
+    ref.listen<int>(scrollToTopProvider(2), (previous, current) {
+      if (previous != null && current != previous) {
+        _scrollToTop();
+      }
+    });
+
     final logPostsAsync = ref.watch(logPostPaginatedListProvider);
 
     return Scaffold(

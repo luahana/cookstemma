@@ -1,28 +1,20 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/locale_dropdown.dart';
 
 /// Large featured card for recipes with many variants (Star recipes)
 /// Used in Bento grid layout to highlight popular original recipes
 class FeaturedStarCard extends StatelessWidget {
   final RecipeSummary recipe;
   final VoidCallback? onTap;
-  final VoidCallback? onLog;
-  final VoidCallback? onFork;
-  final VoidCallback? onViewStar;
 
   const FeaturedStarCard({
     super.key,
     required this.recipe,
     this.onTap,
-    this.onLog,
-    this.onFork,
-    this.onViewStar,
   });
 
   @override
@@ -98,8 +90,8 @@ class FeaturedStarCard extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: 10.h),
-                    // Action buttons
-                    _buildActionButtons(),
+                    // Stats row
+                    _buildStatsRow(),
                   ],
                 ),
               ),
@@ -156,12 +148,6 @@ class FeaturedStarCard extends StatelessWidget {
           left: 10.w,
           child: _buildFeaturedBadge(),
         ),
-        // Locale badge (top right)
-        Positioned(
-          top: 10.h,
-          right: 10.w,
-          child: _buildLocaleBadge(),
-        ),
         // Star metrics (bottom)
         Positioned(
           bottom: 10.h,
@@ -198,41 +184,6 @@ class FeaturedStarCard extends StatelessWidget {
               color: Colors.white,
               fontSize: 11.sp,
               fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLocaleBadge() {
-    final locale = CulinaryLocale.fromCode(recipe.culinaryLocale);
-    if (locale == null) return const SizedBox.shrink();
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(6.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: Offset(0, 2.h),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(locale.flagEmoji, style: TextStyle(fontSize: 14.sp)),
-          SizedBox(width: 4.w),
-          Text(
-            locale.labelKey.tr(),
-            style: TextStyle(
-              fontSize: 11.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[800],
             ),
           ),
         ],
@@ -284,86 +235,59 @@ class FeaturedStarCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildStatsRow() {
     return Row(
       children: [
-        Expanded(
-          child: _FeaturedActionButton(
-            icon: Icons.edit_note,
-            label: 'recipe.action.log'.tr(),
-            onTap: onLog,
-            isPrimary: false,
-          ),
+        // Variant count
+        _buildStatBadge(
+          icon: Icons.call_split,
+          count: recipe.variantCount,
+          label: 'recipe.variants'.tr(),
         ),
-        SizedBox(width: 6.w),
-        Expanded(
-          child: _FeaturedActionButton(
-            icon: Icons.call_split,
-            label: 'recipe.action.fork'.tr(),
-            onTap: onFork,
-            isPrimary: false,
-          ),
-        ),
-        SizedBox(width: 6.w),
-        Expanded(
-          child: _FeaturedActionButton(
-            icon: Icons.star_outline,
-            label: 'recipe.action.star'.tr(),
-            onTap: onViewStar,
-            isPrimary: true,
-          ),
+        SizedBox(width: 12.w),
+        // Log count
+        _buildStatBadge(
+          icon: Icons.edit_note,
+          count: recipe.logCount,
+          label: 'recipe.logs'.tr(),
         ),
       ],
     );
   }
-}
 
-class _FeaturedActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final bool isPrimary;
-
-  const _FeaturedActionButton({
-    required this.icon,
-    required this.label,
-    this.onTap,
-    this.isPrimary = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: isPrimary ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey[100],
-      borderRadius: BorderRadius.circular(8.r),
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onTap?.call();
-        },
+  Widget _buildStatBadge({
+    required IconData icon,
+    required int count,
+    required String label,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
         borderRadius: BorderRadius.circular(8.r),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 8.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 18.sp,
-                color: isPrimary ? AppColors.primary : Colors.grey[600],
-              ),
-              SizedBox(height: 2.h),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10.sp,
-                  fontWeight: FontWeight.w600,
-                  color: isPrimary ? AppColors.primary : Colors.grey[600],
-                ),
-              ),
-            ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16.sp, color: Colors.grey[600]),
+          SizedBox(width: 6.w),
+          Text(
+            count.toString(),
+            style: TextStyle(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
           ),
-        ),
+          SizedBox(width: 4.w),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
       ),
     );
   }

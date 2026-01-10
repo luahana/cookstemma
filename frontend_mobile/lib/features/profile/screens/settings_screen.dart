@@ -206,22 +206,31 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text('settings.measurementUnits'.tr()),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: MeasurementPreference.values.map((pref) {
-            return RadioListTile<MeasurementPreference>(
-              title: Text(isKorean ? pref.displayNameKo : pref.displayName),
-              value: pref,
-              groupValue: current,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(measurementPreferenceProvider.notifier).setPreference(value);
+        content: RadioGroup<MeasurementPreference>(
+          groupValue: current,
+          onChanged: (value) {
+            if (value != null) {
+              ref.read(measurementPreferenceProvider.notifier).setPreference(value);
+              Navigator.pop(dialogContext);
+            }
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: MeasurementPreference.values.map((pref) {
+              return ListTile(
+                title: Text(isKorean ? pref.displayNameKo : pref.displayName),
+                leading: Radio<MeasurementPreference>(
+                  value: pref,
+                  activeColor: AppColors.primary,
+                ),
+                selected: pref == current,
+                onTap: () {
+                  ref.read(measurementPreferenceProvider.notifier).setPreference(pref);
                   Navigator.pop(dialogContext);
-                }
-              },
-              activeColor: AppColors.primary,
-            );
-          }).toList(),
+                },
+              );
+            }).toList(),
+          ),
         ),
         actions: [
           TextButton(

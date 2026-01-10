@@ -2,23 +2,16 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
-/// Action buttons for recipe cards: Log, Fork, and View Star/Root
+/// Action buttons for recipe cards: Log and Fork
 class CardActionRow extends StatelessWidget {
-  final bool isOriginal;
   final VoidCallback? onLog;
   final VoidCallback? onFork;
-  final VoidCallback? onViewStar;
-  final VoidCallback? onViewRoot;
 
   const CardActionRow({
     super.key,
-    required this.isOriginal,
     this.onLog,
     this.onFork,
-    this.onViewStar,
-    this.onViewRoot,
   });
 
   @override
@@ -31,7 +24,6 @@ class CardActionRow extends StatelessWidget {
             icon: Icons.edit_note,
             label: 'recipe.action.log'.tr(),
             onTap: onLog,
-            isPrimary: false,
           ),
         ),
         SizedBox(width: 8.w),
@@ -41,25 +33,7 @@ class CardActionRow extends StatelessWidget {
             icon: Icons.call_split,
             label: 'recipe.action.fork'.tr(),
             onTap: onFork,
-            isPrimary: false,
           ),
-        ),
-        SizedBox(width: 8.w),
-        // View Star (for originals) or View Root (for variants)
-        Expanded(
-          child: isOriginal
-              ? _ActionButton(
-                  icon: Icons.star_outline,
-                  label: 'recipe.action.star'.tr(),
-                  onTap: onViewStar,
-                  isPrimary: true,
-                )
-              : _ActionButton(
-                  icon: Icons.push_pin_outlined,
-                  label: 'recipe.action.root'.tr(),
-                  onTap: onViewRoot,
-                  isPrimary: true,
-                ),
         ),
       ],
     );
@@ -70,13 +44,11 @@ class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
-  final bool isPrimary;
 
   const _ActionButton({
     required this.icon,
     required this.label,
     this.onTap,
-    this.isPrimary = false,
   });
 
   @override
@@ -85,7 +57,7 @@ class _ActionButton extends StatelessWidget {
       button: true,
       label: label,
       child: Material(
-        color: isPrimary ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey[100],
+        color: Colors.grey[100],
         borderRadius: BorderRadius.circular(8.r),
         child: InkWell(
           onTap: () {
@@ -101,7 +73,7 @@ class _ActionButton extends StatelessWidget {
                 Icon(
                   icon,
                   size: 16.sp,
-                  color: isPrimary ? AppColors.primary : Colors.grey[700],
+                  color: Colors.grey[700],
                 ),
                 SizedBox(width: 6.w),
                 Flexible(
@@ -110,7 +82,7 @@ class _ActionButton extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
-                      color: isPrimary ? AppColors.primary : Colors.grey[700],
+                      color: Colors.grey[700],
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),

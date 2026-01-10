@@ -7,7 +7,6 @@ import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/locale_badge.dart';
 
 /// Evolution-focused recipe card with prominent variant/log badges
 class EvolutionRecipeCard extends StatelessWidget {
@@ -78,25 +77,14 @@ class EvolutionRecipeCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Food name + locale badge
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        recipe.foodName,
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    if (recipe.culinaryLocale != null)
-                      LocaleBadge(
-                        localeCode: recipe.culinaryLocale!,
-                        showLabel: false,
-                      ),
-                  ],
+                // Food name
+                Text(
+                  recipe.foodName,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 SizedBox(height: 4.h),
                 // Recipe title
@@ -151,17 +139,6 @@ class EvolutionRecipeCard extends StatelessWidget {
                       ),
                     ),
             ),
-            // Locale badge on top right
-            if (recipe.culinaryLocale != null)
-              Positioned(
-                top: 8.h,
-                right: 8.w,
-                child: LocaleBadge(
-                  localeCode: recipe.culinaryLocale!,
-                  showLabel: false,
-                  fontSize: 10.sp,
-                ),
-              ),
           ],
         ),
         // Content
@@ -367,16 +344,6 @@ class FeaturedEvolutionCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Locale badge
-              if (recipe.culinaryLocale != null)
-                Positioned(
-                  top: 12.h,
-                  right: 12.w,
-                  child: LocaleBadge(
-                    localeCode: recipe.culinaryLocale!,
-                    showLabel: false,
-                  ),
-                ),
             ],
           ),
         ),

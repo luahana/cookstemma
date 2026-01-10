@@ -105,9 +105,6 @@ class BentoGridView extends StatelessWidget {
         child: FeaturedStarCard(
           recipe: tile.recipe,
           onTap: () => context.push(RouteConstants.recipeDetailPath(tile.recipe.publicId)),
-          onLog: () => context.push(RouteConstants.recipeDetailPath(tile.recipe.publicId)),
-          onFork: () => context.push(RouteConstants.recipeDetailPath(tile.recipe.publicId)),
-          onViewStar: () => context.push(RouteConstants.recipeDetailPath(tile.recipe.publicId)),
         ),
       );
     }
@@ -116,8 +113,6 @@ class BentoGridView extends StatelessWidget {
       recipe: tile.recipe,
       height: tile.height,
       onTap: () => context.push(RouteConstants.recipeDetailPath(tile.recipe.publicId)),
-      onLog: () => context.push(RouteConstants.recipeDetailPath(tile.recipe.publicId)),
-      onFork: () => context.push(RouteConstants.recipeDetailPath(tile.recipe.publicId)),
     );
   }
 }
@@ -185,17 +180,12 @@ class BentoQuiltGridView extends StatelessWidget {
             return FeaturedStarCard(
               recipe: recipe,
               onTap: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
-              onLog: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
-              onFork: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
-              onViewStar: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
             );
           }
 
           return CompactRecipeCard(
             recipe: recipe,
             onTap: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
-            onLog: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
-            onFork: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
           );
         },
         childCount: hasNext ? recipes.length + 1 : recipes.length,
@@ -251,8 +241,6 @@ class SimpleGridView extends StatelessWidget {
         return CompactRecipeCard(
           recipe: recipe,
           onTap: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
-          onLog: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
-          onFork: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
         );
       },
     );

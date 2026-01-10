@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 enum BrowseViewMode {
   list,
   grid,
-  star,
 }
 
 /// Recipe type filter

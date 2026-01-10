@@ -445,7 +445,9 @@ public class RecipeService {
             return new org.springframework.data.domain.SliceImpl<>(
                     java.util.Collections.emptyList(), pageable, false);
         }
-        return recipeRepository.searchRecipes(keyword.trim(), pageable)
+        // Use unsorted pageable - the native query handles ordering by relevance score
+        Pageable unsortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        return recipeRepository.searchRecipes(keyword.trim(), unsortedPageable)
                 .map(this::convertToSummary);
     }
 

@@ -47,17 +47,6 @@ class ViewModeToggle extends ConsumerWidget {
               ref.read(browseFilterProvider.notifier).setViewMode(BrowseViewMode.grid);
               onModeChanged?.call();
             },
-            position: _ButtonPosition.middle,
-          ),
-          _ViewModeButton(
-            icon: Icons.star_outline,
-            label: 'filter.viewStar'.tr(),
-            isSelected: currentMode == BrowseViewMode.star,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              ref.read(browseFilterProvider.notifier).setViewMode(BrowseViewMode.star);
-              onModeChanged?.call();
-            },
             position: _ButtonPosition.right,
           ),
         ],
@@ -66,7 +55,7 @@ class ViewModeToggle extends ConsumerWidget {
   }
 }
 
-enum _ButtonPosition { left, middle, right }
+enum _ButtonPosition { left, right }
 
 class _ViewModeButton extends StatelessWidget {
   final IconData icon;
@@ -90,8 +79,6 @@ class _ViewModeButton extends StatelessWidget {
           topLeft: Radius.circular(8.r),
           bottomLeft: Radius.circular(8.r),
         );
-      case _ButtonPosition.middle:
-        return BorderRadius.zero;
       case _ButtonPosition.right:
         return BorderRadius.only(
           topRight: Radius.circular(8.r),
@@ -158,16 +145,6 @@ class CompactViewModeToggle extends ConsumerWidget {
             onTap: () {
               HapticFeedback.selectionClick();
               ref.read(browseFilterProvider.notifier).setViewMode(BrowseViewMode.grid);
-              onModeChanged?.call();
-            },
-            isFirst: false,
-          ),
-          _CompactModeButton(
-            icon: Icons.star_outline,
-            isSelected: currentMode == BrowseViewMode.star,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              ref.read(browseFilterProvider.notifier).setViewMode(BrowseViewMode.star);
               onModeChanged?.call();
             },
             isFirst: false,
@@ -250,8 +227,6 @@ class IconViewModeToggle extends ConsumerWidget {
           return Icons.view_list;
         case BrowseViewMode.grid:
           return Icons.grid_view;
-        case BrowseViewMode.star:
-          return Icons.star_outline;
       }
     }
 
@@ -260,8 +235,6 @@ class IconViewModeToggle extends ConsumerWidget {
         case BrowseViewMode.list:
           return BrowseViewMode.grid;
         case BrowseViewMode.grid:
-          return BrowseViewMode.star;
-        case BrowseViewMode.star:
           return BrowseViewMode.list;
       }
     }

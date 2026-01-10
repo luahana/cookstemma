@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/providers/scroll_to_top_provider.dart';
 import 'package:pairing_planet2_frontend/core/widgets/custom_bottom_nav_bar.dart';
 import 'package:pairing_planet2_frontend/core/widgets/fab_action_sheet.dart';
 import 'package:pairing_planet2_frontend/core/widgets/global_sync_indicator.dart';
@@ -16,7 +17,11 @@ class MainScreen extends ConsumerWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  void _onTap(int index) {
+  void _onTap(BuildContext context, WidgetRef ref, int index) {
+    // If tapping the current tab, trigger scroll-to-top
+    if (index == navigationShell.currentIndex) {
+      ref.triggerScrollToTop(index);
+    }
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
@@ -74,7 +79,7 @@ class MainScreen extends ConsumerWidget {
       ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: navigationShell.currentIndex,
-        onTap: _onTap,
+        onTap: (index) => _onTap(context, ref, index),
         onFabTap: () => _showActionSheet(context, ref),
         levelProgress: cookingDnaState?.data?.levelProgress,
         level: cookingDnaState?.data?.level,

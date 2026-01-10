@@ -6,24 +6,17 @@ import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/card_action_row.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/diff_summary_row.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/ingredient_preview_chips.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/locale_badge.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/star_preview_badge.dart';
 
 /// Enhanced recipe card for the Living Blueprint browse page
-/// Shows star metrics for originals, diff summary for variants
+/// Shows diff summary for variants
 class EnhancedRecipeCard extends StatelessWidget {
   final RecipeSummary recipe;
   final String? searchQuery;
   final List<IngredientPreview>? ingredientPreviews;
   final DiffSummary? diffSummary;
   final VoidCallback? onTap;
-  final VoidCallback? onLog;
-  final VoidCallback? onFork;
-  final VoidCallback? onViewStar;
-  final VoidCallback? onViewRoot;
 
   const EnhancedRecipeCard({
     super.key,
@@ -32,10 +25,6 @@ class EnhancedRecipeCard extends StatelessWidget {
     this.ingredientPreviews,
     this.diffSummary,
     this.onTap,
-    this.onLog,
-    this.onFork,
-    this.onViewStar,
-    this.onViewRoot,
   });
 
   bool get isOriginal => !recipe.isVariant;
@@ -103,14 +92,8 @@ class EnhancedRecipeCard extends StatelessWidget {
                   // Creator row
                   _buildCreatorRow(),
                   SizedBox(height: 12.h),
-                  // Action buttons
-                  CardActionRow(
-                    isOriginal: isOriginal,
-                    onLog: onLog,
-                    onFork: onFork,
-                    onViewStar: onViewStar,
-                    onViewRoot: onViewRoot,
-                  ),
+                  // Stats row (log count + variant count)
+                  _buildStatsRow(),
                 ],
               ),
             ),
@@ -159,33 +142,6 @@ class EnhancedRecipeCard extends StatelessWidget {
           top: 12.h,
           left: 12.w,
           child: _buildTypeBadge(),
-        ),
-        // Locale badge (top right)
-        Positioned(
-          top: 12.h,
-          right: 12.w,
-          child: LocaleBadge(
-            localeCode: recipe.culinaryLocale,
-            showLabel: false,
-          ),
-        ),
-        // Star preview (bottom left) for originals
-        // Or Based on badge (bottom left) for variants
-        Positioned(
-          bottom: 12.h,
-          left: 12.w,
-          right: 12.w,
-          child: isOriginal
-              ? StarPreviewBadge(
-                  variantCount: recipe.variantCount,
-                  logCount: recipe.logCount,
-                )
-              : (recipe.rootTitle != null
-                  ? BasedOnBadge(
-                      rootTitle: recipe.rootTitle!,
-                      onTap: onViewRoot,
-                    )
-                  : const SizedBox.shrink()),
         ),
       ],
     );
@@ -258,17 +214,64 @@ class EnhancedRecipeCard extends StatelessWidget {
           recipe.creatorName,
           style: TextStyle(color: Colors.grey[600], fontSize: 13.sp),
         ),
-        if (recipe.logCount > 0) ...[
+      ],
+    );
+  }
+
+  Widget _buildStatsRow() {
+    return Row(
+      children: [
+        // Variant count
+        _buildStatBadge(
+          icon: Icons.call_split,
+          count: recipe.variantCount,
+          label: 'recipe.variants'.tr(),
+        ),
+        SizedBox(width: 12.w),
+        // Log count
+        _buildStatBadge(
+          icon: Icons.edit_note,
+          count: recipe.logCount,
+          label: 'recipe.logs'.tr(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatBadge({
+    required IconData icon,
+    required int count,
+    required String label,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16.sp, color: Colors.grey[600]),
+          SizedBox(width: 6.w),
           Text(
-            " · ",
-            style: TextStyle(color: Colors.grey[400], fontSize: 13.sp),
+            count.toString(),
+            style: TextStyle(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
           ),
+          SizedBox(width: 4.w),
           Text(
-            'recipe.logCountLabel'.tr(namedArgs: {'count': recipe.logCount.toString()}),
-            style: TextStyle(color: Colors.grey[600], fontSize: 13.sp),
+            label,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: Colors.grey[500],
+            ),
           ),
         ],
-      ],
+      ),
     );
   }
 }

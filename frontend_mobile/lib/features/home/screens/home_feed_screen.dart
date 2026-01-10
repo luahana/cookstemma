@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/providers/scroll_to_top_provider.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/trending_tree_dto.dart';
+import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart';
 import '../providers/home_feed_provider.dart';
 import '../widgets/enhanced_search_app_bar.dart';
 import '../widgets/cache_status_banner.dart';
@@ -14,11 +16,40 @@ import '../widgets/horizontal_recipe_scroll.dart';
 import '../widgets/evolution_recipe_card.dart';
 import '../widgets/skeletons/home_feed_skeleton.dart';
 
-class HomeFeedScreen extends ConsumerWidget {
+class HomeFeedScreen extends ConsumerStatefulWidget {
   const HomeFeedScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeFeedScreen> createState() => _HomeFeedScreenState();
+}
+
+class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Listen to scroll-to-top events for tab index 0 (Home)
+    ref.listen<int>(scrollToTopProvider(0), (previous, current) {
+      if (previous != null && current != previous) {
+        _scrollToTop();
+      }
+    });
     final feedState = ref.watch(homeFeedProvider);
 
     return Scaffold(
@@ -34,7 +65,7 @@ class HomeFeedScreen extends ConsumerWidget {
               onRefresh: () async {
                 await ref.read(homeFeedProvider.notifier).refresh();
               },
-              child: _buildContent(context, ref, feedState),
+              child: _buildContent(feedState),
             ),
           ),
         ],
@@ -42,7 +73,7 @@ class HomeFeedScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, HomeFeedState feedState) {
+  Widget _buildContent(HomeFeedState feedState) {
     // Show shimmer skeleton only if no data available
     if (feedState.isLoading && feedState.data == null) {
       return const HomeFeedSkeleton();
@@ -50,12 +81,12 @@ class HomeFeedScreen extends ConsumerWidget {
 
     // Show error only if no data available
     if (feedState.error != null && feedState.data == null) {
-      return _buildErrorState(context, ref, feedState.error!);
+      return _buildErrorState(feedState.error!);
     }
 
     final feed = feedState.data;
     if (feed == null) {
-      return _buildErrorState(context, ref, 'common.noData'.tr());
+      return _buildErrorState('common.noData'.tr());
     }
 
     // Sort trending trees by evolution (variantCount + logCount) descending
@@ -67,6 +98,7 @@ class HomeFeedScreen extends ConsumerWidget {
       });
 
     return CustomScrollView(
+      controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         // Cache status banner
@@ -83,7 +115,10 @@ class HomeFeedScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: SectionHeader(
               title: 'home.mostEvolved'.tr(),
-              onSeeAll: () => context.push(RouteConstants.recipes),
+              onSeeAll: () {
+                ref.read(browseFilterProvider.notifier).setSortOption(RecipeSortOption.mostForked);
+                context.push(RouteConstants.recipes);
+              },
             ),
           ),
           SliverToBoxAdapter(
@@ -131,8 +166,9 @@ class HomeFeedScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, WidgetRef ref, Object err) {
+  Widget _buildErrorState(Object err) {
     return CustomScrollView(
+      controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverFillRemaining(

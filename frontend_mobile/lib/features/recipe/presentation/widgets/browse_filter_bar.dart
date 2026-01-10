@@ -4,10 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/locale_dropdown.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart';
 
-/// Filter bar with cuisine chips, type filter, and sort options
+/// Filter bar with type filter and sort options
 class BrowseFilterBar extends ConsumerWidget {
   final VoidCallback? onFiltersChanged;
 
@@ -25,53 +24,9 @@ class BrowseFilterBar extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cuisine filter chips (horizontal scroll)
-          _buildCuisineChips(context, ref, filterState),
-          const Divider(height: 1),
           // Type and sort filters row
           _buildTypeAndSortRow(context, ref, filterState),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCuisineChips(
-    BuildContext context,
-    WidgetRef ref,
-    BrowseFilterState filterState,
-  ) {
-    // Add "All" option at the beginning
-    final allOptions = [
-      _CuisineChipData(code: null, emoji: '🌐', labelKey: 'locale.all'),
-      ...CulinaryLocale.options.map((locale) => _CuisineChipData(
-            code: locale.code,
-            emoji: locale.flagEmoji,
-            labelKey: locale.labelKey,
-          )),
-    ];
-
-    return SizedBox(
-      height: 48.h,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        itemCount: allOptions.length,
-        separatorBuilder: (_, _) => SizedBox(width: 8.w),
-        itemBuilder: (context, index) {
-          final option = allOptions[index];
-          final isSelected = filterState.cuisineFilter == option.code;
-
-          return _CuisineChip(
-            emoji: option.emoji,
-            label: option.labelKey.tr(),
-            isSelected: isSelected,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              ref.read(browseFilterProvider.notifier).setCuisineFilter(option.code);
-              onFiltersChanged?.call();
-            },
-          );
-        },
       ),
     );
   }
@@ -127,66 +82,6 @@ class BrowseFilterBar extends ConsumerWidget {
             },
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _CuisineChipData {
-  final String? code;
-  final String emoji;
-  final String labelKey;
-
-  _CuisineChipData({
-    required this.code,
-    required this.emoji,
-    required this.labelKey,
-  });
-}
-
-class _CuisineChip extends StatelessWidget {
-  final String emoji;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _CuisineChip({
-    required this.emoji,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.grey[100],
-          borderRadius: BorderRadius.circular(20.r),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.grey[300]!,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(emoji, style: TextStyle(fontSize: 14.sp)),
-            SizedBox(width: 4.w),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : Colors.grey[700],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -409,17 +304,6 @@ class CompactFilterBar extends ConsumerWidget {
               ),
             ),
           ),
-          SizedBox(width: 8.w),
-          // Show active cuisine chip if set
-          if (filterState.cuisineFilter != null) ...[
-            _buildActiveFilterChip(
-              CulinaryLocale.fromCode(filterState.cuisineFilter)?.flagEmoji ?? '🌍',
-              CulinaryLocale.fromCode(filterState.cuisineFilter)?.labelKey.tr() ?? '',
-              () {
-                ref.read(browseFilterProvider.notifier).setCuisineFilter(null);
-              },
-            ),
-          ],
           const Spacer(),
           // Clear all button if filters active
           if (activeCount > 0)
@@ -441,40 +325,6 @@ class CompactFilterBar extends ConsumerWidget {
                 ),
               ),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActiveFilterChip(String emoji, String label, VoidCallback onRemove) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(emoji, style: TextStyle(fontSize: 12.sp)),
-          SizedBox(width: 4.w),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11.sp,
-              fontWeight: FontWeight.w500,
-              color: AppColors.primary,
-            ),
-          ),
-          SizedBox(width: 4.w),
-          GestureDetector(
-            onTap: onRemove,
-            child: Icon(
-              Icons.close,
-              size: 14.sp,
-              color: AppColors.primary,
-            ),
-          ),
         ],
       ),
     );

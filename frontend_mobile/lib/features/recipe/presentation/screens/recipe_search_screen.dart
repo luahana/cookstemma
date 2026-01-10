@@ -15,8 +15,6 @@ import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.da
 import 'package:pairing_planet2_frontend/core/widgets/search/recent_search_tile.dart';
 import 'package:pairing_planet2_frontend/core/widgets/skeleton/skeleton_loader.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/cooking_style_chips.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/trending_searches_section.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_list_provider.dart';
 
 /// Dedicated recipe search screen with recent searches, trending, and results.
@@ -99,16 +97,6 @@ class _RecipeSearchScreenState extends ConsumerState<RecipeSearchScreen> {
     _focusNode.unfocus();
   }
 
-  void _onCookingStyleTap(String style) {
-    HapticFeedback.selectionClick();
-    _searchController.text = style;
-    _currentQuery = style;
-    _hasSearched = true;
-    ref.read(recipeListProvider.notifier).search(style);
-    ref.read(recipeSearchHistoryProvider.notifier).addSearch(style);
-    _focusNode.unfocus();
-  }
-
   void _clearSearch() {
     _searchController.clear();
     setState(() {
@@ -186,16 +174,6 @@ class _RecipeSearchScreenState extends ConsumerState<RecipeSearchScreen> {
             _buildRecentSearchesSection(searchHistory),
             SizedBox(height: 24.h),
           ],
-
-          // Trending Searches
-          const TrendingSearchesSection(),
-          SizedBox(height: 24.h),
-
-          // Cooking Style Chips
-          CookingStyleChips(
-            onStyleSelected: _onCookingStyleTap,
-          ),
-          SizedBox(height: 32.h),
         ],
       ),
     );
@@ -333,12 +311,23 @@ class _RecipeSearchScreenState extends ConsumerState<RecipeSearchScreen> {
               // Thumbnail
               ClipRRect(
                 borderRadius: BorderRadius.circular(8.r),
-                child: AppCachedImage(
-                  imageUrl: recipe.thumbnailUrl,
-                  width: 70.w,
-                  height: 70.w,
-                  borderRadius: 0,
-                ),
+                child: recipe.thumbnailUrl != null
+                    ? AppCachedImage(
+                        imageUrl: recipe.thumbnailUrl,
+                        width: 70.w,
+                        height: 70.w,
+                        borderRadius: 0,
+                      )
+                    : Container(
+                        width: 70.w,
+                        height: 70.w,
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Icons.restaurant_menu,
+                          color: Colors.grey[400],
+                          size: 24.sp,
+                        ),
+                      ),
               ),
               SizedBox(width: 12.w),
               // Content

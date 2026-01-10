@@ -170,7 +170,7 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
                 child: const CircularProgressIndicator(strokeWidth: 2),
               ),
             ),
-            error: (_, __) => IconButton(
+            error: (_, _) => IconButton(
               icon: Icon(Icons.bookmark_border, color: Colors.grey[400]),
               onPressed: null,
             ),
