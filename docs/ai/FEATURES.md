@@ -449,6 +449,31 @@ User logs in within 30 days?
 
 ---
 
+### [FEAT-027]: Edit/Delete Log Posts
+
+**Status:** ✅ Done
+**Branch:** `dev`
+**PR:** #39
+
+**Description:** Allow users to edit and delete their own cooking log posts.
+
+**Acceptance Criteria:**
+- [x] Edit log content, outcome, and hashtags (images read-only)
+- [x] Delete log with confirmation dialog (soft delete)
+- [x] Only show edit/delete options to log creator
+- [x] Return 403 Forbidden for unauthorized update/delete attempts
+- [x] Comprehensive test coverage (28 tests)
+
+**Technical Notes:**
+- Backend: `PUT /api/v1/log_posts/{publicId}` and `DELETE /api/v1/log_posts/{publicId}`
+- Backend: `creatorId` added to `LogPostDetailResponseDto` for ownership check
+- Backend: `AccessDeniedException` handler returning 403 Forbidden
+- Frontend: `LogEditSheet` bottom sheet for editing
+- Frontend: `PopupMenuButton` in log detail screen (three-dot menu)
+- Frontend: Ownership check via `myProfileProvider` comparing user ID
+
+---
+
 ## Planned 📋
 
 ### [FEAT-016]: Improved Onboarding
@@ -625,3 +650,4 @@ User logs in within 30 days?
 | FEAT-018 | Achievement Badges | 📋 |
 | FEAT-025 | Idempotency Keys | ✅ |
 | FEAT-026 | Image Soft Delete | ✅ |
+| FEAT-027 | Edit/Delete Log Posts | ✅ |
