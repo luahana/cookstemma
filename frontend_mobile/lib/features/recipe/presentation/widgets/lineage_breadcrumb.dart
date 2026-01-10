@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
@@ -30,7 +31,7 @@ class LineageBreadcrumb extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
         color: Colors.orange[50],
         border: Border(
@@ -56,7 +57,7 @@ class LineageBreadcrumb extends StatelessWidget {
             ),
           // Parent recipe link (only if different from root)
           if (parentInfo != null && !_isParentSameAsRoot) ...[
-            if (rootInfo != null) const SizedBox(height: 6),
+            if (rootInfo != null) SizedBox(height: 6.h),
             _buildLineageRow(
               context,
               icon: Icons.subdirectory_arrow_right,
@@ -85,56 +86,56 @@ class LineageBreadcrumb extends StatelessWidget {
       onTap: () {
         context.push(RouteConstants.recipeDetailPath(recipeId));
       },
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(8.r),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: EdgeInsets.symmetric(vertical: 4.h),
         child: Row(
           children: [
             Icon(
               icon,
-              size: 16,
+              size: 16.sp,
               color: Colors.orange[700],
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
               decoration: BoxDecoration(
                 color: isRoot ? Colors.orange[100] : Colors.grey[200],
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(4.r),
               ),
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 11.sp,
                   fontWeight: FontWeight.bold,
                   color: isRoot ? Colors.orange[800] : Colors.grey[700],
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             Expanded(
               child: Text(
                 recipeName,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
                   color: Colors.grey[800],
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4.w),
             Text(
               "(by $creatorName)",
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 color: Colors.grey[600],
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4.w),
             Icon(
               Icons.chevron_right,
-              size: 18,
+              size: 18.sp,
               color: Colors.grey[500],
             ),
           ],

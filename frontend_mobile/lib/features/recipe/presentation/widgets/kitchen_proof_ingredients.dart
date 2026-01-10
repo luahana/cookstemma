@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/ingredient.dart';
 
@@ -41,7 +42,7 @@ class _KitchenProofIngredientsState extends State<KitchenProofIngredients> {
       children: [
         // Header with diff toggle
         _buildHeader(),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         // Ingredient groups
         if (mainIngredients.isNotEmpty)
           _IngredientGroupCard(
@@ -54,7 +55,7 @@ class _KitchenProofIngredientsState extends State<KitchenProofIngredients> {
             showDiff: widget.showDiffBadges && _showDiff,
           ),
         if (secondaryIngredients.isNotEmpty) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           _IngredientGroupCard(
             title: 'recipe.ingredients.secondary'.tr(),
             icon: Icons.eco,
@@ -66,7 +67,7 @@ class _KitchenProofIngredientsState extends State<KitchenProofIngredients> {
           ),
         ],
         if (seasoningIngredients.isNotEmpty) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           _IngredientGroupCard(
             title: 'recipe.ingredients.seasoning'.tr(),
             icon: Icons.local_fire_department,
@@ -84,12 +85,12 @@ class _KitchenProofIngredientsState extends State<KitchenProofIngredients> {
   Widget _buildHeader() {
     return Row(
       children: [
-        const Icon(Icons.shopping_basket_outlined, size: 20),
-        const SizedBox(width: 8),
+        Icon(Icons.shopping_basket_outlined, size: 20.sp),
+        SizedBox(width: 8.w),
         Text(
           'recipe.ingredients.title'.tr(),
-          style: const TextStyle(
-            fontSize: 18,
+          style: TextStyle(
+            fontSize: 18.sp,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -99,14 +100,14 @@ class _KitchenProofIngredientsState extends State<KitchenProofIngredients> {
             onPressed: () => setState(() => _showDiff = !_showDiff),
             icon: Icon(
               _showDiff ? Icons.visibility : Icons.visibility_off,
-              size: 16,
+              size: 16.sp,
             ),
             label: Text(
               _showDiff ? 'recipe.diff.hide'.tr() : 'recipe.diff.show'.tr(),
-              style: const TextStyle(fontSize: 12),
+              style: TextStyle(fontSize: 12.sp),
             ),
             style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
@@ -158,7 +159,7 @@ class _IngredientGroupCardState extends State<_IngredientGroupCard> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
@@ -166,31 +167,31 @@ class _IngredientGroupCardState extends State<_IngredientGroupCard> {
           // Header - tappable to expand/collapse
           InkWell(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12.r),
               child: Row(
                 children: [
-                  Icon(widget.icon, size: 18, color: AppColors.primary),
-                  const SizedBox(width: 8),
+                  Icon(widget.icon, size: 18.sp, color: AppColors.primary),
+                  SizedBox(width: 8.w),
                   Text(
                     widget.title,
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: TextStyle(
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8.w),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
                     decoration: BoxDecoration(
                       color: AppColors.badgeBackground,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(10.r),
                     ),
                     child: Text(
                       '${widget.ingredients.length}',
-                      style: const TextStyle(
-                        fontSize: 12,
+                      style: TextStyle(
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -238,7 +239,7 @@ class _IngredientGroupCardState extends State<_IngredientGroupCard> {
                 diffStatus: widget.showDiff ? diffStatus : null,
               ),
               if (index < widget.ingredients.length - 1)
-                const Divider(height: 1, indent: 48),
+                Divider(height: 1, indent: 48.w),
             ],
           );
         }),
@@ -311,30 +312,30 @@ class _IngredientRow extends StatelessWidget {
     return InkWell(
       onTap: onToggle,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
         child: Row(
           children: [
             // Checkbox
             SizedBox(
-              width: 24,
-              height: 24,
+              width: 24.w,
+              height: 24.w,
               child: Checkbox(
                 value: isChecked,
                 onChanged: (_) => onToggle(),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(4.r),
                 ),
                 activeColor: AppColors.primary,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
             // Ingredient name
             Expanded(
               child: Text(
                 ingredient.name,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   decoration: isRemoved ? TextDecoration.lineThrough : null,
                   color: isRemoved ? AppColors.diffRemoved : AppColors.textPrimary,
                 ),
@@ -345,14 +346,14 @@ class _IngredientRow extends StatelessWidget {
               Text(
                 ingredient.amount!,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   color: AppColors.textSecondary,
                   decoration: isRemoved ? TextDecoration.lineThrough : null,
                 ),
               ),
             // Diff badge
             if (diffStatus != null) ...[
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               _DiffBadge(status: diffStatus!),
             ],
           ],
@@ -377,15 +378,15 @@ class _DiffBadge extends StatelessWidget {
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(4.r),
       ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 12.sp,
           fontWeight: FontWeight.bold,
           color: color,
         ),

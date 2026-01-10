@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// GitHub-style diff section showing what changed from parent recipe
@@ -37,7 +38,7 @@ class _ChangeDiffSectionState extends State<ChangeDiffSection> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
@@ -46,17 +47,17 @@ class _ChangeDiffSectionState extends State<ChangeDiffSection> {
           // Header
           InkWell(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12.r),
               child: Row(
                 children: [
-                  const Icon(Icons.compare_arrows, size: 20, color: AppColors.diffModified),
-                  const SizedBox(width: 8),
+                  Icon(Icons.compare_arrows, size: 20.sp, color: AppColors.diffModified),
+                  SizedBox(width: 8.w),
                   Text(
                     'recipe.diff.whatChanged'.tr(),
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -64,7 +65,7 @@ class _ChangeDiffSectionState extends State<ChangeDiffSection> {
                   // Change category chips
                   if (widget.changeCategories != null && widget.changeCategories!.isNotEmpty)
                     ...widget.changeCategories!.take(2).map((cat) => Padding(
-                      padding: const EdgeInsets.only(right: 4),
+                      padding: EdgeInsets.only(right: 4.w),
                       child: _ChangeCategoryChip(category: cat),
                     )),
                   Icon(
@@ -79,17 +80,17 @@ class _ChangeDiffSectionState extends State<ChangeDiffSection> {
           if (widget.changeReason != null && widget.changeReason!.isNotEmpty && _isExpanded) ...[
             const Divider(height: 1),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.format_quote, size: 16, color: AppColors.textSecondary),
-                  const SizedBox(width: 8),
+                  Icon(Icons.format_quote, size: 16.sp, color: AppColors.textSecondary),
+                  SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
                       widget.changeReason!,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 13.sp,
                         fontStyle: FontStyle.italic,
                         color: AppColors.textSecondary,
                       ),
@@ -158,16 +159,16 @@ class _ChangeCategoryChip extends StatelessWidget {
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(4.r),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         '+$label',
         style: TextStyle(
-          fontSize: 10,
+          fontSize: 10.sp,
           fontWeight: FontWeight.w500,
           color: color,
         ),
@@ -195,26 +196,26 @@ class _DiffGroup extends StatelessWidget {
     final modified = (diffData['modified'] as List<dynamic>?) ?? [];
 
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Group title
           Row(
             children: [
-              Icon(icon, size: 16, color: AppColors.textSecondary),
-              const SizedBox(width: 6),
+              Icon(icon, size: 16.sp, color: AppColors.textSecondary),
+              SizedBox(width: 6.w),
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 13,
+                style: TextStyle(
+                  fontSize: 13.sp,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textSecondary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           // Added items
           if (added.isNotEmpty)
             _DiffItemList(
@@ -256,32 +257,32 @@ class _DiffItemList extends StatelessWidget {
     };
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: 8.h),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: items.map((item) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 prefix,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Expanded(
                 child: Text(
                   item,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 13.sp,
                     color: color,
                     decoration: type == _DiffType.removed
                         ? TextDecoration.lineThrough
@@ -306,10 +307,10 @@ class _DiffModifiedList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: 8.h),
       decoration: BoxDecoration(
         color: AppColors.diffModifiedBg,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,23 +319,23 @@ class _DiffModifiedList extends StatelessWidget {
           final to = item is Map ? item['to']?.toString() ?? '' : item.toString();
 
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '~',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.diffModified,
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8.w),
                 Expanded(
                   child: RichText(
                     text: TextSpan(
-                      style: TextStyle(fontSize: 13, color: AppColors.diffModified),
+                      style: TextStyle(fontSize: 13.sp, color: AppColors.diffModified),
                       children: [
                         if (from.isNotEmpty) ...[
                           TextSpan(

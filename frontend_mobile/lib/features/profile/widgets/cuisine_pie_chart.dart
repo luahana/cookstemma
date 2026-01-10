@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/data/models/user/cuisine_stat_dto.dart';
 
@@ -38,10 +39,10 @@ class _CuisinePieChartState extends State<CuisinePieChart> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -56,18 +57,18 @@ class _CuisinePieChartState extends State<CuisinePieChart> {
           Text(
             'profile.cuisineDistribution'.tr(),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w600,
               color: Colors.grey[700],
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Row(
             children: [
               // Pie chart
               SizedBox(
-                width: 120,
-                height: 120,
+                width: 120.w,
+                height: 120.w,
                 child: PieChart(
                   PieChartData(
                     pieTouchData: PieTouchData(
@@ -85,13 +86,13 @@ class _CuisinePieChartState extends State<CuisinePieChart> {
                       },
                     ),
                     borderData: FlBorderData(show: false),
-                    sectionsSpace: 2,
-                    centerSpaceRadius: 30,
+                    sectionsSpace: 2.w,
+                    centerSpaceRadius: 30.w,
                     sections: _buildSections(),
                   ),
                 ),
               ),
-              const SizedBox(width: 24),
+              SizedBox(width: 24.w),
               // Legend
               Expanded(
                 child: Column(
@@ -111,8 +112,8 @@ class _CuisinePieChartState extends State<CuisinePieChart> {
       final index = entry.key;
       final cuisine = entry.value;
       final isTouched = index == touchedIndex;
-      final fontSize = isTouched ? 14.0 : 11.0;
-      final radius = isTouched ? 35.0 : 30.0;
+      final fontSize = isTouched ? 14.0.sp : 11.0.sp;
+      final radius = isTouched ? 35.0.w : 30.0.w;
 
       return PieChartSectionData(
         color: _colors[index % _colors.length],
@@ -135,23 +136,23 @@ class _CuisinePieChartState extends State<CuisinePieChart> {
       final color = _colors[index % _colors.length];
 
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
+        padding: EdgeInsets.symmetric(vertical: 2.h),
         child: Row(
           children: [
             Container(
-              width: 12,
-              height: 12,
+              width: 12.w,
+              height: 12.w,
               decoration: BoxDecoration(
                 color: color,
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(3.r),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             Expanded(
               child: Text(
                 _getCuisineDisplayName(cuisine.categoryCode),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: Colors.grey[700],
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -160,7 +161,7 @@ class _CuisinePieChartState extends State<CuisinePieChart> {
             Text(
               '${cuisine.count}',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w500,
                 color: Colors.grey[600],
               ),
@@ -191,23 +192,23 @@ class _CuisinePieChartState extends State<CuisinePieChart> {
 
   Widget _buildEmptyState() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(24.r),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
         children: [
           Icon(
             Icons.pie_chart_outline,
-            size: 48,
+            size: 48.sp,
             color: Colors.grey[400],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Text(
             'profile.noCuisineData'.tr(),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               color: Colors.grey[600],
             ),
             textAlign: TextAlign.center,

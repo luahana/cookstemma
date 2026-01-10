@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -29,14 +30,14 @@ class RecentLogsGallery extends StatelessWidget {
       children: [
         // Section header
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'recipe.recentLogs.title'.tr(),
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -49,21 +50,21 @@ class RecentLogsGallery extends StatelessWidget {
                     'recipe.recentLogs.viewAll'.tr(),
                     style: TextStyle(
                       color: AppColors.primary,
-                      fontSize: 13,
+                      fontSize: 13.sp,
                     ),
                   ),
                 ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
 
         // Horizontal scroll gallery
         SizedBox(
-          height: 130,
+          height: 130.h,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
             itemCount: logs.length,
             itemBuilder: (context, index) {
               return _buildLogCard(context, logs[index]);
@@ -85,45 +86,45 @@ class RecentLogsGallery extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push(RouteConstants.logPostDetailPath(log.id)),
       child: Container(
-        width: 100,
-        margin: const EdgeInsets.only(right: 12),
+        width: 100.w,
+        margin: EdgeInsets.only(right: 12.w),
         child: Column(
           children: [
             // Photo with outcome overlay
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   child: log.thumbnailUrl != null
                       ? AppCachedImage(
                           imageUrl: log.thumbnailUrl!,
-                          width: 100,
-                          height: 100,
-                          borderRadius: 12,
+                          width: 100.w,
+                          height: 100.w,
+                          borderRadius: 12.r,
                         )
                       : Container(
-                          width: 100,
-                          height: 100,
+                          width: 100.w,
+                          height: 100.w,
                           decoration: BoxDecoration(
                             color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12.r),
                           ),
                           child: Icon(
                             Icons.restaurant,
                             color: Colors.grey[400],
-                            size: 32,
+                            size: 32.sp,
                           ),
                         ),
                 ),
                 // Outcome emoji overlay
                 Positioned(
-                  right: 6,
-                  bottom: 6,
+                  right: 6.w,
+                  bottom: 6.h,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: EdgeInsets.all(4.r),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.1),
@@ -133,19 +134,19 @@ class RecentLogsGallery extends StatelessWidget {
                     ),
                     child: Text(
                       outcomeEmoji,
-                      style: const TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: 16.sp),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6.h),
             // Creator name
             if (log.creatorName != null)
               Text(
                 "@${log.creatorName}",
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 11.sp,
                   color: Colors.grey[600],
                 ),
                 maxLines: 1,
@@ -159,33 +160,33 @@ class RecentLogsGallery extends StatelessWidget {
 
   Widget _buildEmptyState() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.symmetric(horizontal: 20.w),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Column(
         children: [
           Icon(
             Icons.history_edu,
-            size: 40,
+            size: 40.sp,
             color: Colors.grey[400],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Text(
             'recipe.recentLogs.emptyTitle'.tr(),
             style: TextStyle(
               color: Colors.grey[600],
-              fontSize: 14,
+              fontSize: 14.sp,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Text(
             'recipe.recentLogs.emptySubtitle'.tr(),
             style: TextStyle(
               color: Colors.grey[500],
-              fontSize: 12,
+              fontSize: 12.sp,
             ),
           ),
         ],

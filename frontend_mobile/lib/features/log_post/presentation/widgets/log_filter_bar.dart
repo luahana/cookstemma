@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_filter_provider.dart';
@@ -40,7 +41,7 @@ class LogFilterBar extends ConsumerWidget {
   Widget _buildOutcomeFilterRow(BuildContext context, WidgetRef ref, LogFilterState filterState) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Row(
         children: [
           // All filter chip
@@ -54,7 +55,7 @@ class LogFilterBar extends ConsumerWidget {
               onFilterChanged?.call();
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           // Success (Wins)
           _OutcomeFilterChip(
             label: 'logPost.filter.wins'.tr(),
@@ -68,7 +69,7 @@ class LogFilterBar extends ConsumerWidget {
               onFilterChanged?.call();
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           // Partial (Learning)
           _OutcomeFilterChip(
             label: 'logPost.filter.learning'.tr(),
@@ -82,7 +83,7 @@ class LogFilterBar extends ConsumerWidget {
               onFilterChanged?.call();
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           // Failed (Lessons)
           _OutcomeFilterChip(
             label: 'logPost.filter.lessons'.tr(),
@@ -104,7 +105,7 @@ class LogFilterBar extends ConsumerWidget {
   Widget _buildSecondaryFilterRow(BuildContext context, WidgetRef ref, LogFilterState filterState) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       child: Row(
         children: [
           // Time filter dropdown
@@ -116,7 +117,7 @@ class LogFilterBar extends ConsumerWidget {
               onFilterChanged?.call();
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           // Photos only toggle
           _ToggleFilterChip(
             icon: Icons.photo_camera_outlined,
@@ -128,7 +129,7 @@ class LogFilterBar extends ConsumerWidget {
               onFilterChanged?.call();
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           // Sort dropdown
           _SortDropdown(
             currentSort: filterState.sortOption,
@@ -145,7 +146,7 @@ class LogFilterBar extends ConsumerWidget {
 
   Widget _buildActiveFilterIndicator(BuildContext context, WidgetRef ref, LogFilterState filterState) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.1),
         border: Border(
@@ -156,15 +157,15 @@ class LogFilterBar extends ConsumerWidget {
         children: [
           Icon(
             Icons.filter_list,
-            size: 16,
+            size: 16.sp,
             color: AppColors.primary,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           Expanded(
             child: Text(
               'logPost.filter.activeFilters'.tr(namedArgs: {'count': filterState.activeFilterCount.toString()}),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 color: AppColors.primary,
                 fontWeight: FontWeight.w500,
               ),
@@ -177,14 +178,14 @@ class LogFilterBar extends ConsumerWidget {
               onFilterChanged?.call();
             },
             style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: Text(
               'logPost.filter.clearAll'.tr(),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 color: AppColors.primary,
                 fontWeight: FontWeight.bold,
               ),
@@ -227,10 +228,10 @@ class _OutcomeFilterChip extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
           decoration: BoxDecoration(
             color: isSelected ? effectiveColor : effectiveBgColor,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20.r),
             border: Border.all(
               color: isSelected ? effectiveColor : effectiveColor.withValues(alpha: 0.3),
               width: isSelected ? 2 : 1,
@@ -240,7 +241,7 @@ class _OutcomeFilterChip extends StatelessWidget {
                     BoxShadow(
                       color: effectiveColor.withValues(alpha: 0.3),
                       blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2.h),
                     ),
                   ]
                 : null,
@@ -249,13 +250,13 @@ class _OutcomeFilterChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (emoji != null) ...[
-                Text(emoji!, style: const TextStyle(fontSize: 14)),
-                const SizedBox(width: 6),
+                Text(emoji!, style: TextStyle(fontSize: 14.sp)),
+                SizedBox(width: 6.w),
               ],
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 13.sp,
                   fontWeight: FontWeight.w600,
                   color: isSelected ? Colors.white : effectiveColor,
                 ),
@@ -292,10 +293,10 @@ class _ToggleFilterChip extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : Colors.grey[100],
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
               color: isSelected ? AppColors.primary : Colors.grey[300]!,
               width: 1,
@@ -306,14 +307,14 @@ class _ToggleFilterChip extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                size: 16,
+                size: 16.sp,
                 color: isSelected ? Colors.white : Colors.grey[600],
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: 4.w),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.w500,
                   color: isSelected ? Colors.white : Colors.grey[700],
                 ),
@@ -339,10 +340,10 @@ class _TimeFilterDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: currentFilter != LogTimeFilter.all ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey[100],
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: currentFilter != LogTimeFilter.all ? AppColors.primary.withValues(alpha: 0.3) : Colors.grey[300]!,
           width: 1,
@@ -353,12 +354,12 @@ class _TimeFilterDropdown extends StatelessWidget {
           value: currentFilter,
           icon: Icon(
             Icons.arrow_drop_down,
-            size: 18,
+            size: 18.sp,
             color: currentFilter != LogTimeFilter.all ? AppColors.primary : Colors.grey[600],
           ),
           isDense: true,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 12.sp,
             fontWeight: FontWeight.w500,
             color: currentFilter != LogTimeFilter.all ? AppColors.primary : Colors.grey[700],
           ),
@@ -368,8 +369,8 @@ class _TimeFilterDropdown extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
+                  Icon(Icons.calendar_today_outlined, size: 14.sp, color: Colors.grey[600]),
+                  SizedBox(width: 6.w),
                   Text('logPost.filter.time.all'.tr()),
                 ],
               ),
@@ -379,8 +380,8 @@ class _TimeFilterDropdown extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.today, size: 14, color: AppColors.primary),
-                  const SizedBox(width: 6),
+                  Icon(Icons.today, size: 14.sp, color: AppColors.primary),
+                  SizedBox(width: 6.w),
                   Text('logPost.filter.time.today'.tr()),
                 ],
               ),
@@ -390,8 +391,8 @@ class _TimeFilterDropdown extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.date_range, size: 14, color: AppColors.primary),
-                  const SizedBox(width: 6),
+                  Icon(Icons.date_range, size: 14.sp, color: AppColors.primary),
+                  SizedBox(width: 6.w),
                   Text('logPost.filter.time.thisWeek'.tr()),
                 ],
               ),
@@ -401,8 +402,8 @@ class _TimeFilterDropdown extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.calendar_month, size: 14, color: AppColors.primary),
-                  const SizedBox(width: 6),
+                  Icon(Icons.calendar_month, size: 14.sp, color: AppColors.primary),
+                  SizedBox(width: 6.w),
                   Text('logPost.filter.time.thisMonth'.tr()),
                 ],
               ),
@@ -432,10 +433,10 @@ class _SortDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: Colors.grey[300]!,
           width: 1,
@@ -446,12 +447,12 @@ class _SortDropdown extends StatelessWidget {
           value: currentSort,
           icon: Icon(
             Icons.arrow_drop_down,
-            size: 18,
+            size: 18.sp,
             color: Colors.grey[600],
           ),
           isDense: true,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 12.sp,
             fontWeight: FontWeight.w500,
             color: Colors.grey[700],
           ),
@@ -461,8 +462,8 @@ class _SortDropdown extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.schedule, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
+                  Icon(Icons.schedule, size: 14.sp, color: Colors.grey[600]),
+                  SizedBox(width: 6.w),
                   Text('logPost.filter.sort.recent'.tr()),
                 ],
               ),
@@ -472,8 +473,8 @@ class _SortDropdown extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.history, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
+                  Icon(Icons.history, size: 14.sp, color: Colors.grey[600]),
+                  SizedBox(width: 6.w),
                   Text('logPost.filter.sort.oldest'.tr()),
                 ],
               ),
@@ -483,8 +484,8 @@ class _SortDropdown extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(LogOutcome.success.emoji, style: const TextStyle(fontSize: 12)),
-                  const SizedBox(width: 6),
+                  Text(LogOutcome.success.emoji, style: TextStyle(fontSize: 12.sp)),
+                  SizedBox(width: 6.w),
                   Text('logPost.filter.sort.winsFirst'.tr()),
                 ],
               ),
@@ -494,8 +495,8 @@ class _SortDropdown extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(LogOutcome.failed.emoji, style: const TextStyle(fontSize: 12)),
-                  const SizedBox(width: 6),
+                  Text(LogOutcome.failed.emoji, style: TextStyle(fontSize: 12.sp)),
+                  SizedBox(width: 6.w),
                   Text('logPost.filter.sort.lessonsFirst'.tr()),
                 ],
               ),
@@ -527,7 +528,7 @@ class CompactLogFilterBar extends ConsumerWidget {
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Row(
         children: [
           _CompactChip(
@@ -539,7 +540,7 @@ class CompactLogFilterBar extends ConsumerWidget {
               onFilterChanged?.call();
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           _CompactChip(
             emoji: LogOutcome.success.emoji,
             label: 'logPost.filter.wins'.tr(),
@@ -551,7 +552,7 @@ class CompactLogFilterBar extends ConsumerWidget {
               onFilterChanged?.call();
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           _CompactChip(
             emoji: LogOutcome.partial.emoji,
             label: 'logPost.filter.learning'.tr(),
@@ -563,7 +564,7 @@ class CompactLogFilterBar extends ConsumerWidget {
               onFilterChanged?.call();
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           _CompactChip(
             emoji: LogOutcome.failed.emoji,
             label: 'logPost.filter.lessons'.tr(),
@@ -603,10 +604,10 @@ class _CompactChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
         decoration: BoxDecoration(
           color: isSelected ? effectiveColor : Colors.grey[100],
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
             color: isSelected ? effectiveColor : Colors.grey[300]!,
             width: 1,
@@ -616,13 +617,13 @@ class _CompactChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (emoji != null) ...[
-              Text(emoji!, style: const TextStyle(fontSize: 12)),
-              const SizedBox(width: 4),
+              Text(emoji!, style: TextStyle(fontSize: 12.sp)),
+              SizedBox(width: 4.w),
             ],
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w500,
                 color: isSelected ? Colors.white : Colors.grey[700],
               ),

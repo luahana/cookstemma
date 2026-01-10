@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Action Hub Bar - Enhanced bottom action bar
@@ -21,10 +22,10 @@ class ActionHubBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 12,
-        bottom: MediaQuery.of(context).padding.bottom + 12,
+        left: 16.w,
+        right: 16.w,
+        top: 12.h,
+        bottom: MediaQuery.of(context).padding.bottom + 12.h,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -32,7 +33,7 @@ class ActionHubBar extends StatelessWidget {
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 12,
-            offset: const Offset(0, -4),
+            offset: Offset(0, -4.h),
           ),
         ],
       ),
@@ -51,7 +52,7 @@ class ActionHubBar extends StatelessWidget {
               isPrimary: false,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           // Variation button (filled/primary)
           Expanded(
             child: _ActionButton(
@@ -99,17 +100,17 @@ class _ActionButton extends StatelessWidget {
   Widget _buildPrimaryButton() {
     return Material(
       color: AppColors.primary,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.r),
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+          padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: Colors.white, size: 22),
-              const SizedBox(width: 8),
+              Icon(icon, color: Colors.white, size: 22.sp),
+              SizedBox(width: 8.w),
               Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,8 +118,8 @@ class _ActionButton extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 13,
+                      style: TextStyle(
+                        fontSize: 13.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -128,7 +129,7 @@ class _ActionButton extends StatelessWidget {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 10.sp,
                         color: Colors.white.withValues(alpha: 0.8),
                       ),
                       maxLines: 1,
@@ -149,18 +150,18 @@ class _ActionButton extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+          padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(color: AppColors.border, width: 1.5),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppColors.textPrimary, size: 22),
-              const SizedBox(width: 8),
+              Icon(icon, color: AppColors.textPrimary, size: 22.sp),
+              SizedBox(width: 8.w),
               Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,8 +169,8 @@ class _ActionButton extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 13,
+                      style: TextStyle(
+                        fontSize: 13.sp,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
@@ -179,7 +180,7 @@ class _ActionButton extends StatelessWidget {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 10.sp,
                         color: AppColors.textSecondary,
                       ),
                       maxLines: 1,

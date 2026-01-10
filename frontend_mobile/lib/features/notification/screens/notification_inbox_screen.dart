@@ -72,10 +72,10 @@ class _NotificationInboxScreenState
                     state.notifications.length + (state.isLoading ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index >= state.notifications.length) {
-                    return const Center(
+                    return Center(
                       child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(),
+                        padding: EdgeInsets.all(16.r),
+                        child: const CircularProgressIndicator(),
                       ),
                     );
                   }

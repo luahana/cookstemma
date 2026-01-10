@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../theme/app_colors.dart';
 
 // 💡 전역적으로 ScaffoldMessenger 상태에 접근하기 위한 키
@@ -32,7 +33,7 @@ class ToastService {
         ),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating, // 하단에 떠 있는 스타일
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
         duration: const Duration(seconds: 3),
       ),
     );

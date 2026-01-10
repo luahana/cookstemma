@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
@@ -45,15 +46,15 @@ class BentoGridView extends StatelessWidget {
     return MasonryGridView.count(
       controller: scrollController,
       crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      padding: const EdgeInsets.all(16),
+      mainAxisSpacing: 12.h,
+      crossAxisSpacing: 12.w,
+      padding: EdgeInsets.all(16.r),
       itemCount: hasNext ? tiles.length + 1 : tiles.length,
       itemBuilder: (context, index) {
         if (hasNext && index == tiles.length) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
-            child: Center(child: CircularProgressIndicator()),
+          return Padding(
+            padding: EdgeInsets.symmetric(vertical: 32.h),
+            child: const Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -79,7 +80,7 @@ class BentoGridView extends StatelessWidget {
         tiles.add(_GridTile(
           recipe: recipe,
           type: _TileType.featured,
-          height: 320,
+          height: 320.h,
         ));
       } else {
         // Regular recipe
@@ -88,7 +89,7 @@ class BentoGridView extends StatelessWidget {
         tiles.add(_GridTile(
           recipe: recipe,
           type: _TileType.compact,
-          height: isShort ? 200 : 240,
+          height: isShort ? 200.h : 240.h,
         ));
         normalIndex++;
       }
@@ -161,11 +162,11 @@ class BentoQuiltGridView extends StatelessWidget {
     // Build quilt pattern
     return GridView.custom(
       controller: scrollController,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       gridDelegate: SliverQuiltedGridDelegate(
         crossAxisCount: 4,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+        mainAxisSpacing: 12.h,
+        crossAxisSpacing: 12.w,
         repeatPattern: QuiltedGridRepeatPattern.inverted,
         pattern: _buildQuiltPattern(recipes),
       ),
@@ -233,11 +234,11 @@ class SimpleGridView extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridView.builder(
       controller: scrollController,
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      padding: EdgeInsets.all(16.r),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+        mainAxisSpacing: 12.h,
+        crossAxisSpacing: 12.w,
         childAspectRatio: 0.75,
       ),
       itemCount: hasNext ? recipes.length + 1 : recipes.length,
@@ -286,15 +287,15 @@ class FeaturedStarsCarousel extends StatelessWidget {
       children: [
         if (title != null)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             child: Row(
               children: [
-                const Text('⭐', style: TextStyle(fontSize: 16)),
-                const SizedBox(width: 6),
+                Text('⭐', style: TextStyle(fontSize: 16.sp)),
+                SizedBox(width: 6.w),
                 Text(
                   title!,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -309,10 +310,10 @@ class FeaturedStarsCarousel extends StatelessWidget {
             ),
           ),
         SizedBox(
-          height: 170,
+          height: 170.h,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
             itemCount: featured.length.clamp(0, 10),
             itemBuilder: (context, index) {
               final recipe = featured[index];

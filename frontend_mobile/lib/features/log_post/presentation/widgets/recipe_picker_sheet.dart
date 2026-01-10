@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/providers/recently_viewed_provider.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
@@ -105,32 +106,32 @@ class _RecipePickerSheetState extends ConsumerState<RecipePickerSheet> {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       child: Column(
         children: [
           // Drag handle
           Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
+            margin: EdgeInsets.only(top: 12.h),
+            width: 40.w,
+            height: 4.h,
             decoration: BoxDecoration(
               color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(2.r),
             ),
           ),
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 8, 0),
+            padding: EdgeInsets.fromLTRB(20.w, 16.h, 8.w, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'recipePicker.title'.tr(),
-                  style: const TextStyle(
-                    fontSize: 20,
+                  style: TextStyle(
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                   ),
@@ -145,7 +146,7 @@ class _RecipePickerSheetState extends ConsumerState<RecipePickerSheet> {
           ),
           // Search bar
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 8.h),
             child: TextField(
               controller: _searchController,
               focusNode: _searchFocusNode,
@@ -159,19 +160,19 @@ class _RecipePickerSheetState extends ConsumerState<RecipePickerSheet> {
                           _searchController.clear();
                           _searchRecipes('');
                         },
-                        icon: const Icon(Icons.clear, size: 20),
+                        icon: Icon(Icons.clear, size: 20.sp),
                         color: AppColors.textSecondary,
                       )
                     : null,
                 filled: true,
                 fillColor: Colors.grey[100],
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 12.h,
                 ),
               ),
               onChanged: (value) {
@@ -211,8 +212,8 @@ class _RecipePickerSheetState extends ConsumerState<RecipePickerSheet> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
-            const SizedBox(height: 16),
+            Icon(Icons.error_outline, size: 48.sp, color: Colors.grey[400]),
+            SizedBox(height: 16.h),
             Text(
               _errorMessage!,
               style: TextStyle(color: Colors.grey[600]),
@@ -228,8 +229,8 @@ class _RecipePickerSheetState extends ConsumerState<RecipePickerSheet> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
-            const SizedBox(height: 16),
+            Icon(Icons.search_off, size: 48.sp, color: Colors.grey[400]),
+            SizedBox(height: 16.h),
             Text(
               'recipePicker.noResults'.tr(),
               style: TextStyle(color: Colors.grey[600]),
@@ -244,7 +245,7 @@ class _RecipePickerSheetState extends ConsumerState<RecipePickerSheet> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
         final recipe = _searchResults[index];
@@ -266,13 +267,13 @@ class _RecipePickerSheetState extends ConsumerState<RecipePickerSheet> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.restaurant_menu, size: 64, color: Colors.grey[300]),
-            const SizedBox(height: 16),
+            Icon(Icons.restaurant_menu, size: 64.sp, color: Colors.grey[300]),
+            SizedBox(height: 16.h),
             Text(
               'recipePicker.searchHint'.tr(),
               style: TextStyle(
                 color: Colors.grey[500],
-                fontSize: 16,
+                fontSize: 16.sp,
               ),
             ),
           ],
@@ -285,11 +286,11 @@ class _RecipePickerSheetState extends ConsumerState<RecipePickerSheet> {
       children: [
         // Section header
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
           child: Text(
             'recipePicker.recentlyViewed'.tr(),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w600,
               color: Colors.grey[600],
             ),
@@ -298,7 +299,7 @@ class _RecipePickerSheetState extends ConsumerState<RecipePickerSheet> {
         // Recent recipes list
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
             itemCount: recentRecipes.length,
             itemBuilder: (context, index) {
               final recipe = recentRecipes[index];
@@ -327,25 +328,25 @@ class _RecipeListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: 8.h),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         side: BorderSide(color: Colors.grey[200]!),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(12.r),
           child: Row(
             children: [
               // Thumbnail
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8.r),
                 child: Container(
-                  width: 56,
-                  height: 56,
+                  width: 56.w,
+                  height: 56.w,
                   color: Colors.grey[200],
                   child: recipe.thumbnailUrl != null
                       ? Image.network(
@@ -362,7 +363,7 @@ class _RecipeListTile extends StatelessWidget {
                         ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
               // Content
               Expanded(
                 child: Column(
@@ -370,19 +371,19 @@ class _RecipeListTile extends StatelessWidget {
                   children: [
                     Text(
                       recipe.title,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: TextStyle(
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Text(
                       recipe.foodName,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         color: Colors.grey[600],
                       ),
                       maxLines: 1,

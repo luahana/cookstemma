@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/recipe_lineage_breadcrumb.dart';
@@ -68,15 +69,15 @@ class JourneyLogCard extends StatelessWidget {
           onTap?.call();
         },
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.06),
                 blurRadius: 12,
-                offset: const Offset(0, 4),
+                offset: Offset(0, 4.h),
               ),
             ],
           ),
@@ -89,14 +90,14 @@ class JourneyLogCard extends StatelessWidget {
               if (logData.thumbnailUrl != null) _buildPhotoSection(),
               // Content Section
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16.r),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Recipe Lineage
                     if (logData.recipeTitle != null && logData.recipePublicId != null)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: EdgeInsets.only(bottom: 12.h),
                         child: RecipeLineageBreadcrumb(
                           recipeTitle: logData.recipeTitle!,
                           recipePublicId: logData.recipePublicId!,
@@ -111,14 +112,14 @@ class JourneyLogCard extends StatelessWidget {
                       Text(
                         logData.content!,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           color: Colors.grey[800],
                           height: 1.5,
                         ),
                         maxLines: showFullContent ? null : 3,
                         overflow: showFullContent ? null : TextOverflow.ellipsis,
                       ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     // Footer
                     _buildFooter(),
                   ],
@@ -145,12 +146,12 @@ class JourneyLogCard extends StatelessWidget {
 
   Widget _buildOutcomeHeader(LogOutcome outcome) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
         color: outcome.backgroundColor,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16.r),
+          topRight: Radius.circular(16.r),
         ),
       ),
       child: Row(
@@ -166,14 +167,14 @@ class JourneyLogCard extends StatelessWidget {
             Text(
               _formatRelativeTime(logData.createdAt!),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 color: outcome.primaryColor.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w500,
               ),
             ),
           // Sync indicator
           if (logData.isPendingSync) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             _buildSyncIndicator(),
           ],
         ],
@@ -183,27 +184,27 @@ class JourneyLogCard extends StatelessWidget {
 
   Widget _buildSyncIndicator() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: Colors.orange[100],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 12,
-            height: 12,
+            width: 12.w,
+            height: 12.w,
             child: CircularProgressIndicator(
               strokeWidth: 2,
               valueColor: AlwaysStoppedAnimation<Color>(Colors.orange[600]!),
             ),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4.w),
           Text(
             'logPost.syncing'.tr(),
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 10.sp,
               color: Colors.orange[700],
               fontWeight: FontWeight.w500,
             ),
@@ -223,33 +224,33 @@ class JourneyLogCard extends StatelessWidget {
         AppCachedImage(
           imageUrl: logData.thumbnailUrl!,
           width: double.infinity,
-          height: 200,
+          height: 200.h,
           borderRadius: 0,
         ),
         // Image count indicator
         if (imageCount > 1)
           Positioned(
-            bottom: 12,
-            right: 12,
+            bottom: 12.h,
+            right: 12.w,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.photo_library,
-                    size: 14,
+                    size: 14.sp,
                     color: Colors.white,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4.w),
                   Text(
                     '1/$imageCount',
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: 12.sp,
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
                     ),
@@ -269,14 +270,14 @@ class JourneyLogCard extends StatelessWidget {
         if (logData.creatorName != null) ...[
           Icon(
             Icons.person_outline,
-            size: 14,
+            size: 14.sp,
             color: Colors.grey[400],
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4.w),
           Text(
             logData.creatorName!,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12.sp,
               color: Colors.grey[600],
             ),
           ),
@@ -285,7 +286,7 @@ class JourneyLogCard extends StatelessWidget {
         // View more indicator
         Icon(
           Icons.arrow_forward,
-          size: 16,
+          size: 16.sp,
           color: Colors.grey[400],
         ),
       ],
@@ -336,12 +337,12 @@ class CompactJourneyLogCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 8,
-                offset: const Offset(0, 2),
+                offset: Offset(0, 2.h),
               ),
             ],
           ),
@@ -352,21 +353,21 @@ class CompactJourneyLogCard extends StatelessWidget {
               Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(12.r),
+                      topRight: Radius.circular(12.r),
                     ),
                     child: AppCachedImage(
                       imageUrl: logData.thumbnailUrl ?? 'https://via.placeholder.com/150',
                       width: double.infinity,
-                      height: 100,
+                      height: 100.h,
                       borderRadius: 0,
                     ),
                   ),
                   // Outcome badge
                   Positioned(
-                    top: 8,
-                    left: 8,
+                    top: 8.h,
+                    left: 8.w,
                     child: OutcomeBadge(
                       outcome: outcome,
                       variant: OutcomeBadgeVariant.compact,
@@ -375,17 +376,17 @@ class CompactJourneyLogCard extends StatelessWidget {
                   // Sync indicator
                   if (logData.isPendingSync)
                     Positioned(
-                      top: 8,
-                      right: 8,
+                      top: 8.h,
+                      right: 8.w,
                       child: Container(
-                        padding: const EdgeInsets.all(4),
+                        padding: EdgeInsets.all(4.r),
                         decoration: BoxDecoration(
                           color: Colors.orange[100],
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: SizedBox(
-                          width: 12,
-                          height: 12,
+                          width: 12.w,
+                          height: 12.w,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(Colors.orange[600]!),
@@ -398,7 +399,7 @@ class CompactJourneyLogCard extends StatelessWidget {
               // Content
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding: EdgeInsets.all(10.r),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -406,8 +407,8 @@ class CompactJourneyLogCard extends StatelessWidget {
                       if (logData.recipeTitle != null)
                         Text(
                           logData.recipeTitle!,
-                          style: const TextStyle(
-                            fontSize: 13,
+                          style: TextStyle(
+                            fontSize: 13.sp,
                             fontWeight: FontWeight.bold,
                           ),
                           maxLines: 2,
@@ -419,7 +420,7 @@ class CompactJourneyLogCard extends StatelessWidget {
                         Text(
                           _formatRelativeTime(logData.createdAt!),
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 11.sp,
                             color: Colors.grey[500],
                           ),
                         ),

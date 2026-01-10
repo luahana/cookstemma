@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Banner showing offline/cache status
 class CacheStatusBanner extends StatelessWidget {
@@ -24,29 +25,29 @@ class CacheStatusBanner extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       color: Colors.orange[50],
       child: Row(
         children: [
           Icon(
             Icons.cloud_off_outlined,
-            size: 14,
+            size: 14.sp,
             color: Colors.orange[700],
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           Expanded(
             child: Text(
               '${'home.offlineData'.tr()} · $timeText',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 color: Colors.orange[700],
               ),
             ),
           ),
           if (isLoading)
             SizedBox(
-              width: 14,
-              height: 14,
+              width: 14.w,
+              height: 14.w,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 color: Colors.orange[700],

@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -29,17 +30,17 @@ class EvolutionRecipeCard extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
         margin: EdgeInsets.symmetric(
-          horizontal: isCompact ? 0 : 16,
-          vertical: 6,
+          horizontal: isCompact ? 0 : 16.w,
+          vertical: 6.h,
         ),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
-              offset: const Offset(0, 2),
+              offset: Offset(0, 2.h),
             ),
           ],
         ),
@@ -51,27 +52,27 @@ class EvolutionRecipeCard extends StatelessWidget {
   /// Full-width card layout for vertical lists
   Widget _buildFullLayout() {
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       child: Row(
         children: [
           // Thumbnail
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.r),
             child: recipe.thumbnail != null
                 ? AppCachedImage(
                     imageUrl: recipe.thumbnail!,
-                    width: 80,
-                    height: 80,
-                    borderRadius: 8,
+                    width: 80.w,
+                    height: 80.w,
+                    borderRadius: 8.r,
                   )
                 : Container(
-                    width: 80,
-                    height: 80,
+                    width: 80.w,
+                    height: 80.w,
                     color: Colors.grey[200],
                     child: const Icon(Icons.restaurant_menu, color: Colors.grey),
                   ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           // Info section
           Expanded(
             child: Column(
@@ -84,7 +85,7 @@ class EvolutionRecipeCard extends StatelessWidget {
                       child: Text(
                         recipe.foodName,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 12.sp,
                           color: AppColors.primary,
                           fontWeight: FontWeight.w500,
                         ),
@@ -97,25 +98,25 @@ class EvolutionRecipeCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 // Recipe title
                 Text(
                   recipe.title,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: 15.sp,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 // Evolution metrics badges
                 _buildEvolutionMetrics(),
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           Icon(Icons.chevron_right, color: Colors.grey[400]),
         ],
       ),
@@ -131,21 +132,21 @@ class EvolutionRecipeCard extends StatelessWidget {
         Stack(
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
               child: recipe.thumbnail != null
                   ? AppCachedImage(
                       imageUrl: recipe.thumbnail!,
                       width: double.infinity,
-                      height: 100,
+                      height: 100.h,
                       borderRadius: 0,
                     )
                   : Container(
                       width: double.infinity,
-                      height: 100,
+                      height: 100.h,
                       color: Colors.orange[100],
                       child: Icon(
                         Icons.restaurant_menu,
-                        size: 40,
+                        size: 40.sp,
                         color: Colors.orange[300],
                       ),
                     ),
@@ -153,45 +154,45 @@ class EvolutionRecipeCard extends StatelessWidget {
             // Locale badge on top right
             if (recipe.culinaryLocale != null)
               Positioned(
-                top: 8,
-                right: 8,
+                top: 8.h,
+                right: 8.w,
                 child: LocaleBadge(
                   localeCode: recipe.culinaryLocale!,
                   showLabel: false,
-                  fontSize: 10,
+                  fontSize: 10.sp,
                 ),
               ),
           ],
         ),
         // Content
         Padding(
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.all(10.r),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Food name
               Text(
                 recipe.foodName,
-                style: const TextStyle(
-                  fontSize: 14,
+                style: TextStyle(
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: 2.h),
               // Recipe title
               Text(
                 recipe.title,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: Colors.grey[600],
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               // Evolution metrics
               _buildEvolutionMetrics(small: true),
             ],
@@ -214,7 +215,7 @@ class EvolutionRecipeCard extends StatelessWidget {
           label: 'home.variants'.tr(namedArgs: {'count': variantCount.toString()}),
           small: small,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8.w),
         _buildMetricBadge(
           icon: Icons.edit_note,
           count: logCount,
@@ -233,26 +234,26 @@ class EvolutionRecipeCard extends StatelessWidget {
   }) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: small ? 6 : 8,
-        vertical: small ? 2 : 4,
+        horizontal: small ? 6.w : 8.w,
+        vertical: small ? 2.h : 4.h,
       ),
       decoration: BoxDecoration(
         color: AppColors.badgeBackground,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             icon,
-            size: small ? 12 : 14,
+            size: small ? 12.sp : 14.sp,
             color: AppColors.textSecondary,
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4.w),
           Text(
             count.toString(),
             style: TextStyle(
-              fontSize: small ? 10 : 11,
+              fontSize: small ? 10.sp : 11.sp,
               fontWeight: FontWeight.w500,
               color: AppColors.textSecondary,
             ),
@@ -281,17 +282,17 @@ class FeaturedEvolutionCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 12,
-              offset: const Offset(0, 4),
+              offset: Offset(0, 4.h),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -307,7 +308,7 @@ class FeaturedEvolutionCard extends StatelessWidget {
                       color: Colors.orange[200],
                       child: Icon(
                         Icons.restaurant_menu,
-                        size: 60,
+                        size: 60.sp,
                         color: Colors.orange[400],
                       ),
                     ),
@@ -327,9 +328,9 @@ class FeaturedEvolutionCard extends StatelessWidget {
               ),
               // Content
               Positioned(
-                left: 12,
-                right: 12,
-                bottom: 12,
+                left: 12.w,
+                right: 12.w,
+                bottom: 12.h,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -337,8 +338,8 @@ class FeaturedEvolutionCard extends StatelessWidget {
                     // Food name
                     Text(
                       recipe.foodName,
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                         shadows: [
@@ -349,18 +350,18 @@ class FeaturedEvolutionCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     // Recipe title
                     Text(
                       recipe.title,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 13.sp,
                         color: Colors.white.withValues(alpha: 0.9),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     // Evolution metrics
                     _buildFeaturedMetrics(),
                   ],
@@ -369,8 +370,8 @@ class FeaturedEvolutionCard extends StatelessWidget {
               // Locale badge
               if (recipe.culinaryLocale != null)
                 Positioned(
-                  top: 12,
-                  right: 12,
+                  top: 12.h,
+                  right: 12.w,
                   child: LocaleBadge(
                     localeCode: recipe.culinaryLocale!,
                     showLabel: false,
@@ -390,7 +391,7 @@ class FeaturedEvolutionCard extends StatelessWidget {
     return Row(
       children: [
         _buildWhiteMetricBadge(Icons.fork_right, variantCount),
-        const SizedBox(width: 8),
+        SizedBox(width: 8.w),
         _buildWhiteMetricBadge(Icons.edit_note, logCount),
       ],
     );
@@ -398,20 +399,20 @@ class FeaturedEvolutionCard extends StatelessWidget {
 
   Widget _buildWhiteMetricBadge(IconData icon, int count) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.white),
-          const SizedBox(width: 4),
+          Icon(icon, size: 14.sp, color: Colors.white),
+          SizedBox(width: 4.w),
           Text(
             count.toString(),
-            style: const TextStyle(
-              fontSize: 12,
+            style: TextStyle(
+              fontSize: 12.sp,
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),

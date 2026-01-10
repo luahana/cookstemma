@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
@@ -282,7 +283,7 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
                 children: [
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
                       child: Column(
                         children: [
                           HookSection(
@@ -302,7 +303,7 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
                               });
                             },
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24.h),
                           HashtagInputSection(
                             hashtags: _hashtags,
                             onHashtagsChanged: (tags) => setState(() {
@@ -310,14 +311,14 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
                               _hashtags.addAll(tags);
                             }),
                           ),
-                          const SizedBox(height: 32),
+                          SizedBox(height: 32.h),
                           IngredientSection(
                             ingredients: _ingredients,
                             onAddIngredient: _addIngredient,
                             onRemoveIngredient: _onRemoveIngredient,
                             onRestoreIngredient: _onRestoreIngredient,
                           ),
-                          const SizedBox(height: 32),
+                          SizedBox(height: 32.h),
                           StepSection(
                             steps: _steps,
                             onAddStep: _addStep,
@@ -327,7 +328,7 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
                             onReorder: _onReorderSteps,
                             onStateChanged: () => setState(() {}),
                           ),
-                          const SizedBox(height: 120),
+                          SizedBox(height: 120.h),
                         ],
                       ),
                     ),
@@ -352,7 +353,7 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text('common.errorWithMessage'.tr(namedArgs: {'message': err.toString()})),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               ElevatedButton(
                 onPressed: () => ref.refresh(recipeDetailProvider(widget.recipeId)),
                 child: Text('common.tryAgain'.tr()),
@@ -378,16 +379,16 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
         _titleController.text.isNotEmpty && _ingredients.isNotEmpty;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+      padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 30.h),
       child: SizedBox(
         width: double.infinity,
-        height: 56,
+        height: 56.h,
         child: ElevatedButton(
           onPressed: hasBaseInfo && !_isLoading ? _handleSubmit : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.r),
             ),
           ),
           child: Text(

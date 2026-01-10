@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// A reusable AppBar with integrated search functionality.
 /// Toggles between a title view and a search input field.
@@ -110,12 +111,12 @@ class _SearchAppBarState extends State<SearchAppBar> {
                 contentPadding: EdgeInsets.zero,
                 suffixIcon: _controller.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, size: 20),
+                        icon: Icon(Icons.clear, size: 20.sp),
                         onPressed: _clearSearch,
                       )
                     : null,
               ),
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16.sp),
               onChanged: _onSearchChanged,
               textInputAction: TextInputAction.search,
               onSubmitted: widget.onSearch,

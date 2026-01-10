@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/trending_tree_dto.dart';
@@ -123,8 +124,8 @@ class HomeFeedScreen extends ConsumerWidget {
         ],
 
         // Bottom padding
-        const SliverToBoxAdapter(
-          child: SizedBox(height: 32),
+        SliverToBoxAdapter(
+          child: SizedBox(height: 32.h),
         ),
       ],
     );
@@ -139,8 +140,8 @@ class HomeFeedScreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                const SizedBox(height: 16),
+                Icon(Icons.error_outline, size: 48.sp, color: Colors.red),
+                SizedBox(height: 16.h),
                 Text('common.errorWithMessage'.tr(namedArgs: {'message': err.toString()})),
                 TextButton(
                   onPressed: () => ref.invalidate(homeFeedProvider),

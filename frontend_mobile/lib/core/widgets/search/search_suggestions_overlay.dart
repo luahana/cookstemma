@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/recent_search_tile.dart';
 
@@ -39,13 +40,13 @@ class SearchSuggestionsOverlay extends StatelessWidget {
         offset: const Offset(0, kToolbarHeight),
         child: Material(
           elevation: 4,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           color: Colors.white,
           child: Container(
-            constraints: const BoxConstraints(maxHeight: 300),
+            constraints: BoxConstraints(maxHeight: 300.h),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
               border: Border.all(color: AppColors.border),
             ),
             child: SingleChildScrollView(
@@ -75,14 +76,14 @@ class SearchSuggestionsOverlay extends StatelessWidget {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 4.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             '최근 검색',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12.sp,
               fontWeight: FontWeight.w600,
               color: Colors.grey[600],
             ),
@@ -90,10 +91,10 @@ class SearchSuggestionsOverlay extends StatelessWidget {
           GestureDetector(
             onTap: onClearAllTap,
             behavior: HitTestBehavior.opaque,
-            child: const Text(
+            child: Text(
               '전체 삭제',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 color: AppColors.primary,
                 fontWeight: FontWeight.w500,
               ),

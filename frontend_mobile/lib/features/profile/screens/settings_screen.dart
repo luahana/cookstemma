@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
@@ -24,7 +25,7 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: ListView(
         children: [
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
 
           // General Settings Section
           _buildSectionHeader('settings.general'.tr()),
@@ -45,7 +46,7 @@ class SettingsScreen extends ConsumerWidget {
             },
           ),
 
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           // Account Section
           _buildSectionHeader('settings.account'.tr()),
@@ -56,7 +57,7 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _showLogoutDialog(context, ref),
           ),
 
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           // Danger Zone Section
           _buildSectionHeader(
@@ -72,7 +73,7 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => context.push(RouteConstants.deleteAccount),
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: 32.h),
         ],
       ),
     );
@@ -88,11 +89,11 @@ class SettingsScreen extends ConsumerWidget {
 
   Widget _buildSectionHeader(String title, {Color? color}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Text(
         title,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: 13.sp,
           fontWeight: FontWeight.w600,
           color: color ?? Colors.grey[600],
         ),
@@ -110,10 +111,10 @@ class SettingsScreen extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -127,7 +128,7 @@ class SettingsScreen extends ConsumerWidget {
         title: Text(
           title,
           style: TextStyle(
-            fontSize: 15,
+            fontSize: 15.sp,
             fontWeight: FontWeight.w500,
             color: titleColor ?? Colors.black87,
           ),
@@ -136,7 +137,7 @@ class SettingsScreen extends ConsumerWidget {
             ? Text(
                 subtitle,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 13.sp,
                   color: Colors.grey[600],
                 ),
               )
@@ -144,7 +145,7 @@ class SettingsScreen extends ConsumerWidget {
         trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
         onTap: onTap,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
         ),
       ),
     );

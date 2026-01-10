@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Large, prominent floating action button for quick log entry
@@ -64,8 +65,8 @@ class _QuickLogFABState extends State<QuickLogFAB>
               children: [
                 // Pulse ring effect
                 Container(
-                  width: 72 + (_pulseAnimation.value * 16),
-                  height: 72 + (_pulseAnimation.value * 16),
+                  width: (72 + (_pulseAnimation.value * 16)).w,
+                  height: (72 + (_pulseAnimation.value * 16)).w,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.primary.withValues(
@@ -95,13 +96,13 @@ class _QuickLogFABState extends State<QuickLogFAB>
     return Material(
       elevation: 8,
       shadowColor: AppColors.primary.withValues(alpha: 0.4),
-      borderRadius: BorderRadius.circular(28),
+      borderRadius: BorderRadius.circular(28.r),
       child: InkWell(
         onTap: () {
           HapticFeedback.mediumImpact();
           widget.onPressed();
         },
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(28.r),
         child: Ink(
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -109,24 +110,24 @@ class _QuickLogFABState extends State<QuickLogFAB>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(28.r),
           ),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.camera_alt_rounded,
                   color: Colors.white,
-                  size: 24,
+                  size: 24.sp,
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10.w),
                 Text(
                   'logPost.quickLog.button'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.3,
                   ),
@@ -151,8 +152,8 @@ class _QuickLogFABState extends State<QuickLogFAB>
         },
         customBorder: const CircleBorder(),
         child: Ink(
-          width: 64,
-          height: 64,
+          width: 64.w,
+          height: 64.w,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [AppColors.primary, Color(0xFFD35400)],
@@ -161,10 +162,10 @@ class _QuickLogFABState extends State<QuickLogFAB>
             ),
             shape: BoxShape.circle,
           ),
-          child: const Icon(
+          child: Icon(
             Icons.camera_alt_rounded,
             color: Colors.white,
-            size: 28,
+            size: 28.sp,
           ),
         ),
       ),
@@ -193,10 +194,10 @@ class MiniQuickLogFAB extends StatelessWidget {
         },
         backgroundColor: AppColors.primary,
         elevation: 6,
-        child: const Icon(
+        child: Icon(
           Icons.add_a_photo_rounded,
           color: Colors.white,
-          size: 26,
+          size: 26.sp,
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Action buttons for recipe cards: Log, Fork, and View Star/Root
@@ -33,7 +34,7 @@ class CardActionRow extends StatelessWidget {
             isPrimary: false,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8.w),
         // Fork button
         Expanded(
           child: _ActionButton(
@@ -43,7 +44,7 @@ class CardActionRow extends StatelessWidget {
             isPrimary: false,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8.w),
         // View Star (for originals) or View Root (for variants)
         Expanded(
           child: isOriginal
@@ -85,29 +86,29 @@ class _ActionButton extends StatelessWidget {
       label: label,
       child: Material(
         color: isPrimary ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         child: InkWell(
           onTap: () {
             HapticFeedback.lightImpact();
             onTap?.call();
           },
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+            padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   icon,
-                  size: 16,
+                  size: 16.sp,
                   color: isPrimary ? AppColors.primary : Colors.grey[700],
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6.w),
                 Flexible(
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
                       color: isPrimary ? AppColors.primary : Colors.grey[700],
                     ),
@@ -144,7 +145,7 @@ class CompactCardActionRow extends StatelessWidget {
             onTap: onLog,
           ),
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: 4.w),
         Expanded(
           child: _CompactActionButton(
             icon: Icons.call_split,
@@ -169,18 +170,18 @@ class _CompactActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.grey[100],
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(6.r),
       child: InkWell(
         onTap: () {
           HapticFeedback.lightImpact();
           onTap?.call();
         },
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6.r),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: EdgeInsets.symmetric(vertical: 8.h),
           child: Icon(
             icon,
-            size: 18,
+            size: 18.sp,
             color: Colors.grey[700],
           ),
         ),

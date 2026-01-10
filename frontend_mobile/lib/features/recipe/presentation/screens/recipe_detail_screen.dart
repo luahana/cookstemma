@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -100,12 +101,12 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                 ref.read(saveRecipeProvider(widget.recipeId).notifier).toggle();
               },
             ),
-            loading: () => const Padding(
-              padding: EdgeInsets.all(12.0),
+            loading: () => Padding(
+              padding: EdgeInsets.all(12.r),
               child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                width: 24.w,
+                height: 24.w,
+                child: const CircularProgressIndicator(strokeWidth: 2),
               ),
             ),
             error: (_, _) => IconButton(
@@ -132,16 +133,16 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                   children: [
                     _buildImageHeader(recipe),
                     Padding(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.r),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildLineageTag(recipe),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12.h),
                           Text(
                             "[${recipe.foodName}]",
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 18.sp,
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
@@ -151,8 +152,8 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                               Expanded(
                                 child: Text(
                                   recipe.title,
-                                  style: const TextStyle(
-                                    fontSize: 26,
+                                  style: TextStyle(
+                                    fontSize: 26.sp,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -160,18 +161,18 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                               LocaleBadgeLarge(localeCode: recipe.culinaryLocale),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8.h),
                           Text(
                             recipe.description ?? "",
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 16.sp,
                               color: Colors.grey[700],
                               height: 1.5,
                             ),
                           ),
                           // Hashtags section
                           if (recipe.hashtags.isNotEmpty) ...[
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16.h),
                             HashtagChips(hashtags: recipe.hashtags),
                           ],
                         ],
@@ -180,76 +181,76 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                     // Recipe Family Section (for variant recipes - star layout)
                     if (recipe.isVariant && recipe.rootInfo != null) ...[
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
                         child: RecipeFamilySection(
                           rootInfo: recipe.rootInfo!,
                           allVariants: recipe.variants,
                           currentRecipeId: recipe.publicId,
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20.h),
                     ],
                     // Change Diff Section (for variant recipes)
                     if (recipe.isVariant && recipe.hasChanges) ...[
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
                         child: ChangeDiffSection(
                           changeDiff: recipe.changeDiff!,
                           changeCategories: recipe.changeCategories,
                           changeReason: recipe.changeReason,
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20.h),
                     ],
                     // Kitchen-Proof Ingredients Section
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
                       child: KitchenProofIngredients(
                         ingredients: recipe.ingredients,
                         changeDiff: recipe.changeDiff,
                         showDiffBadges: recipe.isVariant,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24.h),
                     // Steps Section
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.format_list_numbered, size: 20),
-                              const SizedBox(width: 8),
+                              Icon(Icons.format_list_numbered, size: 20.sp),
+                              SizedBox(width: 8.w),
                               Text(
                                 'recipe.steps'.tr(),
-                                style: const TextStyle(
-                                  fontSize: 18,
+                                style: TextStyle(
+                                  fontSize: 18.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16.h),
                           ...recipe.steps.map((step) => _buildStepItem(step)),
                         ],
                       ),
                     ),
                     // Variants Gallery section (only for ROOT recipes with variants)
                     if (recipe.variants.isNotEmpty && !recipe.isVariant) ...[
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24.h),
                       VariantsGallery(
                         variants: recipe.variants,
                         recipeId: recipe.publicId,
                       ),
                     ],
                     // Recent Logs Gallery section
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24.h),
                     RecentLogsGallery(
                       logs: recipe.logs,
                       recipeId: recipe.publicId,
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                   ],
                 ),
               ),
@@ -267,7 +268,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text('common.errorWithMessage'.tr(namedArgs: {'message': err.toString()})),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               ElevatedButton(
                 onPressed: () => ref.refresh(recipeDetailProvider(widget.recipeId)),
                 child: Text('common.tryAgain'.tr()),
@@ -325,16 +326,16 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   Widget _buildLineageTag(RecipeDetail recipe) {
     final isVariant = recipe.parentInfo != null || recipe.rootInfo != null;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: isVariant ? Colors.orange[50] : AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Text(
         isVariant ? 'recipe.variantRecipe'.tr() : 'recipe.originalRecipe'.tr(),
         style: TextStyle(
           color: isVariant ? Colors.orange[800] : AppColors.primary,
-          fontSize: 12,
+          fontSize: 12.sp,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -343,38 +344,38 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
 
   Widget _buildStepItem(dynamic step) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: EdgeInsets.only(bottom: 24.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               CircleAvatar(
-                radius: 12,
+                radius: 12.r,
                 backgroundColor: AppColors.primary,
                 child: Text(
                   "${step.stepNumber}",
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: Colors.white, fontSize: 12.sp),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
               Text('steps.step'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           if (step.imageUrl != null && step.imageUrl!.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: EdgeInsets.only(bottom: 12.h),
               child: AppCachedImage(
                 imageUrl: step.imageUrl!,
                 width: double.infinity,
-                height: 200,
-                borderRadius: 12,
+                height: 200.h,
+                borderRadius: 12.r,
               ),
             ),
           Text(
             step.description,
-            style: const TextStyle(fontSize: 15, height: 1.6),
+            style: TextStyle(fontSize: 15.sp, height: 1.6),
           ),
         ],
       ),
@@ -387,7 +388,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
           ? recipe.imageUrls.first
           : 'https://via.placeholder.com/400x250',
       width: double.infinity,
-      height: 300,
+      height: 300.h,
       borderRadius: 0,
     );
   }

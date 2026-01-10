@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
 
@@ -38,9 +39,13 @@ void main() {
   group('OutcomeBadge', () {
     testWidgets('renders with success outcome', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: OutcomeBadge(outcome: LogOutcome.success),
+        ScreenUtilInit(
+          designSize: const Size(375, 812),
+          minTextAdapt: true,
+          builder: (context, child) => const MaterialApp(
+            home: Scaffold(
+              body: OutcomeBadge(outcome: LogOutcome.success),
+            ),
           ),
         ),
       );
@@ -50,9 +55,13 @@ void main() {
 
     testWidgets('renders with partial outcome', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: OutcomeBadge(outcome: LogOutcome.partial),
+        ScreenUtilInit(
+          designSize: const Size(375, 812),
+          minTextAdapt: true,
+          builder: (context, child) => const MaterialApp(
+            home: Scaffold(
+              body: OutcomeBadge(outcome: LogOutcome.partial),
+            ),
           ),
         ),
       );
@@ -62,9 +71,13 @@ void main() {
 
     testWidgets('renders with failed outcome', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: OutcomeBadge(outcome: LogOutcome.failed),
+        ScreenUtilInit(
+          designSize: const Size(375, 812),
+          minTextAdapt: true,
+          builder: (context, child) => const MaterialApp(
+            home: Scaffold(
+              body: OutcomeBadge(outcome: LogOutcome.failed),
+            ),
           ),
         ),
       );
@@ -74,11 +87,15 @@ void main() {
 
     testWidgets('renders compact variant', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: OutcomeBadge(
-              outcome: LogOutcome.success,
-              variant: OutcomeBadgeVariant.compact,
+        ScreenUtilInit(
+          designSize: const Size(375, 812),
+          minTextAdapt: true,
+          builder: (context, child) => const MaterialApp(
+            home: Scaffold(
+              body: OutcomeBadge(
+                outcome: LogOutcome.success,
+                variant: OutcomeBadgeVariant.compact,
+              ),
             ),
           ),
         ),

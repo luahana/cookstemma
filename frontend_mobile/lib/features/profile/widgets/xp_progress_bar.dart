@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// XP Progress Bar with level indicator
 class XpProgressBar extends StatelessWidget {
@@ -34,7 +35,7 @@ class XpProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -44,7 +45,7 @@ class XpProgressBar extends StatelessWidget {
             _progressColor.withValues(alpha: 0.05),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: _progressColor.withValues(alpha: 0.3),
           width: 1,
@@ -62,13 +63,13 @@ class XpProgressBar extends StatelessWidget {
                   Icon(
                     Icons.psychology,
                     color: _progressColor,
-                    size: 20,
+                    size: 20.sp,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8.w),
                   Text(
                     'profile.cookingDna'.tr(),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
                       color: Colors.grey[700],
                     ),
@@ -76,15 +77,15 @@ class XpProgressBar extends StatelessWidget {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
                 decoration: BoxDecoration(
                   color: _progressColor,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Text(
                   'Lv.$level',
-                  style: const TextStyle(
-                    fontSize: 13,
+                  style: TextStyle(
+                    fontSize: 13.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -92,18 +93,18 @@ class XpProgressBar extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           // Progress bar
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(6.r),
             child: LinearProgressIndicator(
               value: levelProgress,
-              minHeight: 10,
+              minHeight: 10.h,
               backgroundColor: _progressBackgroundColor,
               valueColor: AlwaysStoppedAnimation<Color>(_progressColor),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           // Level name and XP progress
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -111,7 +112,7 @@ class XpProgressBar extends StatelessWidget {
               Text(
                 'profile.$levelName'.tr(),
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 13.sp,
                   fontWeight: FontWeight.w500,
                   color: _progressColor,
                 ),
@@ -119,7 +120,7 @@ class XpProgressBar extends StatelessWidget {
               Text(
                 '$totalXp / $xpForNextLevel XP',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: Colors.grey[600],
                 ),
               ),

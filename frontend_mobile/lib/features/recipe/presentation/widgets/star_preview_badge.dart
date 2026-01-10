@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Badge showing star metrics: variant count and log count
 /// Used on original/root recipe cards to show the "star" (recipe family) size
@@ -31,55 +32,55 @@ class StarPreviewBadge extends StatelessWidget {
 
   Widget _buildFull() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             '⭐',
-            style: TextStyle(fontSize: 12),
+            style: TextStyle(fontSize: 12.sp),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6.w),
           Text(
             'recipe.starLabel'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 11,
+              fontSize: 11.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
           if (variantCount > 0) ...[
-            const SizedBox(width: 8),
-            const Text(
+            SizedBox(width: 8.w),
+            Text(
               '🔀',
-              style: TextStyle(fontSize: 10),
+              style: TextStyle(fontSize: 10.sp),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: 2.w),
             Text(
               variantCount.toString(),
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 11,
+                fontSize: 11.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ],
           if (logCount > 0) ...[
-            const SizedBox(width: 8),
-            const Text(
+            SizedBox(width: 8.w),
+            Text(
               '📝',
-              style: TextStyle(fontSize: 10),
+              style: TextStyle(fontSize: 10.sp),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: 2.w),
             Text(
               logCount.toString(),
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 11,
+                fontSize: 11.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -99,16 +100,16 @@ class StarPreviewBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6.r),
       ),
       child: Text(
         parts.join(' · '),
-        style: const TextStyle(
+        style: TextStyle(
           color: Colors.white,
-          fontSize: 11,
+          fontSize: 11.sp,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -132,33 +133,33 @@ class BasedOnBadge extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               '📍',
-              style: TextStyle(fontSize: 11),
+              style: TextStyle(fontSize: 11.sp),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4.w),
             Text(
               'recipe.basedOn'.tr(),
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white70,
-                fontSize: 10,
+                fontSize: 10.sp,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4.w),
             Flexible(
               child: Text(
                 rootTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 11,
+                  fontSize: 11.sp,
                   fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
@@ -166,11 +167,11 @@ class BasedOnBadge extends StatelessWidget {
               ),
             ),
             if (onTap != null) ...[
-              const SizedBox(width: 4),
-              const Icon(
+              SizedBox(width: 4.w),
+              Icon(
                 Icons.chevron_right,
                 color: Colors.white70,
-                size: 14,
+                size: 14.sp,
               ),
             ],
           ],

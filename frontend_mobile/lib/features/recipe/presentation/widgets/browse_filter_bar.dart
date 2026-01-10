@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/locale_dropdown.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart';
@@ -50,12 +51,12 @@ class BrowseFilterBar extends ConsumerWidget {
     ];
 
     return SizedBox(
-      height: 48,
+      height: 48.h,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         itemCount: allOptions.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => SizedBox(width: 8.w),
         itemBuilder: (context, index) {
           final option = allOptions[index];
           final isSelected = filterState.cuisineFilter == option.code;
@@ -81,7 +82,7 @@ class BrowseFilterBar extends ConsumerWidget {
     BrowseFilterState filterState,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Row(
         children: [
           // Type filter chips
@@ -94,7 +95,7 @@ class BrowseFilterBar extends ConsumerWidget {
               onFiltersChanged?.call();
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           _TypeFilterChip(
             label: 'filter.originals'.tr(),
             icon: Icons.push_pin_outlined,
@@ -105,7 +106,7 @@ class BrowseFilterBar extends ConsumerWidget {
               onFiltersChanged?.call();
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           _TypeFilterChip(
             label: 'filter.variants'.tr(),
             icon: Icons.call_split,
@@ -162,10 +163,10 @@ class _CuisineChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.grey[100],
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.grey[300]!,
             width: 1,
@@ -174,12 +175,12 @@ class _CuisineChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 14)),
-            const SizedBox(width: 4),
+            Text(emoji, style: TextStyle(fontSize: 14.sp)),
+            SizedBox(width: 4.w),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
                 color: isSelected ? Colors.white : Colors.grey[700],
               ),
@@ -210,10 +211,10 @@ class _TypeFilterChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.grey[300]!,
             width: 1,
@@ -225,15 +226,15 @@ class _TypeFilterChip extends StatelessWidget {
             if (icon != null) ...[
               Icon(
                 icon,
-                size: 14,
+                size: 14.sp,
                 color: isSelected ? AppColors.primary : Colors.grey[600],
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: 4.w),
             ],
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 11.sp,
                 fontWeight: FontWeight.w600,
                 color: isSelected ? AppColors.primary : Colors.grey[600],
               ),
@@ -259,30 +260,30 @@ class _SortDropdown extends StatelessWidget {
     return PopupMenuButton<RecipeSortOption>(
       initialValue: currentSort,
       onSelected: onChanged,
-      offset: const Offset(0, 40),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      offset: Offset(0, 40.h),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
         decoration: BoxDecoration(
           color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: Colors.grey[300]!, width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.sort, size: 14, color: Colors.grey[600]),
-            const SizedBox(width: 4),
+            Icon(Icons.sort, size: 14.sp, color: Colors.grey[600]),
+            SizedBox(width: 4.w),
             Text(
               _getSortLabel(currentSort),
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 11.sp,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[600],
               ),
             ),
-            const SizedBox(width: 2),
-            Icon(Icons.arrow_drop_down, size: 16, color: Colors.grey[600]),
+            SizedBox(width: 2.w),
+            Icon(Icons.arrow_drop_down, size: 16.sp, color: Colors.grey[600]),
           ],
         ),
       ),
@@ -306,21 +307,21 @@ class _SortDropdown extends StatelessWidget {
         children: [
           Icon(
             icon,
-            size: 18,
+            size: 18.sp,
             color: isSelected ? AppColors.primary : Colors.grey[600],
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           Text(
             label,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               color: isSelected ? AppColors.primary : Colors.grey[800],
             ),
           ),
           if (isSelected) ...[
             const Spacer(),
-            Icon(Icons.check, size: 18, color: AppColors.primary),
+            Icon(Icons.check, size: 18.sp, color: AppColors.primary),
           ],
         ],
       ),
@@ -354,17 +355,17 @@ class CompactFilterBar extends ConsumerWidget {
     final activeCount = filterState.activeFilterCount;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       color: Colors.white,
       child: Row(
         children: [
           GestureDetector(
             onTap: onExpand,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
               decoration: BoxDecoration(
                 color: activeCount > 0 ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
                   color: activeCount > 0 ? AppColors.primary : Colors.grey[300]!,
                 ),
@@ -374,30 +375,30 @@ class CompactFilterBar extends ConsumerWidget {
                 children: [
                   Icon(
                     Icons.filter_list,
-                    size: 16,
+                    size: 16.sp,
                     color: activeCount > 0 ? AppColors.primary : Colors.grey[600],
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4.w),
                   Text(
                     'filter.filters'.tr(),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
                       color: activeCount > 0 ? AppColors.primary : Colors.grey[600],
                     ),
                   ),
                   if (activeCount > 0) ...[
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6.w),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(10.r),
                       ),
                       child: Text(
                         activeCount.toString(),
-                        style: const TextStyle(
-                          fontSize: 10,
+                        style: TextStyle(
+                          fontSize: 10.sp,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -408,7 +409,7 @@ class CompactFilterBar extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           // Show active cuisine chip if set
           if (filterState.cuisineFilter != null) ...[
             _buildActiveFilterChip(
@@ -428,14 +429,14 @@ class CompactFilterBar extends ConsumerWidget {
                 ref.read(browseFilterProvider.notifier).clearAllFilters();
               },
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: EdgeInsets.symmetric(horizontal: 8.w),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               child: Text(
                 'filter.clearAll'.tr(),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: Colors.grey[600],
                 ),
               ),
@@ -447,30 +448,30 @@ class CompactFilterBar extends ConsumerWidget {
 
   Widget _buildActiveFilterChip(String emoji, String label, VoidCallback onRemove) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 12)),
-          const SizedBox(width: 4),
+          Text(emoji, style: TextStyle(fontSize: 12.sp)),
+          SizedBox(width: 4.w),
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w500,
               color: AppColors.primary,
             ),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4.w),
           GestureDetector(
             onTap: onRemove,
             child: Icon(
               Icons.close,
-              size: 14,
+              size: 14.sp,
               color: AppColors.primary,
             ),
           ),

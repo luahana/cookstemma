@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Timeline section header for grouping logs by date
@@ -21,14 +22,14 @@ class JourneyTimelineHeader extends StatelessWidget {
     final label = _getDateLabel(date);
 
     return Container(
-      padding: const EdgeInsets.only(top: 16, bottom: 8),
+      padding: EdgeInsets.only(top: 16.h, bottom: 8.h),
       child: Row(
         children: [
           if (showDivider)
             Expanded(
               flex: 1,
               child: Container(
-                height: 1,
+                height: 1.h,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -40,15 +41,15 @@ class JourneyTimelineHeader extends StatelessWidget {
               ),
             ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: 12.w),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                   decoration: BoxDecoration(
                     color: _isToday(date) ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(16.r),
                     border: Border.all(
                       color: _isToday(date) ? AppColors.primary.withValues(alpha: 0.2) : Colors.grey[300]!,
                       width: 1,
@@ -59,10 +60,10 @@ class JourneyTimelineHeader extends StatelessWidget {
                     children: [
                       if (_isToday(date))
                         Padding(
-                          padding: const EdgeInsets.only(right: 6),
+                          padding: EdgeInsets.only(right: 6.w),
                           child: Container(
-                            width: 6,
-                            height: 6,
+                            width: 6.w,
+                            height: 6.w,
                             decoration: BoxDecoration(
                               color: AppColors.primary,
                               shape: BoxShape.circle,
@@ -72,24 +73,24 @@ class JourneyTimelineHeader extends StatelessWidget {
                       Text(
                         label,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.bold,
                           color: _isToday(date) ? AppColors.primary : Colors.grey[600],
                           letterSpacing: 0.5,
                         ),
                       ),
                       if (itemCount != null) ...[
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6.w),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                           decoration: BoxDecoration(
                             color: _isToday(date) ? AppColors.primary.withValues(alpha: 0.2) : Colors.grey[200],
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(10.r),
                           ),
                           child: Text(
                             itemCount.toString(),
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 10.sp,
                               fontWeight: FontWeight.bold,
                               color: _isToday(date) ? AppColors.primary : Colors.grey[600],
                             ),
@@ -106,7 +107,7 @@ class JourneyTimelineHeader extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Container(
-                height: 1,
+                height: 1.h,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -173,14 +174,14 @@ class SimpleTimelineHeader extends StatelessWidget {
     final isToday = _isToday(date);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
             decoration: BoxDecoration(
               color: isToday ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey[100],
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.r),
               border: Border.all(
                 color: isToday ? AppColors.primary.withValues(alpha: 0.2) : Colors.grey[300]!,
                 width: 1,
@@ -191,10 +192,10 @@ class SimpleTimelineHeader extends StatelessWidget {
               children: [
                 if (isToday)
                   Padding(
-                    padding: const EdgeInsets.only(right: 6),
+                    padding: EdgeInsets.only(right: 6.w),
                     child: Container(
-                      width: 6,
-                      height: 6,
+                      width: 6.w,
+                      height: 6.w,
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         shape: BoxShape.circle,
@@ -204,24 +205,24 @@ class SimpleTimelineHeader extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     fontWeight: FontWeight.bold,
                     color: isToday ? AppColors.primary : Colors.grey[600],
                     letterSpacing: 0.5,
                   ),
                 ),
                 if (itemCount != null) ...[
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6.w),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                     decoration: BoxDecoration(
                       color: isToday ? AppColors.primary.withValues(alpha: 0.2) : Colors.grey[200],
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(10.r),
                     ),
                     child: Text(
                       itemCount.toString(),
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 10.sp,
                         fontWeight: FontWeight.bold,
                         color: isToday ? AppColors.primary : Colors.grey[600],
                       ),
@@ -231,10 +232,10 @@ class SimpleTimelineHeader extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Expanded(
             child: Container(
-              height: 1,
+              height: 1.h,
               color: Colors.grey[200],
             ),
           ),

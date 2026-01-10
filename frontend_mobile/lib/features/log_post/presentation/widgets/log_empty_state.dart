@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
 
@@ -19,40 +20,40 @@ class LogEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(32.r),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Illustration
             _buildIllustration(),
-            const SizedBox(height: 32),
+            SizedBox(height: 32.h),
             // Title
             Text(
               _getTitle(),
-              style: const TextStyle(
-                fontSize: 20,
+              style: TextStyle(
+                fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             // Description
             Text(
               _getDescription(),
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 15.sp,
                 color: Colors.grey[600],
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32.h),
             // CTA button
             if (onStartLogging != null) _buildCTAButton(),
             // Tips section
             if (type == EmptyStateType.noLogs) ...[
-              const SizedBox(height: 40),
+              SizedBox(height: 40.h),
               _buildTipsSection(),
             ],
           ],
@@ -103,9 +104,9 @@ class LogEmptyState extends StatelessWidget {
       icon: const Icon(Icons.camera_alt_rounded),
       label: Text('logPost.empty.startLogging'.tr()),
       style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        textStyle: const TextStyle(
-          fontSize: 16,
+        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h),
+        textStyle: TextStyle(
+          fontSize: 16.sp,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -114,38 +115,38 @@ class LogEmptyState extends StatelessWidget {
 
   Widget _buildTipsSection() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb_outline, color: AppColors.primary, size: 20),
-              const SizedBox(width: 8),
+              Icon(Icons.lightbulb_outline, color: AppColors.primary, size: 20.sp),
+              SizedBox(width: 8.w),
               Text(
                 'logPost.empty.tips.title'.tr(),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           _buildTip(
             emoji: LogOutcome.success.emoji,
             text: 'logPost.empty.tips.success'.tr(),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           _buildTip(
             emoji: LogOutcome.partial.emoji,
             text: 'logPost.empty.tips.partial'.tr(),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           _buildTip(
             emoji: LogOutcome.failed.emoji,
             text: 'logPost.empty.tips.failed'.tr(),
@@ -159,13 +160,13 @@ class LogEmptyState extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 16)),
-        const SizedBox(width: 10),
+        Text(emoji, style: TextStyle(fontSize: 16.sp)),
+        SizedBox(width: 10.w),
         Expanded(
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.sp,
               color: AppColors.primary,
               height: 1.4,
             ),
@@ -187,15 +188,15 @@ class _NoLogsIllustration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 200,
-      height: 160,
+      width: 200.w,
+      height: 160.h,
       child: Stack(
         alignment: Alignment.center,
         children: [
           // Background circle
           Container(
-            width: 140,
-            height: 140,
+            width: 140.w,
+            height: 140.w,
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
@@ -203,40 +204,40 @@ class _NoLogsIllustration extends StatelessWidget {
           ),
           // Pot illustration
           Positioned(
-            bottom: 20,
+            bottom: 20.h,
             child: Container(
-              width: 80,
-              height: 60,
+              width: 80.w,
+              height: 60.h,
               decoration: BoxDecoration(
                 color: Colors.grey[300],
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(20),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(20.r),
                 ),
               ),
             ),
           ),
           // Steam lines
           Positioned(
-            top: 20,
-            left: 60,
+            top: 20.h,
+            left: 60.w,
             child: _buildSteamLine(),
           ),
           Positioned(
-            top: 30,
-            left: 90,
+            top: 30.h,
+            left: 90.w,
             child: _buildSteamLine(),
           ),
           Positioned(
-            top: 15,
-            left: 120,
+            top: 15.h,
+            left: 120.w,
             child: _buildSteamLine(),
           ),
           // Camera icon
           Positioned(
-            top: 10,
-            right: 30,
+            top: 10.h,
+            right: 30.w,
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12.r),
               decoration: BoxDecoration(
                 color: AppColors.primary,
                 shape: BoxShape.circle,
@@ -244,14 +245,14 @@ class _NoLogsIllustration extends StatelessWidget {
                   BoxShadow(
                     color: AppColors.primary.withValues(alpha: 0.3),
                     blurRadius: 8,
-                    offset: const Offset(0, 4),
+                    offset: Offset(0, 4.h),
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.camera_alt,
                 color: Colors.white,
-                size: 24,
+                size: 24.sp,
               ),
             ),
           ),
@@ -261,11 +262,11 @@ class _NoLogsIllustration extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(LogOutcome.success.emoji, style: const TextStyle(fontSize: 24)),
-                const SizedBox(width: 8),
-                Text(LogOutcome.partial.emoji, style: const TextStyle(fontSize: 24)),
-                const SizedBox(width: 8),
-                Text(LogOutcome.failed.emoji, style: const TextStyle(fontSize: 24)),
+                Text(LogOutcome.success.emoji, style: TextStyle(fontSize: 24.sp)),
+                SizedBox(width: 8.w),
+                Text(LogOutcome.partial.emoji, style: TextStyle(fontSize: 24.sp)),
+                SizedBox(width: 8.w),
+                Text(LogOutcome.failed.emoji, style: TextStyle(fontSize: 24.sp)),
               ],
             ),
           ),
@@ -276,11 +277,11 @@ class _NoLogsIllustration extends StatelessWidget {
 
   Widget _buildSteamLine() {
     return Container(
-      width: 3,
-      height: 30,
+      width: 3.w,
+      height: 30.h,
       decoration: BoxDecoration(
         color: Colors.grey[400],
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(2.r),
       ),
     );
   }
@@ -291,15 +292,15 @@ class _NoResultsIllustration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 160,
-      height: 160,
+      width: 160.w,
+      height: 160.w,
       child: Stack(
         alignment: Alignment.center,
         children: [
           // Background circle
           Container(
-            width: 120,
-            height: 120,
+            width: 120.w,
+            height: 120.w,
             decoration: BoxDecoration(
               color: Colors.orange[50],
               shape: BoxShape.circle,
@@ -308,23 +309,23 @@ class _NoResultsIllustration extends StatelessWidget {
           // Search icon with X
           Icon(
             Icons.search_off,
-            size: 60,
+            size: 60.sp,
             color: Colors.orange[300],
           ),
           // Filter chips floating around
           Positioned(
-            top: 10,
-            left: 10,
+            top: 10.h,
+            left: 10.w,
             child: _buildMiniChip(LogOutcome.success.emoji),
           ),
           Positioned(
-            top: 30,
-            right: 10,
+            top: 30.h,
+            right: 10.w,
             child: _buildMiniChip(LogOutcome.partial.emoji),
           ),
           Positioned(
-            bottom: 20,
-            left: 20,
+            bottom: 20.h,
+            left: 20.w,
             child: _buildMiniChip(LogOutcome.failed.emoji),
           ),
         ],
@@ -334,19 +335,19 @@ class _NoResultsIllustration extends StatelessWidget {
 
   Widget _buildMiniChip(String emoji) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2.h),
           ),
         ],
       ),
-      child: Text(emoji, style: const TextStyle(fontSize: 14)),
+      child: Text(emoji, style: TextStyle(fontSize: 14.sp)),
     );
   }
 }
@@ -356,15 +357,15 @@ class _OfflineIllustration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 160,
-      height: 160,
+      width: 160.w,
+      height: 160.w,
       child: Stack(
         alignment: Alignment.center,
         children: [
           // Background circle
           Container(
-            width: 120,
-            height: 120,
+            width: 120.w,
+            height: 120.w,
             decoration: BoxDecoration(
               color: Colors.grey[100],
               shape: BoxShape.circle,
@@ -373,34 +374,34 @@ class _OfflineIllustration extends StatelessWidget {
           // Cloud with X
           Icon(
             Icons.cloud_off,
-            size: 60,
+            size: 60.sp,
             color: Colors.grey[400],
           ),
           // Pending indicator
           Positioned(
-            bottom: 20,
+            bottom: 20.h,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
               decoration: BoxDecoration(
                 color: Colors.orange[100],
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(
-                    width: 12,
-                    height: 12,
+                    width: 12.w,
+                    height: 12.w,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation(Colors.orange[600]),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6.w),
                   Text(
                     'logPost.empty.offline.pending'.tr(),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       color: Colors.orange[800],
                       fontWeight: FontWeight.w500,
                     ),
@@ -428,29 +429,29 @@ class FilterEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(32.r),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _NoResultsIllustration(),
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
             Text(
               'logPost.empty.noResults.title'.tr(),
-              style: const TextStyle(
-                fontSize: 18,
+              style: TextStyle(
+                fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Text(
               'logPost.empty.noResults.tryDifferent'.tr(),
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 14.sp,
                 color: Colors.grey[600],
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
             OutlinedButton.icon(
               onPressed: () {
                 HapticFeedback.lightImpact();

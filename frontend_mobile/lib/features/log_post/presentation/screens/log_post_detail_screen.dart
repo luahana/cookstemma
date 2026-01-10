@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
@@ -161,12 +162,12 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
                 ref.read(saveLogProvider(widget.logId).notifier).toggle();
               },
             ),
-            loading: () => const Padding(
-              padding: EdgeInsets.all(12.0),
+            loading: () => Padding(
+              padding: EdgeInsets.all(12.r),
               child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                width: 24.w,
+                height: 24.w,
+                child: const CircularProgressIndicator(strokeWidth: 2),
               ),
             ),
             error: (_, __) => IconButton(
@@ -236,7 +237,7 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
                     _buildImageGallery(log.imageUrls),
 
                     Padding(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: EdgeInsets.all(20.r),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -248,27 +249,27 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
                                 DateFormat('yyyy년 MM월 dd일').format(log.createdAt),
                                 style: TextStyle(
                                   color: Colors.grey[600],
-                                  fontSize: 14,
+                                  fontSize: 14.sp,
                                 ),
                               ),
                               _buildOutcomeEmoji(log.outcome),
                             ],
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20.h),
 
                           // 3. 로그 본문 내용
                           Text(
                             'logPost.myReview'.tr(),
-                            style: const TextStyle(
-                              fontSize: 18,
+                            style: TextStyle(
+                              fontSize: 18.sp,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12.h),
                           Text(
                             log.content,
-                            style: const TextStyle(
-                              fontSize: 16,
+                            style: TextStyle(
+                              fontSize: 16.sp,
                               height: 1.6,
                               color: Colors.black87,
                             ),
@@ -276,19 +277,19 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
 
                           // 4. 해시태그
                           if (log.hashtags.isNotEmpty) ...[
-                            const SizedBox(height: 24),
+                            SizedBox(height: 24.h),
                             Text(
                               'logPost.hashtags'.tr(),
-                              style: const TextStyle(
-                                fontSize: 16,
+                              style: TextStyle(
+                                fontSize: 16.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12.h),
                             HashtagChips(hashtags: log.hashtags),
                           ],
 
-                          const SizedBox(height: 50),
+                          SizedBox(height: 50.h),
                         ],
                       ),
                     ),
@@ -309,19 +310,19 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
     if (urls.isEmpty) return const SizedBox.shrink();
 
     return SizedBox(
-      height: 300,
+      height: 300.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: urls.length,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: EdgeInsets.only(right: 12.w),
             child: AppCachedImage(
               imageUrl: urls[index],
               width: MediaQuery.of(context).size.width * 0.8,
-              height: 300,
-              borderRadius: 16,
+              height: 300.h,
+              borderRadius: 16.r,
             ),
           );
         },
@@ -337,6 +338,6 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
       'FAILED' => '😢',
       _ => '😐',
     };
-    return Text(emoji, style: const TextStyle(fontSize: 24));
+    return Text(emoji, style: TextStyle(fontSize: 24.sp));
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Circular progress ring widget for displaying XP progress in navigation
 class NavProgressRing extends StatelessWidget {
@@ -53,8 +54,8 @@ class NavProgressRing extends StatelessWidget {
               right: 0,
               bottom: 0,
               child: Container(
-                width: 16,
-                height: 16,
+                width: 16.w,
+                height: 16.w,
                 decoration: BoxDecoration(
                   color: primaryColor,
                   shape: BoxShape.circle,
@@ -63,9 +64,9 @@ class NavProgressRing extends StatelessWidget {
                 child: Center(
                   child: Text(
                     level.toString(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 9,
+                      fontSize: 9.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

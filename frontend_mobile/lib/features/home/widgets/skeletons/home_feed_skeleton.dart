@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Simple shimmer box without animation (to avoid crashes)
 class ShimmerBox extends StatelessWidget {
@@ -35,29 +36,29 @@ class HomeFeedSkeleton extends StatelessWidget {
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.r),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Section header skeleton
             _buildSectionHeaderSkeleton(),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             // Bento grid skeleton
             const BentoGridSkeleton(),
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
             // Section header skeleton
             _buildSectionHeaderSkeleton(),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             // Horizontal scroll skeleton
             const HorizontalScrollSkeleton(),
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
             // Section header skeleton
             _buildSectionHeaderSkeleton(),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             // Recipe cards skeleton
-            ...List.generate(3, (index) => const Padding(
-              padding: EdgeInsets.only(bottom: 12),
-              child: RecipeCardSkeleton(),
+            ...List.generate(3, (index) => Padding(
+              padding: EdgeInsets.only(bottom: 12.h),
+              child: const RecipeCardSkeleton(),
             )),
           ],
         ),
@@ -69,8 +70,8 @@ class HomeFeedSkeleton extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        ShimmerBox(width: 120, height: 20, borderRadius: 4),
-        ShimmerBox(width: 60, height: 16, borderRadius: 4),
+        ShimmerBox(width: 120.w, height: 20.h, borderRadius: 4.r),
+        ShimmerBox(width: 60.w, height: 16.h, borderRadius: 4.r),
       ],
     );
   }
@@ -83,7 +84,7 @@ class BentoGridSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 220,
+      height: 220.h,
       child: Row(
         children: [
           // Featured card skeleton
@@ -91,11 +92,11 @@ class BentoGridSkeleton extends StatelessWidget {
             flex: 6,
             child: ShimmerBox(
               width: double.infinity,
-              height: 220,
-              borderRadius: 16,
+              height: 220.h,
+              borderRadius: 16.r,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           // Small cards skeleton
           Expanded(
             flex: 4,
@@ -105,15 +106,15 @@ class BentoGridSkeleton extends StatelessWidget {
                   child: ShimmerBox(
                     width: double.infinity,
                     height: double.infinity,
-                    borderRadius: 12,
+                    borderRadius: 12.r,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12.h),
                 Expanded(
                   child: ShimmerBox(
                     width: double.infinity,
                     height: double.infinity,
-                    borderRadius: 12,
+                    borderRadius: 12.r,
                   ),
                 ),
               ],
@@ -132,15 +133,15 @@ class HorizontalScrollSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 160,
+      height: 160.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: 4,
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: ShimmerBox(width: 140, height: 160, borderRadius: 12),
+            padding: EdgeInsets.only(right: 12.w),
+            child: ShimmerBox(width: 140.w, height: 160.h, borderRadius: 12.r),
           );
         },
       ),
@@ -155,30 +156,30 @@ class RecipeCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
         children: [
           // Thumbnail skeleton
-          ShimmerBox(width: 80, height: 80, borderRadius: 8),
-          const SizedBox(width: 12),
+          ShimmerBox(width: 80.w, height: 80.w, borderRadius: 8.r),
+          SizedBox(width: 12.w),
           // Content skeleton
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ShimmerBox(width: 60, height: 12, borderRadius: 4),
-                const SizedBox(height: 8),
-                ShimmerBox(width: double.infinity, height: 16, borderRadius: 4),
-                const SizedBox(height: 8),
+                ShimmerBox(width: 60.w, height: 12.h, borderRadius: 4.r),
+                SizedBox(height: 8.h),
+                ShimmerBox(width: double.infinity, height: 16.h, borderRadius: 4.r),
+                SizedBox(height: 8.h),
                 Row(
                   children: [
-                    ShimmerBox(width: 50, height: 20, borderRadius: 6),
-                    const SizedBox(width: 8),
-                    ShimmerBox(width: 50, height: 20, borderRadius: 6),
+                    ShimmerBox(width: 50.w, height: 20.h, borderRadius: 6.r),
+                    SizedBox(width: 8.w),
+                    ShimmerBox(width: 50.w, height: 20.h, borderRadius: 6.r),
                   ],
                 ),
               ],

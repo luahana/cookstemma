@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pairing_planet2_frontend/core/providers/image_providers.dart';
 import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
@@ -97,8 +98,8 @@ class _ImageUploadSectionState extends ConsumerState<ImageUploadSection> {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 8.w,
+      runSpacing: 8.h,
       children: [
         ..._buildImageList(),
         if (widget.images.length < widget.maxImages) _buildAddButton(),
@@ -125,11 +126,11 @@ class _ImageUploadSectionState extends ConsumerState<ImageUploadSection> {
         );
       },
       child: Container(
-        width: 100,
-        height: 100,
+        width: 100.w,
+        height: 100.w,
         decoration: BoxDecoration(
           color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
         ),
         child: const Icon(Icons.add_a_photo, color: Colors.grey),
       ),
@@ -138,10 +139,10 @@ class _ImageUploadSectionState extends ConsumerState<ImageUploadSection> {
 
   Widget _buildImageItem(UploadItem item, int index) {
     return Container(
-      width: 100,
-      height: 100,
+      width: 100.w,
+      height: 100.w,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         image: DecorationImage(
           image: FileImage(item.file),
           fit: BoxFit.cover,
@@ -151,17 +152,17 @@ class _ImageUploadSectionState extends ConsumerState<ImageUploadSection> {
         children: [
           // Delete button
           Positioned(
-            top: 4,
-            right: 4,
+            top: 4.h,
+            right: 4.w,
             child: GestureDetector(
               onTap: () => _removeImage(index),
               child: Container(
-                padding: const EdgeInsets.all(4),
+                padding: EdgeInsets.all(4.r),
                 decoration: const BoxDecoration(
                   color: Colors.black54,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close, color: Colors.white, size: 16),
+                child: Icon(Icons.close, color: Colors.white, size: 16.sp),
               ),
             ),
           ),
@@ -178,7 +179,7 @@ class _ImageUploadSectionState extends ConsumerState<ImageUploadSection> {
       return Container(
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
         ),
         child: const Center(
           child: CircularProgressIndicator(color: Colors.white),
@@ -190,10 +191,10 @@ class _ImageUploadSectionState extends ConsumerState<ImageUploadSection> {
       return Container(
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
         ),
-        child: const Center(
-          child: Icon(Icons.check_circle, color: Colors.green, size: 30),
+        child: Center(
+          child: Icon(Icons.check_circle, color: Colors.green, size: 30.sp),
         ),
       );
     }
@@ -202,7 +203,7 @@ class _ImageUploadSectionState extends ConsumerState<ImageUploadSection> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Center(
         child: IconButton(

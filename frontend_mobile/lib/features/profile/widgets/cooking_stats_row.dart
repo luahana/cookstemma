@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Compact row showing cooking streak and success rate
@@ -35,7 +36,7 @@ class CookingStatsRow extends StatelessWidget {
                 : null,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12.w),
         // Success rate stat
         Expanded(
           child: _StatCard(
@@ -69,10 +70,10 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -84,26 +85,26 @@ class _StatCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(8.r),
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(8.r),
             ),
             child: Icon(
               icon,
               color: iconColor,
-              size: 20,
+              size: 20.sp,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   value,
-                  style: const TextStyle(
-                    fontSize: 18,
+                  style: TextStyle(
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                   ),
@@ -111,16 +112,16 @@ class _StatCard extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 11.sp,
                     color: Colors.grey[600],
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2.h),
                   Text(
                     subtitle!,
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 10.sp,
                       color: Colors.grey[500],
                     ),
                   ),

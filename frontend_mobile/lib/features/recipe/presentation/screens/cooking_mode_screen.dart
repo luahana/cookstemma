@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
@@ -156,7 +157,7 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
 
   Widget _buildTopBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       color: Colors.black,
       child: Row(
         children: [
@@ -164,13 +165,13 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
           IconButton(
             onPressed: _exitCookingMode,
             icon: const Icon(Icons.close, color: Colors.white),
-            iconSize: 28,
+            iconSize: 28.sp,
             style: IconButton.styleFrom(
               backgroundColor: Colors.white.withValues(alpha: 0.1),
-              minimumSize: const Size(48, 48),
+              minimumSize: Size(48.w, 48.w),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16.w),
           // Progress indicator
           Expanded(
             child: Column(
@@ -181,13 +182,13 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
                     'current': '${_currentStep + 1}',
                     'total': '$_totalSteps',
                   }),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 LinearProgressIndicator(
                   value: (_currentStep + 1) / _totalSteps,
                   backgroundColor: Colors.white.withValues(alpha: 0.2),
@@ -196,7 +197,7 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16.w),
           // Timer placeholder (future enhancement)
           IconButton(
             onPressed: () {
@@ -206,10 +207,10 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
               );
             },
             icon: const Icon(Icons.timer_outlined, color: Colors.white),
-            iconSize: 28,
+            iconSize: 28.sp,
             style: IconButton.styleFrom(
               backgroundColor: Colors.white.withValues(alpha: 0.1),
-              minimumSize: const Size(48, 48),
+              minimumSize: Size(48.w, 48.w),
             ),
           ),
         ],
@@ -219,47 +220,47 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
 
   Widget _buildStepContent(RecipeStep step, int index) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(24.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Step number badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             decoration: BoxDecoration(
               color: AppColors.primary,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(20.r),
             ),
             child: Text(
               'recipe.cooking.stepNumber'.tr(namedArgs: {'number': '${index + 1}'}),
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           // Step image (if available)
           if (step.imageUrl != null && step.imageUrl!.isNotEmpty)
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.r),
               child: AppCachedImage(
                 imageUrl: step.imageUrl!,
                 width: double.infinity,
-                height: 250,
-                borderRadius: 16,
+                height: 250.h,
+                borderRadius: 16.r,
               ),
             ),
           if (step.imageUrl != null && step.imageUrl!.isNotEmpty)
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
           // Step description
           if (step.description != null && step.description!.isNotEmpty)
             Text(
               step.description!,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 22,
+                fontSize: 22.sp,
                 fontWeight: FontWeight.w500,
                 height: 1.5,
               ),
@@ -271,7 +272,7 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
 
   Widget _buildBottomNavigation() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.black,
         border: Border(
@@ -283,7 +284,7 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
           // Previous button
           Expanded(
             child: SizedBox(
-              height: 64, // 64pt minimum for cooking mode
+              height: 64.h, // 64pt minimum for cooking mode
               child: OutlinedButton.icon(
                 onPressed: _isFirstStep ? null : _previousStep,
                 icon: const Icon(Icons.arrow_back),
@@ -297,20 +298,20 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
                     width: 2,
                   ),
                   disabledForegroundColor: Colors.white.withValues(alpha: 0.3),
-                  textStyle: const TextStyle(
-                    fontSize: 18,
+                  textStyle: TextStyle(
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16.w),
           // Next button
           Expanded(
             flex: 2,
             child: SizedBox(
-              height: 64, // 64pt minimum for cooking mode
+              height: 64.h, // 64pt minimum for cooking mode
               child: FilledButton.icon(
                 onPressed: _nextStep,
                 icon: Icon(_isLastStep ? Icons.check : Icons.arrow_forward),
@@ -322,8 +323,8 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  textStyle: const TextStyle(
-                    fontSize: 20,
+                  textStyle: TextStyle(
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Shimmer effect animation for skeleton loading
 class ShimmerEffect extends StatefulWidget {
@@ -118,10 +119,10 @@ class RecipeCardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ShimmerEffect(
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: EdgeInsets.only(bottom: 16.h),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -134,44 +135,44 @@ class RecipeCardSkeleton extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image placeholder
-            const SkeletonBox(
+            SkeletonBox(
               width: double.infinity,
-              height: 180,
-              borderRadius: 16,
+              height: 180.h,
+              borderRadius: 16.r,
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.r),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Food name
-                  const SkeletonBox(width: 80, height: 14, borderRadius: 4),
-                  const SizedBox(height: 8),
+                  SkeletonBox(width: 80.w, height: 14.h, borderRadius: 4.r),
+                  SizedBox(height: 8.h),
                   // Title
-                  const SkeletonBox(width: 200, height: 20, borderRadius: 4),
-                  const SizedBox(height: 8),
+                  SkeletonBox(width: 200.w, height: 20.h, borderRadius: 4.r),
+                  SizedBox(height: 8.h),
                   // Description
-                  const SkeletonBox(width: double.infinity, height: 14, borderRadius: 4),
-                  const SizedBox(height: 4),
-                  const SkeletonBox(width: 150, height: 14, borderRadius: 4),
-                  const SizedBox(height: 16),
+                  SkeletonBox(width: double.infinity, height: 14.h, borderRadius: 4.r),
+                  SizedBox(height: 4.h),
+                  SkeletonBox(width: 150.w, height: 14.h, borderRadius: 4.r),
+                  SizedBox(height: 16.h),
                   // Creator row
                   Row(
                     children: [
-                      SkeletonBox(width: 24, height: 24, borderRadius: 12),
-                      const SizedBox(width: 8),
-                      const SkeletonBox(width: 100, height: 14, borderRadius: 4),
+                      SkeletonBox(width: 24.w, height: 24.w, borderRadius: 12.r),
+                      SizedBox(width: 8.w),
+                      SkeletonBox(width: 100.w, height: 14.h, borderRadius: 4.r),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
                   // Action buttons
                   Row(
                     children: [
-                      Expanded(child: SkeletonBox(height: 40, borderRadius: 8)),
-                      const SizedBox(width: 8),
-                      Expanded(child: SkeletonBox(height: 40, borderRadius: 8)),
-                      const SizedBox(width: 8),
-                      Expanded(child: SkeletonBox(height: 40, borderRadius: 8)),
+                      Expanded(child: SkeletonBox(height: 40.h, borderRadius: 8.r)),
+                      SizedBox(width: 8.w),
+                      Expanded(child: SkeletonBox(height: 40.h, borderRadius: 8.r)),
+                      SizedBox(width: 8.w),
+                      Expanded(child: SkeletonBox(height: 40.h, borderRadius: 8.r)),
                     ],
                   ),
                 ],
@@ -200,7 +201,7 @@ class CompactCardSkeleton extends StatelessWidget {
         height: height,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -217,25 +218,25 @@ class CompactCardSkeleton extends StatelessWidget {
               flex: 3,
               child: SkeletonBox(
                 width: double.infinity,
-                borderRadius: 12,
+                borderRadius: 12.r,
               ),
             ),
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: EdgeInsets.all(10.r),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SkeletonBox(width: 60, height: 12, borderRadius: 4),
-                    const SizedBox(height: 6),
-                    const SkeletonBox(width: double.infinity, height: 14, borderRadius: 4),
+                    SkeletonBox(width: 60.w, height: 12.h, borderRadius: 4.r),
+                    SizedBox(height: 6.h),
+                    SkeletonBox(width: double.infinity, height: 14.h, borderRadius: 4.r),
                     const Spacer(),
                     Row(
                       children: [
-                        Expanded(child: SkeletonBox(height: 28, borderRadius: 6)),
-                        const SizedBox(width: 4),
-                        Expanded(child: SkeletonBox(height: 28, borderRadius: 6)),
+                        Expanded(child: SkeletonBox(height: 28.h, borderRadius: 6.r)),
+                        SizedBox(width: 4.w),
+                        Expanded(child: SkeletonBox(height: 28.h, borderRadius: 6.r)),
                       ],
                     ),
                   ],
@@ -261,7 +262,7 @@ class RecipeListSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       physics: const NeverScrollableScrollPhysics(),
       itemCount: itemCount,
       itemBuilder: (context, index) {
@@ -283,13 +284,13 @@ class RecipeGridSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.75,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisSpacing: 12.w,
+        mainAxisSpacing: 12.h,
       ),
       itemCount: itemCount,
       itemBuilder: (context, index) {

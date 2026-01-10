@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Summary of changes for variant recipes
@@ -108,10 +109,10 @@ class DiffSummaryRow extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
@@ -119,12 +120,12 @@ class DiffSummaryRow extends StatelessWidget {
           Text(
             'recipe.diff.changes'.tr(),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12.sp,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           ...parts,
         ],
       ),
@@ -134,15 +135,15 @@ class DiffSummaryRow extends StatelessWidget {
   Widget _buildChip(String count, String label, Color textColor, Color bgColor) {
     if (compact) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(4.r),
         ),
         child: Text(
           count,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 11.sp,
             color: textColor,
             fontWeight: FontWeight.bold,
           ),
@@ -154,25 +155,25 @@ class DiffSummaryRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4.r),
           ),
           child: Text(
             count,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 11.sp,
               color: textColor,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: 4.w),
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 11.sp,
             color: Colors.grey[600],
           ),
         ),
@@ -182,12 +183,12 @@ class DiffSummaryRow extends StatelessWidget {
 
   Widget _buildDot() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: EdgeInsets.symmetric(horizontal: 6.w),
       child: Text(
         '·',
         style: TextStyle(
           color: Colors.grey[400],
-          fontSize: 12,
+          fontSize: 12.sp,
           fontWeight: FontWeight.bold,
         ),
       ),

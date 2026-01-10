@@ -77,14 +77,14 @@ class LocaleDropdown extends StatelessWidget {
       children: [
         Text(
           'locale.selectLocale'.tr(),
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: EdgeInsets.symmetric(horizontal: 12.w),
           decoration: BoxDecoration(
             color: enabled ? Colors.grey[50] : Colors.grey[100],
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(color: Colors.grey[200]!),
           ),
           child: DropdownButtonHideUnderline(
@@ -93,7 +93,7 @@ class LocaleDropdown extends StatelessWidget {
               isExpanded: true,
               hint: Text(
                 'locale.selectLocale'.tr(),
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                style: TextStyle(fontSize: 14.sp, color: Colors.grey),
               ),
               icon: Icon(
                 Icons.arrow_drop_down,
@@ -105,7 +105,7 @@ class LocaleDropdown extends StatelessWidget {
                   child: Text(
                     '${locale.flagEmoji} ${locale.labelKey.tr()}',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 14.sp,
                       color: enabled ? Colors.black : Colors.grey[600],
                     ),
                   ),

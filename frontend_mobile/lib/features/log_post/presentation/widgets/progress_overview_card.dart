@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
 
@@ -62,20 +63,20 @@ class ProgressOverviewCard extends StatelessWidget {
               }
             : null,
         child: Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(20),
+          margin: EdgeInsets.all(16.r),
+          padding: EdgeInsets.all(20.r),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20.r),
             boxShadow: [
               BoxShadow(
                 color: AppColors.primary.withValues(alpha: 0.3),
                 blurRadius: 12,
-                offset: const Offset(0, 6),
+                offset: Offset(0, 6.h),
               ),
             ],
           ),
@@ -84,11 +85,11 @@ class ProgressOverviewCard extends StatelessWidget {
             children: [
               // Header with streak
               _buildHeader(),
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
               // Outcome stats row
               _buildOutcomeStats(),
               if (stats.hasLogs) ...[
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
                 // Progress bar
                 _buildProgressBar(),
               ],
@@ -109,17 +110,17 @@ class ProgressOverviewCard extends StatelessWidget {
               Text(
                 'logPost.progress.yourJourney'.tr(),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   color: Colors.white.withValues(alpha: 0.8),
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4.h),
               Text(
                 stats.hasLogs
                     ? 'logPost.progress.totalLogs'.tr(namedArgs: {'count': stats.totalCount.toString()})
                     : 'logPost.progress.startLogging'.tr(),
-                style: const TextStyle(
-                  fontSize: 22,
+                style: TextStyle(
+                  fontSize: 22.sp,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -135,27 +136,27 @@ class ProgressOverviewCard extends StatelessWidget {
 
   Widget _buildStreakBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: Colors.orange[400],
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: Colors.orange.withValues(alpha: 0.4),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2.h),
           ),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 16)),
-          const SizedBox(width: 4),
+          Text('\u{1F525}', style: TextStyle(fontSize: 16.sp)),
+          SizedBox(width: 4.w),
           Text(
             '${stats.currentStreak}',
-            style: const TextStyle(
-              fontSize: 16,
+            style: TextStyle(
+              fontSize: 16.sp,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -174,14 +175,14 @@ class ProgressOverviewCard extends StatelessWidget {
           label: 'logPost.progress.wins'.tr(),
           color: LogOutcome.success.primaryColor,
         ),
-        const SizedBox(width: 24),
+        SizedBox(width: 24.w),
         _buildStatItem(
           emoji: LogOutcome.partial.emoji,
           count: stats.partialCount,
           label: 'logPost.progress.learning'.tr(),
           color: LogOutcome.partial.primaryColor,
         ),
-        const SizedBox(width: 24),
+        SizedBox(width: 24.w),
         _buildStatItem(
           emoji: LogOutcome.failed.emoji,
           count: stats.failedCount,
@@ -202,23 +203,23 @@ class ProgressOverviewCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 18)),
-            const SizedBox(width: 6),
+            Text(emoji, style: TextStyle(fontSize: 18.sp)),
+            SizedBox(width: 6.w),
             Text(
               '$count',
-              style: const TextStyle(
-                fontSize: 20,
+              style: TextStyle(
+                fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4.h),
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 11.sp,
             color: Colors.white.withValues(alpha: 0.7),
           ),
         ),
@@ -239,25 +240,25 @@ class ProgressOverviewCard extends StatelessWidget {
             Text(
               'logPost.progress.successRate'.tr(),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 color: Colors.white.withValues(alpha: 0.7),
               ),
             ),
             Text(
               '${(stats.successRate * 100).toStringAsFixed(0)}%',
-              style: const TextStyle(
-                fontSize: 12,
+              style: TextStyle(
+                fontSize: 12.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         ClipRRect(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(4.r),
           child: SizedBox(
-            height: 8,
+            height: 8.h,
             child: Row(
               children: [
                 if (stats.successCount > 0)
@@ -299,27 +300,27 @@ class CompactProgressStats extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildCompactStat(LogOutcome.success.emoji, stats.successCount),
-        const SizedBox(width: 12),
+        SizedBox(width: 12.w),
         _buildCompactStat(LogOutcome.partial.emoji, stats.partialCount),
-        const SizedBox(width: 12),
+        SizedBox(width: 12.w),
         _buildCompactStat(LogOutcome.failed.emoji, stats.failedCount),
         if (stats.currentStreak > 0) ...[
-          const SizedBox(width: 16),
+          SizedBox(width: 16.w),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
             decoration: BoxDecoration(
               color: Colors.orange[100],
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('🔥', style: TextStyle(fontSize: 12)),
-                const SizedBox(width: 2),
+                Text('\u{1F525}', style: TextStyle(fontSize: 12.sp)),
+                SizedBox(width: 2.w),
                 Text(
                   '${stats.currentStreak}',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.orange[800],
                   ),
@@ -336,12 +337,12 @@ class CompactProgressStats extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 14)),
-        const SizedBox(width: 4),
+        Text(emoji, style: TextStyle(fontSize: 14.sp)),
+        SizedBox(width: 4.w),
         Text(
           '$count',
-          style: const TextStyle(
-            fontSize: 14,
+          style: TextStyle(
+            fontSize: 14.sp,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -368,43 +369,43 @@ class StreakCelebration extends StatelessWidget {
 
     if (streak >= 30) {
       message = 'logPost.streak.legendary'.tr();
-      emoji = '👑';
+      emoji = '\u{1F451}';
     } else if (streak >= 14) {
       message = 'logPost.streak.amazing'.tr();
-      emoji = '🌟';
+      emoji = '\u{1F31F}';
     } else if (streak >= 7) {
       message = 'logPost.streak.great'.tr();
-      emoji = '🔥';
+      emoji = '\u{1F525}';
     } else if (streak >= 3) {
       message = 'logPost.streak.nice'.tr();
-      emoji = '✨';
+      emoji = '\u{2728}';
     } else {
       message = 'logPost.streak.started'.tr();
-      emoji = '🎯';
+      emoji = '\u{1F3AF}';
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.orange[400]!, Colors.deepOrange[400]!],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 32)),
-          const SizedBox(width: 12),
+          Text(emoji, style: TextStyle(fontSize: 32.sp)),
+          SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '$streak ${streak == 1 ? 'day' : 'days'} streak!',
-                  style: const TextStyle(
-                    fontSize: 18,
+                  style: TextStyle(
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -412,7 +413,7 @@ class StreakCelebration extends StatelessWidget {
                 Text(
                   message,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 13.sp,
                     color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
@@ -151,22 +152,22 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20.r),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildRecipeSummary(),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32.h),
 
                     // 💡 2. 이미지 업로드 섹션 추가
                     Text(
                       'logPost.photosMax'.tr(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     ReorderableImagePicker(
                       images: _images,
                       maxImages: 3,
@@ -178,30 +179,30 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
                         onSourceSelected: _pickImage,
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32.h),
 
                     // 💡 3. 요리 결과 섹션 (이모지 선택)
                     Text(
                       'logPost.howWasIt'.tr(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     _buildOutcomeSelector(),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32.h),
 
                     Text(
                       'logPost.howWasToday'.tr(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     _buildContentField(),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32.h),
 
                     // 해시태그 입력 섹션
                     HashtagInputSection(
@@ -225,10 +226,10 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
   // ... (레시피 요약 위젯은 기존과 동일)
   Widget _buildRecipeSummary() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Row(
@@ -236,12 +237,12 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
           if (widget.recipe.imageUrls.isNotEmpty)
             AppCachedImage(
               imageUrl: widget.recipe.imageUrls.first,
-              width: 60,
-              height: 60,
-              borderRadius: 8,
+              width: 60.w,
+              height: 60.w,
+              borderRadius: 8.r,
             ),
           if (widget.recipe.imageUrls.isNotEmpty)
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,16 +250,16 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
                 Text(
                   widget.recipe.foodName,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   widget.recipe.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontSize: 15.sp,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -287,10 +288,10 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
     return GestureDetector(
       onTap: () => setState(() => _selectedOutcome = value),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: isSelected ? Colors.indigo : Colors.transparent,
             width: 2,
@@ -298,12 +299,12 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
         ),
         child: Column(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 32)),
-            const SizedBox(height: 4),
+            Text(emoji, style: TextStyle(fontSize: 32.sp)),
+            SizedBox(height: 4.h),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isSelected ? Colors.indigo : Colors.grey[600],
               ),
@@ -316,10 +317,10 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
 
   Widget _buildContentField() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: TextField(
@@ -328,7 +329,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
         decoration: InputDecoration(
           hintText: 'logPost.contentHint'.tr(),
           border: InputBorder.none,
-          hintStyle: const TextStyle(fontSize: 14),
+          hintStyle: TextStyle(fontSize: 14.sp),
         ),
       ),
     );
@@ -336,16 +337,16 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
 
   Widget _buildSubmitButton() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+      padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 30.h),
       child: SizedBox(
         width: double.infinity,
-        height: 56,
+        height: 56.h,
         child: ElevatedButton(
           onPressed: _isLoading ? null : _submit,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.r),
             ),
           ),
           child: Text(
