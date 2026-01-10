@@ -474,6 +474,30 @@ User logs in within 30 days?
 
 ---
 
+### [FEAT-028]: Cooking Style (Cuisine Type Rename)
+
+**Status:** ✅ Done
+**Branch:** `feature/cooking-style`
+
+**Description:** Changed recipe categorization concept from "Cuisine Type" (origin-based) to "Cooking Style" (adaptation-based). A Korean-style pizza uses Korean flavors and techniques, regardless of pizza's Italian origin.
+
+**Acceptance Criteria:**
+- [x] Update terminology from "Cuisine Type" to "Cooking Style"
+- [x] Add "-style" suffix to English labels (Korean-style, Italian-style, etc.)
+- [x] Add helper text explaining the concept on recipe creation form
+- [x] Update profile pie chart label to "Cooking Style Distribution"
+- [x] Update both English and Korean translations
+
+**Technical Notes:**
+- Frontend-only change (no backend/database changes needed)
+- Field name `culinaryLocale` kept as internal implementation detail
+- Files modified:
+  - `assets/translations/en-US.json`
+  - `assets/translations/ko-KR.json`
+  - `lib/features/recipe/presentation/widgets/locale_dropdown.dart`
+
+---
+
 ## Planned 📋
 
 ### [FEAT-016]: Improved Onboarding
@@ -651,3 +675,4 @@ User logs in within 30 days?
 | FEAT-025 | Idempotency Keys | ✅ |
 | FEAT-026 | Image Soft Delete | ✅ |
 | FEAT-027 | Edit/Delete Log Posts | ✅ |
+| FEAT-028 | Cooking Style | ✅ |

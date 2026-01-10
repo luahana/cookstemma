@@ -1,7 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// Culinary locale options for recipe creation
+/// Cooking style options for recipe creation
 class CulinaryLocale {
   final String code;
   final String flagEmoji;
@@ -113,6 +114,11 @@ class LocaleDropdown extends StatelessWidget {
               onChanged: enabled ? onChanged : null,
             ),
           ),
+        ),
+        SizedBox(height: 4.h),
+        Text(
+          'locale.helperText'.tr(),
+          style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
         ),
       ],
     );

@@ -46,7 +46,7 @@ claude --dangerously-skip-permissions --model opus
 1. **Before coding** → Create branch from dev
 2. **Plan with ultrathink** → Research best practices before implementing
 3. **After plan mode** → Check docs/ai/FEATURES.md: if feature exists, ask user "Should I update FEATURES.md with the planned changes?" If not there, ask "Should I document this new feature to FEATURES.md?"
-4. **Feature = Code + Tests** → A feature is NOT complete until tests are written and passing. No PR without tests.
+4. **Feature = Code + unit tests and integration tests** → A feature is NOT complete until tests are written and passing. No PR without tests.
 5. **Before commit** → Run pre-commit checklist
 6. **Push & PR** → `git push origin HEAD` then `gh pr create --base dev`
 7. **Run app** → Android: `--flavor dev -t lib/main_dev.dart` | iOS: `-t lib/main_dev.dart` (no --flavor, Flutter bug)
@@ -96,7 +96,7 @@ claude --dangerously-skip-permissions --model opus
 
 ## 🧪 TESTING (REQUIRED)
 
-**A feature without tests is not a feature. It's a liability.**
+**A feature without unit tests and integration test is not a feature. It's a liability.**
 
 ### What Needs Tests
 | Change Type | Required Tests |

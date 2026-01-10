@@ -85,7 +85,7 @@
     "dayStreak": "일 연속",
     "best": "최고: {count}일",
     "successRate": "성공률",
-    "cuisineDistribution": "요리 분포",
+    "cuisineDistribution": "요리 스타일 분포",
     "noCuisineData": "요리를 해보면 선호 요리 분포를 확인할 수 있어요!",
     "startCookingToUnlock": "요리를 시작하면 나만의 요리 DNA를 확인할 수 있어요!",
     "birthday": "생년월일",
@@ -538,7 +538,8 @@
     "french": "프랑스식",
     "other": "기타/퓨전",
     "all": "전체",
-    "selectLocale": "요리 종류"
+    "selectLocale": "요리 스타일",
+    "helperText": "어떤 스타일로 요리했나요?"
   },
   "cuisine": {
     "korean": "한식",
