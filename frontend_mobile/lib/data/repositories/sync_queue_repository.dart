@@ -154,6 +154,18 @@ class SyncQueueRepository {
     }
   }
 
+  /// Get pending log posts (for optimistic UI display)
+  /// Returns items that are pending or syncing
+  Future<List<SyncQueueItem>> getPendingLogPosts() async {
+    final items = await _localDataSource.getAllItems();
+    return items
+        .where((item) => item.type == SyncOperationType.createLogPost)
+        .where((item) =>
+            item.status == SyncStatus.pending ||
+            item.status == SyncStatus.syncing)
+        .toList();
+  }
+
   /// Reset all syncing items to pending (for app restart recovery)
   Future<void> resetSyncingItems() async {
     final items = await _localDataSource.getItemsByStatus(SyncStatus.syncing);

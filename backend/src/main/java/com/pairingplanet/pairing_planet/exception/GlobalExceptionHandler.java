@@ -3,6 +3,7 @@ package com.pairingplanet.pairing_planet.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -77,6 +78,17 @@ public class GlobalExceptionHandler {
         String message = String.format("필수 파라미터 '%s'가 누락되었습니다.", e.getParameterName());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("code", "MISSING_PARAMETER", "message", message));
+    }
+
+    /**
+     * [403 Forbidden]
+     * 리소스에 대한 접근 권한이 없을 때 발생 (예: 다른 사용자의 로그 수정/삭제 시도)
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleAccessDeniedException(AccessDeniedException e) {
+        log.warn("접근 권한 없음: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("code", "ACCESS_DENIED", "message", e.getMessage()));
     }
 
     /**

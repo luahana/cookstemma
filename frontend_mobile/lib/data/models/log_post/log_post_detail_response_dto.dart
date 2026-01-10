@@ -17,6 +17,7 @@ class LogPostDetailResponseDto {
   final String createdAt;
   final List<HashtagDto>? hashtags;
   final bool? isSavedByCurrentUser;
+  final int? creatorId; // For ownership check
 
   LogPostDetailResponseDto({
     required this.publicId,
@@ -28,6 +29,7 @@ class LogPostDetailResponseDto {
     required this.createdAt,
     this.hashtags,
     this.isSavedByCurrentUser,
+    this.creatorId,
   });
 
   factory LogPostDetailResponseDto.fromJson(Map<String, dynamic> json) =>
@@ -46,5 +48,6 @@ class LogPostDetailResponseDto {
     createdAt: DateTime.parse(createdAt),
     hashtags: hashtags?.map((e) => e.toEntity()).toList() ?? [],
     isSavedByCurrentUser: isSavedByCurrentUser,
+    creatorId: creatorId,
   );
 }

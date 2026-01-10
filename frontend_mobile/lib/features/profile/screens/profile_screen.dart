@@ -14,7 +14,9 @@ import '../providers/cooking_dna_provider.dart';
 import '../widgets/cooking_dna_header.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
-  const ProfileScreen({super.key});
+  final int initialTabIndex;
+
+  const ProfileScreen({super.key, this.initialTabIndex = 0});
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
@@ -27,7 +29,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialTabIndex.clamp(0, 2),
+    );
   }
 
   @override
@@ -51,7 +57,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: profileAsync.when(
-        data: (profile) => NestedScrollView(
+        data: (profile) => RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(myProfileProvider);
+            ref.invalidate(cookingDnaProvider);
+            ref.invalidate(myRecipesProvider);
+            ref.invalidate(myLogsProvider);
+            ref.invalidate(savedRecipesProvider);
+            ref.invalidate(savedLogsProvider);
+          },
+          child: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
             // Pinned app bar
             SliverAppBar(
@@ -115,6 +130,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               _SavedTab(),
             ],
           ),
+        ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(

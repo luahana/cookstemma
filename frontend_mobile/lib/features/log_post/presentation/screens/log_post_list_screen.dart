@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +13,7 @@ import 'package:pairing_planet2_frontend/core/widgets/search/enhanced_search_app
 import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
 import 'package:pairing_planet2_frontend/core/widgets/skeletons/log_post_card_skeleton.dart';
 import 'package:pairing_planet2_frontend/data/datasources/search/search_local_data_source.dart';
+import 'package:pairing_planet2_frontend/data/models/sync/sync_queue_item.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_list_provider.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_filter_provider.dart';
@@ -168,6 +171,11 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
       hint: 'logPost.card.tapToView'.tr(),
       child: GestureDetector(
         onTap: () {
+          // Don't navigate to detail if pending (not yet synced)
+          if (logPost.isPending) {
+            HapticFeedback.lightImpact();
+            return;
+          }
           HapticFeedback.selectionClick();
           context.push(RouteConstants.logPostDetailPath(logPost.id));
         },
@@ -191,25 +199,10 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                 flex: 3,
                 child: Stack(
                   children: [
-                    // Photo
+                    // Photo - handle both network URLs and local file paths
                     ClipRRect(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
-                      child: logPost.thumbnailUrl != null
-                          ? AppCachedImage(
-                              imageUrl: logPost.thumbnailUrl!,
-                              width: double.infinity,
-                              height: double.infinity,
-                              borderRadius: 0,
-                            )
-                          : Container(
-                              width: double.infinity,
-                              color: Colors.grey[200],
-                              child: Icon(
-                                Icons.restaurant,
-                                size: 40.sp,
-                                color: Colors.grey[400],
-                              ),
-                            ),
+                      child: _buildThumbnail(logPost),
                     ),
                     // Outcome badge overlay (top-left for prominence)
                     Positioned(
@@ -220,6 +213,15 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                         variant: OutcomeBadgeVariant.compact,
                       ),
                     ),
+                    // Sync status indicator for pending items (top-right)
+                    if (logPost.isPending)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: CardSyncIndicator(
+                          status: SyncStatus.syncing,
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -243,7 +245,17 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       SizedBox(height: 2.h),
-                      if (logPost.creatorName != null)
+                      if (logPost.isPending)
+                        Text(
+                          'logPost.sync.syncing'.tr(),
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: Colors.orange[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      else if (logPost.creatorName != null)
                         Text(
                           "@${logPost.creatorName}",
                           style: TextStyle(
@@ -261,6 +273,51 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Build thumbnail widget - handles both network URLs and local file paths
+  Widget _buildThumbnail(LogPostSummary logPost) {
+    if (logPost.thumbnailUrl == null) {
+      return Container(
+        width: double.infinity,
+        color: Colors.grey[200],
+        child: Icon(
+          Icons.restaurant,
+          size: 40.sp,
+          color: Colors.grey[400],
+        ),
+      );
+    }
+
+    // Handle local file URLs (for pending items)
+    if (logPost.thumbnailUrl!.startsWith('file://')) {
+      final filePath = logPost.thumbnailUrl!.replaceFirst('file://', '');
+      return Image.file(
+        File(filePath),
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: double.infinity,
+            color: Colors.grey[200],
+            child: Icon(
+              Icons.broken_image,
+              size: 40.sp,
+              color: Colors.grey[400],
+            ),
+          );
+        },
+      );
+    }
+
+    // Network URL
+    return AppCachedImage(
+      imageUrl: logPost.thumbnailUrl!,
+      width: double.infinity,
+      height: double.infinity,
+      borderRadius: 0,
     );
   }
 

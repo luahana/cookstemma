@@ -3,6 +3,7 @@ import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/create_log_post_request_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_detail_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/log_post/update_log_post_request_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/common/slice_response_dto.dart';
 
 class LogPostRemoteDataSource {
@@ -22,6 +23,23 @@ class LogPostRemoteDataSource {
   Future<LogPostDetailResponseDto> getLogDetail(String publicId) async {
     final response = await _dio.get('${ApiEndpoints.logPosts}/$publicId');
     return LogPostDetailResponseDto.fromJson(response.data);
+  }
+
+  /// 로그 수정
+  Future<LogPostDetailResponseDto> updateLog(
+    String publicId,
+    UpdateLogPostRequestDto request,
+  ) async {
+    final response = await _dio.put(
+      '${ApiEndpoints.logPosts}/$publicId',
+      data: request.toJson(),
+    );
+    return LogPostDetailResponseDto.fromJson(response.data);
+  }
+
+  /// 로그 삭제
+  Future<void> deleteLog(String publicId) async {
+    await _dio.delete('${ApiEndpoints.logPosts}/$publicId');
   }
 
   Future<SliceResponseDto<LogPostSummaryDto>> getLogPosts({

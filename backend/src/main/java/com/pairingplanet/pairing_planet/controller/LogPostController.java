@@ -71,6 +71,30 @@ public class LogPostController {
         return ResponseEntity.ok(logPostService.getLogDetail(publicId, userId));
     }
 
+    /**
+     * 로그 수정 (본인 로그만 수정 가능)
+     * PUT /api/v1/log_posts/{publicId}
+     */
+    @PutMapping("/{publicId}")
+    public ResponseEntity<LogPostDetailResponseDto> updateLog(
+            @PathVariable("publicId") UUID publicId,
+            @Valid @RequestBody UpdateLogRequestDto request,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(logPostService.updateLog(publicId, request, principal.getId()));
+    }
+
+    /**
+     * 로그 삭제 (본인 로그만 삭제 가능, 소프트 삭제)
+     * DELETE /api/v1/log_posts/{publicId}
+     */
+    @DeleteMapping("/{publicId}")
+    public ResponseEntity<Void> deleteLog(
+            @PathVariable("publicId") UUID publicId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        logPostService.deleteLog(publicId, principal.getId());
+        return ResponseEntity.noContent().build();
+    }
+
     // --- [SAVED LOGS (BOOKMARKS)] ---
 
     /**

@@ -449,6 +449,55 @@ User logs in within 30 days?
 
 ---
 
+### [FEAT-027]: Edit/Delete Log Posts
+
+**Status:** ✅ Done
+**Branch:** `dev`
+**PR:** #39
+
+**Description:** Allow users to edit and delete their own cooking log posts.
+
+**Acceptance Criteria:**
+- [x] Edit log content, outcome, and hashtags (images read-only)
+- [x] Delete log with confirmation dialog (soft delete)
+- [x] Only show edit/delete options to log creator
+- [x] Return 403 Forbidden for unauthorized update/delete attempts
+- [x] Comprehensive test coverage (28 tests)
+
+**Technical Notes:**
+- Backend: `PUT /api/v1/log_posts/{publicId}` and `DELETE /api/v1/log_posts/{publicId}`
+- Backend: `creatorId` added to `LogPostDetailResponseDto` for ownership check
+- Backend: `AccessDeniedException` handler returning 403 Forbidden
+- Frontend: `LogEditSheet` bottom sheet for editing
+- Frontend: `PopupMenuButton` in log detail screen (three-dot menu)
+- Frontend: Ownership check via `myProfileProvider` comparing user ID
+
+---
+
+### [FEAT-028]: Cooking Style (Cuisine Type Rename)
+
+**Status:** ✅ Done
+**Branch:** `feature/cooking-style`
+
+**Description:** Changed recipe categorization concept from "Cuisine Type" (origin-based) to "Cooking Style" (adaptation-based). A Korean-style pizza uses Korean flavors and techniques, regardless of pizza's Italian origin.
+
+**Acceptance Criteria:**
+- [x] Update terminology from "Cuisine Type" to "Cooking Style"
+- [x] Add "-style" suffix to English labels (Korean-style, Italian-style, etc.)
+- [x] Add helper text explaining the concept on recipe creation form
+- [x] Update profile pie chart label to "Cooking Style Distribution"
+- [x] Update both English and Korean translations
+
+**Technical Notes:**
+- Frontend-only change (no backend/database changes needed)
+- Field name `culinaryLocale` kept as internal implementation detail
+- Files modified:
+  - `assets/translations/en-US.json`
+  - `assets/translations/ko-KR.json`
+  - `lib/features/recipe/presentation/widgets/locale_dropdown.dart`
+
+---
+
 ## Planned 📋
 
 ### [FEAT-016]: Improved Onboarding
@@ -625,3 +674,5 @@ User logs in within 30 days?
 | FEAT-018 | Achievement Badges | 📋 |
 | FEAT-025 | Idempotency Keys | ✅ |
 | FEAT-026 | Image Soft Delete | ✅ |
+| FEAT-027 | Edit/Delete Log Posts | ✅ |
+| FEAT-028 | Cooking Style | ✅ |

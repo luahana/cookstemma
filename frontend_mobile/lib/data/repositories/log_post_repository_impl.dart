@@ -3,6 +3,7 @@ import 'package:pairing_planet2_frontend/core/error/failures.dart';
 import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/create_log_post_request_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/log_post/update_log_post_request_dto.dart';
 import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/create_log_post_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_detail.dart';
@@ -79,6 +80,44 @@ class LogPostRepositoryImpl implements LogPostRepository {
           outcomes: outcomes,
         );
         return Right(sliceDto.toEntity((dto) => dto.toEntity()));
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    }
+    return Left(ConnectionFailure());
+  }
+
+  @override
+  Future<Either<Failure, LogPostDetail>> updateLog(
+    String publicId, {
+    String? title,
+    required String content,
+    required String outcome,
+    List<String>? hashtags,
+  }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final dto = UpdateLogPostRequestDto(
+          title: title,
+          content: content,
+          outcome: outcome,
+          hashtags: hashtags,
+        );
+        final result = await remoteDataSource.updateLog(publicId, dto);
+        return Right(result.toEntity());
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    }
+    return Left(ConnectionFailure());
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteLog(String publicId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.deleteLog(publicId);
+        return const Right(null);
       } catch (e) {
         return Left(ServerFailure(e.toString()));
       }
