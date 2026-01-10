@@ -309,6 +309,13 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         ),
       ),
       actions: [
+        Opacity(
+          opacity: _titleOpacity,
+          child: IconButton(
+            onPressed: () => context.push(RouteConstants.search),
+            icon: const Icon(Icons.search),
+          ),
+        ),
         IconButton(
           onPressed: () => context.push(RouteConstants.notifications),
           icon: const Icon(Icons.notifications_outlined),
