@@ -87,6 +87,8 @@ class RecipeRemoteDataSource {
       // Map frontend filter to backend parameter
       if (typeFilter == 'original') {
         queryParams['onlyRoot'] = true;
+      } else if (typeFilter == 'variant') {
+        queryParams['typeFilter'] = 'variant';
       }
       // Map frontend sort names to Spring Data sort format
       if (sortBy != null && sortBy.isNotEmpty) {
