@@ -212,7 +212,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: RouteConstants.profile,
-                builder: (context, state) => const ProfileScreen(),
+                builder: (context, state) {
+                  final tabIndex = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+                  return ProfileScreen(initialTabIndex: tabIndex);
+                },
               ),
             ],
           ),

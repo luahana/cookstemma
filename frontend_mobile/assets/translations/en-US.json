@@ -422,6 +422,7 @@
       "logged": "Logged!",
       "syncingBackground": "Syncing in background...",
       "logAnother": "Log Another",
+      "viewLogs": "View Logs",
       "error": "Something went wrong",
       "discardTitle": "Discard log?",
       "discardMessage": "Your progress will be lost.",
