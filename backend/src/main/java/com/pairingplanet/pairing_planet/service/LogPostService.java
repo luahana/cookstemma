@@ -12,6 +12,7 @@ import com.pairingplanet.pairing_planet.dto.log_post.CreateLogRequestDto;
 import com.pairingplanet.pairing_planet.dto.log_post.LogPostSummaryDto;
 import com.pairingplanet.pairing_planet.dto.recipe.RecipeSummaryDto;
 import com.pairingplanet.pairing_planet.repository.log_post.LogPostRepository;
+import com.pairingplanet.pairing_planet.repository.log_post.SavedLogRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.RecipeLogRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.RecipeRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
@@ -38,6 +39,7 @@ public class LogPostService {
     private final UserRepository userRepository;
     private final HashtagService hashtagService;
     private final NotificationService notificationService;
+    private final SavedLogRepository savedLogRepository;
 
     @Value("${file.upload.url-prefix}") // [추가] URL 조합을 위해 필요
     private String urlPrefix;
@@ -91,15 +93,28 @@ public class LogPostService {
 
     /**
      * 내가 작성한 로그 목록 조회
+     * @param outcome null=all, "SUCCESS", "PARTIAL", "FAILED"
      */
     @Transactional(readOnly = true)
-    public Slice<LogPostSummaryDto> getMyLogs(Long userId, Pageable pageable) {
-        return logPostRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable)
-                .map(this::convertToLogSummary);
+    public Slice<LogPostSummaryDto> getMyLogs(Long userId, String outcome, Pageable pageable) {
+        Slice<LogPost> logs;
+
+        if (outcome != null && !outcome.isBlank()) {
+            logs = logPostRepository.findByCreatorIdAndOutcome(userId, outcome.toUpperCase(), pageable);
+        } else {
+            logs = logPostRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+        }
+
+        return logs.map(this::convertToLogSummary);
     }
 
     @Transactional(readOnly = true)
     public LogPostDetailResponseDto getLogDetail(UUID publicId) {
+        return getLogDetail(publicId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public LogPostDetailResponseDto getLogDetail(UUID publicId, Long userId) {
         LogPost logPost = logPostRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("Log not found"));
 
@@ -122,7 +137,13 @@ public class LogPostService {
                 .map(HashtagDto::from)
                 .toList();
 
-        // 4. 최종 DTO 생성 시 createdAt 추가
+        // 4. 저장 상태 확인 (로그인한 경우만)
+        Boolean isSavedByCurrentUser = null;
+        if (userId != null) {
+            isSavedByCurrentUser = savedLogRepository.existsByUserIdAndLogPostId(userId, logPost.getId());
+        }
+
+        // 5. 최종 DTO 생성
         return new LogPostDetailResponseDto(
                 logPost.getPublicId(),
                 logPost.getTitle(),
@@ -131,7 +152,8 @@ public class LogPostService {
                 imageResponses,
                 linkedRecipeSummary,
                 logPost.getCreatedAt(),
-                hashtagDtos
+                hashtagDtos,
+                isSavedByCurrentUser
         );
     }
 

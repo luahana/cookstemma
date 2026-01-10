@@ -15,6 +15,7 @@ class EnhancedSearchAppBar extends ConsumerStatefulWidget
   final VoidCallback? onClear;
   final String? currentQuery;
   final SearchType searchType;
+  final List<Widget>? actions;
 
   const EnhancedSearchAppBar({
     super.key,
@@ -24,6 +25,7 @@ class EnhancedSearchAppBar extends ConsumerStatefulWidget
     this.onClear,
     this.currentQuery,
     required this.searchType,
+    this.actions,
   });
 
   @override
@@ -255,6 +257,7 @@ class _EnhancedSearchAppBarState extends ConsumerState<EnhancedSearchAppBar> {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
         actions: [
+          if (widget.actions != null && !_showSearchField) ...widget.actions!,
           IconButton(
             icon: Icon(_showSearchField ? Icons.close : Icons.search),
             onPressed: _toggleSearch,

@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 import '../../../../core/providers/image_providers.dart';
@@ -10,6 +12,7 @@ import 'minimal_header.dart';
 class StepSection extends ConsumerStatefulWidget {
   final List<Map<String, dynamic>> steps;
   final VoidCallback onAddStep;
+  final Function(List<File> images) onAddMultipleSteps;
   final Function(int) onRemoveStep;
   final Function(int) onRestoreStep;
   final Function(int, int) onReorder;
@@ -19,6 +22,7 @@ class StepSection extends ConsumerStatefulWidget {
     super.key,
     required this.steps,
     required this.onAddStep,
+    required this.onAddMultipleSteps,
     required this.onRemoveStep,
     required this.onRestoreStep,
     required this.onReorder,
@@ -30,6 +34,7 @@ class StepSection extends ConsumerStatefulWidget {
 }
 
 class _StepSectionState extends ConsumerState<StepSection> {
+  static const int _maxBatchImages = 10;
   Future<void> _pickStepImage(int index, ImageSource source) async {
     if (widget.steps[index]['isOriginal'] == true) return; // 💡 기존 이미지는 수정 불가
 
@@ -43,6 +48,21 @@ class _StepSectionState extends ConsumerState<StepSection> {
       widget.steps[index]['uploadItem'] = newItem;
       _handleStepImageUpload(index, newItem);
     }
+  }
+
+
+
+  Future<void> _pickMultipleStepImages() async {
+    final picker = ImagePicker();
+    final List<XFile> images = await picker.pickMultiImage(
+      imageQuality: 70,
+      limit: _maxBatchImages,
+    );
+
+    if (images.isEmpty) return;
+
+    final files = images.map((img) => File(img.path)).toList();
+    widget.onAddMultipleSteps(files);
   }
 
   Future<void> _handleStepImageUpload(int index, UploadItem item) async {
@@ -79,9 +99,9 @@ class _StepSectionState extends ConsumerState<StepSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const MinimalHeader(
+        MinimalHeader(
           icon: Icons.format_list_numbered,
-          title: "요리 단계 (드래그하여 순서 변경)",
+          title: 'steps.header'.tr(),
         ),
         const SizedBox(height: 12),
         // 💡 드래그 앤 드롭 리스트 (active steps only)
@@ -112,9 +132,12 @@ class _StepSectionState extends ConsumerState<StepSection> {
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.drag_handle,
-                    color: Colors.grey,
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: const Icon(
+                      Icons.drag_handle,
+                      color: Colors.grey,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   _buildStepNumber(index + 1),
@@ -134,14 +157,30 @@ class _StepSectionState extends ConsumerState<StepSection> {
             );
           },
         ),
-        Center(
-          child: TextButton.icon(
-            onPressed: widget.onAddStep,
-            icon: const Icon(Icons.add),
-            label: const Text("단계 추가"),
+        _buildActionButtons(),
+        if (deletedSteps.isNotEmpty) _buildDeletedSection(deletedSteps),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        TextButton.icon(
+          onPressed: widget.onAddStep,
+          icon: const Icon(Icons.add, size: 20),
+          label: Text('steps.addStep'.tr()),
+        ),
+        const SizedBox(width: 8),
+        TextButton.icon(
+          onPressed: _pickMultipleStepImages,
+          icon: const Icon(Icons.photo_library, size: 20),
+          label: Text('steps.addMultiple'.tr()),
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.primary,
           ),
         ),
-        if (deletedSteps.isNotEmpty) _buildDeletedSection(deletedSteps),
       ],
     );
   }
@@ -156,7 +195,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
         ),
       maxLines: null,
       decoration: InputDecoration(
-        hintText: isOriginal ? "" : "과정 설명...",
+        hintText: isOriginal ? "" : 'recipe.step.hintText'.tr(),
         border: InputBorder.none,
         filled: isOriginal,
         fillColor: isOriginal ? Colors.grey[100] : Colors.transparent,
@@ -212,7 +251,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "삭제됨",
+            'recipe.step.deleted'.tr(),
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey[600],
@@ -238,7 +277,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
         children: [
           Expanded(
             child: Text(
-              "단계: $displayText",
+              'recipe.step.stepLabel'.tr(namedArgs: {'text': displayText}),
               style: TextStyle(
                 decoration: TextDecoration.lineThrough,
                 color: Colors.grey[500],
@@ -251,9 +290,9 @@ class _StepSectionState extends ConsumerState<StepSection> {
           TextButton.icon(
             onPressed: () => widget.onRestoreStep(index),
             icon: const Icon(Icons.undo, size: 16),
-            label: const Text("복원", style: TextStyle(fontSize: 12)),
+            label: Text('recipe.step.restore'.tr(), style: const TextStyle(fontSize: 12)),
             style: TextButton.styleFrom(
-              foregroundColor: Colors.indigo,
+              foregroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 8),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/locale_dropdown.dart';
 
 /// Horizontal scrollable filter chips for culinary locale selection
@@ -52,10 +53,10 @@ class LocaleFilterChips extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1A237E) : Colors.white,
+          color: isSelected ? AppColors.textPrimary : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? const Color(0xFF1A237E) : Colors.grey[300]!,
+            color: isSelected ? AppColors.textPrimary : Colors.grey[300]!,
           ),
         ),
         child: Text(

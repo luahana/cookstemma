@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 class HashtagInputSection extends StatefulWidget {
   final List<String> hashtags;
@@ -38,13 +40,13 @@ class _HashtagInputSectionState extends State<HashtagInputSection> {
     if (normalized.isEmpty) return;
     if (widget.hashtags.length >= widget.maxHashtags) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('최대 ${widget.maxHashtags}개의 해시태그만 추가할 수 있습니다.')),
+        SnackBar(content: Text('recipe.hashtag.maxError'.tr(namedArgs: {'max': '${widget.maxHashtags}'}))),
       );
       return;
     }
     if (widget.hashtags.contains(normalized)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이미 추가된 해시태그입니다.')),
+        SnackBar(content: Text('recipe.hashtag.duplicateError'.tr())),
       );
       return;
     }
@@ -66,11 +68,11 @@ class _HashtagInputSectionState extends State<HashtagInputSection> {
       children: [
         Row(
           children: [
-            const Icon(Icons.tag, color: Colors.indigo, size: 20),
+            const Icon(Icons.tag, color: AppColors.primary, size: 20),
             const SizedBox(width: 8),
-            const Text(
-              "해시태그",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              'recipe.hashtag.title'.tr(),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const Spacer(),
             Text(
@@ -106,8 +108,8 @@ class _HashtagInputSectionState extends State<HashtagInputSection> {
                 child: TextField(
                   controller: _controller,
                   focusNode: _focusNode,
-                  decoration: const InputDecoration(
-                    hintText: '해시태그 입력 후 Enter',
+                  decoration: InputDecoration(
+                    hintText: 'recipe.hashtag.hint'.tr(),
                     hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
                     border: InputBorder.none,
                     isDense: true,
@@ -122,7 +124,7 @@ class _HashtagInputSectionState extends State<HashtagInputSection> {
               ),
               if (_controller.text.isNotEmpty)
                 IconButton(
-                  icon: const Icon(Icons.add_circle, color: Colors.indigo),
+                  icon: const Icon(Icons.add_circle, color: AppColors.primary),
                   onPressed: () {
                     _addHashtag(_controller.text);
                     _focusNode.requestFocus();
@@ -143,7 +145,7 @@ class _HashtagInputSectionState extends State<HashtagInputSection> {
           ),
         if (widget.hashtags.isEmpty)
           Text(
-            '예: 간편요리, 한식, 매운맛',
+            'recipe.hashtag.example'.tr(),
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey[500],
@@ -157,18 +159,18 @@ class _HashtagInputSectionState extends State<HashtagInputSection> {
     return Container(
       padding: const EdgeInsets.only(left: 12, right: 4, top: 6, bottom: 6),
       decoration: BoxDecoration(
-        color: Colors.indigo[50],
+        color: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.indigo[200]!),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '#$hashtag',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 13,
-              color: Colors.indigo[700],
+              color: AppColors.primary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -178,7 +180,7 @@ class _HashtagInputSectionState extends State<HashtagInputSection> {
             child: Icon(
               Icons.close,
               size: 16,
-              color: Colors.indigo[400],
+              color: AppColors.primary.withValues(alpha: 0.6),
             ),
           ),
         ],

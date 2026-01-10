@@ -13,7 +13,13 @@ class GetLogPostListUseCase {
     int page = 0,
     int size = 20,
     String? query,
+    List<String>? outcomes,
   }) async {
-    return await _repository.getLogPosts(page: page, size: size, query: query);
+    return await _repository.getLogPosts(
+      page: page,
+      size: size,
+      query: query,
+      outcomes: outcomes,
+    );
   }
 }

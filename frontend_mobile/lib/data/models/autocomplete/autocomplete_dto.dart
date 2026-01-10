@@ -20,6 +20,7 @@ class AutocompleteDto {
 
   factory AutocompleteDto.fromJson(Map<String, dynamic> json) =>
       _$AutocompleteDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$AutocompleteDtoToJson(this);
 
   AutocompleteResult toEntity() =>
       AutocompleteResult(publicId: publicId, name: name, type: type);

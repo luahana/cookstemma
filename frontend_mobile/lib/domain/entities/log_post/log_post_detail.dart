@@ -43,6 +43,7 @@ class LogPostDetail {
   final LinkedRecipeInfo? linkedRecipe; // Full recipe info for lineage display
   final DateTime createdAt;
   final List<Hashtag> hashtags;
+  final bool? isSavedByCurrentUser;
 
   LogPostDetail({
     required this.publicId,
@@ -53,5 +54,6 @@ class LogPostDetail {
     this.linkedRecipe,
     required this.createdAt,
     this.hashtags = const [],
+    this.isSavedByCurrentUser,
   });
 }

@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -66,11 +67,22 @@ public class Image extends BaseEntity {
     private Long fileSize;
     private String format;
 
+    // Soft delete fields
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Column(name = "delete_scheduled_at")
+    private Instant deleteScheduledAt;
+
     public boolean isOriginal() {
         return originalImage == null;
     }
 
     public boolean hasVariants() {
         return variants != null && !variants.isEmpty();
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
     }
 }

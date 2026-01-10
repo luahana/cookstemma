@@ -17,29 +17,17 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -54,9 +42,50 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCjkWz4YsoBPG7YC53P-mJW5nqAfz_oDgU',
-    appId: '1:823521388124:android:0a20148dbd2181491e6899',
+    appId: '1:823521388124:android:46adc546053147011e6899',
     messagingSenderId: '823521388124',
     projectId: 'pairing-planet-dev-5905e',
     storageBucket: 'pairing-planet-dev-5905e.firebasestorage.app',
   );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDAESutot_BXXgaPSLoWfHOjzrAJkM2BeA',
+    appId: '1:823521388124:web:fd097c55e39f79f91e6899',
+    messagingSenderId: '823521388124',
+    projectId: 'pairing-planet-dev-5905e',
+    authDomain: 'pairing-planet-dev-5905e.firebaseapp.com',
+    storageBucket: 'pairing-planet-dev-5905e.firebasestorage.app',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyCem0F-ZmISgY1Y2hErcMPvhAOXh0y3yBs',
+    appId: '1:823521388124:ios:e89bdecde73f478c1e6899',
+    messagingSenderId: '823521388124',
+    projectId: 'pairing-planet-dev-5905e',
+    storageBucket: 'pairing-planet-dev-5905e.firebasestorage.app',
+    androidClientId: '823521388124-frhgsai52kvr30g68c80e0kklcpode9l.apps.googleusercontent.com',
+    iosClientId: '823521388124-haeef0emjtl6oifkmh21upb2bj3di2p8.apps.googleusercontent.com',
+    iosBundleId: 'com.example.pairingPlanet2Frontend',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCem0F-ZmISgY1Y2hErcMPvhAOXh0y3yBs',
+    appId: '1:823521388124:ios:7023568713df7b071e6899',
+    messagingSenderId: '823521388124',
+    projectId: 'pairing-planet-dev-5905e',
+    storageBucket: 'pairing-planet-dev-5905e.firebasestorage.app',
+    androidClientId: '823521388124-frhgsai52kvr30g68c80e0kklcpode9l.apps.googleusercontent.com',
+    iosClientId: '823521388124-5ohr0407vigqkejldba3hksb7h6ehdbb.apps.googleusercontent.com',
+    iosBundleId: 'com.pairingplanet.pairingplanetfrontend',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyDAESutot_BXXgaPSLoWfHOjzrAJkM2BeA',
+    appId: '1:823521388124:web:fc4e9d6e70f218f61e6899',
+    messagingSenderId: '823521388124',
+    projectId: 'pairing-planet-dev-5905e',
+    authDomain: 'pairing-planet-dev-5905e.firebaseapp.com',
+    storageBucket: 'pairing-planet-dev-5905e.firebasestorage.app',
+  );
+
 }

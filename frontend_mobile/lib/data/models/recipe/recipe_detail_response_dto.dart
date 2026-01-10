@@ -9,7 +9,19 @@ import 'step_dto.dart';
 
 part 'recipe_detail_response_dto.g.dart';
 
-// recipe_detail_response_dto.dart
+// Helper function to safely parse changeReason which might be String or Map
+String? _parseChangeReason(dynamic value) {
+  if (value == null) return null;
+  if (value is String) return value;
+  if (value is Map) {
+    // If it's a Map, try to extract a meaningful string or convert to JSON string
+    if (value.containsKey('reason')) return value['reason']?.toString();
+    if (value.containsKey('text')) return value['text']?.toString();
+    // Fallback: return null if we can't extract a string
+    return null;
+  }
+  return value.toString();
+}
 
 @JsonSerializable()
 class RecipeDetailResponseDto {
@@ -31,6 +43,12 @@ class RecipeDetailResponseDto {
   final List<HashtagDto>? hashtags;
   final bool? isSavedByCurrentUser;
 
+  // Living Blueprint: Diff fields for variation tracking
+  final Map<String, dynamic>? changeDiff;
+  final List<String>? changeCategories;
+  @JsonKey(fromJson: _parseChangeReason)
+  final String? changeReason;
+
   RecipeDetailResponseDto({
     required this.publicId,
     required this.foodName,
@@ -48,6 +66,9 @@ class RecipeDetailResponseDto {
     this.logs,
     this.hashtags,
     this.isSavedByCurrentUser,
+    this.changeDiff,
+    this.changeCategories,
+    this.changeReason,
   });
 
   factory RecipeDetailResponseDto.fromJson(Map<String, dynamic> json) =>
@@ -61,7 +82,7 @@ class RecipeDetailResponseDto {
     foodMasterPublicId: foodMasterPublicId,
     title: title,
     description: description ?? "",
-    culinaryLocale: (culinaryLocale?.isEmpty ?? true) ? "ko" : culinaryLocale!,
+    culinaryLocale: (culinaryLocale?.isEmpty ?? true) ? "ko-KR" : culinaryLocale!,
     changeCategory: changeCategory,
     rootInfo: rootInfo?.toEntity(),
     parentInfo: parentInfo?.toEntity(),
@@ -77,5 +98,8 @@ class RecipeDetailResponseDto {
     logs: logs?.map((e) => e.toEntity()).toList() ?? [],
     hashtags: hashtags?.map((e) => e.toEntity()).toList() ?? [],
     isSavedByCurrentUser: isSavedByCurrentUser,
+    changeDiff: changeDiff,
+    changeCategories: changeCategories,
+    changeReason: changeReason,
   );
 }

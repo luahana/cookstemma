@@ -4,8 +4,47 @@
 
 ---
 
-# 📋 FEATURES
+# 🔒 HOW TO LOCK A FEATURE
 
+**When Claude Code instance starts working on a feature:**
+
+### Step 1: Update the table above
+```markdown
+| FEAT-009 | Follow System | 🟡 In Progress | Claude-1 |
+```
+
+### Step 2: Add lock info to the feature section
+```markdown
+### [FEAT-009]: Follow System
+**Status:** 🟡 In Progress
+**Locked by:** Claude-1 (branch: feature/follow-system)
+**Lock time:** 2025-01-08 14:30 UTC
+**Server port:** 4001
+```
+
+### Step 3: Commit and push IMMEDIATELY
+```bash
+git add docs/ai/FEATURES.md
+git commit -m "docs: lock FEAT-009"
+git push origin dev
+```
+
+### Step 4: THEN create branch and start coding
+
+### When done: Remove lock
+```markdown
+**Status:** ✅ Done
+# Delete "Locked by", "Lock time", and "Server port" lines
+```
+---
+
+# 📋 FEATURES
+## Status Legend
+| Status | Meaning | Action |
+|--------|---------|--------|
+| 📋 Planned | Not started | Available to lock |
+| 🟡 In Progress | Being worked on | Check "Locked by" - don't touch! |
+| ✅ Done | Completed | No lock needed |
 ## Template
 
 ```markdown
@@ -14,15 +53,31 @@
 **Status:** 📋 Planned | 🟡 In Progress | ✅ Done
 **Branch:** `feature/xxx`
 
+# ═══ WHEN STARTING WORK, ADD THESE ═══
+**Status:** 🟡 In Progress
+**Locked by:** Claude-1 (branch: feature/xxx)
+**Lock time:** 2025-01-08 14:30 UTC
+**Server port:** 4001 (or 4002, 4003 if running multiple backends)
+
+# ═══ WHEN DONE, CHANGE TO ═══
+**Status:** ✅ Done
+# (Delete Locked by, Lock time, Server port lines)
+
 **Description:** What it does
 
 **User Story:** As a [user], I want [action], so that [benefit]
+**Research Findings:**
+- How [App1] does it: ...
+- Industry standard: ...
+- Pitfall to avoid: ...
 
 **Acceptance Criteria:**
-- [ ] Criterion 1
-- [ ] Criterion 2
+- [ ] Criterion
+- [ ] Edge case handling
 
-**Technical Notes:** Implementation details, edge cases
+**Technical Notes:**
+- Backend: ...
+- Frontend: ...
 ```
 
 ---
@@ -252,6 +307,26 @@
 - Backend: `PATCH /api/v1/users/me` with locale field
 - Frontend: EasyLocalization for dynamic locale switching
 - Profile refresh after save
+### [FEAT-012]: Recipe Search
+**Status:** ✅ Done
+
+**Description:** Search recipes with filters and relevance ranking.
+
+**Acceptance Criteria:**
+- [x] Search by title (debounced 300ms)
+- [x] Search by description
+- [x] Search by ingredient name
+- [x] Search ranking (pg_trgm SIMILARITY-based ordering)
+- [x] Filter by ingredient (via search query)
+- [x] Recent searches (local, max 10) - search_history_provider.dart
+- [x] Empty state with suggestions - search_empty_state.dart, search_suggestions_overlay.dart
+
+**Technical Notes:**
+- Backend: PostgreSQL pg_trgm extension for trigram matching (V9__add_search_indexes.sql)
+- Uses `%` operator for fuzzy matching + ILIKE for substring fallback
+- SIMILARITY() function for relevance-based ordering
+- GIN indexes on title, description, and ingredient names
+- Frontend: enhanced_search_app_bar.dart, search_local_data_source.dart
 
 ---
 
@@ -329,6 +404,51 @@ Client                                  Server
 
 ---
 
+### [FEAT-026]: Image Soft Delete with Account Deletion
+
+**Status:** ✅ Done
+**Branch:** `feature/image-soft-delete`
+**PR:** #35
+
+**Description:** Soft-delete user's images when account is closed, with 30-day grace period for recovery.
+
+**Policy:**
+- Recipes are NOT deleted when user closes account (remain visible)
+- Images ARE soft-deleted with user account
+- Images restored if user logs back in within 30 days
+- Images hard-deleted from S3 after 30-day grace period
+
+**Acceptance Criteria:**
+- [x] Add `deletedAt` and `deleteScheduledAt` fields to Image entity
+- [x] Soft-delete all user images when account is closed
+- [x] Restore all user images when account is restored
+- [x] Hard-delete images from S3 when account is permanently purged
+- [x] Database migration with proper indexes
+- [x] Comprehensive test coverage (9 tests)
+
+**Technical Notes:**
+- Backend: `Image.java` with soft delete fields, `ImageService` with soft/restore/hard delete methods
+- Migration: `V18__add_image_soft_delete.sql` with indexes for efficient queries
+- `UserService.deleteAccount()` → calls `imageService.softDeleteAllByUploader()`
+- `UserService.restoreDeletedAccount()` → calls `imageService.restoreAllByUploader()`
+- `UserService.purgeExpiredDeletedAccounts()` → calls `imageService.hardDeleteAllByUploader()`
+
+**Flow:**
+```
+User closes account
+    ↓
+User soft-deleted (status=DELETED, 30-day schedule)
+Images soft-deleted (same schedule)
+    ↓
+User logs in within 30 days?
+    ├── YES → User & images restored
+    └── NO (30 days pass) → Scheduler purges:
+            Images hard-deleted from S3
+            User hard-deleted from DB
+```
+
+---
+
 ## Planned 📋
 
 ### [FEAT-016]: Improved Onboarding
@@ -371,130 +491,6 @@ Client                                  Server
 - [ ] "용감한 요리사" - First variation
 - [ ] "꾸준한 요리사" - 10 logs
 - [ ] Badge display on profile
-
----
-
-### [FEAT-019]: Batch Photo Upload
-
-**Status:** 📋 Planned
-**Branch:** `feature/content-creation-ux`
-
-**Description:** Upload multiple photos at once for cooking steps. Each photo creates a step automatically.
-
-**Acceptance Criteria:**
-- [ ] "Add Multiple" button in step section
-- [ ] Multi-select from gallery (up to 10)
-- [ ] Each photo creates a step with empty description
-- [ ] User can reorder, edit descriptions, remove steps
-- [ ] Progress indicator during upload
-
-**Technical Notes:** Use `pickMultiImage()`, parallel upload, numbered badges for order
-
----
-
-### [FEAT-020]: Recipe Locale
-
-**Status:** ✅ Done
-**Branch:** `feature/recipe-locale`
-
-**Description:** Tag recipes with culinary locale (Korean, American, etc.) for cultural taste preferences.
-
-**Locale Options:** Korean, American, Japanese, Chinese, Italian, Mexican, Thai, Indian, French, Other/Fusion
-
-**Acceptance Criteria:**
-- [x] Locale dropdown in recipe creation (10 options)
-- [x] Default to Korean for new recipes
-- [x] Inherit from parent recipe on variations
-- [x] Locale badge on recipe cards (home feed + recipe list)
-- [x] Filter chips in home feed (client-side filtering)
-
-**Technical Notes:**
-- Backend: `culinaryLocale` field already supported with server-side filtering in `RecipeController`
-- Frontend widgets: `LocaleDropdown`, `LocaleBadge`, `LocaleFilterChips`
-- HookSection: Added locale dropdown after description field
-- RecipeCreateScreen: Default ko-KR for new, inherit from parent for variants
-- Home feed: Filter chips with client-side filtering of trending trees and recent recipes
-- Translations: Added `locale.*` keys to both en-US.json and ko-KR.json
-
----
-
-### [FEAT-021]: Recipe Draft Auto-Save
-
-**Status:** 📋 Planned
-**Branch:** `feature/content-creation-ux`
-
-**Description:** Auto-save recipe drafts locally. Restore on return.
-
-**Acceptance Criteria:**
-- [ ] Auto-save on 30s interval, blur, background, navigation
-- [ ] 7-day retention, 1 draft per user
-- [ ] "Continue Draft?" dialog on return
-- [ ] "Drafts" tab in profile
-- [ ] Status indicator: "Saving..." → "Saved"
-
-**Technical Notes:** Isar local storage, debounced timer, clear on publish
-
----
-
-### [FEAT-022]: Guest Access
-
-**Status:** ✅ Done
-**Branch:** `feature/guest-access`
-
-**Description:** Browse recipes without signing in. Login required for actions.
-
-**Acceptance Criteria:**
-- [x] "Browse as Guest" button on login screen
-- [x] Guests can browse, view, search
-- [x] Login prompt on: create, save, follow
-- [x] Auto-complete action after login
-- [x] Profile tab shows "Sign in" for guests
-
-**Technical Notes:**
-- Frontend: `AuthStatus.guest` state, `LoginPromptSheet` for action prompts
-- Backend: `SecurityConfig` updated for public endpoints (recipes, search)
-- Router guards redirect guests to login for protected actions
-
----
-
-### [FEAT-023]: Mandatory Fields
-
-**Status:** 📋 Planned
-**Branch:** `feature/content-creation-ux`
-
-**Description:** Require minimum fields for content quality.
-
-**Acceptance Criteria:**
-- [ ] Recipe: 1 photo, title (2ch), food, 1 ingredient, 1 step
-- [ ] Log: linked recipe, outcome (photo optional)
-- [ ] Inline validation with indicators
-- [ ] Publish disabled until valid
-- [ ] Backend validation with field errors
-
-**Technical Notes:** Jakarta validation annotations, 400 response with field details
-
----
-
-### [FEAT-024]: Settings & Account Deletion
-
-**Status:** ✅ Done
-**Branch:** `feature/social-sharing`
-**PR:** #14
-
-**Description:** Settings screen with logout and account deletion (soft delete with 30-day grace period).
-
-**Acceptance Criteria:**
-- [x] Settings screen accessible from Profile AppBar
-- [x] Language, Notifications, Logout options
-- [x] Delete Account with "DELETE"/"삭제" type confirmation
-- [x] 30-day grace period before permanent deletion
-- [x] Account restoration on login within grace period
-- [x] Daily scheduled cleanup job
-
-**Technical Notes:**
-- Backend: `deletedAt`, `deleteScheduledAt` fields on User entity
-- Frontend: SettingsScreen, DeleteAccountScreen
-- Scheduler: `AccountCleanupScheduler` runs daily at midnight
 
 ---
 
@@ -627,10 +623,5 @@ Client                                  Server
 | FEAT-016 | Improved Onboarding | 📋 |
 | FEAT-017 | Full-Text Search | 📋 |
 | FEAT-018 | Achievement Badges | 📋 |
-| FEAT-019 | Batch Photo Upload | 📋 |
-| FEAT-020 | Recipe Locale | ✅ |
-| FEAT-021 | Recipe Draft Auto-Save | 📋 |
-| FEAT-022 | Guest Access | ✅ |
-| FEAT-023 | Mandatory Fields | 📋 |
-| FEAT-024 | Settings & Account Deletion | ✅ |
 | FEAT-025 | Idempotency Keys | ✅ |
+| FEAT-026 | Image Soft Delete | ✅ |

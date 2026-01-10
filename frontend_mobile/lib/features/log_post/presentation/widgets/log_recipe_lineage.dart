@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_detail.dart';
 
 /// Recipe lineage widget displayed at the TOP of Log Post Detail screen.
@@ -21,10 +22,10 @@ class LogRecipeLineage extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.indigo[50],
+        color: AppColors.primary.withValues(alpha: 0.1),
         border: Border(
           bottom: BorderSide(
-            color: Colors.indigo[100]!,
+            color: AppColors.primary.withValues(alpha: 0.2),
             width: 1,
           ),
         ),
@@ -81,13 +82,13 @@ class LogRecipeLineage extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isPrimary ? Colors.indigo[700] : Colors.orange[700],
+              color: isPrimary ? AppColors.primary : Colors.orange[700],
             ),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: isPrimary ? Colors.indigo[100] : Colors.orange[100],
+                color: isPrimary ? AppColors.primary.withValues(alpha: 0.2) : Colors.orange[100],
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
@@ -95,7 +96,7 @@ class LogRecipeLineage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: isPrimary ? Colors.indigo[800] : Colors.orange[800],
+                  color: isPrimary ? AppColors.primary : Colors.orange[800],
                 ),
               ),
             ),

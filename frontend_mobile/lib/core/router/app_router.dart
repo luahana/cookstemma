@@ -21,6 +21,7 @@ import 'package:pairing_planet2_frontend/features/notification/screens/notificat
 import 'package:pairing_planet2_frontend/features/splash/screens/splash_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/recipe/presentation/screens/recipe_detail_screen.dart';
+import '../../features/recipe/presentation/screens/star_view_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -184,6 +185,16 @@ final routerProvider = Provider<GoRouter>((ref) {
                       final id = state.pathParameters['id']!;
                       return RecipeDetailScreen(recipeId: id);
                     },
+                    routes: [
+                      GoRoute(
+                        path: 'star',
+                        name: 'recipe_star',
+                        builder: (context, state) {
+                          final id = state.pathParameters['id']!;
+                          return StarViewScreen(recipeId: id);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -201,7 +212,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: RouteConstants.profile,
-                builder: (context, state) => const ProfileScreen(),
+                builder: (context, state) {
+                  final tabIndex = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+                  return ProfileScreen(initialTabIndex: tabIndex);
+                },
               ),
             ],
           ),

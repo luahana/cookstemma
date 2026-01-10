@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/domain/entities/hashtag/hashtag.dart';
 
 class HashtagChips extends StatelessWidget {
@@ -23,15 +24,15 @@ class HashtagChips extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.indigo[50],
+        color: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.indigo[100]!),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: Text(
         '#${hashtag.name}',
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 13,
-          color: Colors.indigo[700],
+          color: AppColors.primary,
           fontWeight: FontWeight.w500,
         ),
       ),

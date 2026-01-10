@@ -15,16 +15,22 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// Workaround for isar_flutter_libs namespace issue with AGP 8.0+
-// Sets namespace for library projects that don't have one defined
+// Unified fix for isar_flutter_libs and AGP 8.0+ namespace issues
+// Works for both Mac and Windows by using the pluginManager hook
 subprojects {
-    plugins.withId("com.android.library") {
+    pluginManager.withPlugin("com.android.library") {
         configure<com.android.build.gradle.LibraryExtension> {
-            if (namespace == null || namespace!!.isEmpty()) {
+            // Priority 1: Specifically fix isar_flutter_libs 
+            if (project.name == "isar_flutter_libs") {
+                namespace = "dev.isar.isar_flutter_libs"
+            } 
+            // Priority 2: Fallback for other library projects without a namespace [cite: 2]
+            else if (namespace == null || namespace!!.isEmpty()) {
                 namespace = "dev.${project.name.replace("-", "_").replace("_", ".")}"
             }
         }

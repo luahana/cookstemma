@@ -1,9 +1,11 @@
 package com.pairingplanet.pairing_planet.controller;
 
+import com.pairingplanet.pairing_planet.dto.user.CookingDnaDto;
 import com.pairingplanet.pairing_planet.dto.user.UpdateProfileRequestDto;
 import com.pairingplanet.pairing_planet.dto.user.UserDto;
 import com.pairingplanet.pairing_planet.dto.user.MyProfileResponseDto;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
+import com.pairingplanet.pairing_planet.service.CookingDnaService;
 import com.pairingplanet.pairing_planet.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final CookingDnaService cookingDnaService;
 
     /**
      * [TAB 4: PROFILE] 내 정보 조회
@@ -27,6 +30,18 @@ public class UserController {
     public ResponseEntity<MyProfileResponseDto> getMyProfile(@AuthenticationPrincipal UserPrincipal principal) {
         // [수정] principal 객체를 서비스에 그대로 전달하여 내부에서 ID를 활용하게 합니다.
         MyProfileResponseDto response = userService.getMyProfile(principal);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * [Cooking DNA] 사용자의 요리 DNA 통계 조회
+     * XP, 레벨, 성공률, 스트릭, 요리 분포 등 게이미피케이션 데이터 반환
+     */
+    @GetMapping("/me/cooking-dna")
+    public ResponseEntity<CookingDnaDto> getMyCookingDna(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestHeader(value = "Accept-Language", defaultValue = "en-US") String locale) {
+        CookingDnaDto response = cookingDnaService.getCookingDna(principal, locale);
         return ResponseEntity.ok(response);
     }
 

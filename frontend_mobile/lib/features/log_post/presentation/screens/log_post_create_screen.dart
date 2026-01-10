@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
+import 'package:pairing_planet2_frontend/core/widgets/reorderable_image_picker.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/create_log_post_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_providers.dart';
@@ -72,6 +74,14 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
 
   void _removeImage(int index) {
     setState(() => _images.removeAt(index));
+  }
+
+  void _reorderImages(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex--;
+      final item = _images.removeAt(oldIndex);
+      _images.insert(newIndex, item);
+    });
   }
 
   Future<void> _submit() async {
@@ -157,7 +167,17 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildImagePickerList(),
+                    ReorderableImagePicker(
+                      images: _images,
+                      maxImages: 3,
+                      onReorder: _reorderImages,
+                      onRemove: _removeImage,
+                      onRetry: _handleImageUpload,
+                      onAdd: () => ImageSourceSheet.show(
+                        context: context,
+                        onSourceSelected: _pickImage,
+                      ),
+                    ),
                     const SizedBox(height: 32),
 
                     // 💡 3. 요리 결과 섹션 (이모지 선택)
@@ -230,7 +250,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
                   widget.recipe.foodName,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.indigo[900],
+                    color: AppColors.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -248,144 +268,6 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
         ],
       ),
     );
-  }
-
-  // 💡 이미지 리스트 및 추가 버튼 UI
-  Widget _buildImagePickerList() {
-    return SizedBox(
-      height: 110, // 버튼 잘림 방지를 위한 높이
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _images.length + 1,
-        itemBuilder: (context, index) {
-          if (index == _images.length) {
-            if (_images.length >= 3) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: _buildAddButton(),
-            );
-          }
-          final item = _images[index];
-          return _buildImageItem(item, index);
-        },
-      ),
-    );
-  }
-
-  Widget _buildAddButton() {
-    return GestureDetector(
-      onTap: () =>
-          ImageSourceSheet.show(context: context, onSourceSelected: _pickImage),
-      child: Container(
-        width: 100,
-        height: 100,
-        margin: const EdgeInsets.only(right: 12),
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: const Icon(Icons.add_a_photo, color: Colors.grey),
-      ),
-    );
-  }
-
-  // 💡 개별 이미지 아이템 UI (로딩, 성공, 에러 오버레이 포함)
-  Widget _buildImageItem(UploadItem item, int index) {
-    return SizedBox(
-      width: 112,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 10, right: 12),
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.file(
-                      item.file,
-                      fit: BoxFit.cover,
-                      opacity: AlwaysStoppedAnimation(
-                        item.status == UploadStatus.uploading
-                            ? 0.7
-                            : (item.status == UploadStatus.error ? 0.5 : 1.0),
-                      ),
-                    ),
-                    _buildStatusOverlay(item), // 상태별 오버레이
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            // 삭제 버튼
-            top: 2,
-            right: 4,
-            child: GestureDetector(
-              onTap: () => _removeImage(index),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
-                ),
-                child: const Icon(Icons.close, size: 14, color: Colors.black),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusOverlay(UploadItem item) {
-    switch (item.status) {
-      case UploadStatus.uploading:
-        return Container(
-          color: Colors.black12,
-          child: const Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: Colors.white,
-            ),
-          ),
-        );
-      case UploadStatus.success:
-        return Align(
-          alignment: Alignment.bottomRight,
-          child: Container(
-            margin: const EdgeInsets.all(6),
-            padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
-              color: Colors.green,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.check, size: 14, color: Colors.white),
-          ),
-        );
-      case UploadStatus.error:
-        return Container(
-          color: Colors.black38,
-          child: Center(
-            child: IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.white, size: 28),
-              onPressed: () => _handleImageUpload(item),
-            ),
-          ),
-        );
-      default:
-        return const SizedBox.shrink();
-    }
   }
 
   // 💡 요리 결과 이모지 선택 UI
@@ -407,7 +289,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.indigo[50] : Colors.grey[100],
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey[100],
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? Colors.indigo : Colors.transparent,
@@ -461,7 +343,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
         child: ElevatedButton(
           onPressed: _isLoading ? null : _submit,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF1A237E),
+            backgroundColor: AppColors.primary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),

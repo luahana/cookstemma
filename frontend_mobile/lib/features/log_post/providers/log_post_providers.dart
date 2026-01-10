@@ -151,3 +151,41 @@ final logPostListProvider = FutureProvider<SliceResponse<LogPostSummary>>((ref) 
     (sliceResponse) => sliceResponse,
   );
 });
+
+/// 로그 북마크 상태를 관리하는 StateNotifier
+class SaveLogNotifier extends StateNotifier<AsyncValue<bool>> {
+  final LogPostRepository _repository;
+  final String _logId;
+
+  SaveLogNotifier(this._repository, this._logId)
+      : super(const AsyncValue.data(false));
+
+  /// 초기 저장 상태 설정 (API에서 받은 값으로)
+  void setInitialState(bool isSaved) {
+    state = AsyncValue.data(isSaved);
+  }
+
+  /// 저장/저장취소 토글
+  Future<void> toggle() async {
+    final currentlySaved = state.value ?? false;
+    state = const AsyncValue.loading();
+
+    final result = currentlySaved
+        ? await _repository.unsaveLog(_logId)
+        : await _repository.saveLog(_logId);
+
+    state = result.fold(
+      (failure) => AsyncValue.error(failure.message, StackTrace.current),
+      (_) => AsyncValue.data(!currentlySaved),
+    );
+  }
+}
+
+/// 로그 북마크 상태 Provider (로그 ID별로 생성)
+final saveLogProvider =
+    StateNotifierProvider.family<SaveLogNotifier, AsyncValue<bool>, String>(
+  (ref, logId) {
+    final repository = ref.read(logPostRepositoryProvider);
+    return SaveLogNotifier(repository, logId);
+  },
+);
