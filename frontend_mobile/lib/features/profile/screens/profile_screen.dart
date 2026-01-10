@@ -89,6 +89,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
               elevation: innerBoxIsScrolled ? 1 : 0,
+              centerTitle: false,
               title: const AppLogo(),
               actions: [
                 IconButton(
