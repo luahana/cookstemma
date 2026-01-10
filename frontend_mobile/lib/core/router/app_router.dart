@@ -22,6 +22,7 @@ import 'package:pairing_planet2_frontend/features/splash/screens/splash_screen.d
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/recipe/presentation/screens/recipe_detail_screen.dart';
 import '../../features/recipe/presentation/screens/recipe_edit_screen.dart';
+import '../../features/recipe/presentation/screens/recipe_search_screen.dart';
 import '../../features/recipe/presentation/screens/star_view_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
@@ -145,6 +146,29 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteConstants.notifications,
         name: 'notifications',
         builder: (context, state) => const NotificationInboxScreen(),
+      ),
+      GoRoute(
+        path: RouteConstants.search,
+        name: 'search',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const RecipeSearchScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            // Fade + slide up transition
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.03),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOut,
+                )),
+                child: child,
+              ),
+            );
+          },
+        ),
       ),
       GoRoute(
         path: RouteConstants.followers, // '/users/:userId/followers'

@@ -492,9 +492,13 @@
   "search": {
     "title": "검색",
     "hint": "레시피, 재료, 요리 검색",
+    "placeholder": "레시피 검색...",
     "noResults": "검색 결과가 없습니다",
     "recentSearches": "최근 검색",
-    "clearHistory": "기록 삭제"
+    "clearAll": "전체 삭제",
+    "clearHistory": "기록 삭제",
+    "trendingThisWeek": "이번 주 인기",
+    "browseByCuisine": "요리 스타일로 찾기"
   },
   "speedDial": {
     "newRecipe": "새 레시피",

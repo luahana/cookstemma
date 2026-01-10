@@ -9,10 +9,8 @@ import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/illustrated_empty_state.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
-import 'package:pairing_planet2_frontend/core/widgets/search/enhanced_search_app_bar.dart';
 import 'package:pairing_planet2_frontend/core/widgets/skeleton/skeleton_loader.dart';
 import 'package:pairing_planet2_frontend/core/widgets/transitions/animated_view_switcher.dart';
-import 'package:pairing_planet2_frontend/data/datasources/search/search_local_data_source.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/bento_grid_view.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/browse_filter_bar.dart';
@@ -57,21 +55,22 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: EnhancedSearchAppBar(
-        title: 'recipe.browse'.tr(),
-        hintText: 'recipe.searchHint'.tr(),
-        currentQuery: recipesAsync.valueOrNull?.searchQuery,
-        searchType: SearchType.recipe,
-        onSearch: (query) {
-          ref.read(recipeListProvider.notifier).search(query);
-        },
-        onClear: () {
-          ref.read(recipeListProvider.notifier).clearSearch();
-        },
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        title: Text(
+          'recipe.browse'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           const Padding(
             padding: EdgeInsets.only(right: 8),
             child: CompactViewModeToggle(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => context.push(RouteConstants.search),
           ),
         ],
       ),

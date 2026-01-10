@@ -496,9 +496,13 @@
   "search": {
     "title": "Search",
     "hint": "Search recipes, ingredients, dishes",
+    "placeholder": "Search recipes...",
     "noResults": "No results found",
-    "recentSearches": "Recent searches",
-    "clearHistory": "Clear history"
+    "recentSearches": "Recent Searches",
+    "clearAll": "Clear All",
+    "clearHistory": "Clear history",
+    "trendingThisWeek": "Trending This Week",
+    "browseByCuisine": "Browse by Cuisine"
   },
   "speedDial": {
     "newRecipe": "New Recipe",
