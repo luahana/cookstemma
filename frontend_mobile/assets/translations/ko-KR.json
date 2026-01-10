@@ -376,7 +376,7 @@
     "card": {
       "tapToView": "탭하여 자세히 보기"
     },
-    "outcome": {
+    "outcomeLabel": {
       "success": "성공!",
       "partial": "배우는 중",
       "failed": "교훈"

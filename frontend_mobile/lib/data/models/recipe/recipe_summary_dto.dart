@@ -3,7 +3,7 @@ import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.d
 
 part 'recipe_summary_dto.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class RecipeSummaryDto {
   final String publicId;
   final String foodName;

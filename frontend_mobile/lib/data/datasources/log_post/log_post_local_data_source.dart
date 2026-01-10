@@ -19,8 +19,20 @@ class LogPostLocalDataSource {
     final jsonString = box.get(publicId);
 
     if (jsonString != null) {
-      return LogPostDetailResponseDto.fromJson(jsonDecode(jsonString));
+      try {
+        return LogPostDetailResponseDto.fromJson(jsonDecode(jsonString));
+      } catch (e) {
+        // Cache format mismatch - delete stale entry and return null
+        await box.delete(publicId);
+        return null;
+      }
     }
     return null;
+  }
+
+  // 💡 캐시 전체 삭제 (스키마 변경 시 사용)
+  Future<void> clearCache() async {
+    final box = await Hive.openBox(_logBoxName);
+    await box.clear();
   }
 }

@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'image_response_dto.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class ImageResponseDto {
   final String imagePublicId; // UUID
   final String? imageUrl; // 이미지 전체 경로

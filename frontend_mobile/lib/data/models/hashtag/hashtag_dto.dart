@@ -3,7 +3,7 @@ import 'package:pairing_planet2_frontend/domain/entities/hashtag/hashtag.dart';
 
 part 'hashtag_dto.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class HashtagDto {
   final String publicId;
   final String name;

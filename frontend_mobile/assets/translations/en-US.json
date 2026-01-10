@@ -380,7 +380,7 @@
     "card": {
       "tapToView": "Tap to view details"
     },
-    "outcome": {
+    "outcomeLabel": {
       "success": "Nailed It!",
       "partial": "Learning",
       "failed": "Lesson"

@@ -35,10 +35,10 @@ Map<String, dynamic> _$LogPostDetailResponseDtoToJson(
       'title': instance.title,
       'content': instance.content,
       'outcome': instance.outcome,
-      'images': instance.images,
-      'linkedRecipe': instance.linkedRecipe,
+      'images': instance.images?.map((e) => e.toJson()).toList(),
+      'linkedRecipe': instance.linkedRecipe?.toJson(),
       'createdAt': instance.createdAt,
-      'hashtags': instance.hashtags,
+      'hashtags': instance.hashtags?.map((e) => e.toJson()).toList(),
       'isSavedByCurrentUser': instance.isSavedByCurrentUser,
       'creatorPublicId': instance.creatorPublicId,
     };

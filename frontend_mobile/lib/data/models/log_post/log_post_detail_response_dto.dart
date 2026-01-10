@@ -6,7 +6,7 @@ import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_detai
 
 part 'log_post_detail_response_dto.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class LogPostDetailResponseDto {
   final String publicId;
   final String? title;
@@ -36,18 +36,20 @@ class LogPostDetailResponseDto {
       _$LogPostDetailResponseDtoFromJson(json);
   Map<String, dynamic> toJson() => _$LogPostDetailResponseDtoToJson(this);
 
-  LogPostDetail toEntity() => LogPostDetail(
-    publicId: publicId,
-    content: content,
-    outcome: outcome ?? 'PARTIAL', // Default to PARTIAL if null
-    imageUrls: images?.map((img) => img.imageUrl).toList() ?? [],
-    recipePublicId: linkedRecipe?.publicId ?? "",
-    linkedRecipe: linkedRecipe != null
-        ? LinkedRecipeInfo.fromRecipeSummary(linkedRecipe!.toEntity())
-        : null,
-    createdAt: DateTime.parse(createdAt),
-    hashtags: hashtags?.map((e) => e.toEntity()).toList() ?? [],
-    isSavedByCurrentUser: isSavedByCurrentUser,
-    creatorPublicId: creatorPublicId,
-  );
+  LogPostDetail toEntity() {
+    return LogPostDetail(
+      publicId: publicId,
+      content: content,
+      outcome: outcome ?? 'PARTIAL', // Default to PARTIAL if null
+      imageUrls: images?.map((img) => img.imageUrl).toList() ?? [],
+      recipePublicId: linkedRecipe?.publicId ?? "",
+      linkedRecipe: linkedRecipe != null
+          ? LinkedRecipeInfo.fromRecipeSummary(linkedRecipe!.toEntity())
+          : null,
+      createdAt: DateTime.parse(createdAt),
+      hashtags: hashtags?.map((e) => e.toEntity()).toList() ?? [],
+      isSavedByCurrentUser: isSavedByCurrentUser,
+      creatorPublicId: creatorPublicId,
+    );
+  }
 }

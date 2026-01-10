@@ -4,9 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Outcome types for cooking logs with associated styling
 enum LogOutcome {
-  success('SUCCESS', 'logPost.outcome.success', Color(0xFF4CAF50), Color(0xFFE8F5E9)),
-  partial('PARTIAL', 'logPost.outcome.partial', Color(0xFFFFC107), Color(0xFFFFF8E1)),
-  failed('FAILED', 'logPost.outcome.failed', Color(0xFFF44336), Color(0xFFFFEBEE));
+  success('SUCCESS', 'logPost.outcomeLabel.success', Color(0xFF4CAF50), Color(0xFFE8F5E9)),
+  partial('PARTIAL', 'logPost.outcomeLabel.partial', Color(0xFFFFC107), Color(0xFFFFF8E1)),
+  failed('FAILED', 'logPost.outcomeLabel.failed', Color(0xFFF44336), Color(0xFFFFEBEE));
 
   final String value;
   final String labelKey;
