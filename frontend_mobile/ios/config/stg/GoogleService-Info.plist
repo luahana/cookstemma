@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>590920576402-1g2t4mkp6nln1kr45l52pjqet53fqand.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.590920576402-1g2t4mkp6nln1kr45l52pjqet53fqand</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>590920576402-83d8a91u9isdqf0125bcv4dlf4rb7rko.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBkKccs-30Y59dAERVef-I0BiTFFZAW-1Q</string>
+	<key>GCM_SENDER_ID</key>
+	<string>590920576402</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.pairingplanet.pairingplanetfrontend.stg</string>
+	<key>PROJECT_ID</key>
+	<string>pairing-planet-stg</string>
+	<key>STORAGE_BUCKET</key>
+	<string>pairing-planet-stg.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:590920576402:ios:12bd7c599f90da2b95254b</string>
+</dict>
+</plist>
