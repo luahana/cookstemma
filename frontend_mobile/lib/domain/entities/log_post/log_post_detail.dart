@@ -44,7 +44,7 @@ class LogPostDetail {
   final DateTime createdAt;
   final List<Hashtag> hashtags;
   final bool? isSavedByCurrentUser;
-  final int? creatorId; // For ownership check
+  final String? creatorPublicId; // For ownership check (UUID string)
 
   LogPostDetail({
     required this.publicId,
@@ -56,6 +56,6 @@ class LogPostDetail {
     required this.createdAt,
     this.hashtags = const [],
     this.isSavedByCurrentUser,
-    this.creatorId,
+    this.creatorPublicId,
   });
 }

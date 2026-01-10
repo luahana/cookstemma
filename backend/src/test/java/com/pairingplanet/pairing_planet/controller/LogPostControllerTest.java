@@ -104,13 +104,13 @@ class LogPostControllerTest extends BaseIntegrationTest {
     class GetLogDetailTests {
 
         @Test
-        @DisplayName("Should return log detail with creatorId")
-        void getLogDetail_ReturnsCreatorId() throws Exception {
+        @DisplayName("Should return log detail with creatorPublicId")
+        void getLogDetail_ReturnsCreatorPublicId() throws Exception {
             mockMvc.perform(get("/api/v1/log_posts/" + testLogPost.getPublicId())
                             .header("Authorization", "Bearer " + testUserToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.publicId").value(testLogPost.getPublicId().toString()))
-                    .andExpect(jsonPath("$.creatorId").value(testUser.getId()));
+                    .andExpect(jsonPath("$.creatorPublicId").value(testUser.getPublicId().toString()));
         }
     }
 
