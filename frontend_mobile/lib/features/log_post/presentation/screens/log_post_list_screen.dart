@@ -535,7 +535,7 @@ class _FilterTab extends StatelessWidget {
             style: TextStyle(
               fontSize: 15.sp,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? AppColors.textPrimary : Colors.grey[500],
+              color: isSelected ? AppColors.primary : Colors.grey[500],
             ),
           ),
           SizedBox(height: 6.h),
