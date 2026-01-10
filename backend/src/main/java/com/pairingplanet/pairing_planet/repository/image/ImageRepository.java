@@ -42,4 +42,11 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
 
     @Query("SELECT i FROM Image i LEFT JOIN FETCH i.variants WHERE i.publicId = :publicId")
     Optional<Image> findByPublicIdWithVariants(@Param("publicId") UUID publicId);
+
+    // Soft delete queries for user account deletion
+    List<Image> findByUploaderIdAndDeletedAtIsNull(Long uploaderId);
+
+    List<Image> findByUploaderIdAndDeletedAtIsNotNull(Long uploaderId);
+
+    List<Image> findByUploaderId(Long uploaderId);
 }

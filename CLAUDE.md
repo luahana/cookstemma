@@ -135,23 +135,24 @@ git push origin dev
 1. **Before coding** → Create branch from dev in YOUR worktree
 2. **When user says "implement [feature]"** → Lock first, push, THEN code
 3. **Plan with ultrathink** → Research best practices before implementing
-4. **After feature** → Write and run tests (must pass)
-5. **Before commit** → Run pre-commit checklist
-6. **Push & PR** → `git push origin HEAD` then `gh pr create --base dev`
-7. **Run app** → `--flavor dev -t lib/main_dev.dart` (NEVER main.dart)
-8. **UI strings** → Use `.tr`, add to BOTH en.json AND ko.json
-9. **UI sizes** → Use `.w`, `.h`, `.sp`, `.r` (NEVER hardcode pixels)
-10. **Buttons** → Debounce 300ms, check state before API call
-11. **After DTOs/Isar** → Run build_runner
-12. **After await** → Check `if (!context.mounted) return;`
-13. **API IDs** → Use `publicId` (UUID), never internal `id`
-14. **Providers in callbacks** → `ref.read()`, not `ref.watch()`
-15. **Entities** → Never import `json_annotation` or `isar`
-16. **Backend Slice** → Field is `content`, not `items`
-17. **Error handling** → Return `Either<Failure, T>`, never throw
-18. **Commits** → `feat|fix|docs|chore(scope): description`
-19. **When done** → Remove lock, mark ✅ Done
-20. **Backend port** → Use YOUR assigned port (4001-4004)
+4. **After plan mode** → Check docs/ai/FEATURES.md: if feature exists, ask user "Should I update FEATURES.md with the planned changes?" If not there, ask "Should I document this new feature to FEATURES.md?"
+5. **After feature/bugfix** → ALWAYS write tests, then run all tests (must pass)
+6. **Before commit** → Run pre-commit checklist
+7. **Push & PR** → `git push origin HEAD` then `gh pr create --base dev`
+8. **Run app** → Android: `--flavor dev -t lib/main_dev.dart` | iOS: `-t lib/main_dev.dart` (no --flavor, Flutter bug)
+9. **UI strings** → Use `.tr`, add to BOTH en.json AND ko.json
+10. **UI sizes** → Use `.w`, `.h`, `.sp`, `.r` (NEVER hardcode pixels)
+11. **Buttons** → Debounce 300ms, check state before API call
+12. **After DTOs/Isar** → Run build_runner
+13. **After await** → Check `if (!context.mounted) return;`
+14. **API IDs** → Use `publicId` (UUID), never internal `id`
+15. **Providers in callbacks** → `ref.read()`, not `ref.watch()`
+16. **Entities** → Never import `json_annotation` or `isar`
+17. **Backend Slice** → Field is `content`, not `items`
+18. **Error handling** → Return `Either<Failure, T>`, never throw
+19. **Commits** → `feat|fix|docs|chore(scope): description`
+20. **When done** → Remove lock, mark ✅ Done
+21. **Backend port** → Use YOUR assigned port (4001-4004)
 
 ---
 
