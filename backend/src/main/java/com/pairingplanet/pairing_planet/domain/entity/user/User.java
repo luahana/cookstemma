@@ -3,6 +3,7 @@ package com.pairingplanet.pairing_planet.domain.entity.user;
 import com.pairingplanet.pairing_planet.domain.entity.common.BaseEntity;
 import com.pairingplanet.pairing_planet.domain.enums.AccountStatus;
 import com.pairingplanet.pairing_planet.domain.enums.Gender;
+import com.pairingplanet.pairing_planet.domain.enums.MeasurementPreference;
 import com.pairingplanet.pairing_planet.domain.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,6 +33,11 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     private String locale;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "measurement_preference", length = 20)
+    @Builder.Default
+    private MeasurementPreference measurementPreference = MeasurementPreference.ORIGINAL;
 
     @Column(name = "app_refresh_token")
     private String appRefreshToken;

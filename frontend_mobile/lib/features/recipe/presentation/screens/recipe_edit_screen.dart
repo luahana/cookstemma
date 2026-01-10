@@ -74,6 +74,8 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
       _ingredients.add({
         'name': ing.name,
         'amount': ing.amount,
+        'quantity': ing.quantity,
+        'unit': ing.unit,
         'type': ing.type,
         'isOriginal': false, // Not variant mode
         'isDeleted': false,
@@ -113,7 +115,9 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
     setState(() {
       _ingredients.add({
         'name': '',
-        'amount': '',
+        'amount': null,
+        'quantity': null,
+        'unit': null,
         'type': type,
         'isOriginal': false,
         'isDeleted': false,
@@ -204,6 +208,8 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
               (i) => Ingredient(
                 name: i['name'],
                 amount: i['amount'],
+                quantity: i['quantity'] as double?,
+                unit: i['unit'] as String?,
                 type: i['type'],
               ),
             )

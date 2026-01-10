@@ -543,6 +543,49 @@ User logs in within 30 days?
 
 ---
 
+### [FEAT-029]: International Measurement Units
+
+**Status:** 📋 Planned
+
+**Description:** Structured ingredient measurements with unit conversion and recipe scaling for global users. Replaces free-text amount field with numeric quantity + unit enum.
+
+**User Story:** As an international user, I want to view recipe ingredients in my preferred measurement system (metric/US), so that I can follow recipes without manual conversion.
+
+**Research Findings:**
+- How Paprika does it: Structured input (qty + unit dropdown), user preference setting, one-click conversion
+- Industry standard: 67% of international recipe users rely on automated unit converters (CookSmart 2025)
+- Pitfall to avoid: Volume↔weight conversion requires ingredient density database (too complex, unreliable)
+
+**Acceptance Criteria:**
+- [ ] New `MeasurementUnit` enum (ML, L, TSP, TBSP, CUP, G, KG, OZ, LB, PIECE, PINCH, etc.)
+- [ ] RecipeIngredient entity: add `quantity` (Double) + `unit` (Enum), keep `amount` for legacy
+- [ ] User preference: METRIC / US / ORIGINAL (stored in user profile)
+- [ ] Locale-based default detection on signup (US locale → US units, others → Metric)
+- [ ] Conversion service: volume↔volume, weight↔weight only (no density guessing)
+- [ ] Frontend: quantity input + unit dropdown (replaces free-text amount)
+- [ ] Recipe scaling: adjust servings, ingredients auto-scale
+- [ ] Legacy support: existing recipes with string amounts continue to work
+- [ ] Settings page: "Measurement units" preference option
+
+**Technical Notes:**
+- Backend:
+  - `MeasurementUnit.java` enum
+  - `RecipeIngredient.java`: add `quantity`, `unit` fields (nullable for legacy)
+  - `User.java`: add `measurementPreference` field
+  - `MeasurementConversionService.java`: conversion logic
+  - DB migration: add columns to `recipe_ingredients` and `users` tables
+- Frontend:
+  - `measurement_unit.dart` enum
+  - `measurement_service.dart` for conversion
+  - `ingredient_section.dart`: structured input UI
+  - `kitchen_proof_ingredients.dart`: display with conversion
+  - Settings page for preference
+- Conversion rates (to base units):
+  - Volume → ML: CUP=240, TBSP=15, TSP=5, FL_OZ=30
+  - Weight → G: OZ=28.35, LB=453.59, KG=1000
+
+---
+
 # 🏛️ DECISIONS
 
 ## Template
@@ -676,3 +719,4 @@ User logs in within 30 days?
 | FEAT-026 | Image Soft Delete | ✅ |
 | FEAT-027 | Edit/Delete Log Posts | ✅ |
 | FEAT-028 | Cooking Style | ✅ |
+| FEAT-029 | International Measurement Units | 📋 |

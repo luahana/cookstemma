@@ -4,6 +4,13 @@ import 'package:flutter/foundation.dart';
 class DraftIngredient {
   final String name;
   final String? amount;
+
+  /// Numeric quantity for structured measurements (e.g., 2.5).
+  final double? quantity;
+
+  /// Standardized unit name for structured measurements.
+  final String? unit;
+
   final String type;
   final bool isOriginal;
   final bool isDeleted;
@@ -11,6 +18,8 @@ class DraftIngredient {
   DraftIngredient({
     required this.name,
     this.amount,
+    this.quantity,
+    this.unit,
     required this.type,
     this.isOriginal = false,
     this.isDeleted = false,
@@ -22,13 +31,16 @@ class DraftIngredient {
     if (other is! DraftIngredient) return false;
     return name == other.name &&
         amount == other.amount &&
+        quantity == other.quantity &&
+        unit == other.unit &&
         type == other.type &&
         isOriginal == other.isOriginal &&
         isDeleted == other.isDeleted;
   }
 
   @override
-  int get hashCode => Object.hash(name, amount, type, isOriginal, isDeleted);
+  int get hashCode =>
+      Object.hash(name, amount, quantity, unit, type, isOriginal, isDeleted);
 
   /// Check if this ingredient has meaningful content (not just a blank placeholder)
   bool get hasMeaningfulContent => name.isNotEmpty;

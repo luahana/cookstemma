@@ -253,10 +253,14 @@ public class RecipeService {
                             .recipe(recipe)
                             .name(dto.name())
                             .amount(dto.amount())
+                            .quantity(dto.quantity())
+                            .unit(dto.unit())
                             .type(dto.type())
                             .build())
                     .toList();
             ingredientRepository.saveAll(ingredients);
+            // Maintain bidirectional relationship for proper lazy loading in same transaction
+            recipe.getIngredients().addAll(ingredients);
         }
 
         // 2. 단계 저장 및 단계 이미지 연결
@@ -279,6 +283,8 @@ public class RecipeService {
                         .image(stepImage)
                         .build();
                 stepRepository.save(step);
+                // Maintain bidirectional relationship for proper lazy loading in same transaction
+                recipe.getSteps().add(step);
             }
         }
     }
@@ -527,6 +533,8 @@ public class RecipeService {
                             .recipe(recipe)
                             .name(dto.name())
                             .amount(dto.amount())
+                            .quantity(dto.quantity())
+                            .unit(dto.unit())
                             .type(dto.type())
                             .build())
                     .toList();

@@ -1,12 +1,16 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/providers/measurement_preference_provider.dart';
+import 'package:pairing_planet2_frontend/core/services/measurement_service.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
+import 'package:pairing_planet2_frontend/data/models/recipe/ingredient_dto.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/ingredient.dart';
 
 /// Kitchen-Proof Ingredients Section
 /// Collapsible ingredient groups with checkboxes and diff badges
-class KitchenProofIngredients extends StatefulWidget {
+class KitchenProofIngredients extends ConsumerStatefulWidget {
   final List<Ingredient> ingredients;
   final Map<String, dynamic>? changeDiff;
   final bool showDiffBadges;
@@ -19,10 +23,10 @@ class KitchenProofIngredients extends StatefulWidget {
   });
 
   @override
-  State<KitchenProofIngredients> createState() => _KitchenProofIngredientsState();
+  ConsumerState<KitchenProofIngredients> createState() => _KitchenProofIngredientsState();
 }
 
-class _KitchenProofIngredientsState extends State<KitchenProofIngredients> {
+class _KitchenProofIngredientsState extends ConsumerState<KitchenProofIngredients> {
   final Set<String> _checkedIngredients = {};
   bool _showDiff = true;
 
@@ -37,6 +41,9 @@ class _KitchenProofIngredientsState extends State<KitchenProofIngredients> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch measurement preference for auto-conversion
+    final measurementPref = ref.watch(measurementPreferenceProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -53,6 +60,7 @@ class _KitchenProofIngredientsState extends State<KitchenProofIngredients> {
             onToggle: _toggleIngredient,
             changeDiff: widget.changeDiff,
             showDiff: widget.showDiffBadges && _showDiff,
+            measurementPreference: measurementPref,
           ),
         if (secondaryIngredients.isNotEmpty) ...[
           SizedBox(height: 12.h),
@@ -64,6 +72,7 @@ class _KitchenProofIngredientsState extends State<KitchenProofIngredients> {
             onToggle: _toggleIngredient,
             changeDiff: widget.changeDiff,
             showDiff: widget.showDiffBadges && _showDiff,
+            measurementPreference: measurementPref,
           ),
         ],
         if (seasoningIngredients.isNotEmpty) ...[
@@ -76,6 +85,7 @@ class _KitchenProofIngredientsState extends State<KitchenProofIngredients> {
             onToggle: _toggleIngredient,
             changeDiff: widget.changeDiff,
             showDiff: widget.showDiffBadges && _showDiff,
+            measurementPreference: measurementPref,
           ),
         ],
       ],
@@ -136,6 +146,7 @@ class _IngredientGroupCard extends StatefulWidget {
   final Function(String) onToggle;
   final Map<String, dynamic>? changeDiff;
   final bool showDiff;
+  final MeasurementPreference measurementPreference;
 
   const _IngredientGroupCard({
     required this.title,
@@ -145,6 +156,7 @@ class _IngredientGroupCard extends StatefulWidget {
     required this.onToggle,
     this.changeDiff,
     this.showDiff = false,
+    required this.measurementPreference,
   });
 
   @override
@@ -226,7 +238,7 @@ class _IngredientGroupCardState extends State<_IngredientGroupCard> {
         ...widget.ingredients.asMap().entries.map((entry) {
           final index = entry.key;
           final ingredient = entry.value;
-          final ingredientKey = '${ingredient.name}_${ingredient.amount}';
+          final ingredientKey = '${ingredient.name}_${ingredient.displayAmount}';
           final isChecked = widget.checkedIngredients.contains(ingredientKey);
           final diffStatus = _getDiffStatus(ingredient);
 
@@ -237,6 +249,7 @@ class _IngredientGroupCardState extends State<_IngredientGroupCard> {
                 isChecked: isChecked,
                 onToggle: () => widget.onToggle(ingredientKey),
                 diffStatus: widget.showDiff ? diffStatus : null,
+                measurementPreference: widget.measurementPreference,
               ),
               if (index < widget.ingredients.length - 1)
                 Divider(height: 1, indent: 48.w),
@@ -297,17 +310,39 @@ class _IngredientRow extends StatelessWidget {
   final bool isChecked;
   final VoidCallback onToggle;
   final IngredientDiffStatus? diffStatus;
+  final MeasurementPreference measurementPreference;
 
   const _IngredientRow({
     required this.ingredient,
     required this.isChecked,
     required this.onToggle,
     this.diffStatus,
+    required this.measurementPreference,
   });
+
+  /// Get the display amount, converted based on user preference
+  String _getConvertedAmount() {
+    // If ingredient has structured measurements, convert based on preference
+    if (ingredient.hasStructuredMeasurement) {
+      final unitEnum = MeasurementUnit.values.firstWhere(
+        (u) => u.name == ingredient.unit,
+        orElse: () => MeasurementUnit.piece,
+      );
+      final result = MeasurementService.convertForPreference(
+        ingredient.quantity,
+        unitEnum,
+        measurementPreference,
+      );
+      return result.format();
+    }
+    // Legacy: use original amount string
+    return ingredient.amount ?? '';
+  }
 
   @override
   Widget build(BuildContext context) {
     final isRemoved = diffStatus?.type == DiffType.removed;
+    final displayAmount = _getConvertedAmount();
 
     return InkWell(
       onTap: onToggle,
@@ -341,10 +376,10 @@ class _IngredientRow extends StatelessWidget {
                 ),
               ),
             ),
-            // Amount
-            if (ingredient.amount != null && ingredient.amount!.isNotEmpty)
+            // Amount - converted based on user preference
+            if (displayAmount.isNotEmpty)
               Text(
-                ingredient.amount!,
+                displayAmount,
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppColors.textSecondary,

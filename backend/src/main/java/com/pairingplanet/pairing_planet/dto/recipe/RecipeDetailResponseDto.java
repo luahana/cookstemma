@@ -103,7 +103,7 @@ public record RecipeDetailResponseDto(
                 .rootInfo(rootInfo)
                 .parentInfo(parentInfo)
                 .ingredients(recipe.getIngredients().stream()
-                        .map(i -> new IngredientDto(i.getName(), i.getAmount(), i.getType()))
+                        .map(i -> new IngredientDto(i.getName(), i.getAmount(), i.getQuantity(), i.getUnit(), i.getType()))
                         .toList())
                 .steps(recipe.getSteps().stream()
                         .map(s -> {

@@ -4,6 +4,13 @@ import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_draft.dar
 class DraftIngredientDto {
   final String name;
   final String? amount;
+
+  /// Numeric quantity for structured measurements (e.g., 2.5).
+  final double? quantity;
+
+  /// Standardized unit name for structured measurements.
+  final String? unit;
+
   final String type;
   final bool isOriginal;
   final bool isDeleted;
@@ -11,6 +18,8 @@ class DraftIngredientDto {
   DraftIngredientDto({
     required this.name,
     this.amount,
+    this.quantity,
+    this.unit,
     required this.type,
     this.isOriginal = false,
     this.isDeleted = false,
@@ -20,6 +29,8 @@ class DraftIngredientDto {
     return DraftIngredientDto(
       name: json['name'] as String,
       amount: json['amount'] as String?,
+      quantity: (json['quantity'] as num?)?.toDouble(),
+      unit: json['unit'] as String?,
       type: json['type'] as String,
       isOriginal: json['isOriginal'] as bool? ?? false,
       isDeleted: json['isDeleted'] as bool? ?? false,
@@ -29,6 +40,8 @@ class DraftIngredientDto {
   Map<String, dynamic> toJson() => {
         'name': name,
         'amount': amount,
+        'quantity': quantity,
+        'unit': unit,
         'type': type,
         'isOriginal': isOriginal,
         'isDeleted': isDeleted,
@@ -38,6 +51,8 @@ class DraftIngredientDto {
     return DraftIngredientDto(
       name: entity.name,
       amount: entity.amount,
+      quantity: entity.quantity,
+      unit: entity.unit,
       type: entity.type,
       isOriginal: entity.isOriginal,
       isDeleted: entity.isDeleted,
@@ -48,6 +63,8 @@ class DraftIngredientDto {
     return DraftIngredient(
       name: name,
       amount: amount,
+      quantity: quantity,
+      unit: unit,
       type: type,
       isOriginal: isOriginal,
       isDeleted: isDeleted,

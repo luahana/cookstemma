@@ -5,7 +5,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
+import 'package:pairing_planet2_frontend/core/providers/measurement_preference_provider.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
+import 'package:pairing_planet2_frontend/data/models/recipe/ingredient_dto.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -14,6 +16,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLocale = ref.watch(localeProvider);
+    final measurementPref = ref.watch(measurementPreferenceProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -35,6 +38,13 @@ class SettingsScreen extends ConsumerWidget {
             title: 'settings.language'.tr(),
             subtitle: _getLanguageDisplayName(currentLocale),
             onTap: () => context.push(RouteConstants.profileEdit),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.straighten,
+            title: 'settings.measurementUnits'.tr(),
+            subtitle: _getMeasurementDisplayName(measurementPref, currentLocale),
+            onTap: () => _showMeasurementPreferenceDialog(context, ref, measurementPref),
           ),
           _buildSettingsTile(
             context,
@@ -171,6 +181,52 @@ class SettingsScreen extends ConsumerWidget {
               'settings.logout'.tr(),
               style: const TextStyle(color: Colors.red),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getMeasurementDisplayName(MeasurementPreference pref, String locale) {
+    if (locale.startsWith('ko')) {
+      return pref.displayNameKo;
+    }
+    return pref.displayName;
+  }
+
+  void _showMeasurementPreferenceDialog(
+    BuildContext context,
+    WidgetRef ref,
+    MeasurementPreference current,
+  ) {
+    final locale = ref.read(localeProvider);
+    final isKorean = locale.startsWith('ko');
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('settings.measurementUnits'.tr()),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: MeasurementPreference.values.map((pref) {
+            return RadioListTile<MeasurementPreference>(
+              title: Text(isKorean ? pref.displayNameKo : pref.displayName),
+              value: pref,
+              groupValue: current,
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(measurementPreferenceProvider.notifier).setPreference(value);
+                  Navigator.pop(dialogContext);
+                }
+              },
+              activeColor: AppColors.primary,
+            );
+          }).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('common.cancel'.tr()),
           ),
         ],
       ),

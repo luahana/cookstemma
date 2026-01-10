@@ -83,14 +83,14 @@ claude --dangerously-skip-permissions --model opus
 
 ## 🔍 BEST PRACTICES RESEARCH
 
-| Feature Type | Research These Apps |
-|--------------|---------------------|
-| Follow system | Instagram, Twitter, TikTok |
-| Notifications | Slack, Discord, WhatsApp |
-| Search | Pinterest, Spotify, YouTube |
-| Feed/List | Instagram, Reddit, TikTok |
-| Profile | Instagram, LinkedIn |
-| Image upload | Instagram, WhatsApp |
+| Feature Type  | Research These Apps         |
+| ------------- | --------------------------- |
+| Follow system | Instagram, Twitter, TikTok  |
+| Notifications | Slack, Discord, WhatsApp    |
+| Search        | Pinterest, Spotify, YouTube |
+| Feed/List     | Instagram, Reddit, TikTok   |
+| Profile       | Instagram, LinkedIn         |
+| Image upload  | Instagram, WhatsApp         |
 
 ---
 
@@ -99,15 +99,17 @@ claude --dangerously-skip-permissions --model opus
 **A feature without unit tests and integration test is not a feature. It's a liability.**
 
 ### What Needs Tests
-| Change Type | Required Tests |
-|-------------|----------------|
-| New API endpoint | Unit test for controller + service |
-| New repository method | Unit test with mock |
-| New UI widget | Widget test |
-| Business logic | Unit test |
-| Bug fix | Regression test (proves bug is fixed) |
+
+| Change Type           | Required Tests                        |
+| --------------------- | ------------------------------------- |
+| New API endpoint      | Unit test for controller + service    |
+| New repository method | Unit test with mock                   |
+| New UI widget         | Widget test                           |
+| Business logic        | Unit test                             |
+| Bug fix               | Regression test (proves bug is fixed) |
 
 ### Test File Naming
+
 ```
 lib/features/recipe/recipe_service.dart
 → test/features/recipe/recipe_service_test.dart
@@ -117,11 +119,13 @@ lib/features/recipe/widgets/recipe_card.dart
 ```
 
 ### Minimum Coverage
+
 - New code must have tests
 - Don't merge if tests fail
 - Run `flutter test --coverage` to check
 
 ### Test Structure
+
 ```dart
 void main() {
   group('RecipeService', () {
@@ -136,10 +140,10 @@ void main() {
     test('getRecipe returns recipe when found', () async {
       // Arrange
       when(mockRepository.getById(any)).thenAnswer((_) async => Right(testRecipe));
-      
+
       // Act
       final result = await service.getRecipe('123');
-      
+
       // Assert
       expect(result.isRight(), true);
     });
@@ -147,10 +151,10 @@ void main() {
     test('getRecipe returns failure when not found', () async {
       // Arrange
       when(mockRepository.getById(any)).thenAnswer((_) async => Left(NotFoundFailure()));
-      
+
       // Act
       final result = await service.getRecipe('invalid');
-      
+
       // Assert
       expect(result.isLeft(), true);
     });
@@ -164,14 +168,15 @@ void main() {
 
 **⚠️ NEVER hardcode pixel values. ALWAYS use ScreenUtil extensions.**
 
-| Extension | Use For | Example |
-|-----------|---------|---------|
-| `.w` | Width, horizontal padding/margin | `width: 16.w`, `EdgeInsets.symmetric(horizontal: 20.w)` |
-| `.h` | Height, vertical padding/margin | `height: 200.h`, `EdgeInsets.only(top: 10.h)` |
-| `.sp` | Font sizes | `fontSize: 14.sp` |
-| `.r` | Border radius, equal padding | `BorderRadius.circular(8.r)`, `EdgeInsets.all(8.r)` |
+| Extension | Use For                          | Example                                                 |
+| --------- | -------------------------------- | ------------------------------------------------------- |
+| `.w`      | Width, horizontal padding/margin | `width: 16.w`, `EdgeInsets.symmetric(horizontal: 20.w)` |
+| `.h`      | Height, vertical padding/margin  | `height: 200.h`, `EdgeInsets.only(top: 10.h)`           |
+| `.sp`     | Font sizes                       | `fontSize: 14.sp`                                       |
+| `.r`      | Border radius, equal padding     | `BorderRadius.circular(8.r)`, `EdgeInsets.all(8.r)`     |
 
 ### ❌ BAD (will be rejected)
+
 ```dart
 Container(width: 16, height: 200)
 Padding(padding: EdgeInsets.all(8))
@@ -182,6 +187,7 @@ Icon(Icons.star, size: 24)
 ```
 
 ### ✅ GOOD
+
 ```dart
 Container(width: 16.w, height: 200.h)
 Padding(padding: EdgeInsets.all(8.r))
@@ -192,6 +198,7 @@ Icon(Icons.star, size: 24.sp)
 ```
 
 ### Edge Cases
+
 ```dart
 // Aspect ratios - use .w for both to maintain ratio
 Container(width: 100.w, height: 100.w)  // Square
@@ -235,6 +242,7 @@ Container(height: 1.h)  // Horizontal line
 ## 🔀 GIT
 
 **Branch strategy:**
+
 ```
 main ← staging ← dev ← feature/*
                      ← bugfix/*
@@ -243,12 +251,13 @@ main ← staging ← dev ← feature/*
 **PR targets:**
 | From | To |
 |------|----|
-| feature/* | dev |
-| bugfix/* | dev |
+| feature/_ | dev |
+| bugfix/_ | dev |
 | dev | staging |
 | staging | main |
 
 **Commands:**
+
 ```bash
 git fetch origin
 git checkout -b feature/xxx origin/dev
@@ -260,11 +269,11 @@ gh pr create --base dev
 
 ## 🔥 FIREBASE ENVIRONMENTS
 
-| Env | Project | Flavor |
-|-----|---------|--------|
-| Dev | pairing-planet-dev | dev |
-| Staging | pairing-planet-stg | staging |
-| Prod | pairing-planet-prod | prod |
+| Env     | Project             | Flavor  |
+| ------- | ------------------- | ------- |
+| Dev     | pairing-planet-dev  | dev     |
+| Staging | pairing-planet-stg  | staging |
+| Prod    | pairing-planet-prod | prod    |
 
 **❌ NEVER create main.dart** - Use flavored entry points only.
 
@@ -336,6 +345,7 @@ Text('recipe.by'.tr(args: [name]))
 ## 🔑 KEY PATTERNS
 
 ### Either for Error Handling
+
 ```dart
 Future<Either<Failure, Recipe>> getRecipe(String id) async {
   try {
@@ -348,6 +358,7 @@ Future<Either<Failure, Recipe>> getRecipe(String id) async {
 ```
 
 ### Provider Usage
+
 ```dart
 // In build() - reactive
 final recipes = ref.watch(recipesProvider);
@@ -357,6 +368,7 @@ onTap: () => ref.read(recipesProvider.notifier).refresh();
 ```
 
 ### Context Check After Await
+
 ```dart
 await someAsyncOperation();
 if (!context.mounted) return;
@@ -417,11 +429,13 @@ void onTap() {
 ## 🛑 STOP AND CHECK
 
 **Before starting feature:**
+
 - [ ] On correct branch?
 - [ ] Branch created from latest dev?
 - [ ] Test cases planned?
 
 **Before committing:**
+
 - [ ] Tests written?
 - [ ] Tests pass? (`flutter test`, `./gradlew test`)
 - [ ] No hardcoded strings?
