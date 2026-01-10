@@ -144,7 +144,12 @@ public class LogPostService {
             isSavedByCurrentUser = savedLogRepository.existsByUserIdAndLogPostId(userId, logPost.getId());
         }
 
-        // 5. 최종 DTO 생성
+        // 5. 소유자 publicId 조회 (edit/delete 권한 확인용)
+        UUID creatorPublicId = userRepository.findById(logPost.getCreatorId())
+                .map(User::getPublicId)
+                .orElse(null);
+
+        // 6. 최종 DTO 생성
         return new LogPostDetailResponseDto(
                 logPost.getPublicId(),
                 logPost.getTitle(),
@@ -155,7 +160,7 @@ public class LogPostService {
                 logPost.getCreatedAt(),
                 hashtagDtos,
                 isSavedByCurrentUser,
-                logPost.getCreatorId()
+                creatorPublicId
         );
     }
 

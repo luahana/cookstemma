@@ -57,8 +57,8 @@ void main() {
     });
   });
 
-  group('LogPostDetail with creatorId', () {
-    test('creates entity with creatorId', () {
+  group('LogPostDetail with creatorPublicId', () {
+    test('creates entity with creatorPublicId', () {
       final log = LogPostDetail(
         publicId: 'test-public-id',
         content: 'Test content',
@@ -66,14 +66,14 @@ void main() {
         imageUrls: ['https://example.com/image.jpg'],
         recipePublicId: 'recipe-123',
         createdAt: DateTime(2024, 1, 1),
-        creatorId: 42,
+        creatorPublicId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
       );
 
-      expect(log.creatorId, 42);
+      expect(log.creatorPublicId, 'a1b2c3d4-e5f6-7890-abcd-ef1234567890');
       expect(log.publicId, 'test-public-id');
     });
 
-    test('creatorId can be null', () {
+    test('creatorPublicId can be null', () {
       final log = LogPostDetail(
         publicId: 'test-public-id',
         content: 'Test content',
@@ -81,10 +81,10 @@ void main() {
         imageUrls: [],
         recipePublicId: 'recipe-123',
         createdAt: DateTime(2024, 1, 1),
-        creatorId: null,
+        creatorPublicId: null,
       );
 
-      expect(log.creatorId, isNull);
+      expect(log.creatorPublicId, isNull);
     });
   });
 

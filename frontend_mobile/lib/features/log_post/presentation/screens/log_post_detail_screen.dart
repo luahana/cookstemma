@@ -36,9 +36,8 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
     final profileAsync = ref.read(myProfileProvider);
     return profileAsync.maybeWhen(
       data: (profile) {
-        // Compare user id (String) with creatorId (int)
-        final userId = int.tryParse(profile.user.id);
-        return userId != null && userId == log.creatorId;
+        // Compare UUID strings directly
+        return profile.user.id == log.creatorPublicId;
       },
       orElse: () => false,
     );

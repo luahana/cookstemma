@@ -211,18 +211,18 @@ class LogPostServiceTest extends BaseIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Get Log Detail with creatorId")
+    @DisplayName("Get Log Detail with creatorPublicId")
     class GetLogDetailTests {
 
         @Test
-        @DisplayName("Should return creatorId in response")
-        void getLogDetail_ReturnsCreatorId() {
+        @DisplayName("Should return creatorPublicId in response")
+        void getLogDetail_ReturnsCreatorPublicId() {
             LogPostDetailResponseDto result = logPostService.getLogDetail(
                     testLogPost.getPublicId(),
                     testUser.getId()
             );
 
-            assertThat(result.creatorId()).isEqualTo(testUser.getId());
+            assertThat(result.creatorPublicId()).isEqualTo(testUser.getPublicId());
         }
     }
 }
