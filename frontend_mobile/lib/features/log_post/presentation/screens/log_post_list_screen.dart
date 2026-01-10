@@ -356,7 +356,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
               Expanded(
                 flex: 1,
                 child: Padding(
-                  padding: EdgeInsets.all(10.r),
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
