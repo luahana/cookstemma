@@ -100,7 +100,9 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
 
   /// Refresh: Force fetch from network.
   Future<void> refresh() async {
-    state = state.copyWith(isLoading: true, error: null);
+    // Clear error but don't set isLoading if we have data
+    // (CupertinoSliverRefreshControl shows its own spinner)
+    state = state.copyWith(error: null);
     await _fetchFromNetwork();
   }
 

@@ -38,6 +38,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
           'recipe.ingredients.main'.tr(),
           "MAIN",
           Icons.set_meal_outlined,
+          isRequired: true,
         ),
         SizedBox(height: 32.h),
         _buildCategorySection(
@@ -58,8 +59,9 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
   Widget _buildCategorySection(
     String title,
     String type,
-    IconData icon,
-  ) {
+    IconData icon, {
+    bool isRequired = false,
+  }) {
     final activeItems = widget.ingredients
         .asMap()
         .entries
@@ -75,7 +77,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MinimalHeader(icon: icon, title: title),
+        MinimalHeader(icon: icon, title: title, isRequired: isRequired),
         SizedBox(height: 12.h),
         ...activeItems.map((e) => _buildIngredientRow(e.key)),
         TextButton.icon(
@@ -182,11 +184,9 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     return Container(
       height: 44.h,
       decoration: BoxDecoration(
-        color: enabled ? Colors.grey[50] : Colors.grey[200],
+        color: enabled ? Colors.grey[100] : Colors.grey[200],
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: enabled ? Colors.transparent : Colors.grey[300]!,
-        ),
+        border: Border.all(color: Colors.grey[300]!),
       ),
       child: TextField(
         controller: controller,
@@ -236,11 +236,9 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     return Container(
       height: 44.h,
       decoration: BoxDecoration(
-        color: enabled ? Colors.grey[50] : Colors.grey[200],
+        color: enabled ? Colors.grey[100] : Colors.grey[200],
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: enabled ? Colors.transparent : Colors.grey[300]!,
-        ),
+        border: Border.all(color: Colors.grey[300]!),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -322,11 +320,9 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
       height: 44.h,
       decoration: BoxDecoration(
         // 💡 비활성 상태일 때 시각적으로 다르게 표시
-        color: enabled ? Colors.grey[50] : Colors.grey[200],
+        color: enabled ? Colors.grey[100] : Colors.grey[200],
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: enabled ? Colors.transparent : Colors.grey[300]!,
-        ),
+        border: Border.all(color: Colors.grey[300]!),
       ),
       child: TextField(
         controller: controller,
