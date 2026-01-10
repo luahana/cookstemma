@@ -356,70 +356,67 @@ class _MyRecipesTabState extends ConsumerState<_MyRecipesTab> {
     }
 
     // Data available or empty (with filter chips)
-    return RefreshIndicator(
-      onRefresh: () => ref.read(myRecipesProvider.notifier).refresh(),
-      child: Column(
-        children: [
-          _buildCacheIndicator(
-            isFromCache: state.isFromCache,
-            cachedAt: state.cachedAt,
-            isLoading: state.isLoading,
+    return Column(
+      children: [
+        _buildCacheIndicator(
+          isFromCache: state.isFromCache,
+          cachedAt: state.cachedAt,
+          isLoading: state.isLoading,
+        ),
+        // Filter chips
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          child: Row(
+            children: [
+              _buildRecipeFilterChip(
+                label: 'profile.filter.all'.tr(),
+                isSelected: notifier.currentFilter == RecipeTypeFilter.all,
+                onTap: () => notifier.setFilter(RecipeTypeFilter.all),
+              ),
+              SizedBox(width: 8.w),
+              _buildRecipeFilterChip(
+                label: 'profile.filter.original'.tr(),
+                isSelected: notifier.currentFilter == RecipeTypeFilter.original,
+                onTap: () => notifier.setFilter(RecipeTypeFilter.original),
+              ),
+              SizedBox(width: 8.w),
+              _buildRecipeFilterChip(
+                label: 'profile.filter.variants'.tr(),
+                isSelected: notifier.currentFilter == RecipeTypeFilter.variants,
+                onTap: () => notifier.setFilter(RecipeTypeFilter.variants),
+              ),
+            ],
           ),
-          // Filter chips
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-            child: Row(
-              children: [
-                _buildRecipeFilterChip(
-                  label: 'profile.filter.all'.tr(),
-                  isSelected: notifier.currentFilter == RecipeTypeFilter.all,
-                  onTap: () => notifier.setFilter(RecipeTypeFilter.all),
-                ),
-                SizedBox(width: 8.w),
-                _buildRecipeFilterChip(
-                  label: 'profile.filter.original'.tr(),
-                  isSelected: notifier.currentFilter == RecipeTypeFilter.original,
-                  onTap: () => notifier.setFilter(RecipeTypeFilter.original),
-                ),
-                SizedBox(width: 8.w),
-                _buildRecipeFilterChip(
-                  label: 'profile.filter.variants'.tr(),
-                  isSelected: notifier.currentFilter == RecipeTypeFilter.variants,
-                  onTap: () => notifier.setFilter(RecipeTypeFilter.variants),
-                ),
-              ],
+        ),
+        // Empty state or list
+        if (state.items.isEmpty)
+          Expanded(
+            child: _buildEmptyState(
+              icon: Icons.restaurant_menu,
+              message: 'profile.noRecipesYet'.tr(),
+              subMessage: 'profile.createRecipe'.tr(),
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: EdgeInsets.all(16.r),
+              itemCount: state.items.length + (state.hasNext ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= state.items.length) {
+                  return Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.r),
+                      child: const CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                return _buildRecipeCard(context, state.items[index]);
+              },
             ),
           ),
-          // Empty state or list
-          if (state.items.isEmpty)
-            Expanded(
-              child: _buildEmptyState(
-                icon: Icons.restaurant_menu,
-                message: 'profile.noRecipesYet'.tr(),
-                subMessage: 'profile.createRecipe'.tr(),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: EdgeInsets.all(16.r),
-                itemCount: state.items.length + (state.hasNext ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index >= state.items.length) {
-                    return Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16.r),
-                        child: const CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-                  return _buildRecipeCard(context, state.items[index]);
-                },
-              ),
-            ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -573,77 +570,74 @@ class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
     }
 
     // Data available or empty (with filter chips)
-    return RefreshIndicator(
-      onRefresh: () => ref.read(myLogsProvider.notifier).refresh(),
-      child: Column(
-        children: [
-          _buildCacheIndicator(
-            isFromCache: state.isFromCache,
-            cachedAt: state.cachedAt,
-            isLoading: state.isLoading,
+    return Column(
+      children: [
+        _buildCacheIndicator(
+          isFromCache: state.isFromCache,
+          cachedAt: state.cachedAt,
+          isLoading: state.isLoading,
+        ),
+        // Filter chips with emojis
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+          child: Row(
+            children: [
+              _buildLogFilterChip(
+                label: 'profile.filter.all'.tr(),
+                isSelected: notifier.currentFilter == LogOutcomeFilter.all,
+                onTap: () => notifier.setFilter(LogOutcomeFilter.all),
+              ),
+              SizedBox(width: 8.w),
+              _buildLogFilterChip(
+                label: '😊 ${'profile.filter.wins'.tr()}',
+                isSelected: notifier.currentFilter == LogOutcomeFilter.wins,
+                onTap: () => notifier.setFilter(LogOutcomeFilter.wins),
+              ),
+              SizedBox(width: 8.w),
+              _buildLogFilterChip(
+                label: '😐 ${'profile.filter.learning'.tr()}',
+                isSelected: notifier.currentFilter == LogOutcomeFilter.learning,
+                onTap: () => notifier.setFilter(LogOutcomeFilter.learning),
+              ),
+              SizedBox(width: 8.w),
+              _buildLogFilterChip(
+                label: '😢 ${'profile.filter.lessons'.tr()}',
+                isSelected: notifier.currentFilter == LogOutcomeFilter.lessons,
+                onTap: () => notifier.setFilter(LogOutcomeFilter.lessons),
+              ),
+            ],
           ),
-          // Filter chips with emojis
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-            child: Row(
-              children: [
-                _buildLogFilterChip(
-                  label: 'profile.filter.all'.tr(),
-                  isSelected: notifier.currentFilter == LogOutcomeFilter.all,
-                  onTap: () => notifier.setFilter(LogOutcomeFilter.all),
-                ),
-                SizedBox(width: 8.w),
-                _buildLogFilterChip(
-                  label: '😊 ${'profile.filter.wins'.tr()}',
-                  isSelected: notifier.currentFilter == LogOutcomeFilter.wins,
-                  onTap: () => notifier.setFilter(LogOutcomeFilter.wins),
-                ),
-                SizedBox(width: 8.w),
-                _buildLogFilterChip(
-                  label: '😐 ${'profile.filter.learning'.tr()}',
-                  isSelected: notifier.currentFilter == LogOutcomeFilter.learning,
-                  onTap: () => notifier.setFilter(LogOutcomeFilter.learning),
-                ),
-                SizedBox(width: 8.w),
-                _buildLogFilterChip(
-                  label: '😢 ${'profile.filter.lessons'.tr()}',
-                  isSelected: notifier.currentFilter == LogOutcomeFilter.lessons,
-                  onTap: () => notifier.setFilter(LogOutcomeFilter.lessons),
-                ),
-              ],
+        ),
+        // Empty state or grid
+        if (state.items.isEmpty)
+          Expanded(
+            child: _buildEmptyState(
+              icon: Icons.history_edu,
+              message: 'profile.noLogsYet'.tr(),
+              subMessage: 'profile.tryRecipe'.tr(),
+            ),
+          )
+        else
+          Expanded(
+            child: GridView.builder(
+              controller: _scrollController,
+              padding: EdgeInsets.all(12.r),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12.h,
+                crossAxisSpacing: 12.w,
+                childAspectRatio: 0.85,
+              ),
+              itemCount: state.items.length + (state.hasNext ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= state.items.length) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return _buildLogCard(context, state.items[index]);
+              },
             ),
           ),
-          // Empty state or grid
-          if (state.items.isEmpty)
-            Expanded(
-              child: _buildEmptyState(
-                icon: Icons.history_edu,
-                message: 'profile.noLogsYet'.tr(),
-                subMessage: 'profile.tryRecipe'.tr(),
-              ),
-            )
-          else
-            Expanded(
-              child: GridView.builder(
-                controller: _scrollController,
-                padding: EdgeInsets.all(12.r),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12.h,
-                  crossAxisSpacing: 12.w,
-                  childAspectRatio: 0.85,
-                ),
-                itemCount: state.items.length + (state.hasNext ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index >= state.items.length) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  return _buildLogCard(context, state.items[index]);
-                },
-              ),
-            ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -815,46 +809,38 @@ class _SavedTabState extends ConsumerState<_SavedTab> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        await Future.wait([
-          ref.read(savedRecipesProvider.notifier).refresh(),
-          ref.read(savedLogsProvider.notifier).refresh(),
-        ]);
-      },
-      child: Column(
-        children: [
-          // Filter chips
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-            child: Row(
-              children: [
-                _buildFilterChip(
-                  label: 'profile.filter.all'.tr(),
-                  isSelected: _currentFilter == SavedTypeFilter.all,
-                  onTap: () => setState(() => _currentFilter = SavedTypeFilter.all),
-                ),
-                SizedBox(width: 8.w),
-                _buildFilterChip(
-                  label: 'profile.filter.recipes'.tr(),
-                  isSelected: _currentFilter == SavedTypeFilter.recipes,
-                  onTap: () => setState(() => _currentFilter = SavedTypeFilter.recipes),
-                ),
-                SizedBox(width: 8.w),
-                _buildFilterChip(
-                  label: 'profile.filter.logs'.tr(),
-                  isSelected: _currentFilter == SavedTypeFilter.logs,
-                  onTap: () => setState(() => _currentFilter = SavedTypeFilter.logs),
-                ),
-              ],
-            ),
+    return Column(
+      children: [
+        // Filter chips
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          child: Row(
+            children: [
+              _buildFilterChip(
+                label: 'profile.filter.all'.tr(),
+                isSelected: _currentFilter == SavedTypeFilter.all,
+                onTap: () => setState(() => _currentFilter = SavedTypeFilter.all),
+              ),
+              SizedBox(width: 8.w),
+              _buildFilterChip(
+                label: 'profile.filter.recipes'.tr(),
+                isSelected: _currentFilter == SavedTypeFilter.recipes,
+                onTap: () => setState(() => _currentFilter = SavedTypeFilter.recipes),
+              ),
+              SizedBox(width: 8.w),
+              _buildFilterChip(
+                label: 'profile.filter.logs'.tr(),
+                isSelected: _currentFilter == SavedTypeFilter.logs,
+                onTap: () => setState(() => _currentFilter = SavedTypeFilter.logs),
+              ),
+            ],
           ),
-          // Content
-          Expanded(
-            child: _buildFilteredContent(recipesState, logsState),
-          ),
-        ],
-      ),
+        ),
+        // Content
+        Expanded(
+          child: _buildFilteredContent(recipesState, logsState),
+        ),
+      ],
     );
   }
 
