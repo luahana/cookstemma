@@ -96,7 +96,8 @@ class LogPostServiceTest extends BaseIntegrationTest {
                     "Updated Title",
                     "Updated content",
                     "PARTIAL",
-                    List.of("tag1", "tag2")
+                    List.of("tag1", "tag2"),
+                    null
             );
 
             LogPostDetailResponseDto result = logPostService.updateLog(
@@ -121,6 +122,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
                     "Updated Title",
                     "Updated content",
                     "PARTIAL",
+                    null,
                     null
             );
 
@@ -139,6 +141,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
                     "Updated Title",
                     "Updated content",
                     "PARTIAL",
+                    null,
                     null
             );
 
@@ -158,7 +161,8 @@ class LogPostServiceTest extends BaseIntegrationTest {
                     null,
                     "Content with tags",
                     "SUCCESS",
-                    List.of("tag1", "tag2")
+                    List.of("tag1", "tag2"),
+                    null
             );
             logPostService.updateLog(testLogPost.getPublicId(), addTagsRequest, testUser.getId());
 
@@ -167,6 +171,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
                     null,
                     "Content without tags",
                     "SUCCESS",
+                    null,
                     null
             );
             logPostService.updateLog(testLogPost.getPublicId(), clearTagsRequest, testUser.getId());
