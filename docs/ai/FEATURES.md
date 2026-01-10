@@ -404,6 +404,51 @@ Client                                  Server
 
 ---
 
+### [FEAT-026]: Image Soft Delete with Account Deletion
+
+**Status:** ✅ Done
+**Branch:** `feature/image-soft-delete`
+**PR:** #35
+
+**Description:** Soft-delete user's images when account is closed, with 30-day grace period for recovery.
+
+**Policy:**
+- Recipes are NOT deleted when user closes account (remain visible)
+- Images ARE soft-deleted with user account
+- Images restored if user logs back in within 30 days
+- Images hard-deleted from S3 after 30-day grace period
+
+**Acceptance Criteria:**
+- [x] Add `deletedAt` and `deleteScheduledAt` fields to Image entity
+- [x] Soft-delete all user images when account is closed
+- [x] Restore all user images when account is restored
+- [x] Hard-delete images from S3 when account is permanently purged
+- [x] Database migration with proper indexes
+- [x] Comprehensive test coverage (9 tests)
+
+**Technical Notes:**
+- Backend: `Image.java` with soft delete fields, `ImageService` with soft/restore/hard delete methods
+- Migration: `V18__add_image_soft_delete.sql` with indexes for efficient queries
+- `UserService.deleteAccount()` → calls `imageService.softDeleteAllByUploader()`
+- `UserService.restoreDeletedAccount()` → calls `imageService.restoreAllByUploader()`
+- `UserService.purgeExpiredDeletedAccounts()` → calls `imageService.hardDeleteAllByUploader()`
+
+**Flow:**
+```
+User closes account
+    ↓
+User soft-deleted (status=DELETED, 30-day schedule)
+Images soft-deleted (same schedule)
+    ↓
+User logs in within 30 days?
+    ├── YES → User & images restored
+    └── NO (30 days pass) → Scheduler purges:
+            Images hard-deleted from S3
+            User hard-deleted from DB
+```
+
+---
+
 ## Planned 📋
 
 ### [FEAT-016]: Improved Onboarding
@@ -579,3 +624,4 @@ Client                                  Server
 | FEAT-017 | Full-Text Search | 📋 |
 | FEAT-018 | Achievement Badges | 📋 |
 | FEAT-025 | Idempotency Keys | ✅ |
+| FEAT-026 | Image Soft Delete | ✅ |

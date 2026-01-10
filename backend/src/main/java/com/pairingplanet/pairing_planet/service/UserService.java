@@ -109,6 +109,7 @@ public class UserService {
     /**
      * 계정 삭제 (소프트 삭제)
      * 30일 유예 기간 후 실제 삭제 처리
+     * 사용자의 이미지도 함께 소프트 삭제됨
      */
     @Transactional
     public void deleteAccount(UserPrincipal principal) {
@@ -116,27 +117,39 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Instant now = Instant.now();
+        Instant scheduledDeletion = now.plus(30, ChronoUnit.DAYS);
+
+        // Soft-delete user
         user.setStatus(AccountStatus.DELETED);
         user.setDeletedAt(now);
-        user.setDeleteScheduledAt(now.plus(30, ChronoUnit.DAYS));
+        user.setDeleteScheduledAt(scheduledDeletion);
         user.setAppRefreshToken(null); // 모든 세션 무효화
+
+        // Soft-delete user's images (same schedule as user)
+        imageService.softDeleteAllByUploader(user.getId(), now, scheduledDeletion);
     }
 
     /**
      * 삭제된 계정 복구 (로그인 시 호출)
+     * 사용자의 소프트 삭제된 이미지도 함께 복구됨
      */
     @Transactional
     public void restoreDeletedAccount(User user) {
         if (user.getStatus() == AccountStatus.DELETED && user.getDeletedAt() != null) {
+            // Restore user
             user.setStatus(AccountStatus.ACTIVE);
             user.setDeletedAt(null);
             user.setDeleteScheduledAt(null);
+
+            // Restore user's soft-deleted images
+            imageService.restoreAllByUploader(user.getId());
         }
     }
 
     /**
      * 유예 기간이 지난 삭제된 계정 영구 삭제 (스케줄러에서 호출)
      * 30일 유예 기간이 지나면 계정 및 관련 데이터 영구 삭제
+     * 이미지는 S3에서도 삭제됨
      */
     @Transactional
     public void purgeExpiredDeletedAccounts() {
@@ -145,7 +158,10 @@ public class UserService {
                 AccountStatus.DELETED, now);
 
         for (User user : expiredUsers) {
-            // 관련 데이터 삭제는 cascade 설정에 따라 처리됨
+            // Hard-delete images from S3 and DB first
+            imageService.hardDeleteAllByUploader(user.getId());
+
+            // Then delete user (other data handled by cascade)
             userRepository.delete(user);
         }
     }

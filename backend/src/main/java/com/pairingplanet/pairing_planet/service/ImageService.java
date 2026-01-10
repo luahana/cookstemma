@@ -147,4 +147,66 @@ public class ImageService {
         if (fullUrl == null) return "";
         return fullUrl.replace(urlPrefix + "/", "");
     }
+
+    /**
+     * Soft delete all images uploaded by a user.
+     * Called when user closes their account.
+     */
+    @Transactional
+    public void softDeleteAllByUploader(Long uploaderId, Instant deletedAt, Instant scheduledAt) {
+        List<Image> userImages = imageRepository.findByUploaderIdAndDeletedAtIsNull(uploaderId);
+        for (Image image : userImages) {
+            image.setDeletedAt(deletedAt);
+            image.setDeleteScheduledAt(scheduledAt);
+        }
+        log.info("Soft deleted {} images for uploader {}", userImages.size(), uploaderId);
+    }
+
+    /**
+     * Restore all soft-deleted images for a user.
+     * Called when user restores their account within grace period.
+     */
+    @Transactional
+    public void restoreAllByUploader(Long uploaderId) {
+        List<Image> deletedImages = imageRepository.findByUploaderIdAndDeletedAtIsNotNull(uploaderId);
+        for (Image image : deletedImages) {
+            image.setDeletedAt(null);
+            image.setDeleteScheduledAt(null);
+        }
+        log.info("Restored {} images for uploader {}", deletedImages.size(), uploaderId);
+    }
+
+    /**
+     * Hard delete all images for a user from S3 and database.
+     * Called when user account is permanently purged after grace period.
+     */
+    @Transactional
+    public void hardDeleteAllByUploader(Long uploaderId) {
+        List<Image> images = imageRepository.findByUploaderId(uploaderId);
+        for (Image image : images) {
+            try {
+                // Delete original image from S3
+                s3Client.deleteObject(DeleteObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(image.getStoredFilename())
+                        .build());
+
+                // Delete variants from S3
+                if (image.hasVariants()) {
+                    for (Image variant : image.getVariants()) {
+                        s3Client.deleteObject(DeleteObjectRequest.builder()
+                                .bucket(bucket)
+                                .key(variant.getStoredFilename())
+                                .build());
+                    }
+                }
+
+                // Delete from DB (variants cascade due to orphanRemoval)
+                imageRepository.delete(image);
+            } catch (Exception e) {
+                log.error("Failed to hard delete image: {}", image.getStoredFilename(), e);
+            }
+        }
+        log.info("Hard deleted {} images for uploader {}", images.size(), uploaderId);
+    }
 }
