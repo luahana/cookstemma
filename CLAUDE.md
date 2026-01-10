@@ -138,7 +138,7 @@ git push origin dev
 4. **After feature** → Write and run tests (must pass)
 5. **Before commit** → Run pre-commit checklist
 6. **Push & PR** → `git push origin HEAD` then `gh pr create --base dev`
-7. **Run app** → `--flavor dev -t lib/main_dev.dart` (NEVER main.dart)
+7. **Run app** → Android: `--flavor dev -t lib/main_dev.dart` | iOS: `-t lib/main_dev.dart` (no --flavor, Flutter bug)
 8. **UI strings** → Use `.tr`, add to BOTH en.json AND ko.json
 9. **UI sizes** → Use `.w`, `.h`, `.sp`, `.r` (NEVER hardcode pixels)
 10. **Buttons** → Debounce 300ms, check state before API call
@@ -250,7 +250,10 @@ pwd
 ./gradlew bootRun --args='--server.port=4004'  # Claude-4
 
 # Run frontend
+# Android:
 flutter run --flavor dev -t lib/main_dev.dart
+# iOS (no --flavor due to Flutter 3.38.5 native_assets bug):
+flutter run -t lib/main_dev.dart
 
 # Testing
 flutter analyze
@@ -387,7 +390,8 @@ IMPLEMENT (in your worktree):
 6. cd ~/projects/pairing-planet-X
 7. git checkout -b feature/xxx origin/dev
 8. ./gradlew bootRun --args='--server.port=400X'
-9. flutter run --flavor dev -t lib/main_dev.dart
+9. Android: flutter run --flavor dev -t lib/main_dev.dart
+   iOS: flutter run -t lib/main_dev.dart (no --flavor, Flutter bug)
 10. Code → Test → Fix
 
 PR:
