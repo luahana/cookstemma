@@ -3,6 +3,7 @@ import 'package:pairing_planet2_frontend/core/network/dio_provider.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info.dart';
 import 'package:pairing_planet2_frontend/core/utils/cache_utils.dart';
 import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_remote_data_source.dart';
+import 'package:pairing_planet2_frontend/data/datasources/sync/log_sync_engine.dart';
 import 'package:pairing_planet2_frontend/data/datasources/user/user_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/user/user_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
@@ -250,18 +251,21 @@ class MyLogsState {
 /// Outcome filter for My Logs tab
 enum LogOutcomeFilter { all, wins, learning, lessons }
 
-/// 내 로그 목록 Notifier (cache-first)
+/// 내 로그 목록 Notifier (cache-first with optimistic pending items)
 class MyLogsNotifier extends StateNotifier<MyLogsState> {
+  final Ref _ref;
   final UserRemoteDataSource _remoteDataSource;
   final UserLocalDataSource _localDataSource;
   final NetworkInfo _networkInfo;
   LogOutcomeFilter _currentFilter = LogOutcomeFilter.all;
 
   MyLogsNotifier({
+    required Ref ref,
     required UserRemoteDataSource remoteDataSource,
     required UserLocalDataSource localDataSource,
     required NetworkInfo networkInfo,
-  })  : _remoteDataSource = remoteDataSource,
+  })  : _ref = ref,
+        _remoteDataSource = remoteDataSource,
         _localDataSource = localDataSource,
         _networkInfo = networkInfo,
         super(MyLogsState(isLoading: true)) {
@@ -277,13 +281,32 @@ class MyLogsNotifier extends StateNotifier<MyLogsState> {
         LogOutcomeFilter.lessons => 'FAILED',
       };
 
+  /// Fetch pending log posts from sync queue for optimistic UI
+  Future<List<LogPostSummaryDto>> _fetchPendingItems() async {
+    try {
+      final syncQueue = _ref.read(syncQueueRepositoryProvider);
+      final pendingItems = await syncQueue.getPendingLogPosts();
+
+      // Convert to LogPostSummaryDto
+      return pendingItems
+          .map((item) => LogPostSummaryDto.fromSyncQueueItem(item))
+          .toList();
+    } catch (e) {
+      // If sync queue fails, just return empty list
+      return [];
+    }
+  }
+
   Future<void> _init() async {
     // 1. Load cached data first (only for 'all' filter)
     if (_currentFilter == LogOutcomeFilter.all) {
       final cached = await _localDataSource.getCachedMyLogs();
       if (cached != null) {
+        // Also fetch pending items for optimistic display
+        final pendingItems = await _fetchPendingItems();
+
         state = state.copyWith(
-          items: cached.data.items,
+          items: [...pendingItems, ...cached.data.items],
           hasNext: cached.data.hasNext,
           isFromCache: true,
           cachedAt: cached.cachedAt,
@@ -307,6 +330,11 @@ class MyLogsNotifier extends StateNotifier<MyLogsState> {
     try {
       final isConnected = await _networkInfo.isConnected;
 
+      // Fetch pending items for optimistic display (only for 'all' filter)
+      final pendingItems = _currentFilter == LogOutcomeFilter.all
+          ? await _fetchPendingItems()
+          : <LogPostSummaryDto>[];
+
       if (isConnected) {
         final response = await _remoteDataSource.getMyLogs(
           page: 0,
@@ -321,8 +349,9 @@ class MyLogsNotifier extends StateNotifier<MyLogsState> {
           );
         }
 
+        // Combine pending items with server items
         state = MyLogsState(
-          items: response.content,
+          items: [...pendingItems, ...response.content],
           hasNext: response.hasNext ?? false,
           currentPage: 0,
           isLoading: false,
@@ -333,7 +362,18 @@ class MyLogsNotifier extends StateNotifier<MyLogsState> {
         if (state.items.isNotEmpty) {
           state = state.copyWith(isLoading: false, error: '오프라인 모드');
         } else {
-          state = state.copyWith(isLoading: false, error: '네트워크 연결이 없습니다.');
+          // Even offline, show pending items
+          if (pendingItems.isNotEmpty) {
+            state = MyLogsState(
+              items: pendingItems,
+              hasNext: false,
+              currentPage: 0,
+              isLoading: false,
+              error: '오프라인 모드',
+            );
+          } else {
+            state = state.copyWith(isLoading: false, error: '네트워크 연결이 없습니다.');
+          }
         }
       }
     } catch (e) {
@@ -375,6 +415,7 @@ class MyLogsNotifier extends StateNotifier<MyLogsState> {
 
 final myLogsProvider = StateNotifierProvider.autoDispose<MyLogsNotifier, MyLogsState>((ref) {
   return MyLogsNotifier(
+    ref: ref,
     remoteDataSource: UserRemoteDataSource(ref.read(dioProvider)),
     localDataSource: ref.read(userLocalDataSourceProvider),
     networkInfo: ref.read(networkInfoProvider),

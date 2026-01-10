@@ -10,6 +10,7 @@ import 'package:pairing_planet2_frontend/data/repositories/sync_queue_repository
 import 'package:pairing_planet2_frontend/domain/entities/log_post/create_log_post_request.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_providers.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_list_provider.dart';
+import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 
 /// Background sync engine for processing the sync queue
 /// Handles offline-first log creation with automatic retry
@@ -129,7 +130,7 @@ class LogSyncEngine {
         if (await file.exists()) {
           final uploadResult = await uploadUseCase.execute(
             file: file,
-            type: 'log',
+            type: 'LOG_POST',
           );
 
           final result = uploadResult.fold(
@@ -181,6 +182,8 @@ class LogSyncEngine {
 
           // Notify UI to refresh
           _ref.invalidate(logPostPaginatedListProvider);
+          _ref.invalidate(myLogsProvider);
+          _ref.invalidate(myProfileProvider);
         },
       );
     } else {

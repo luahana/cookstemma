@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pairing_planet2_frontend/data/datasources/sync/log_sync_engine.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_providers.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_filter_provider.dart';
@@ -31,13 +32,38 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
     _currentPage = 0;
     _hasNext = true;
     _searchQuery = null;
-    final items = await _fetchPage(0, filterState);
+
+    // Fetch server items
+    final serverItems = await _fetchPage(0, filterState);
+
+    // Fetch pending items for optimistic display (no search query = show pending)
+    final pendingItems = await _fetchPendingItems();
+
+    // Combine: pending items first, then server items
+    final combinedItems = [...pendingItems, ...serverItems];
+
     return LogPostListState(
-      items: items,
+      items: combinedItems,
       hasNext: _hasNext,
       searchQuery: _searchQuery,
       filterState: filterState,
     );
+  }
+
+  /// Fetch pending log posts from sync queue for optimistic UI
+  Future<List<LogPostSummary>> _fetchPendingItems() async {
+    try {
+      final syncQueue = ref.read(syncQueueRepositoryProvider);
+      final pendingItems = await syncQueue.getPendingLogPosts();
+
+      // Convert to LogPostSummary
+      return pendingItems
+          .map((item) => LogPostSummary.fromSyncQueueItem(item))
+          .toList();
+    } catch (e) {
+      // If sync queue fails, just return empty list
+      return [];
+    }
   }
 
   Future<List<LogPostSummary>> _fetchPage(int page, [LogFilterState? filterState]) async {
@@ -99,6 +125,7 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
 
     try {
       final filterState = ref.read(logFilterProvider);
+      // Only fetch server items during search (no pending items)
       final items = await _fetchPage(0, filterState);
       state = AsyncValue.data(LogPostListState(
         items: items,

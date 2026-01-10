@@ -4,6 +4,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/services/media_service.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
@@ -12,6 +14,7 @@ import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/
 import 'package:pairing_planet2_frontend/features/log_post/providers/quick_log_draft_provider.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/hashtag_input_section.dart';
 import 'package:pairing_planet2_frontend/data/datasources/sync/log_sync_engine.dart';
+import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 
 /// Bottom sheet for quick log entry flow
 /// Target: Complete log in under 10 seconds
@@ -764,41 +767,51 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
   }
 
   Widget _buildSuccessState() {
+    final draft = ref.watch(quickLogDraftProvider);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
+      padding: const EdgeInsets.symmetric(vertical: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Success icon
           Container(
-            width: 80,
-            height: 80,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               color: Colors.green[50],
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.check_circle,
-              size: 48,
+              size: 40,
               color: Colors.green[600],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Text(
             'logPost.quickLog.logged'.tr(),
             style: const TextStyle(
-              fontSize: 24,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 24),
+
+          // Preview card showing what was logged
+          _buildLogPreviewCard(draft),
+
+          const SizedBox(height: 16),
           Text(
             'logPost.quickLog.syncingBackground'.tr(),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               color: Colors.grey[600],
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+
+          // Updated buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -814,12 +827,92 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
               FilledButton.icon(
                 onPressed: () {
                   HapticFeedback.mediumImpact();
-                  ref.read(quickLogDraftProvider.notifier).startFlow();
+                  ref.read(quickLogDraftProvider.notifier).reset();
+                  Navigator.of(context).pop(true);
+                  // Invalidate profile to refresh stats
+                  ref.invalidate(myProfileProvider);
+                  // Navigate to Profile with My Logs tab (index 1)
+                  context.go('${RouteConstants.profile}?tab=1');
                 },
-                icon: const Icon(Icons.add),
-                label: Text('logPost.quickLog.logAnother'.tr()),
+                icon: const Icon(Icons.visibility),
+                label: Text('logPost.quickLog.viewLogs'.tr()),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Preview card showing what was logged for immediate user feedback
+  Widget _buildLogPreviewCard(QuickLogDraft draft) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          // Photo thumbnail
+          if (draft.photoPaths.isNotEmpty)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.file(
+                File(draft.photoPaths.first),
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+              ),
+            )
+          else
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.photo, color: Colors.grey[400]),
+            ),
+          const SizedBox(width: 16),
+          // Log info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (draft.outcome != null)
+                  OutcomeBadge(
+                    outcome: draft.outcome!,
+                    variant: OutcomeBadgeVariant.compact,
+                  ),
+                const SizedBox(height: 8),
+                if (draft.recipeTitle != null)
+                  Text(
+                    draft.recipeTitle!,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                if (draft.notes != null && draft.notes!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      draft.notes!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
