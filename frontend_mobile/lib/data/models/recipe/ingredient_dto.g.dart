@@ -21,7 +21,7 @@ Map<String, dynamic> _$IngredientDtoToJson(IngredientDto instance) =>
     };
 
 const _$IngredientTypeEnumMap = {
-  IngredientType.MAIN: 'MAIN',
-  IngredientType.SECONDARY: 'SECONDARY',
-  IngredientType.SEASONING: 'SEASONING',
+  IngredientType.main: 'MAIN',
+  IngredientType.secondary: 'SECONDARY',
+  IngredientType.seasoning: 'SEASONING',
 };

@@ -5,7 +5,7 @@ class ApiEndpoints {
   static String recipeDetail(String id) => '/recipes/$id'; //
   static String recipeSave(String id) => '/recipes/$id/save'; // P1: 북마크
 
-  static const String log_posts = '/log_posts'; //
+  static const String logPosts = '/log_posts'; //
 
   // Feed 관련
   static const String homeFeed = '/home'; //

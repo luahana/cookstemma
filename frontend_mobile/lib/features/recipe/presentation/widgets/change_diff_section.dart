@@ -105,13 +105,13 @@ class _ChangeDiffSectionState extends State<ChangeDiffSection> {
             secondChild: Column(
               children: [
                 const Divider(height: 1),
-                if (hasIngredientChanges && ingredientsDiff != null)
+                if (ingredientsDiff != null && hasIngredientChanges)
                   _DiffGroup(
                     title: 'recipe.diff.ingredients'.tr(),
                     icon: Icons.restaurant,
                     diffData: ingredientsDiff,
                   ),
-                if (hasStepChanges && stepsDiff != null) ...[
+                if (stepsDiff != null && hasStepChanges) ...[
                   if (hasIngredientChanges) const Divider(height: 1),
                   _DiffGroup(
                     title: 'recipe.diff.steps'.tr(),

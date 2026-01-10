@@ -9,17 +9,13 @@ class AppConfig {
     if (envUrl != null && envUrl.isNotEmpty) {
       // If it's a local dev URL (localhost or 10.0.2.2), adjust for platform
       if (envUrl.contains('10.0.2.2') || envUrl.contains('localhost')) {
-        final adjusted = _adjustLocalUrl(envUrl);
-        print('🔗 AppConfig.baseUrl: $adjusted (platform: ${Platform.operatingSystem})');
-        return adjusted;
+        return _adjustLocalUrl(envUrl);
       }
       return envUrl;
     }
 
     // Default fallback with platform awareness
-    final defaultUrl = _getDefaultLocalUrl();
-    print('🔗 AppConfig.baseUrl (default): $defaultUrl (platform: ${Platform.operatingSystem})');
-    return defaultUrl;
+    return _getDefaultLocalUrl();
   }
 
   static String _adjustLocalUrl(String url) {

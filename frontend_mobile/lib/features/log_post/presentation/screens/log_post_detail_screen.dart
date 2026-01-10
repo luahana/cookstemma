@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/login_prompt_sheet.dart';
@@ -76,7 +75,7 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
             ),
-            error: (_, __) => IconButton(
+            error: (_, _) => IconButton(
               icon: Icon(Icons.bookmark_border, color: Colors.grey[400]),
               onPressed: null,
             ),

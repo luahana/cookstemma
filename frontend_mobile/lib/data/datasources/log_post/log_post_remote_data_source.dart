@@ -13,14 +13,14 @@ class LogPostRemoteDataSource {
     CreateLogPostRequestDto request,
   ) async {
     final response = await _dio.post(
-      ApiEndpoints.log_posts,
+      ApiEndpoints.logPosts,
       data: request.toJson(),
     );
     return LogPostDetailResponseDto.fromJson(response.data);
   }
 
   Future<LogPostDetailResponseDto> getLogDetail(String publicId) async {
-    final response = await _dio.get('${ApiEndpoints.log_posts}/$publicId');
+    final response = await _dio.get('${ApiEndpoints.logPosts}/$publicId');
     return LogPostDetailResponseDto.fromJson(response.data);
   }
 
@@ -43,7 +43,7 @@ class LogPostRemoteDataSource {
     }
 
     final response = await _dio.get(
-      ApiEndpoints.log_posts,
+      ApiEndpoints.logPosts,
       queryParameters: queryParams,
     );
 

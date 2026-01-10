@@ -82,7 +82,7 @@ class ReorderableImagePicker extends StatelessWidget {
     return ReorderableDragStartListener(
       key: ValueKey('image_$index'),
       index: index,
-      child: Container(
+      child: SizedBox(
         width: 112,
         child: Stack(
           clipBehavior: Clip.none,

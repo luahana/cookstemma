@@ -3,7 +3,14 @@ import 'package:pairing_planet2_frontend/domain/entities/recipe/ingredient.dart'
 
 part 'ingredient_dto.g.dart'; // 💡 반드시 파일명과 일치해야 함
 
-enum IngredientType { MAIN, SECONDARY, SEASONING }
+enum IngredientType {
+  @JsonValue('MAIN')
+  main,
+  @JsonValue('SECONDARY')
+  secondary,
+  @JsonValue('SEASONING')
+  seasoning,
+}
 
 @JsonSerializable()
 class IngredientDto {
@@ -29,7 +36,7 @@ class IngredientDto {
       amount: ingredient.amount,
       type: IngredientType.values.firstWhere(
         (e) => e.name == ingredient.type,
-        orElse: () => IngredientType.MAIN,
+        orElse: () => IngredientType.main,
       ),
     );
   }

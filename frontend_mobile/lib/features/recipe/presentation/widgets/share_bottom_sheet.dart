@@ -229,9 +229,11 @@ class ShareBottomSheet extends ConsumerWidget {
 
   void _shareMore(BuildContext context) async {
     Navigator.pop(context);
-    await Share.share(
-      '$recipeTitle\n$shareUrl',
-      subject: recipeTitle,
+    await SharePlus.instance.share(
+      ShareParams(
+        text: '$recipeTitle\n$shareUrl',
+        subject: recipeTitle,
+      ),
     );
   }
 }

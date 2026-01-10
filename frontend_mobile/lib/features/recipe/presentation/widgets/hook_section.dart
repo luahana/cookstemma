@@ -124,8 +124,9 @@ class _HookSectionState extends ConsumerState<HookSection> {
           displayStringForOption: (option) => option.name,
           optionsBuilder: (TextEditingValue textEditingValue) async {
             // 변형 모드이거나 입력값이 없으면 검색 안함
-            if (widget.isReadOnly || textEditingValue.text.isEmpty)
+            if (widget.isReadOnly || textEditingValue.text.isEmpty) {
               return const Iterable.empty();
+            }
             final result = await ref
                 .read(getAutocompleteUseCaseProvider)
                 .execute(textEditingValue.text, currentLocale);
