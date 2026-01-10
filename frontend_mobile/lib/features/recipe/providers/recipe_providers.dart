@@ -9,7 +9,9 @@ import 'package:pairing_planet2_frontend/domain/entities/analytics/app_event.dar
 import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/create_recipe_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_draft.dart';
+import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_modifiable.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
+import 'package:pairing_planet2_frontend/domain/entities/recipe/update_recipe_request.dart';
 import 'package:pairing_planet2_frontend/domain/repositories/analytics_repository.dart';
 import 'package:pairing_planet2_frontend/domain/usecases/recipe/create_recipe_usecase.dart';
 import 'package:pairing_planet2_frontend/domain/usecases/recipe/get_recipe_detail.dart';
@@ -403,4 +405,123 @@ class RecipeDraftNotifier extends StateNotifier<RecipeDraftState> {
 final recipeDraftProvider =
     StateNotifierProvider<RecipeDraftNotifier, RecipeDraftState>((ref) {
   return RecipeDraftNotifier(ref.read(recipeDraftLocalDataSourceProvider));
+});
+
+// ----------------------------------------------------------------
+// 9. Recipe Modifiable Check (Edit/Delete Permission)
+// ----------------------------------------------------------------
+
+/// Provider to check if recipe can be modified (edited/deleted)
+final recipeModifiableProvider = FutureProvider.family<RecipeModifiable, String>(
+  (ref, publicId) async {
+    final repository = ref.watch(recipeRepositoryProvider);
+    final result = await repository.checkRecipeModifiable(publicId);
+    return result.fold(
+      (failure) => throw failure.message,
+      (modifiable) => modifiable,
+    );
+  },
+);
+
+// ----------------------------------------------------------------
+// 10. Recipe Update
+// ----------------------------------------------------------------
+
+class RecipeUpdateNotifier extends StateNotifier<AsyncValue<RecipeDetail?>> {
+  final RecipeRepository _repository;
+  final AnalyticsRepository _analyticsRepository;
+
+  RecipeUpdateNotifier(this._repository, this._analyticsRepository)
+      : super(const AsyncValue.data(null));
+
+  Future<bool> updateRecipe(String publicId, UpdateRecipeRequest request) async {
+    state = const AsyncValue.loading();
+    final result = await _repository.updateRecipe(publicId, request);
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (recipe) {
+        // Track recipe update event
+        _analyticsRepository.trackEvent(AppEvent(
+          eventId: const Uuid().v4(),
+          eventType: EventType.recipeUpdated,
+          timestamp: DateTime.now(),
+          priority: EventPriority.immediate,
+          recipeId: publicId,
+          properties: {
+            'ingredient_count': request.ingredients.length,
+            'step_count': request.steps.length,
+            'image_count': request.imagePublicIds.length,
+          },
+        ));
+
+        state = AsyncValue.data(recipe);
+        return true;
+      },
+    );
+  }
+
+  void reset() {
+    state = const AsyncValue.data(null);
+  }
+}
+
+final recipeUpdateProvider =
+    StateNotifierProvider<RecipeUpdateNotifier, AsyncValue<RecipeDetail?>>((ref) {
+  return RecipeUpdateNotifier(
+    ref.read(recipeRepositoryProvider),
+    ref.read(analyticsRepositoryProvider),
+  );
+});
+
+// ----------------------------------------------------------------
+// 11. Recipe Delete
+// ----------------------------------------------------------------
+
+class RecipeDeleteNotifier extends StateNotifier<AsyncValue<bool>> {
+  final RecipeRepository _repository;
+  final AnalyticsRepository _analyticsRepository;
+
+  RecipeDeleteNotifier(this._repository, this._analyticsRepository)
+      : super(const AsyncValue.data(false));
+
+  Future<bool> deleteRecipe(String publicId) async {
+    state = const AsyncValue.loading();
+    final result = await _repository.deleteRecipe(publicId);
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        // Track recipe delete event
+        _analyticsRepository.trackEvent(AppEvent(
+          eventId: const Uuid().v4(),
+          eventType: EventType.recipeDeleted,
+          timestamp: DateTime.now(),
+          priority: EventPriority.immediate,
+          recipeId: publicId,
+        ));
+
+        state = const AsyncValue.data(true);
+        return true;
+      },
+    );
+  }
+
+  void reset() {
+    state = const AsyncValue.data(false);
+  }
+}
+
+final recipeDeleteProvider =
+    StateNotifierProvider<RecipeDeleteNotifier, AsyncValue<bool>>((ref) {
+  return RecipeDeleteNotifier(
+    ref.read(recipeRepositoryProvider),
+    ref.read(analyticsRepositoryProvider),
+  );
 });

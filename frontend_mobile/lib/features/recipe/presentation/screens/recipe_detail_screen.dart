@@ -23,6 +23,7 @@ import '../widgets/kitchen_proof_ingredients.dart';
 import '../widgets/change_diff_section.dart';
 import '../widgets/recipe_family_section.dart';
 import '../widgets/action_hub_bar.dart';
+import '../widgets/recipe_action_menu.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final String recipeId;
@@ -112,6 +113,8 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               onPressed: null,
             ),
           ),
+          // Recipe action menu (edit/delete) - only shown for owner
+          RecipeActionMenu(recipePublicId: widget.recipeId),
         ],
       ),
       body: recipeAsync.when(

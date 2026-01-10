@@ -94,6 +94,11 @@ class RecipeDetailResponseDto {
             .where((url) => url.isNotEmpty)
             .toList() ??
         [],
+    imagePublicIds:
+        images
+            ?.map((img) => img.imagePublicId)
+            .toList() ??
+        [],
     variants: variants?.map((e) => e.toEntity()).toList() ?? [],
     logs: logs?.map((e) => e.toEntity()).toList() ?? [],
     hashtags: hashtags?.map((e) => e.toEntity()).toList() ?? [],

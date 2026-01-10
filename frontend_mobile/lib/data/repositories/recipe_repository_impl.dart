@@ -3,10 +3,13 @@ import 'package:dio/dio.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/error/failures.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/create_recipe_request_dtos.dart';
+import 'package:pairing_planet2_frontend/data/models/recipe/update_recipe_request_dto.dart';
 import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/create_recipe_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
+import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_modifiable.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
+import 'package:pairing_planet2_frontend/domain/entities/recipe/update_recipe_request.dart';
 import '../../core/network/network_info.dart'; // 네트워크 상태 확인용 (추가 필요)
 import '../datasources/recipe/recipe_local_data_source.dart'; // 로컬 데이터 소스 (추가 필요)
 import '../../domain/repositories/recipe_repository.dart';
@@ -231,6 +234,73 @@ class RecipeRepositoryImpl implements RecipeRepository {
       }
     } else {
       return Left(ConnectionFailure('네트워크 연결이 없습니다.'));
+    }
+  }
+
+  // Recipe modification: check if recipe can be edited/deleted
+  @override
+  Future<Either<Failure, RecipeModifiable>> checkRecipeModifiable(
+    String publicId,
+  ) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final dto = await remoteDataSource.checkRecipeModifiable(publicId);
+        return Right(dto.toEntity());
+      } on DioException catch (e) {
+        return Left(_mapDioExceptionToFailure(e));
+      } catch (e) {
+        return Left(UnknownFailure(e.toString()));
+      }
+    } else {
+      return Left(
+        ConnectionFailure('네트워크 연결이 없어 수정 가능 여부를 확인할 수 없습니다.'),
+      );
+    }
+  }
+
+  // Recipe modification: update recipe in-place
+  @override
+  Future<Either<Failure, RecipeDetail>> updateRecipe(
+    String publicId,
+    UpdateRecipeRequest request,
+  ) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final dto = UpdateRecipeRequestDto.fromEntity(request);
+        final responseDto = await remoteDataSource.updateRecipe(publicId, dto);
+
+        // Update local cache
+        await localDataSource.cacheRecipeDetail(responseDto);
+
+        return Right(responseDto.toEntity());
+      } on DioException catch (e) {
+        return Left(_mapDioExceptionToFailure(e));
+      } catch (e) {
+        return Left(UnknownFailure(e.toString()));
+      }
+    } else {
+      return Left(ConnectionFailure('네트워크 연결이 없어 레시피를 수정할 수 없습니다.'));
+    }
+  }
+
+  // Recipe modification: delete recipe (soft delete)
+  @override
+  Future<Either<Failure, void>> deleteRecipe(String publicId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.deleteRecipe(publicId);
+
+        // Remove from local cache
+        await localDataSource.removeRecipeDetail(publicId);
+
+        return const Right(null);
+      } on DioException catch (e) {
+        return Left(_mapDioExceptionToFailure(e));
+      } catch (e) {
+        return Left(UnknownFailure(e.toString()));
+      }
+    } else {
+      return Left(ConnectionFailure('네트워크 연결이 없어 레시피를 삭제할 수 없습니다.'));
     }
   }
 

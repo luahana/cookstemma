@@ -1,6 +1,8 @@
 enum EventType {
   // Write events (immediate priority)
   recipeCreated,
+  recipeUpdated,
+  recipeDeleted,
   logCreated,
   variationCreated,
   logFailed,

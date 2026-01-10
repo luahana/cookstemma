@@ -2,7 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:pairing_planet2_frontend/data/models/common/slice_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_detail_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/create_recipe_request_dtos.dart';
+import 'package:pairing_planet2_frontend/data/models/recipe/recipe_modifiable_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/recipe/update_recipe_request_dto.dart';
 import '../../../core/constants/constants.dart';
 import '../../../core/error/exceptions.dart';
 import '../../models/home/home_feed_response_dto.dart';
@@ -127,6 +129,53 @@ class RecipeRemoteDataSource {
     try {
       final response = await _dio.delete(ApiEndpoints.recipeSave(publicId));
       if (response.statusCode != HttpStatus.ok) {
+        throw ServerException();
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Check if recipe can be modified (edited/deleted)
+  Future<RecipeModifiableDto> checkRecipeModifiable(String publicId) async {
+    try {
+      final response = await _dio.get(ApiEndpoints.recipeModifiable(publicId));
+      if (response.statusCode == HttpStatus.ok) {
+        return RecipeModifiableDto.fromJson(response.data);
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Update recipe in-place
+  Future<RecipeDetailResponseDto> updateRecipe(
+    String publicId,
+    UpdateRecipeRequestDto request,
+  ) async {
+    try {
+      final response = await _dio.put(
+        ApiEndpoints.recipeDetail(publicId),
+        data: request.toJson(),
+      );
+      if (response.statusCode == HttpStatus.ok) {
+        return RecipeDetailResponseDto.fromJson(response.data);
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Delete recipe (soft delete)
+  Future<void> deleteRecipe(String publicId) async {
+    try {
+      final response = await _dio.delete(ApiEndpoints.recipeDetail(publicId));
+      if (response.statusCode != HttpStatus.ok &&
+          response.statusCode != HttpStatus.noContent) {
         throw ServerException();
       }
     } catch (e) {

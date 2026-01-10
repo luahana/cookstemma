@@ -21,6 +21,7 @@ import 'package:pairing_planet2_frontend/features/notification/screens/notificat
 import 'package:pairing_planet2_frontend/features/splash/screens/splash_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/recipe/presentation/screens/recipe_detail_screen.dart';
+import '../../features/recipe/presentation/screens/recipe_edit_screen.dart';
 import '../../features/recipe/presentation/screens/star_view_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
@@ -68,6 +69,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         // Protected paths that require authentication
         final protectedPaths = [
           RouteConstants.recipeCreate,
+          '/recipe/edit', // Recipe edit requires authentication
           RouteConstants.logPostCreate,
           RouteConstants.profileEdit,
           RouteConstants.settings,
@@ -113,6 +115,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           return RecipeCreateScreen(
             parentRecipe: parentRecipe, // 💡 객체 하나만 전달
           );
+        },
+      ),
+      GoRoute(
+        path: RouteConstants.recipeEdit,
+        name: 'recipe_edit',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return RecipeEditScreen(recipeId: id);
         },
       ),
       GoRoute(

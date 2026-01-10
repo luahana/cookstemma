@@ -120,6 +120,27 @@ public class ImageService {
         }
     }
 
+    /**
+     * Update recipe images: deactivate old images and activate new ones.
+     * Used when editing a recipe.
+     */
+    @Transactional
+    public void updateRecipeImages(Recipe recipe, List<UUID> newImagePublicIds) {
+        // 1. Mark old images as PROCESSING (will be garbage collected)
+        List<Image> oldImages = imageRepository.findByRecipeIdAndStatusOrderByDisplayOrderAsc(
+                recipe.getId(), ImageStatus.ACTIVE);
+        for (Image oldImage : oldImages) {
+            // Only deactivate if not in the new list
+            if (newImagePublicIds == null || !newImagePublicIds.contains(oldImage.getPublicId())) {
+                oldImage.setRecipe(null);
+                oldImage.setStatus(ImageStatus.PROCESSING);
+            }
+        }
+
+        // 2. Activate new images
+        activateImages(newImagePublicIds, recipe);
+    }
+
     @Transactional
     public void deleteUnusedImages() {
         Instant cutoffTime = Instant.now().minus(24, ChronoUnit.HOURS);

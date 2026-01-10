@@ -8,4 +8,7 @@ import java.util.List;
 public interface RecipeStepRepository extends JpaRepository<RecipeStep, Long> {
 
     List<RecipeStep> findByRecipeIdOrderByStepNumberAsc(Long recipeId);
+
+    // For recipe update: delete all steps before re-adding
+    void deleteAllByRecipeId(Long recipeId);
 }

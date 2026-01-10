@@ -4,6 +4,7 @@ class ApiEndpoints {
   static const String rootRecipes = '/recipes/roots'; //
   static String recipeDetail(String id) => '/recipes/$id'; //
   static String recipeSave(String id) => '/recipes/$id/save'; // P1: 북마크
+  static String recipeModifiable(String id) => '/recipes/$id/modifiable'; // Recipe edit/delete check
 
   static const String logPosts = '/log_posts'; //
 
@@ -43,6 +44,7 @@ class RouteConstants {
   static const String home = '/';
   static const String login = '/login';
   static const String recipeCreate = '/recipe/create';
+  static const String recipeEdit = '/recipe/edit/:id'; // Recipe edit screen
   static const String recipes = '/recipes';
   static const String recipeDetail = ':id'; // 하위 경로용
   static const String logPostCreate = '/log_post/create';
@@ -63,6 +65,7 @@ class RouteConstants {
 
   // 이동 시 사용할 전체 경로 헬퍼
   static String recipeDetailPath(String id) => '/recipes/$id';
+  static String recipeEditPath(String id) => '/recipe/edit/$id';
   static String recipeStarPath(String id) => '/recipes/$id/star';
   static String logPostDetailPath(String id) => '/log_post/$id';
   static String followersPath(String userId) => '/users/$userId/followers';

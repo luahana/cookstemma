@@ -52,6 +52,9 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     // 특정 루트 레시피를 기준으로 생성된 모든 변형 레시피의 개수
     long countByRootRecipeIdAndIsDeletedFalse(Long rootId);
 
+    // [수정/삭제 검증] 특정 레시피의 직접 자식 변형 개수 (parentRecipe로 참조하는 레시피)
+    long countByParentRecipeIdAndIsDeletedFalse(Long parentId);
+
     // [추가] 음식 ID(Long)를 사용하는 레시피가 있는지 확인 (삭제 방지용 등)
     boolean existsByFoodMasterId(Long foodMasterId);
 

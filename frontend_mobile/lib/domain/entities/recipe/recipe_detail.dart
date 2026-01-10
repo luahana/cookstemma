@@ -17,6 +17,7 @@ class RecipeDetail {
   final List<Ingredient> ingredients;
   final List<RecipeStep> steps;
   final List<String> imageUrls;
+  final List<String> imagePublicIds; // For edit mode - to send back to server
   final List<RecipeSummary> variants;
   final List<LogPostSummary> logs;
   final List<Hashtag> hashtags;
@@ -40,6 +41,7 @@ class RecipeDetail {
     required this.ingredients,
     required this.steps,
     required this.imageUrls,
+    required this.imagePublicIds,
     required this.variants,
     required this.logs,
     required this.hashtags,

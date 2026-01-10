@@ -113,4 +113,41 @@ public class RecipeController {
         savedRecipeService.unsaveRecipe(publicId, principal.getId());
         return ResponseEntity.ok().build();
     }
+
+    // --- [RECIPE MODIFICATION] ---
+
+    /**
+     * Check if recipe can be modified (edited/deleted) by current user.
+     * Returns modifiability status with reasons if blocked.
+     */
+    @GetMapping("/{publicId}/modifiable")
+    public ResponseEntity<RecipeModifiableResponseDto> checkRecipeModifiable(
+            @PathVariable("publicId") UUID publicId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(recipeService.checkRecipeModifiable(publicId, principal.getId()));
+    }
+
+    /**
+     * Update recipe in-place.
+     * Only allowed for recipe creator when no variants or logs exist.
+     */
+    @PutMapping("/{publicId}")
+    public ResponseEntity<RecipeDetailResponseDto> updateRecipe(
+            @PathVariable("publicId") UUID publicId,
+            @Valid @RequestBody UpdateRecipeRequestDto req,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(recipeService.updateRecipe(publicId, req, principal.getId()));
+    }
+
+    /**
+     * Soft delete a recipe.
+     * Only allowed for recipe creator when no variants or logs exist.
+     */
+    @DeleteMapping("/{publicId}")
+    public ResponseEntity<Void> deleteRecipe(
+            @PathVariable("publicId") UUID publicId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        recipeService.deleteRecipe(publicId, principal.getId());
+        return ResponseEntity.noContent().build();
+    }
 }
