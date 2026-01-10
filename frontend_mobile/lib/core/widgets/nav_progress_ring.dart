@@ -54,8 +54,8 @@ class NavProgressRing extends StatelessWidget {
               right: 0,
               bottom: 0,
               child: Container(
-                width: 16.w,
-                height: 16.w,
+                width: 14.w,
+                height: 14.w,
                 decoration: BoxDecoration(
                   color: primaryColor,
                   shape: BoxShape.circle,
@@ -66,7 +66,7 @@ class NavProgressRing extends StatelessWidget {
                     level.toString(),
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 9.sp,
+                      fontSize: 8.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

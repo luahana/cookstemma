@@ -165,6 +165,11 @@ class LogFilterNotifier extends Notifier<LogFilterState> {
   void clearOutcomeFilters() {
     state = state.copyWith(selectedOutcomes: {});
   }
+
+  /// Set learning filter (partial + failed outcomes)
+  void setLearningFilter() {
+    state = state.copyWith(selectedOutcomes: {LogOutcome.partial, LogOutcome.failed});
+  }
 }
 
 /// Provider for log filter state

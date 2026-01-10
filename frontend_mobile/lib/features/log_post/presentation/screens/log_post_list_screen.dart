@@ -1,25 +1,25 @@
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/providers/scroll_to_top_provider.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
-import 'package:pairing_planet2_frontend/core/widgets/search/enhanced_search_app_bar.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
 import 'package:pairing_planet2_frontend/core/widgets/skeletons/log_post_card_skeleton.dart';
-import 'package:pairing_planet2_frontend/data/datasources/search/search_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/sync/sync_queue_item.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_list_provider.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_filter_provider.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
-import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/log_filter_bar.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/log_empty_state.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/sync_status_indicator.dart';
 
@@ -32,23 +32,20 @@ class LogPostListScreen extends ConsumerStatefulWidget {
 
 class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
+    // Note: Pagination is now handled via NotificationListener in the body
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.8) {
-      ref.read(logPostPaginatedListProvider.notifier).fetchNextPage();
-    }
   }
 
   void _scrollToTop() {
@@ -65,6 +62,95 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
     return LogOutcome.fromString(outcome) ?? LogOutcome.partial;
   }
 
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchController.clear();
+        ref.read(logPostPaginatedListProvider.notifier).clearSearch();
+      }
+    });
+  }
+
+  Widget _buildSearchField() {
+    return TextField(
+      controller: _searchController,
+      autofocus: true,
+      decoration: InputDecoration(
+        hintText: 'logPost.searchHint'.tr(),
+        hintStyle: TextStyle(color: Colors.grey[400]),
+        border: InputBorder.none,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w),
+        prefixIcon: Icon(Icons.search, color: Colors.grey[400], size: 20.sp),
+        suffixIcon: _searchController.text.isNotEmpty
+            ? IconButton(
+                icon: Icon(Icons.clear, size: 20.sp),
+                onPressed: () {
+                  _searchController.clear();
+                  ref.read(logPostPaginatedListProvider.notifier).clearSearch();
+                  setState(() {});
+                },
+              )
+            : null,
+      ),
+      style: TextStyle(fontSize: 16.sp),
+      onChanged: (value) {
+        ref.read(logPostPaginatedListProvider.notifier).search(value);
+        setState(() {});
+      },
+      textInputAction: TextInputAction.search,
+      onSubmitted: (value) {
+        ref.read(logPostPaginatedListProvider.notifier).search(value);
+      },
+    );
+  }
+
+  Widget _buildFilterTabs() {
+    final filterState = ref.watch(logFilterProvider);
+    final selectedOutcomes = filterState.selectedOutcomes;
+
+    // Determine which tab is selected
+    final isAllSelected = selectedOutcomes.isEmpty;
+    final isWinsSelected = selectedOutcomes.length == 1 &&
+        selectedOutcomes.contains(LogOutcome.success);
+    final isLearningSelected = selectedOutcomes.containsAll({LogOutcome.partial, LogOutcome.failed}) &&
+        selectedOutcomes.length == 2;
+
+    return Padding(
+      padding: EdgeInsets.only(left: 16.w),
+      child: Row(
+        children: [
+          _FilterTab(
+            label: 'logPost.filter.all'.tr(),
+            isSelected: isAllSelected,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              ref.read(logFilterProvider.notifier).clearOutcomeFilters();
+            },
+          ),
+          SizedBox(width: 24.w),
+          _FilterTab(
+            label: 'logPost.filter.wins'.tr(),
+            isSelected: isWinsSelected,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              ref.read(logFilterProvider.notifier).setOutcome(LogOutcome.success);
+            },
+          ),
+          SizedBox(width: 24.w),
+          _FilterTab(
+            label: 'logPost.filter.learning'.tr(),
+            isSelected: isLearningSelected,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              ref.read(logFilterProvider.notifier).setLearningFilter();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Listen to scroll-to-top events for tab index 2 (Logs)
@@ -76,107 +162,130 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
 
     final logPostsAsync = ref.watch(logPostPaginatedListProvider);
 
+    // Sync search controller with current query
+    final currentQuery = logPostsAsync.valueOrNull?.searchQuery;
+    if (currentQuery != null && currentQuery.isNotEmpty && !_isSearching) {
+      _isSearching = true;
+      _searchController.text = currentQuery;
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: EnhancedSearchAppBar(
-        title: 'logPost.title'.tr(),
-        hintText: 'logPost.searchHint'.tr(),
-        currentQuery: logPostsAsync.valueOrNull?.searchQuery,
-        searchType: SearchType.logPost,
-        onSearch: (query) {
-          ref.read(logPostPaginatedListProvider.notifier).search(query);
-        },
-        onClear: () {
-          ref.read(logPostPaginatedListProvider.notifier).clearSearch();
-        },
-      ),
-      body: logPostsAsync.when(
-        data: (state) {
-          return RefreshIndicator(
+      body: NestedScrollViewPlus(
+        controller: _scrollController,
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          // SliverAppBar with filter tabs or search field
+          SliverAppBar(
+            pinned: true,
+            floating: false,
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: innerBoxIsScrolled ? 1 : 0,
+            titleSpacing: 0,
+            title: _isSearching
+                ? _buildSearchField()
+                : _buildFilterTabs(),
+            actions: [
+              IconButton(
+                icon: Icon(_isSearching ? Icons.close : Icons.search),
+                onPressed: _toggleSearch,
+              ),
+            ],
+          ),
+          // Instagram-style pull-to-refresh
+          CupertinoSliverRefreshControl(
             onRefresh: () async {
               await ref.read(logPostPaginatedListProvider.notifier).refresh();
             },
-            child: CustomScrollView(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                // Sync status banner (shows when there are pending items)
-                const SliverToBoxAdapter(
-                  child: SyncStatusIndicator(variant: SyncStatusVariant.banner),
-                ),
-                // Filter bar at the top (pinned/sticky)
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _FilterBarDelegate(
-                    height: 48.h,
-                    child: CompactLogFilterBar(
-                      onFilterChanged: () {
-                        // Provider auto-refreshes on filter change
-                        HapticFeedback.selectionClick();
-                      },
-                    ),
-                  ),
-                ),
-                // Empty state or grid of log posts
-                if (state.items.isEmpty)
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _buildEmptyStateContent(state.searchQuery),
-                  )
-                else ...[
-                  // Grid of log posts
-                  SliverPadding(
-                    padding: EdgeInsets.all(12.r),
-                    sliver: SliverGrid(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 12.h,
-                        crossAxisSpacing: 12.w,
-                        childAspectRatio: 0.75,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          if (index < state.items.length) {
-                            return _buildLogCard(context, state.items[index], state.searchQuery);
-                          }
-                          return null;
-                        },
-                        childCount: state.items.length,
-                      ),
-                    ),
-                  ),
-                  // Loading indicator at the bottom
-                  if (state.hasNext)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.all(24.r),
-                        child: const Center(child: CircularProgressIndicator()),
-                      ),
-                    ),
-                  // End message when no more items
-                  if (!state.hasNext)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.all(24.r),
-                        child: Center(
-                          child: Text(
-                            'logPost.allLoaded'.tr(),
-                            style: TextStyle(
-                              color: Colors.grey[500],
-                              fontSize: 13.sp,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ],
-            ),
-          );
-        },
-        loading: () => const LogPostGridSkeleton(),
-        error: (error, stack) => _buildErrorState(error),
+          ),
+        ],
+        body: NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if (notification is ScrollUpdateNotification) {
+              final metrics = notification.metrics;
+              if (metrics.pixels >= metrics.maxScrollExtent * 0.8) {
+                ref.read(logPostPaginatedListProvider.notifier).fetchNextPage();
+              }
+            }
+            return false;
+          },
+          child: Builder(
+            builder: (context) {
+              return logPostsAsync.when(
+                data: (state) => _buildContentBody(state),
+                loading: () => const LogPostGridSkeleton(),
+                error: (error, stack) => _buildErrorState(error),
+              );
+            },
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildContentBody(LogPostListState state) {
+    // Empty state
+    if (state.items.isEmpty) {
+      return Column(
+        children: [
+          const SyncStatusIndicator(variant: SyncStatusVariant.banner),
+          Expanded(child: _buildEmptyStateContent(state.searchQuery)),
+        ],
+      );
+    }
+
+    // Grid of log posts
+    return CustomScrollView(
+      slivers: [
+        // Sync status banner (shows when there are pending items)
+        const SliverToBoxAdapter(
+          child: SyncStatusIndicator(variant: SyncStatusVariant.banner),
+        ),
+        SliverPadding(
+          padding: EdgeInsets.all(12.r),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 12.h,
+              crossAxisSpacing: 12.w,
+              childAspectRatio: 0.75,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                if (index < state.items.length) {
+                  return _buildLogCard(context, state.items[index], state.searchQuery);
+                }
+                return null;
+              },
+              childCount: state.items.length,
+            ),
+          ),
+        ),
+        // Loading indicator at the bottom
+        if (state.hasNext)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(24.r),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+          ),
+        // End message when no more items
+        if (!state.hasNext)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(24.r),
+              child: Center(
+                child: Text(
+                  'logPost.allLoaded'.tr(),
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                    fontSize: 13.sp,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -400,32 +509,47 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
   }
 }
 
-/// Delegate for sticky filter bar header
-class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
-  final Widget child;
-  final double height;
+/// Filter tab with underline indicator
+class _FilterTab extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  _FilterBarDelegate({required this.child, required this.height});
+  const _FilterTab({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return SizedBox.expand(
-      child: Material(
-        color: Colors.white,
-        elevation: overlapsContent ? 2 : 0,
-        child: child,
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 15.sp,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? AppColors.textPrimary : Colors.grey[500],
+            ),
+          ),
+          SizedBox(height: 6.h),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            height: 3.h,
+            width: isSelected ? 24.w : 0,
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primary : Colors.transparent,
+              borderRadius: BorderRadius.circular(1.5.r),
+            ),
+          ),
+        ],
       ),
     );
-  }
-
-  @override
-  double get maxExtent => height;
-
-  @override
-  double get minExtent => height;
-
-  @override
-  bool shouldRebuild(covariant _FilterBarDelegate oldDelegate) {
-    return height != oldDelegate.height || child != oldDelegate.child;
   }
 }
