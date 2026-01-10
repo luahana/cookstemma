@@ -94,6 +94,7 @@ class LogPostRepositoryImpl implements LogPostRepository {
     required String content,
     required String outcome,
     List<String>? hashtags,
+    List<String>? imagePublicIds,
   }) async {
     if (await networkInfo.isConnected) {
       try {
@@ -102,6 +103,7 @@ class LogPostRepositoryImpl implements LogPostRepository {
           content: content,
           outcome: outcome,
           hashtags: hashtags,
+          imagePublicIds: imagePublicIds,
         );
         final result = await remoteDataSource.updateLog(publicId, dto);
         return Right(result.toEntity());

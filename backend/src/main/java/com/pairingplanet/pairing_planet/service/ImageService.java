@@ -141,6 +141,27 @@ public class ImageService {
         activateImages(newImagePublicIds, recipe);
     }
 
+    /**
+     * Update log post images: deactivate old images and activate new ones.
+     * Used when editing a log post.
+     */
+    @Transactional
+    public void updateLogPostImages(LogPost logPost, List<UUID> newImagePublicIds) {
+        // 1. Mark old images as PROCESSING (will be garbage collected)
+        List<Image> oldImages = imageRepository.findByLogPostIdAndStatusOrderByDisplayOrderAsc(
+                logPost.getId(), ImageStatus.ACTIVE);
+        for (Image oldImage : oldImages) {
+            // Only deactivate if not in the new list
+            if (newImagePublicIds == null || !newImagePublicIds.contains(oldImage.getPublicId())) {
+                oldImage.setLogPost(null);
+                oldImage.setStatus(ImageStatus.PROCESSING);
+            }
+        }
+
+        // 2. Activate new images
+        activateImages(newImagePublicIds, logPost);
+    }
+
     @Transactional
     public void deleteUnusedImages() {
         Instant cutoffTime = Instant.now().minus(24, ChronoUnit.HOURS);

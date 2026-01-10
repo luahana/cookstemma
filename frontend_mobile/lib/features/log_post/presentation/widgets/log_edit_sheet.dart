@@ -1,14 +1,20 @@
+import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:pairing_planet2_frontend/core/providers/image_providers.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
-import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
+import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
+import 'package:pairing_planet2_frontend/core/widgets/reorderable_image_picker.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_detail.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_selector.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_providers.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/hashtag_input_section.dart';
+import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 
 class LogEditSheet extends ConsumerStatefulWidget {
   final LogPostDetail log;
@@ -45,6 +51,7 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
   late TextEditingController _contentController;
   late LogOutcome _selectedOutcome;
   late List<String> _hashtags;
+  late List<UploadItem> _images;
   bool _isLoading = false;
 
   @override
@@ -53,12 +60,68 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
     _contentController = TextEditingController(text: widget.log.content);
     _selectedOutcome = LogOutcome.fromString(widget.log.outcome) ?? LogOutcome.partial;
     _hashtags = widget.log.hashtags.map((h) => h.name).toList();
+
+    // Initialize images from existing log
+    _images = widget.log.images
+        .where((img) => img.url != null && img.publicId.isNotEmpty)
+        .map((img) => UploadItem.fromRemote(
+              url: img.url!,
+              publicId: img.publicId,
+            ))
+        .toList();
   }
 
   @override
   void dispose() {
     _contentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    if (_images.length >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('logPost.maxPhotosError'.tr())),
+      );
+      return;
+    }
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: source,
+      imageQuality: 70,
+    );
+    if (image != null) {
+      final newItem = UploadItem.fromFile(File(image.path));
+      setState(() => _images.add(newItem));
+      _handleImageUpload(newItem);
+    }
+  }
+
+  Future<void> _handleImageUpload(UploadItem item) async {
+    setState(() => item.status = UploadStatus.uploading);
+    final result = await ref
+        .read(uploadImageWithTrackingUseCaseProvider)
+        .execute(file: item.file!, type: "LOG_POST");
+    result.fold(
+      (f) => setState(() => item.status = UploadStatus.error),
+      (res) {
+        setState(() {
+          item.status = UploadStatus.success;
+          item.publicId = res.imagePublicId;
+        });
+      },
+    );
+  }
+
+  void _removeImage(int index) {
+    setState(() => _images.removeAt(index));
+  }
+
+  void _reorderImages(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex--;
+      final item = _images.removeAt(oldIndex);
+      _images.insert(newIndex, item);
+    });
   }
 
   Future<void> _saveChanges() async {
@@ -69,7 +132,21 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
       return;
     }
 
+    // Check if any image is still uploading
+    if (_images.any((img) => img.status == UploadStatus.uploading)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('logPost.waitForUpload'.tr())),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
+
+    // Collect image public IDs (only successfully uploaded ones)
+    final imagePublicIds = _images
+        .where((img) => img.status == UploadStatus.success && img.publicId != null)
+        .map((img) => img.publicId!)
+        .toList();
 
     final repository = ref.read(logPostRepositoryProvider);
     final result = await repository.updateLog(
@@ -77,6 +154,7 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
       content: _contentController.text.trim(),
       outcome: _selectedOutcome.value,
       hashtags: _hashtags.isEmpty ? null : _hashtags,
+      imagePublicIds: imagePublicIds,
     );
 
     if (!mounted) return;
@@ -118,7 +196,7 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.fromLTRB(20, 12, 8, 12),
+              padding: EdgeInsets.fromLTRB(20.w, 12.h, 8.w, 12.h),
               decoration: BoxDecoration(
                 border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
               ),
@@ -126,8 +204,8 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
                 children: [
                   Text(
                     'logPost.edit'.tr(),
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style: TextStyle(
+                      fontSize: 18.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -143,62 +221,46 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
             Expanded(
               child: ListView(
                 controller: scrollController,
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20.r),
                 children: [
-                  // Read-only images preview
-                  if (widget.log.imageUrls.isNotEmpty) ...[
-                    Row(
-                      children: [
-                        const Icon(Icons.photo_library, color: AppColors.primary, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          'logPost.photos'.tr(),
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '(read-only)',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 80,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: widget.log.imageUrls.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: AppCachedImage(
-                                imageUrl: widget.log.imageUrls[index],
-                                width: 80,
-                                height: 80,
-                                borderRadius: 8,
-                              ),
-                            ),
-                          );
-                        },
+                  // Image picker section
+                  Row(
+                    children: [
+                      Icon(Icons.photo_library, color: AppColors.primary, size: 20.sp),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'logPost.photosMax'.tr(),
+                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                       ),
+                    ],
+                  ),
+                  SizedBox(height: 12.h),
+                  ReorderableImagePicker(
+                    images: _images,
+                    maxImages: 3,
+                    onReorder: _reorderImages,
+                    onRemove: _removeImage,
+                    onRetry: _handleImageUpload,
+                    onAdd: () => ImageSourceSheet.show(
+                      context: context,
+                      onSourceSelected: _pickImage,
                     ),
-                    const SizedBox(height: 24),
-                  ],
+                    showThumbnailBadge: false,
+                  ),
+                  SizedBox(height: 24.h),
 
                   // Outcome selector
                   Row(
                     children: [
-                      const Icon(Icons.emoji_emotions, color: AppColors.primary, size: 20),
-                      const SizedBox(width: 8),
+                      Icon(Icons.emoji_emotions, color: AppColors.primary, size: 20.sp),
+                      SizedBox(width: 8.w),
                       Text(
                         'logPost.outcome'.tr(),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
                   CompactOutcomeSelector(
                     selectedOutcome: _selectedOutcome,
                     onOutcomeSelected: (outcome) {
@@ -206,25 +268,25 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
                       setState(() => _selectedOutcome = outcome);
                     },
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24.h),
 
                   // Content text field
                   Row(
                     children: [
-                      const Icon(Icons.edit_note, color: AppColors.primary, size: 20),
-                      const SizedBox(width: 8),
+                      Icon(Icons.edit_note, color: AppColors.primary, size: 20.sp),
+                      SizedBox(width: 8.w),
                       Text(
                         'logPost.memo'.tr(),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16.r),
                     decoration: BoxDecoration(
                       color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(color: Colors.grey[300]!),
                     ),
                     child: TextField(
@@ -238,10 +300,10 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
                         isDense: true,
                         contentPadding: EdgeInsets.zero,
                       ),
-                      style: const TextStyle(fontSize: 15, height: 1.5),
+                      style: TextStyle(fontSize: 15.sp, height: 1.5),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24.h),
 
                   // Hashtags
                   HashtagInputSection(
@@ -250,17 +312,17 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
                       setState(() => _hashtags = tags);
                     },
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32.h),
                 ],
               ),
             ),
             // Save button
             Container(
               padding: EdgeInsets.fromLTRB(
-                20,
-                12,
-                20,
-                12 + MediaQuery.of(context).viewInsets.bottom,
+                20.w,
+                12.h,
+                20.w,
+                12.h + MediaQuery.of(context).viewInsets.bottom,
               ),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -272,24 +334,24 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
                   onPressed: _isLoading ? null : _saveChanges,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                   ),
                   child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
+                      ? SizedBox(
+                          width: 20.w,
+                          height: 20.w,
+                          child: const CircularProgressIndicator(
                             strokeWidth: 2,
                             color: Colors.white,
                           ),
                         )
                       : Text(
                           'common.save'.tr(),
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: TextStyle(
+                            fontSize: 16.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

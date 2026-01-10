@@ -70,7 +70,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
     setState(() => item.status = UploadStatus.uploading);
     final result = await ref
         .read(uploadImageWithTrackingUseCaseProvider)
-        .execute(file: item.file, type: "STEP");
+        .execute(file: item.file!, type: "STEP");
     result.fold(
       (f) => setState(() => item.status = UploadStatus.error),
       (res) => setState(() {
@@ -220,7 +220,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
           borderRadius: BorderRadius.circular(8.r),
           border: Border.all(color: Colors.grey[300]!),
           image: (item?.file != null)
-              ? DecorationImage(image: FileImage(item!.file), fit: BoxFit.cover)
+              ? DecorationImage(image: FileImage(item!.file!), fit: BoxFit.cover)
               : (remoteUrl != null && remoteUrl.isNotEmpty)
               ? DecorationImage(
                   image: NetworkImage(remoteUrl),

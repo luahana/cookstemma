@@ -357,6 +357,7 @@
     "createFailed": "Failed to create log",
     "updateSuccess": "Log updated",
     "updateFailed": "Failed to update log",
+    "waitForUpload": "Please wait for images to finish uploading",
     "deleteSuccess": "Log deleted",
     "deleteFailed": "Failed to delete log",
     "selectRecipe": "Select recipe",

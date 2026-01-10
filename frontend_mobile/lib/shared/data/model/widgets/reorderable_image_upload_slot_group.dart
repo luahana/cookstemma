@@ -36,7 +36,7 @@ class ReorderableImageUploadSlotGroup extends StatelessWidget {
 
           // 2. 개별 이미지 슬롯
           final item = items[index];
-          return _buildImageSlot(item, index, key: ValueKey(item.file.path));
+          return _buildImageSlot(item, index, key: ValueKey(item.file!.path));
         },
       ),
     );
@@ -82,7 +82,7 @@ class ReorderableImageUploadSlotGroup extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(12.r),
             child: Image.file(
-              item.file,
+              item.file!,
               width: 100.w,
               height: 100.w,
               fit: BoxFit.cover,

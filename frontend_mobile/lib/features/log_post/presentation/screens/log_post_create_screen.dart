@@ -64,7 +64,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
     setState(() => item.status = UploadStatus.uploading);
     final result = await ref
         .read(uploadImageWithTrackingUseCaseProvider)
-        .execute(file: item.file, type: "LOG_POST");
+        .execute(file: item.file!, type: "LOG_POST");
     result.fold((f) => setState(() => item.status = UploadStatus.error), (res) {
       setState(() {
         item.status = UploadStatus.success;

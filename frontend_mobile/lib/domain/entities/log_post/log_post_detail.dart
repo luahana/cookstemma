@@ -1,6 +1,14 @@
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 import 'package:pairing_planet2_frontend/domain/entities/hashtag/hashtag.dart';
 
+/// Simple class holding image URL and publicId
+class LogImage {
+  final String publicId;
+  final String? url;
+
+  LogImage({required this.publicId, this.url});
+}
+
 /// Linked recipe info for log post lineage display
 class LinkedRecipeInfo {
   final String publicId;
@@ -39,6 +47,7 @@ class LogPostDetail {
   final String content;
   final String outcome; // SUCCESS, PARTIAL, FAILED
   final List<String?> imageUrls;
+  final List<String> imagePublicIds; // For image editing
   final String recipePublicId;
   final LinkedRecipeInfo? linkedRecipe; // Full recipe info for lineage display
   final DateTime createdAt;
@@ -51,6 +60,7 @@ class LogPostDetail {
     required this.content,
     required this.outcome,
     required this.imageUrls,
+    this.imagePublicIds = const [],
     required this.recipePublicId,
     this.linkedRecipe,
     required this.createdAt,
@@ -58,4 +68,16 @@ class LogPostDetail {
     this.isSavedByCurrentUser,
     this.creatorPublicId,
   });
+
+  /// Get list of LogImage objects combining URL and publicId
+  List<LogImage> get images {
+    final result = <LogImage>[];
+    for (int i = 0; i < imageUrls.length; i++) {
+      result.add(LogImage(
+        publicId: i < imagePublicIds.length ? imagePublicIds[i] : '',
+        url: imageUrls[i],
+      ));
+    }
+    return result;
+  }
 }

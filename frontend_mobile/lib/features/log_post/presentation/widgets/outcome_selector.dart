@@ -210,42 +210,49 @@ class CompactOutcomeSelector extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: LogOutcome.values.map((outcome) {
         final isSelected = selectedOutcome == outcome;
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6.w),
-          child: GestureDetector(
-            onTap: () {
-              HapticFeedback.selectionClick();
-              onOutcomeSelected(outcome);
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? outcome.primaryColor
-                    : outcome.backgroundColor,
-                borderRadius: BorderRadius.circular(24.r),
-                border: Border.all(
+        return Flexible(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onOutcomeSelected(outcome);
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                decoration: BoxDecoration(
                   color: isSelected
                       ? outcome.primaryColor
-                      : outcome.primaryColor.withValues(alpha: 0.3),
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(outcome.emoji, style: TextStyle(fontSize: 18.sp)),
-                  SizedBox(width: 6.w),
-                  Text(
-                    outcome.label,
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : outcome.primaryColor,
-                    ),
+                      : outcome.backgroundColor,
+                  borderRadius: BorderRadius.circular(24.r),
+                  border: Border.all(
+                    color: isSelected
+                        ? outcome.primaryColor
+                        : outcome.primaryColor.withValues(alpha: 0.3),
+                    width: isSelected ? 2 : 1,
                   ),
-                ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(outcome.emoji, style: TextStyle(fontSize: 18.sp)),
+                    SizedBox(width: 4.w),
+                    Flexible(
+                      child: Text(
+                        outcome.label,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? Colors.white : outcome.primaryColor,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

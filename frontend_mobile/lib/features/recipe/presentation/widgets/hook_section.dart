@@ -62,7 +62,7 @@ class _HookSectionState extends ConsumerState<HookSection> {
     widget.onStateChanged();
     final result = await ref
         .read(uploadImageWithTrackingUseCaseProvider)
-        .execute(file: item.file, type: "THUMBNAIL");
+        .execute(file: item.file!, type: "THUMBNAIL");
     result.fold((f) => setState(() => item.status = UploadStatus.error), (res) {
       setState(() {
         item.status = UploadStatus.success;

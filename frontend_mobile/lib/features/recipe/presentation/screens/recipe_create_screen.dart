@@ -171,14 +171,14 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
                 description: s['description'] as String?,
                 imageUrl: s['imageUrl'] as String?,
                 imagePublicId: s['imagePublicId'] as String?,
-                localImagePath: (s['uploadItem'] as UploadItem?)?.file.path,
+                localImagePath: (s['uploadItem'] as UploadItem?)?.file?.path,
                 isOriginal: s['isOriginal'] as bool? ?? false,
                 isDeleted: s['isDeleted'] as bool? ?? false,
               ))
           .toList(),
       images: _finishedImages
           .map((img) => DraftImage(
-                localPath: img.file.path,
+                localPath: img.file!.path,
                 serverUrl: img.serverUrl,
                 publicId: img.publicId,
                 status: img.status.name,

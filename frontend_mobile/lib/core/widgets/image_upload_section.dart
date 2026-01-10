@@ -65,7 +65,7 @@ class _ImageUploadSectionState extends ConsumerState<ImageUploadSection> {
       // Use the tracking use case to log photo uploads
       final uploadUseCase = ref.read(uploadImageWithTrackingUseCaseProvider);
       final result = await uploadUseCase.execute(
-        file: item.file,
+        file: item.file!,
         type: widget.uploadType,
       );
 
@@ -144,7 +144,7 @@ class _ImageUploadSectionState extends ConsumerState<ImageUploadSection> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.r),
         image: DecorationImage(
-          image: FileImage(item.file),
+          image: FileImage(item.file!),
           fit: BoxFit.cover,
         ),
       ),

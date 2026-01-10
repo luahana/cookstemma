@@ -353,6 +353,7 @@
     "createFailed": "로그 등록에 실패했습니다",
     "updateSuccess": "로그가 수정되었습니다",
     "updateFailed": "로그 수정에 실패했습니다",
+    "waitForUpload": "이미지 업로드가 완료될 때까지 기다려주세요",
     "deleteSuccess": "로그가 삭제되었습니다",
     "deleteFailed": "로그 삭제에 실패했습니다",
     "selectRecipe": "레시피 선택",

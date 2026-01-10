@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
+import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 
 /// Reorderable horizontal image picker with thumbnail badge support.
@@ -47,11 +48,7 @@ class ReorderableImagePicker extends StatelessWidget {
             if (images.length >= maxImages) {
               return SizedBox.shrink(key: const ValueKey('empty'));
             }
-            return Padding(
-              key: const ValueKey('add_button'),
-              padding: EdgeInsets.only(top: 10.h),
-              child: _buildAddButton(),
-            );
+            return _buildAddButton();
           }
 
           final item = images[index];
@@ -62,17 +59,28 @@ class ReorderableImagePicker extends StatelessWidget {
   }
 
   Widget _buildAddButton() {
-    return GestureDetector(
-      onTap: onAdd,
-      child: Container(
-        width: 100.w,
-        margin: EdgeInsets.only(right: 12.w),
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: const Icon(Icons.add_a_photo, color: Colors.grey),
+    return SizedBox(
+      key: const ValueKey('add_button'),
+      width: 112.w,
+      child: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 10.h, right: 12.w),
+            child: GestureDetector(
+              onTap: onAdd,
+              child: Container(
+                width: 100.w,
+                height: 100.w,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: const Icon(Icons.add_a_photo, color: Colors.grey),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -106,15 +114,7 @@ class ReorderableImagePicker extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.file(
-                        item.file,
-                        fit: BoxFit.cover,
-                        opacity: AlwaysStoppedAnimation(
-                          item.status == UploadStatus.uploading
-                              ? 0.6
-                              : (item.status == UploadStatus.error ? 0.4 : 1.0),
-                        ),
-                      ),
+                      _buildImageWidget(item),
                       _buildStatusOverlay(item),
                     ],
                   ),
@@ -170,6 +170,32 @@ class ReorderableImagePicker extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildImageWidget(UploadItem item) {
+    final opacity = item.status == UploadStatus.uploading
+        ? 0.6
+        : (item.status == UploadStatus.error ? 0.4 : 1.0);
+
+    if (item.isRemote) {
+      // Remote image (existing)
+      return Opacity(
+        opacity: opacity,
+        child: AppCachedImage(
+          imageUrl: item.remoteUrl,
+          width: 100.w,
+          height: 100.w,
+          borderRadius: 10.r,
+        ),
+      );
+    } else {
+      // Local file (new upload)
+      return Image.file(
+        item.file!,
+        fit: BoxFit.cover,
+        opacity: AlwaysStoppedAnimation(opacity),
+      );
+    }
   }
 
   Widget _buildStatusOverlay(UploadItem item) {

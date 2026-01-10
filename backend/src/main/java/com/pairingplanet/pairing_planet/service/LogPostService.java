@@ -280,6 +280,11 @@ public class LogPostService {
             logPost.getHashtags().clear();
         }
 
+        // Update images if provided
+        if (request.imagePublicIds() != null) {
+            imageService.updateLogPostImages(logPost, request.imagePublicIds());
+        }
+
         logPostRepository.save(logPost);
 
         return getLogDetail(publicId, userId);

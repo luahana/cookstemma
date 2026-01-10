@@ -27,6 +27,7 @@ abstract class LogPostRepository {
     required String content,
     required String outcome,
     List<String>? hashtags,
+    List<String>? imagePublicIds,
   });
 
   // 로그 삭제

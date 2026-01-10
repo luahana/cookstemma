@@ -15,6 +15,9 @@ UpdateLogPostRequestDto _$UpdateLogPostRequestDtoFromJson(
       hashtags: (json['hashtags'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      imagePublicIds: (json['imagePublicIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$UpdateLogPostRequestDtoToJson(
@@ -24,4 +27,5 @@ Map<String, dynamic> _$UpdateLogPostRequestDtoToJson(
       'content': instance.content,
       'outcome': instance.outcome,
       'hashtags': instance.hashtags,
+      'imagePublicIds': instance.imagePublicIds,
     };
