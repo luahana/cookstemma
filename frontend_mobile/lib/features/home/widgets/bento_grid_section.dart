@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
@@ -11,11 +12,11 @@ class BentoGridSection extends StatelessWidget {
   final List<RecipeSummaryDto> recipes;
   final EdgeInsets padding;
 
-  const BentoGridSection({
+  BentoGridSection({
     super.key,
     required this.recipes,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16),
-  });
+    EdgeInsets? padding,
+  }) : padding = padding ?? EdgeInsets.symmetric(horizontal: 16.w);
 
   @override
   Widget build(BuildContext context) {
@@ -31,10 +32,10 @@ class BentoGridSection extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final totalWidth = constraints.maxWidth;
-          const spacing = 12.0;
+          final spacing = 12.w;
           // Featured card takes 60% width, small cards share 40%
           final featuredWidth = (totalWidth - spacing) * 0.6;
-          const featuredHeight = 220.0;
+          final featuredHeight = 220.h;
           final smallHeight = (featuredHeight - spacing) / 2;
 
           return SizedBox(
@@ -84,11 +85,11 @@ class BentoGridFromTrending extends StatelessWidget {
   final List<TrendingTreeDto> trendingTrees;
   final EdgeInsets padding;
 
-  const BentoGridFromTrending({
+  BentoGridFromTrending({
     super.key,
     required this.trendingTrees,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16),
-  });
+    EdgeInsets? padding,
+  }) : padding = padding ?? EdgeInsets.symmetric(horizontal: 16.w);
 
   @override
   Widget build(BuildContext context) {
@@ -102,8 +103,8 @@ class BentoGridFromTrending extends StatelessWidget {
       padding: padding,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          const spacing = 12.0;
-          const featuredHeight = 220.0;
+          final spacing = 12.w;
+          final featuredHeight = 220.h;
           final smallHeight = (featuredHeight - spacing) / 2;
 
           return SizedBox(
@@ -117,7 +118,7 @@ class BentoGridFromTrending extends StatelessWidget {
                     flex: 6,
                     child: _FeaturedTrendingCard(tree: featured),
                   ),
-                const SizedBox(width: spacing),
+                SizedBox(width: spacing),
                 // Two small cards stacked (right)
                 Expanded(
                   flex: 4,
@@ -128,7 +129,7 @@ class BentoGridFromTrending extends StatelessWidget {
                           height: smallHeight,
                           child: _SmallTrendingCard(tree: small1),
                         ),
-                      const SizedBox(height: spacing),
+                      SizedBox(height: spacing),
                       if (small2 != null)
                         SizedBox(
                           height: smallHeight,
@@ -163,17 +164,17 @@ class _FeaturedTrendingCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 12,
-              offset: const Offset(0, 4),
+              offset: Offset(0, 4.h),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -184,12 +185,12 @@ class _FeaturedTrendingCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => Container(
                         color: Colors.orange[200],
-                        child: Icon(Icons.restaurant_menu, size: 60, color: Colors.orange[400]),
+                        child: Icon(Icons.restaurant_menu, size: 60.sp, color: Colors.orange[400]),
                       ),
                     )
                   : Container(
                       color: Colors.orange[200],
-                      child: Icon(Icons.restaurant_menu, size: 60, color: Colors.orange[400]),
+                      child: Icon(Icons.restaurant_menu, size: 60.sp, color: Colors.orange[400]),
                     ),
               // Gradient overlay
               Container(
@@ -207,33 +208,33 @@ class _FeaturedTrendingCard extends StatelessWidget {
               ),
               // Content
               Positioned(
-                left: 12,
-                right: 12,
-                bottom: 12,
+                left: 12.w,
+                right: 12.w,
+                bottom: 12.h,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       tree.foodName ?? tree.title,
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Text(
                       tree.title,
-                      style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.9)),
+                      style: TextStyle(fontSize: 13.sp, color: Colors.white.withValues(alpha: 0.9)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     Row(
                       children: [
                         _buildMetricBadge(Icons.fork_right, tree.variantCount),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8.w),
                         _buildMetricBadge(Icons.edit_note, tree.logCount),
                       ],
                     ),
@@ -249,19 +250,19 @@ class _FeaturedTrendingCard extends StatelessWidget {
 
   Widget _buildMetricBadge(IconData icon, int count) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.white),
-          const SizedBox(width: 4),
+          Icon(icon, size: 14.sp, color: Colors.white),
+          SizedBox(width: 4.w),
           Text(
             count.toString(),
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+            style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: Colors.white),
           ),
         ],
       ),
@@ -285,22 +286,22 @@ class _SmallTrendingCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
-              offset: const Offset(0, 2),
+              offset: Offset(0, 2.h),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           child: Row(
             children: [
               // Thumbnail - fixed width to prevent overflow
               SizedBox(
-                width: 70,
+                width: 70.w,
                 child: tree.thumbnail != null
                     ? Image.network(
                         tree.thumbnail!,
@@ -308,36 +309,36 @@ class _SmallTrendingCard extends StatelessWidget {
                         height: double.infinity,
                         errorBuilder: (_, _, _) => Container(
                           color: Colors.grey[200],
-                          child: const Icon(Icons.restaurant_menu, color: Colors.grey, size: 20),
+                          child: Icon(Icons.restaurant_menu, color: Colors.grey, size: 20.sp),
                         ),
                       )
                     : Container(
                         color: Colors.orange[100],
-                        child: Icon(Icons.restaurant_menu, color: Colors.orange[300], size: 20),
+                        child: Icon(Icons.restaurant_menu, color: Colors.orange[300], size: 20.sp),
                       ),
               ),
               // Content
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         tree.foodName ?? tree.title,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       Row(
                         children: [
-                          Icon(Icons.fork_right, size: 10, color: Colors.grey[600]),
-                          Text('${tree.variantCount}', style: TextStyle(fontSize: 9, color: Colors.grey[600])),
-                          const SizedBox(width: 4),
-                          Icon(Icons.edit_note, size: 10, color: Colors.grey[600]),
-                          Text('${tree.logCount}', style: TextStyle(fontSize: 9, color: Colors.grey[600])),
+                          Icon(Icons.fork_right, size: 10.sp, color: Colors.grey[600]),
+                          Text('${tree.variantCount}', style: TextStyle(fontSize: 9.sp, color: Colors.grey[600])),
+                          SizedBox(width: 4.w),
+                          Icon(Icons.edit_note, size: 10.sp, color: Colors.grey[600]),
+                          Text('${tree.logCount}', style: TextStyle(fontSize: 9.sp, color: Colors.grey[600])),
                         ],
                       ),
                     ],
@@ -365,22 +366,22 @@ class _SmallBentoCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
-              offset: const Offset(0, 2),
+              offset: Offset(0, 2.h),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           child: Row(
             children: [
               // Thumbnail - fixed width to prevent overflow
               SizedBox(
-                width: 70,
+                width: 70.w,
                 child: recipe.thumbnail != null
                     ? Image.network(
                         recipe.thumbnail!,
@@ -388,47 +389,47 @@ class _SmallBentoCard extends StatelessWidget {
                         height: double.infinity,
                         errorBuilder: (_, _, _) => Container(
                           color: Colors.grey[200],
-                          child: const Icon(Icons.restaurant_menu, color: Colors.grey, size: 20),
+                          child: Icon(Icons.restaurant_menu, color: Colors.grey, size: 20.sp),
                         ),
                       )
                     : Container(
                         color: Colors.orange[100],
-                        child: Icon(Icons.restaurant_menu, color: Colors.orange[300], size: 20),
+                        child: Icon(Icons.restaurant_menu, color: Colors.orange[300], size: 20.sp),
                       ),
               ),
               // Content
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8.r),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         recipe.foodName,
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       // Metrics row
                       Row(
                         children: [
-                          Icon(Icons.fork_right, size: 10, color: Colors.grey[600]),
-                          const SizedBox(width: 2),
+                          Icon(Icons.fork_right, size: 10.sp, color: Colors.grey[600]),
+                          SizedBox(width: 2.w),
                           Text(
                             '${recipe.variantCount ?? 0}',
-                            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                            style: TextStyle(fontSize: 10.sp, color: Colors.grey[600]),
                           ),
-                          const SizedBox(width: 6),
-                          Icon(Icons.edit_note, size: 10, color: Colors.grey[600]),
-                          const SizedBox(width: 2),
+                          SizedBox(width: 6.w),
+                          Icon(Icons.edit_note, size: 10.sp, color: Colors.grey[600]),
+                          SizedBox(width: 2.w),
                           Text(
                             '${recipe.logCount ?? 0}',
-                            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                            style: TextStyle(fontSize: 10.sp, color: Colors.grey[600]),
                           ),
                         ],
                       ),

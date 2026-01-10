@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -20,7 +21,7 @@ class LogRecipeLineage extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.1),
         border: Border(
@@ -45,7 +46,7 @@ class LogRecipeLineage extends StatelessWidget {
           ),
           // Root recipe link (if this recipe is a variant)
           if (linkedRecipe!.isVariant) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: 6.h),
             _buildRecipeRow(
               context,
               icon: Icons.subdirectory_arrow_right,
@@ -74,38 +75,38 @@ class LogRecipeLineage extends StatelessWidget {
       onTap: () {
         context.push('${RouteConstants.recipeDetail}/$recipeId');
       },
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(8.r),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: EdgeInsets.symmetric(vertical: 4.h),
         child: Row(
           children: [
             Icon(
               icon,
-              size: 16,
+              size: 16.sp,
               color: isPrimary ? AppColors.primary : Colors.orange[700],
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
               decoration: BoxDecoration(
                 color: isPrimary ? AppColors.primary.withValues(alpha: 0.2) : Colors.orange[100],
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(4.r),
               ),
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 11.sp,
                   fontWeight: FontWeight.bold,
                   color: isPrimary ? AppColors.primary : Colors.orange[800],
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             Expanded(
               child: Text(
                 recipeName,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
                   color: Colors.grey[800],
                 ),
@@ -113,19 +114,19 @@ class LogRecipeLineage extends StatelessWidget {
               ),
             ),
             if (creatorName != null) ...[
-              const SizedBox(width: 4),
+              SizedBox(width: 4.w),
               Text(
                 "(by $creatorName)",
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: Colors.grey[600],
                 ),
               ),
             ],
-            const SizedBox(width: 4),
+            SizedBox(width: 4.w),
             Icon(
               Icons.chevron_right,
-              size: 18,
+              size: 18.sp,
               color: Colors.grey[500],
             ),
           ],

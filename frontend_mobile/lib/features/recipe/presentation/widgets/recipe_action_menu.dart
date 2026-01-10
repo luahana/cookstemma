@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -55,9 +56,9 @@ class RecipeActionMenu extends ConsumerWidget {
                     color: modifiable.canModify
                         ? AppColors.textPrimary
                         : AppColors.textSecondary,
-                    size: 20,
+                    size: 20.sp,
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   Text(
                     'common.edit'.tr(),
                     style: TextStyle(
@@ -67,10 +68,10 @@ class RecipeActionMenu extends ConsumerWidget {
                     ),
                   ),
                   if (!modifiable.canModify) ...[
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8.w),
                     Icon(
                       Icons.lock_outline,
-                      size: 16,
+                      size: 16.sp,
                       color: AppColors.textSecondary,
                     ),
                   ],
@@ -86,9 +87,9 @@ class RecipeActionMenu extends ConsumerWidget {
                     color: modifiable.canModify
                         ? AppColors.error
                         : AppColors.textSecondary,
-                    size: 20,
+                    size: 20.sp,
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   Text(
                     'common.delete'.tr(),
                     style: TextStyle(
@@ -98,10 +99,10 @@ class RecipeActionMenu extends ConsumerWidget {
                     ),
                   ),
                   if (!modifiable.canModify) ...[
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8.w),
                     Icon(
                       Icons.lock_outline,
-                      size: 16,
+                      size: 16.sp,
                       color: AppColors.textSecondary,
                     ),
                   ],

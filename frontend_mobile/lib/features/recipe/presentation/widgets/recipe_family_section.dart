@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -31,7 +32,7 @@ class RecipeFamilySection extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
@@ -39,15 +40,15 @@ class RecipeFamilySection extends StatelessWidget {
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12.r),
             child: Row(
               children: [
-                const Icon(Icons.account_tree_outlined, size: 20, color: AppColors.primary),
-                const SizedBox(width: 8),
+                Icon(Icons.account_tree_outlined, size: 20.sp, color: AppColors.primary),
+                SizedBox(width: 8.w),
                 Text(
                   'recipe.family.title'.tr(),
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -61,28 +62,28 @@ class RecipeFamilySection extends StatelessWidget {
           if (siblingVariants.isNotEmpty) ...[
             const Divider(height: 1),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+              padding: EdgeInsets.fromLTRB(12.w, 12.h, 12.w, 8.h),
               child: Row(
                 children: [
                   Text(
                     'recipe.family.otherVariations'.tr(),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.sp,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8.w),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                     decoration: BoxDecoration(
                       color: AppColors.badgeBackground,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Text(
                       '${siblingVariants.length}',
-                      style: const TextStyle(
-                        fontSize: 11,
+                      style: TextStyle(
+                        fontSize: 11.sp,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -91,15 +92,15 @@ class RecipeFamilySection extends StatelessWidget {
               ),
             ),
             SizedBox(
-              height: 100,
+              height: 100.h,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
                 itemCount: siblingVariants.length,
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: EdgeInsets.only(
-                      right: index < siblingVariants.length - 1 ? 10 : 0,
+                      right: index < siblingVariants.length - 1 ? 10.w : 0,
                     ),
                     child: _VariantMiniCard(
                       variant: siblingVariants[index],
@@ -109,7 +110,7 @@ class RecipeFamilySection extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
           ],
         ],
       ),
@@ -131,25 +132,25 @@ class _RootRecipeCard extends StatelessWidget {
         context.push(RouteConstants.recipeDetailPath(rootInfo.publicId));
       },
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12.r),
         child: Row(
           children: [
             // Root badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(6.r),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.pin_drop_outlined, size: 14, color: AppColors.primary),
-                  const SizedBox(width: 4),
+                  Icon(Icons.pin_drop_outlined, size: 14.sp, color: AppColors.primary),
+                  SizedBox(width: 4.w),
                   Text(
                     'recipe.family.basedOn'.tr(),
-                    style: const TextStyle(
-                      fontSize: 11,
+                    style: TextStyle(
+                      fontSize: 11.sp,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primary,
                     ),
@@ -157,7 +158,7 @@ class _RootRecipeCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
             // Root recipe info
             Expanded(
               child: Column(
@@ -165,18 +166,18 @@ class _RootRecipeCard extends StatelessWidget {
                 children: [
                   Text(
                     rootInfo.title,
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: TextStyle(
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2.h),
                   Text(
                     rootInfo.foodName,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -215,10 +216,10 @@ class _VariantMiniCard extends StatelessWidget {
               context.push(RouteConstants.recipeDetailPath(variant.publicId));
             },
       child: Container(
-        width: 140,
+        width: 140.w,
         decoration: BoxDecoration(
           color: isCurrentRecipe ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey[50],
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10.r),
           border: Border.all(
             color: isCurrentRecipe ? AppColors.primary : AppColors.border,
             width: isCurrentRecipe ? 2 : 1,
@@ -228,27 +229,27 @@ class _VariantMiniCard extends StatelessWidget {
           children: [
             // Thumbnail
             ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(9)),
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(9.r)),
               child: SizedBox(
-                width: 50,
+                width: 50.w,
                 height: double.infinity,
                 child: variant.thumbnailUrl != null && variant.thumbnailUrl!.isNotEmpty
                     ? AppCachedImage(
                         imageUrl: variant.thumbnailUrl!,
-                        width: 50,
+                        width: 50.w,
                         height: double.infinity,
                         borderRadius: 0,
                       )
                     : Container(
                         color: Colors.grey[200],
-                        child: const Icon(Icons.restaurant, size: 20, color: Colors.grey),
+                        child: Icon(Icons.restaurant, size: 20.sp, color: Colors.grey),
                       ),
               ),
             ),
             // Content
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(8.r),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -257,19 +258,19 @@ class _VariantMiniCard extends StatelessWidget {
                     Text(
                       variant.title,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 11.sp,
                         fontWeight: FontWeight.w600,
                         color: isCurrentRecipe ? AppColors.primary : AppColors.textPrimary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     // Creator
                     Text(
                       '@${variant.creatorName}',
                         style: TextStyle(
-                          fontSize: 9,
+                          fontSize: 9.sp,
                           color: AppColors.textSecondary,
                         ),
                         maxLines: 1,
@@ -277,17 +278,17 @@ class _VariantMiniCard extends StatelessWidget {
                       ),
                     // Current badge
                     if (isCurrentRecipe) ...[
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(4.r),
                         ),
                         child: Text(
                           'recipe.family.current'.tr(),
-                          style: const TextStyle(
-                            fontSize: 8,
+                          style: TextStyle(
+                            fontSize: 8.sp,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Illustrated empty state with animated icon and action button
@@ -71,7 +72,7 @@ class _IllustratedEmptyStateState extends State<IllustratedEmptyState>
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(32.r),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -79,30 +80,30 @@ class _IllustratedEmptyStateState extends State<IllustratedEmptyState>
             ScaleTransition(
               scale: _bounceAnimation,
               child: Container(
-                width: 120,
-                height: 120,
+                width: 120.w,
+                height: 120.w,
                 decoration: BoxDecoration(
                   color: (widget.iconColor ?? Colors.grey[400])!.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: Container(
-                    width: 80,
-                    height: 80,
+                    width: 80.w,
+                    height: 80.w,
                     decoration: BoxDecoration(
                       color: (widget.iconColor ?? Colors.grey[400])!.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       widget.icon,
-                      size: 40,
+                      size: 40.sp,
                       color: widget.iconColor ?? Colors.grey[400],
                     ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
             // Title and subtitle
             FadeTransition(
               opacity: _fadeAnimation,
@@ -111,36 +112,36 @@ class _IllustratedEmptyStateState extends State<IllustratedEmptyState>
                   Text(
                     widget.title,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       fontWeight: FontWeight.w600,
                       color: Colors.grey[700],
                     ),
                     textAlign: TextAlign.center,
                   ),
                   if (widget.subtitle != null) ...[
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     Text(
                       widget.subtitle!,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         color: Colors.grey[500],
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ],
                   if (widget.actionLabel != null && widget.onAction != null) ...[
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24.h),
                     ElevatedButton(
                       onPressed: widget.onAction,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24.w,
+                          vertical: 12.h,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
                       ),
                       child: Text(widget.actionLabel!),

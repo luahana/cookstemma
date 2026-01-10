@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/ingredient_dto.dart';
 import 'package:pairing_planet2_frontend/domain/entities/autocomplete/autocomplete_result.dart';
@@ -38,13 +39,13 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
           "MAIN",
           Icons.set_meal_outlined,
         ),
-        const SizedBox(height: 32),
+        SizedBox(height: 32.h),
         _buildCategorySection(
           'recipe.ingredients.secondary'.tr(),
           "SECONDARY",
           Icons.bakery_dining_outlined,
         ),
-        const SizedBox(height: 32),
+        SizedBox(height: 32.h),
         _buildCategorySection(
           'recipe.ingredients.seasoning'.tr(),
           "SEASONING",
@@ -75,18 +76,18 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         MinimalHeader(icon: icon, title: title),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         ...activeItems.map((e) => _buildIngredientRow(e.key)),
         TextButton.icon(
           onPressed: () => widget.onAddIngredient(type),
-          icon: const Icon(Icons.add, size: 18),
+          icon: Icon(Icons.add, size: 18.sp),
           label: Text(
             'recipe.ingredient.add'.tr(namedArgs: {'type': title}),
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: 12.w),
           ),
         ),
         if (deletedItems.isNotEmpty) _buildDeletedSection(deletedItems),
@@ -101,7 +102,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     final bool isOriginal = ingredient['isOriginal'] ?? false;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10.h),
       child: Row(
         children: [
           // Name field with autocomplete
@@ -141,28 +142,28 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
                   _buildOptionsView(onSelected, options),
             ),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6.w),
           // Quantity field (number input)
           SizedBox(
-            width: 50,
+            width: 50.w,
             child: _quantityField(
               ingredient,
               enabled: !isOriginal,
             ),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6.w),
           // Unit dropdown
           SizedBox(
-            width: 70,
+            width: 70.w,
             child: _unitDropdown(
               ingredient,
               enabled: !isOriginal,
             ),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4.w),
           // 💡 삭제 버튼은 기존 재료라도 항상 활성화 (빼는 기능)
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.grey, size: 18),
+            icon: Icon(Icons.close, color: Colors.grey, size: 18.sp),
             onPressed: () => widget.onRemoveIngredient(index),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -318,11 +319,11 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     bool enabled = true, // 💡 활성화 여부 파라미터 추가
   }) {
     return Container(
-      height: 44,
+      height: 44.h,
       decoration: BoxDecoration(
         // 💡 비활성 상태일 때 시각적으로 다르게 표시
         color: enabled ? Colors.grey[50] : Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: enabled ? Colors.transparent : Colors.grey[300]!,
         ),
@@ -333,14 +334,14 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
         onChanged: onChanged,
         enabled: enabled, // 💡 TextField 비활성화 적용
         style: TextStyle(
-          fontSize: 13,
+          fontSize: 13.sp,
           color: enabled ? Colors.black : Colors.grey[600], // 💡 글자색 변경
         ),
         decoration: InputDecoration(
           hintText: hint,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          hintStyle: const TextStyle(fontSize: 12, color: Colors.grey),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.w),
+          hintStyle: TextStyle(fontSize: 12.sp, color: Colors.grey),
         ),
       ),
     );
@@ -354,9 +355,9 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
       alignment: Alignment.topLeft,
       child: Material(
         elevation: 4,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         child: SizedBox(
-          width: 220,
+          width: 220.w,
           child: ListView.builder(
             padding: EdgeInsets.zero,
             shrinkWrap: true,
@@ -364,7 +365,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
             itemBuilder: (context, index) {
               final option = options.elementAt(index);
               return ListTile(
-                title: Text(option.name, style: const TextStyle(fontSize: 13)),
+                title: Text(option.name, style: TextStyle(fontSize: 13.sp)),
                 onTap: () => onSelected(option),
               );
             },
@@ -376,11 +377,11 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
 
   Widget _buildDeletedSection(List<MapEntry<int, Map<String, dynamic>>> items) {
     return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.only(top: 8.h),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,12 +389,12 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
           Text(
             'recipe.ingredient.deleted'.tr(),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12.sp,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           ...items.map((e) => _buildDeletedRow(e.key, e.value)),
         ],
       ),
@@ -415,7 +416,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: EdgeInsets.only(bottom: 4.h),
       child: Row(
         children: [
           Expanded(
@@ -424,17 +425,17 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
               style: TextStyle(
                 decoration: TextDecoration.lineThrough,
                 color: Colors.grey[500],
-                fontSize: 13,
+                fontSize: 13.sp,
               ),
             ),
           ),
           TextButton.icon(
             onPressed: () => widget.onRestoreIngredient(index),
-            icon: const Icon(Icons.undo, size: 16),
-            label: Text('recipe.ingredient.restore'.tr(), style: const TextStyle(fontSize: 12)),
+            icon: Icon(Icons.undo, size: 16.sp),
+            label: Text('recipe.ingredient.restore'.tr(), style: TextStyle(fontSize: 12.sp)),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: EdgeInsets.symmetric(horizontal: 8.w),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),

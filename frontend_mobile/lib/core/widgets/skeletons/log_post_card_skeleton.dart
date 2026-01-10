@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
 
 /// Skeleton widget for log post grid loading state.
@@ -35,12 +36,12 @@ class LogPostGridSkeleton extends StatelessWidget {
             ),
           // Grid skeleton
           SliverPadding(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12.r),
             sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
+                mainAxisSpacing: 12.h,
+                crossAxisSpacing: 12.w,
                 childAspectRatio: 0.75,
               ),
               delegate: SliverChildBuilderDelegate(
@@ -62,16 +63,16 @@ class _FilterBarSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Row(
         children: [
-          _buildChipSkeleton(width: 50),
-          const SizedBox(width: 8),
-          _buildChipSkeleton(width: 70),
-          const SizedBox(width: 8),
-          _buildChipSkeleton(width: 80),
-          const SizedBox(width: 8),
-          _buildChipSkeleton(width: 75),
+          _buildChipSkeleton(width: 50.w),
+          SizedBox(width: 8.w),
+          _buildChipSkeleton(width: 70.w),
+          SizedBox(width: 8.w),
+          _buildChipSkeleton(width: 80.w),
+          SizedBox(width: 8.w),
+          _buildChipSkeleton(width: 75.w),
         ],
       ),
     );
@@ -80,10 +81,10 @@ class _FilterBarSkeleton extends StatelessWidget {
   Widget _buildChipSkeleton({required double width}) {
     return Container(
       width: width,
-      height: 32,
+      height: 32.h,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
       ),
     );
   }
@@ -96,12 +97,12 @@ class _ProgressOverviewSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      height: 160,
+      margin: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(20.r),
+      height: 160.h,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.r),
       ),
     );
   }
@@ -116,7 +117,7 @@ class _LogPostCardSkeleton extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,21 +128,21 @@ class _LogPostCardSkeleton extends StatelessWidget {
             child: Stack(
               children: [
                 Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
                   ),
                 ),
                 // Outcome badge skeleton
                 Positioned(
-                  left: 8,
-                  top: 8,
+                  left: 8.w,
+                  top: 8.h,
                   child: Container(
-                    width: 28,
-                    height: 28,
+                    width: 28.w,
+                    height: 28.w,
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(14.r),
                     ),
                   ),
                 ),
@@ -152,26 +153,26 @@ class _LogPostCardSkeleton extends StatelessWidget {
           Expanded(
             flex: 1,
             child: Padding(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(10.r),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
                     width: double.infinity,
-                    height: 14,
+                    height: 14.h,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(4.r),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6.h),
                   Container(
-                    width: 60,
-                    height: 10,
+                    width: 60.w,
+                    height: 10.h,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(4.r),
                     ),
                   ),
                 ],

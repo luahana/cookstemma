@@ -2,16 +2,15 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/illustrated_empty_state.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
-import 'package:pairing_planet2_frontend/core/widgets/search/enhanced_search_app_bar.dart';
 import 'package:pairing_planet2_frontend/core/widgets/skeleton/skeleton_loader.dart';
 import 'package:pairing_planet2_frontend/core/widgets/transitions/animated_view_switcher.dart';
-import 'package:pairing_planet2_frontend/data/datasources/search/search_local_data_source.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/bento_grid_view.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/browse_filter_bar.dart';
@@ -56,21 +55,22 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: EnhancedSearchAppBar(
-        title: 'recipe.browse'.tr(),
-        hintText: 'recipe.searchHint'.tr(),
-        currentQuery: recipesAsync.valueOrNull?.searchQuery,
-        searchType: SearchType.recipe,
-        onSearch: (query) {
-          ref.read(recipeListProvider.notifier).search(query);
-        },
-        onClear: () {
-          ref.read(recipeListProvider.notifier).clearSearch();
-        },
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        title: Text(
+          'recipe.browse'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           const Padding(
             padding: EdgeInsets.only(right: 8),
             child: CompactViewModeToggle(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => context.push(RouteConstants.search),
           ),
         ],
       ),
@@ -199,15 +199,15 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         Expanded(
           child: ListView.builder(
             controller: _scrollController,
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.r),
             physics: const AlwaysScrollableScrollPhysics(),
             itemCount: hasNext ? recipes.length + 1 : recipes.length,
             itemBuilder: (context, index) {
               // 다음 페이지가 있고, 마지막 인덱스일 때 로딩바 표시
               if (hasNext && index == recipes.length) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32),
-                  child: Center(child: CircularProgressIndicator()),
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32.h),
+                  child: const Center(child: CircularProgressIndicator()),
                 );
               }
 
@@ -220,10 +220,10 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                   children: [
                     card,
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      padding: EdgeInsets.symmetric(vertical: 24.h),
                       child: Text(
                         'recipe.allLoaded'.tr(),
-                        style: const TextStyle(color: Colors.grey, fontSize: 13),
+                        style: TextStyle(color: Colors.grey, fontSize: 13.sp),
                       ),
                     ),
                   ],
@@ -283,16 +283,16 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         // Star view info banner
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
           color: AppColors.primary.withValues(alpha: 0.1),
           child: Row(
             children: [
-              const Text('⭐', style: TextStyle(fontSize: 16)),
-              const SizedBox(width: 8),
+              Text('⭐', style: TextStyle(fontSize: 16.sp)),
+              SizedBox(width: 8.w),
               Expanded(
                 child: Text(
                   'star.tapToSelect'.tr(),
-                  style: TextStyle(fontSize: 13, color: AppColors.primary),
+                  style: TextStyle(fontSize: 13.sp, color: AppColors.primary),
                 ),
               ),
             ],
@@ -304,13 +304,13 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         Expanded(
           child: GridView.builder(
             controller: _scrollController,
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.r),
             physics: const AlwaysScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               childAspectRatio: 0.75,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
+              crossAxisSpacing: 12.w,
+              mainAxisSpacing: 12.h,
             ),
             itemCount: hasNext ? originals.length + 1 : originals.length,
             itemBuilder: (context, index) {
@@ -339,7 +339,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -358,9 +358,9 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                 fit: StackFit.expand,
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(12.r),
+                      topRight: Radius.circular(12.r),
                     ),
                     child: AppCachedImage(
                       imageUrl: recipe.thumbnailUrl ?? 'https://via.placeholder.com/200',
@@ -371,25 +371,25 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                   ),
                   // Star badge overlay
                   Positioned(
-                    bottom: 8,
-                    left: 8,
-                    right: 8,
+                    bottom: 8.h,
+                    left: 8.w,
+                    right: 8.w,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                       decoration: BoxDecoration(
                         color: AppColors.textPrimary,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('⭐', style: TextStyle(fontSize: 12)),
-                          const SizedBox(width: 4),
+                          Text('⭐', style: TextStyle(fontSize: 12.sp)),
+                          SizedBox(width: 4.w),
                           Text(
                             '${recipe.variantCount}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12,
+                              fontSize: 12.sp,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -397,7 +397,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                             ' · ${recipe.logCount}',
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 12,
+                              fontSize: 12.sp,
                             ),
                           ),
                         ],
@@ -411,7 +411,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: EdgeInsets.all(10.r),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -419,18 +419,18 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                       recipe.foodName,
                       style: TextStyle(
                         color: AppColors.primary,
-                        fontSize: 10,
+                        fontSize: 10.sp,
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2.h),
                     Expanded(
                       child: Text(
                         recipe.title,
-                        style: const TextStyle(
-                          fontSize: 13,
+                        style: TextStyle(
+                          fontSize: 13.sp,
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 2,
@@ -440,7 +440,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                     Text(
                       'star.variants'.tr(),
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 11.sp,
                         color: Colors.grey[500],
                       ),
                     ),
@@ -497,15 +497,15 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       color: Colors.orange[50],
       child: Row(
         children: [
-          Icon(Icons.access_time, size: 14, color: Colors.orange[700]),
-          const SizedBox(width: 6),
+          Icon(Icons.access_time, size: 14.sp, color: Colors.orange[700]),
+          SizedBox(width: 6.w),
           Text(
             'recipe.offlineData'.tr(namedArgs: {'time': timeText}),
-            style: TextStyle(fontSize: 12, color: Colors.orange[700]),
+            style: TextStyle(fontSize: 12.sp, color: Colors.orange[700]),
           ),
         ],
       ),

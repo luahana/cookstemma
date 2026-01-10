@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
@@ -103,7 +104,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
           icon: Icons.format_list_numbered,
           title: 'steps.header'.tr(),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         // 💡 드래그 앤 드롭 리스트 (active steps only)
         ReorderableListView.builder(
           shrinkWrap: true,
@@ -125,10 +126,10 @@ class _StepSectionState extends ConsumerState<StepSection> {
 
             return Container(
               key: ValueKey("step_${step['stepNumber']}_$originalIndex"),
-              margin: const EdgeInsets.only(bottom: 20),
+              margin: EdgeInsets.only(bottom: 20.h),
               decoration: BoxDecoration(
                 color: isOriginal ? Colors.grey[50] : Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Row(
                 children: [
@@ -139,11 +140,11 @@ class _StepSectionState extends ConsumerState<StepSection> {
                       color: Colors.grey,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8.w),
                   _buildStepNumber(index + 1),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   _buildImageSlot(originalIndex, step),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   Expanded(child: _buildDescriptionField(step, isOriginal)),
                   IconButton(
                     onPressed: () => widget.onRemoveStep(originalIndex),
@@ -169,13 +170,13 @@ class _StepSectionState extends ConsumerState<StepSection> {
       children: [
         TextButton.icon(
           onPressed: widget.onAddStep,
-          icon: const Icon(Icons.add, size: 20),
+          icon: Icon(Icons.add, size: 20.sp),
           label: Text('steps.addStep'.tr()),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8.w),
         TextButton.icon(
           onPressed: _pickMultipleStepImages,
-          icon: const Icon(Icons.photo_library, size: 20),
+          icon: Icon(Icons.photo_library, size: 20.sp),
           label: Text('steps.addMultiple'.tr()),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
@@ -213,10 +214,10 @@ class _StepSectionState extends ConsumerState<StepSection> {
         onSourceSelected: (s) => _pickStepImage(index, s),
       ),
       child: Container(
-        width: 60,
-        height: 60,
+        width: 60.w,
+        height: 60.w,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
           border: Border.all(color: Colors.grey[300]!),
           image: (item?.file != null)
               ? DecorationImage(image: FileImage(item!.file), fit: BoxFit.cover)
@@ -228,7 +229,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
               : null,
         ),
         child: (item == null && (remoteUrl == null || remoteUrl.isEmpty))
-            ? const Icon(Icons.camera_alt, size: 20, color: Colors.grey)
+            ? Icon(Icons.camera_alt, size: 20.sp, color: Colors.grey)
             : null,
       ),
     );
@@ -236,16 +237,16 @@ class _StepSectionState extends ConsumerState<StepSection> {
 
   Widget _buildStepNumber(int number) => Text(
     "$number",
-    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
   );
 
   Widget _buildDeletedSection(List<MapEntry<int, Map<String, dynamic>>> items) {
     return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.only(top: 8.h),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,12 +254,12 @@ class _StepSectionState extends ConsumerState<StepSection> {
           Text(
             'recipe.step.deleted'.tr(),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12.sp,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           ...items.map((e) => _buildDeletedRow(e.key, e.value)),
         ],
       ),
@@ -272,7 +273,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
         : description;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: EdgeInsets.only(bottom: 4.h),
       child: Row(
         children: [
           Expanded(
@@ -281,7 +282,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
               style: TextStyle(
                 decoration: TextDecoration.lineThrough,
                 color: Colors.grey[500],
-                fontSize: 13,
+                fontSize: 13.sp,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -289,11 +290,11 @@ class _StepSectionState extends ConsumerState<StepSection> {
           ),
           TextButton.icon(
             onPressed: () => widget.onRestoreStep(index),
-            icon: const Icon(Icons.undo, size: 16),
-            label: Text('recipe.step.restore'.tr(), style: const TextStyle(fontSize: 12)),
+            icon: Icon(Icons.undo, size: 16.sp),
+            label: Text('recipe.step.restore'.tr(), style: TextStyle(fontSize: 12.sp)),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: EdgeInsets.symmetric(horizontal: 8.w),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),

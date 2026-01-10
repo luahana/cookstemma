@@ -108,12 +108,12 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                 else ...[
                   // Grid of log posts
                   SliverPadding(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(12.r),
                     sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12.h,
+                        crossAxisSpacing: 12.w,
                         childAspectRatio: 0.75,
                       ),
                       delegate: SliverChildBuilderDelegate(
@@ -129,23 +129,23 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                   ),
                   // Loading indicator at the bottom
                   if (state.hasNext)
-                    const SliverToBoxAdapter(
+                    SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Center(child: CircularProgressIndicator()),
+                        padding: EdgeInsets.all(24.r),
+                        child: const Center(child: CircularProgressIndicator()),
                       ),
                     ),
                   // End message when no more items
                   if (!state.hasNext)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: EdgeInsets.all(24.r),
                         child: Center(
                           child: Text(
                             'logPost.allLoaded'.tr(),
                             style: TextStyle(
                               color: Colors.grey[500],
-                              fontSize: 13,
+                              fontSize: 13.sp,
                             ),
                           ),
                         ),
@@ -182,7 +182,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
@@ -201,13 +201,13 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                   children: [
                     // Photo - handle both network URLs and local file paths
                     ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
                       child: _buildThumbnail(logPost),
                     ),
                     // Outcome badge overlay (top-left for prominence)
                     Positioned(
-                      left: 8,
-                      top: 8,
+                      left: 8.w,
+                      top: 8.h,
                       child: OutcomeBadge(
                         outcome: outcome,
                         variant: OutcomeBadgeVariant.compact,
@@ -229,7 +229,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
               Expanded(
                 flex: 1,
                 child: Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding: EdgeInsets.all(10.r),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -237,19 +237,19 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                       HighlightedText(
                         text: logPost.title,
                         query: searchQuery,
-                        style: const TextStyle(
-                          fontSize: 13,
+                        style: TextStyle(
+                          fontSize: 13.sp,
                           fontWeight: FontWeight.w600,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2.h),
                       if (logPost.isPending)
                         Text(
                           'logPost.sync.syncing'.tr(),
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 11.sp,
                             color: Colors.orange[600],
                           ),
                           maxLines: 1,
@@ -259,7 +259,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                         Text(
                           "@${logPost.creatorName}",
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 11.sp,
                             color: Colors.grey[600],
                           ),
                           maxLines: 1,
@@ -284,7 +284,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
         color: Colors.grey[200],
         child: Icon(
           Icons.restaurant,
-          size: 40,
+          size: 40.sp,
           color: Colors.grey[400],
         ),
       );
@@ -304,7 +304,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
             color: Colors.grey[200],
             child: Icon(
               Icons.broken_image,
-              size: 40,
+              size: 40.sp,
               color: Colors.grey[400],
             ),
           );
@@ -357,19 +357,19 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.red),
-          const SizedBox(height: 16),
+          Icon(Icons.error_outline, size: 48.sp, color: Colors.red),
+          SizedBox(height: 16.h),
           Text(
             'logPost.couldNotLoad'.tr(),
-            style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+            style: TextStyle(fontSize: 16.sp, color: Colors.grey[700]),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             error.toString(),
-            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+            style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           ElevatedButton(
             onPressed: () {
               ref.invalidate(logPostPaginatedListProvider);

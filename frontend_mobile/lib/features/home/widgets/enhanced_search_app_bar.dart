@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -44,7 +45,7 @@ class EnhancedSearchAppBar extends ConsumerWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -57,8 +58,8 @@ class EnhancedSearchAppBar extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
-                        style: const TextStyle(
-                          fontSize: 18,
+                        style: TextStyle(
+                          fontSize: 18.sp,
                           color: AppColors.textPrimary,
                         ),
                         children: [
@@ -84,31 +85,31 @@ class EnhancedSearchAppBar extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              // Search bar - taps navigate to search screen
+              SizedBox(height: 12.h),
+              // Search bar - taps navigate to dedicated search page
               GestureDetector(
                 onTap: () => context.push(RouteConstants.search),
                 child: Container(
-                  height: 44,
+                  height: 44.h,
                   decoration: BoxDecoration(
                     color: AppColors.background,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                     border: Border.all(color: AppColors.border),
                   ),
                   child: Row(
                     children: [
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12.w),
                       Icon(
                         Icons.search,
                         color: AppColors.textSecondary,
-                        size: 20,
+                        size: 20.sp,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8.w),
                       Text(
                         'home.searchHint'.tr(),
                         style: TextStyle(
                           color: AppColors.textSecondary,
-                          fontSize: 14,
+                          fontSize: 14.sp,
                         ),
                       ),
                     ],

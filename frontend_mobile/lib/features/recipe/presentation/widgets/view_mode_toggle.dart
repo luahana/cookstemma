@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart';
 
@@ -21,7 +22,7 @@ class ViewModeToggle extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -85,16 +86,16 @@ class _ViewModeButton extends StatelessWidget {
   BorderRadius _getBorderRadius() {
     switch (position) {
       case _ButtonPosition.left:
-        return const BorderRadius.only(
-          topLeft: Radius.circular(8),
-          bottomLeft: Radius.circular(8),
+        return BorderRadius.only(
+          topLeft: Radius.circular(8.r),
+          bottomLeft: Radius.circular(8.r),
         );
       case _ButtonPosition.middle:
         return BorderRadius.zero;
       case _ButtonPosition.right:
-        return const BorderRadius.only(
-          topRight: Radius.circular(8),
-          bottomRight: Radius.circular(8),
+        return BorderRadius.only(
+          topRight: Radius.circular(8.r),
+          bottomRight: Radius.circular(8.r),
         );
     }
   }
@@ -105,14 +106,14 @@ class _ViewModeButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.transparent,
           borderRadius: _getBorderRadius(),
         ),
         child: Icon(
           icon,
-          size: 20,
+          size: 20.sp,
           color: isSelected ? Colors.white : Colors.grey[600],
         ),
       ),
@@ -136,7 +137,7 @@ class CompactViewModeToggle extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -195,15 +196,15 @@ class _CompactModeButton extends StatelessWidget {
 
   BorderRadius _getBorderRadius() {
     if (isFirst) {
-      return const BorderRadius.only(
-        topLeft: Radius.circular(6),
-        bottomLeft: Radius.circular(6),
+      return BorderRadius.only(
+        topLeft: Radius.circular(6.r),
+        bottomLeft: Radius.circular(6.r),
       );
     }
     if (isLast) {
-      return const BorderRadius.only(
-        topRight: Radius.circular(6),
-        bottomRight: Radius.circular(6),
+      return BorderRadius.only(
+        topRight: Radius.circular(6.r),
+        bottomRight: Radius.circular(6.r),
       );
     }
     return BorderRadius.zero;
@@ -215,14 +216,14 @@ class _CompactModeButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.transparent,
           borderRadius: _getBorderRadius(),
         ),
         child: Icon(
           icon,
-          size: 16,
+          size: 16.sp,
           color: isSelected ? Colors.white : Colors.grey[600],
         ),
       ),

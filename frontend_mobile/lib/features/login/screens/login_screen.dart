@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
@@ -39,19 +40,19 @@ class LoginScreen extends ConsumerWidget {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: EdgeInsets.all(20.r),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 'login.welcome'.tr(),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 40),
+              SizedBox(height: 40.h),
               // Google Sign-In button
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 50.h,
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.login),
                   label: Text('login.googleLogin'.tr()),
@@ -65,11 +66,11 @@ class LoginScreen extends ConsumerWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               // Browse as Guest button
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 50.h,
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.visibility),
                   label: Text('login.browseAsGuest'.tr()),

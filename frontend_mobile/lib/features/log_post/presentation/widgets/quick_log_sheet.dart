@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/services/media_service.dart';
@@ -67,9 +68,9 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
       ),
       child: SafeArea(
         child: Padding(
@@ -84,7 +85,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
               // Content based on current step
               Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
                   child: _buildContent(draft),
                 ),
               ),
@@ -100,14 +101,14 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
       onTap: () => _handleClose(),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: EdgeInsets.symmetric(vertical: 12.h),
         child: Center(
           child: Container(
-            width: 40,
-            height: 4,
+            width: 40.w,
+            height: 4.h,
             decoration: BoxDecoration(
               color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(2.r),
             ),
           ),
         ),
@@ -117,7 +118,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
 
   Widget _buildProgressIndicator(QuickLogDraft draft) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
       child: Column(
         children: [
           // Step indicators: Outcome → Photo → Notes → Hashtags
@@ -132,7 +133,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
               _buildStepDot(4, draft.step.index >= QuickLogStep.addingHashtags.index),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           // Step labels
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -151,8 +152,8 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
   Widget _buildStepDot(int step, bool isActive) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      width: 24,
-      height: 24,
+      width: 24.w,
+      height: 24.w,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isActive ? AppColors.primary : Colors.grey[200],
@@ -163,11 +164,11 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
       ),
       child: Center(
         child: isActive
-            ? const Icon(Icons.check, size: 14, color: Colors.white)
+            ? Icon(Icons.check, size: 14.sp, color: Colors.white)
             : Text(
                 '$step',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 11.sp,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[500],
                 ),
@@ -179,7 +180,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
   Widget _buildStepLine(bool isActive) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      height: 2,
+      height: 2.h,
       color: isActive ? AppColors.primary : Colors.grey[200],
     );
   }
@@ -191,7 +192,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
     return Text(
       label,
       style: TextStyle(
-        fontSize: 10,
+        fontSize: 10.sp,
         fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
         color: isActive ? AppColors.primary : Colors.grey[500],
       ),
@@ -229,23 +230,23 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
         children: [
           // Header at top
           Padding(
-            padding: const EdgeInsets.only(top: 24),
+            padding: EdgeInsets.only(top: 24.h),
             child: Column(
               children: [
                 Text(
                   'logPost.quickLog.howDidItGo'.tr(),
-                  style: const TextStyle(
-                    fontSize: 22,
+                  style: TextStyle(
+                    fontSize: 22.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 Text(
                   'logPost.quickLog.tapToSelect'.tr(),
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     color: Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,
@@ -255,7 +256,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
           ),
           // Buttons at bottom - large touch targets for cooking mode
           Padding(
-            padding: const EdgeInsets.only(bottom: 24),
+            padding: EdgeInsets.only(bottom: 24.h),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: LogOutcome.values.map((outcome) {
@@ -277,14 +278,14 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 100,
-        height: 100, // 64pt minimum + extra for content
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        width: 100.w,
+        height: 100.w, // 64pt minimum + extra for content
+        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 8.w),
         decoration: BoxDecoration(
           color: isSelected
               ? outcome.primaryColor
               : outcome.backgroundColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
             color: isSelected
                 ? outcome.primaryColor
@@ -296,14 +297,14 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                   BoxShadow(
                     color: outcome.primaryColor.withValues(alpha: 0.4),
                     blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    offset: Offset(0, 4.h),
                   ),
                 ]
               : [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    offset: Offset(0, 2.h),
                   ),
                 ],
         ),
@@ -312,13 +313,13 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
           children: [
             Text(
               outcome.emoji,
-              style: const TextStyle(fontSize: 36),
+              style: TextStyle(fontSize: 36.sp),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4.h),
             Text(
               outcome.label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
                 color: isSelected ? Colors.white : outcome.primaryColor,
               ),
@@ -334,13 +335,13 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
 
   Widget _buildPhotoStep(QuickLogDraft draft) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: EdgeInsets.symmetric(vertical: 24.h),
       child: Column(
         children: [
           // Selected outcome badge
           if (draft.outcome != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: EdgeInsets.only(bottom: 16.h),
               child: OutcomeBadge(
                 outcome: draft.outcome!,
                 variant: OutcomeBadgeVariant.full,
@@ -349,25 +350,25 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
           // Header
           Text(
             'logPost.quickLog.captureEvidence'.tr(),
-            style: const TextStyle(
-              fontSize: 20,
+            style: TextStyle(
+              fontSize: 20.sp,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             'logPost.photosMax'.tr(),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               color: Colors.grey[600],
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           // Reorderable photo grid
           _buildPhotoGrid(draft.photoPaths),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           // Navigation buttons
           Row(
             children: [
@@ -402,7 +403,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
     final canAddMore = photoPaths.length < maxPhotos;
 
     return SizedBox(
-      height: 110,
+      height: 110.h,
       child: ReorderableListView.builder(
         scrollDirection: Axis.horizontal,
         buildDefaultDragHandles: false,
@@ -421,7 +422,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
           if (index == photoPaths.length) {
             return Padding(
               key: const ValueKey('add_button'),
-              padding: const EdgeInsets.only(top: 10),
+              padding: EdgeInsets.only(top: 10.h),
               child: _buildAddPhotoButton(),
             );
           }
@@ -442,21 +443,21 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
         );
       },
       child: Container(
-        width: 100,
-        margin: const EdgeInsets.only(right: 12),
+        width: 100.w,
+        margin: EdgeInsets.only(right: 12.w),
         decoration: BoxDecoration(
           color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: Colors.grey[300]!),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_a_photo, color: Colors.grey[600], size: 28),
-            const SizedBox(height: 4),
+            Icon(Icons.add_a_photo, color: Colors.grey[600], size: 28.sp),
+            SizedBox(height: 4.h),
             Text(
               'logPost.quickLog.takePhoto'.tr(),
-              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 10.sp, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
           ],
@@ -472,25 +473,25 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
       key: ValueKey('photo_$index'),
       index: index,
       child: SizedBox(
-        width: 112,
+        width: 112.w,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
             // Image container
             Padding(
-              padding: const EdgeInsets.only(top: 10, right: 12),
+              padding: EdgeInsets.only(top: 10.h, right: 12.w),
               child: Container(
-                width: 100,
-                height: 100,
+                width: 100.w,
+                height: 100.w,
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   border: isThumbnail
                       ? Border.all(color: AppColors.primary, width: 2)
                       : null,
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(isThumbnail ? 10 : 12),
+                  borderRadius: BorderRadius.circular(isThumbnail ? 10.r : 12.r),
                   child: Image.file(
                     File(photoPath),
                     fit: BoxFit.cover,
@@ -504,16 +505,16 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                 top: 0,
                 left: 0,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                   decoration: BoxDecoration(
                     color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Text(
                     'recipe.hook.thumbnail'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 9,
+                      fontSize: 9.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -521,20 +522,20 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
               ),
             // Remove button
             Positioned(
-              top: 2,
-              right: 4,
+              top: 2.h,
+              right: 4.w,
               child: GestureDetector(
                 onTap: () {
                   HapticFeedback.lightImpact();
                   ref.read(quickLogDraftProvider.notifier).removePhoto(index);
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: EdgeInsets.all(4.r),
                   decoration: const BoxDecoration(
                     color: Colors.black54,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.close, color: Colors.white, size: 14),
+                  child: Icon(Icons.close, color: Colors.white, size: 14.sp),
                 ),
               ),
             ),
@@ -555,29 +556,29 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
 
   Widget _buildHashtagStep(QuickLogDraft draft) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: EdgeInsets.symmetric(vertical: 24.h),
       child: Column(
         children: [
           // Summary of what's been captured
           _buildDraftSummary(draft),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           // Hashtag input
           Text(
             'logPost.quickLog.addHashtags'.tr(),
-            style: const TextStyle(
-              fontSize: 18,
+            style: TextStyle(
+              fontSize: 18.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             'logPost.quickLog.hashtagsOptional'.tr(),
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.sp,
               color: Colors.grey[600],
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           // Hashtag input section
           HashtagInputSection(
             hashtags: _hashtags,
@@ -589,7 +590,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
               ref.read(quickLogDraftProvider.notifier).setHashtags(tags);
             },
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           // Action buttons
           Row(
             children: [
@@ -619,44 +620,44 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
 
   Widget _buildNotesStep(QuickLogDraft draft) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: EdgeInsets.symmetric(vertical: 24.h),
       child: Column(
         children: [
           // Summary of what's been captured
           _buildDraftSummary(draft),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           // Notes input
           Text(
             'logPost.quickLog.addNotes'.tr(),
-            style: const TextStyle(
-              fontSize: 18,
+            style: TextStyle(
+              fontSize: 18.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             'logPost.quickLog.notesOptional'.tr(),
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.sp,
               color: Colors.grey[600],
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           TextField(
             controller: _notesController,
             maxLines: 3,
             decoration: InputDecoration(
               hintText: 'logPost.quickLog.notesHint'.tr(),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
               ),
-              contentPadding: const EdgeInsets.all(16),
+              contentPadding: EdgeInsets.all(16.r),
             ),
             onChanged: (value) {
               ref.read(quickLogDraftProvider.notifier).updateNotes(value);
             },
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           // Action buttons
           Row(
             children: [
@@ -687,10 +688,10 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
 
   Widget _buildDraftSummary(QuickLogDraft draft) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Row(
@@ -698,25 +699,25 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
           // Photo thumbnail (first photo)
           if (draft.photoPaths.isNotEmpty)
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(8.r),
               child: Image.file(
                 File(draft.photoPaths.first),
-                width: 60,
-                height: 60,
+                width: 60.w,
+                height: 60.w,
                 fit: BoxFit.cover,
               ),
             )
           else
             Container(
-              width: 60,
-              height: 60,
+              width: 60.w,
+              height: 60.w,
               decoration: BoxDecoration(
                 color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8.r),
               ),
               child: Icon(Icons.photo, color: Colors.grey[400]),
             ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16.w),
           // Info
           Expanded(
             child: Column(
@@ -727,12 +728,12 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                     outcome: draft.outcome!,
                     variant: OutcomeBadgeVariant.compact,
                   ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 if (draft.recipeTitle != null)
                   Text(
                     draft.recipeTitle!,
-                    style: const TextStyle(
-                      fontSize: 13,
+                    style: TextStyle(
+                      fontSize: 13.sp,
                       fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,
@@ -748,16 +749,16 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
 
   Widget _buildSubmittingState() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 48),
+      padding: EdgeInsets.symmetric(vertical: 48.h),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const CircularProgressIndicator(),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           Text(
             'logPost.quickLog.saving'.tr(),
-            style: const TextStyle(
-              fontSize: 16,
+            style: TextStyle(
+              fontSize: 16.sp,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -770,46 +771,46 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
     final draft = ref.watch(quickLogDraftProvider);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: EdgeInsets.symmetric(vertical: 24.h),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Success icon
           Container(
-            width: 64,
-            height: 64,
+            width: 64.w,
+            height: 64.w,
             decoration: BoxDecoration(
               color: Colors.green[50],
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.check_circle,
-              size: 40,
+              size: 40.sp,
               color: Colors.green[600],
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Text(
             'logPost.quickLog.logged'.tr(),
-            style: const TextStyle(
-              fontSize: 20,
+            style: TextStyle(
+              fontSize: 20.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           // Preview card showing what was logged
           _buildLogPreviewCard(draft),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Text(
             'logPost.quickLog.syncingBackground'.tr(),
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.sp,
               color: Colors.grey[600],
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           // Updated buttons
           Row(
@@ -823,7 +824,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                 },
                 child: Text('common.done'.tr()),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16.w),
               FilledButton.icon(
                 onPressed: () {
                   HapticFeedback.mediumImpact();
@@ -847,10 +848,10 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
   /// Preview card showing what was logged for immediate user feedback
   Widget _buildLogPreviewCard(QuickLogDraft draft) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Row(
@@ -858,25 +859,25 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
           // Photo thumbnail
           if (draft.photoPaths.isNotEmpty)
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
               child: Image.file(
                 File(draft.photoPaths.first),
-                width: 80,
-                height: 80,
+                width: 80.w,
+                height: 80.w,
                 fit: BoxFit.cover,
               ),
             )
           else
             Container(
-              width: 80,
-              height: 80,
+              width: 80.w,
+              height: 80.w,
               decoration: BoxDecoration(
                 color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(Icons.photo, color: Colors.grey[400]),
             ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16.w),
           // Log info
           Expanded(
             child: Column(
@@ -887,12 +888,12 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                     outcome: draft.outcome!,
                     variant: OutcomeBadgeVariant.compact,
                   ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 if (draft.recipeTitle != null)
                   Text(
                     draft.recipeTitle!,
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: TextStyle(
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
@@ -900,11 +901,11 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                   ),
                 if (draft.notes != null && draft.notes!.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(top: 4),
+                    padding: EdgeInsets.only(top: 4.h),
                     child: Text(
                       draft.notes!,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         color: Colors.grey[600],
                       ),
                       maxLines: 2,
@@ -921,33 +922,33 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
 
   Widget _buildErrorState(QuickLogDraft draft) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
+      padding: EdgeInsets.symmetric(vertical: 32.h),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.error_outline,
-            size: 48,
+            size: 48.sp,
             color: Colors.red[400],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Text(
             'logPost.quickLog.error'.tr(),
-            style: const TextStyle(
-              fontSize: 18,
+            style: TextStyle(
+              fontSize: 18.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             draft.errorMessage ?? 'Unknown error',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               color: Colors.grey[600],
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -958,7 +959,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
                 },
                 child: Text('common.back'.tr()),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16.w),
               FilledButton(
                 onPressed: () {
                   HapticFeedback.mediumImpact();

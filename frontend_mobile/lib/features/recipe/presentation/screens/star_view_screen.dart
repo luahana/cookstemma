@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/recipe_star_view.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_star_provider.dart';
@@ -50,7 +51,7 @@ class StarViewScreen extends ConsumerWidget {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.r),
               child: Row(
                 children: [
                   IconButton(
@@ -60,8 +61,8 @@ class StarViewScreen extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       'star.title'.tr(),
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -77,23 +78,23 @@ class StarViewScreen extends ConsumerWidget {
                   children: [
                     Icon(
                       Icons.auto_awesome,
-                      size: 64,
+                      size: 64.sp,
                       color: Colors.grey[400],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     Text(
                       'star.noVariants'.tr(),
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.w600,
                         color: Colors.grey[600],
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     Text(
                       'star.createFirst'.tr(),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         color: Colors.grey[500],
                       ),
                     ),
@@ -115,7 +116,7 @@ class StarViewScreen extends ConsumerWidget {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.r),
               child: Row(
                 children: [
                   IconButton(
@@ -125,8 +126,8 @@ class StarViewScreen extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       'star.title'.tr(),
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -140,18 +141,18 @@ class StarViewScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.error_outline,
-                      size: 48,
+                      size: 48.sp,
                       color: Colors.red,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     Text(
                       'common.errorWithMessage'.tr(namedArgs: {'message': error.toString()}),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.grey[600]),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     TextButton(
                       onPressed: () => ref.invalidate(recipeStarProvider(recipeId)),
                       child: Text('common.tryAgain'.tr()),

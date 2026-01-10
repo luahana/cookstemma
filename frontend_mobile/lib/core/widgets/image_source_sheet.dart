@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ImageSourceSheet extends StatelessWidget {
@@ -13,8 +14,8 @@ class ImageSourceSheet extends StatelessWidget {
   }) {
     return showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       builder: (context) =>
           ImageSourceSheet(onSourceSelected: onSourceSelected),
@@ -27,11 +28,11 @@ class ImageSourceSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.h),
             child: Text(
               "사진 추가",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
             ),
           ),
           ListTile(
@@ -50,7 +51,7 @@ class ImageSourceSheet extends StatelessWidget {
               onSourceSelected(ImageSource.gallery);
             },
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
         ],
       ),
     );

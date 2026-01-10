@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
@@ -136,10 +137,10 @@ class _RecipeStarViewState extends State<RecipeStarView>
   Widget _buildHeader() {
     return Container(
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 8,
-        left: 16,
-        right: 16,
-        bottom: 8,
+        top: MediaQuery.of(context).padding.top + 8.h,
+        left: 16.w,
+        right: 16.w,
+        bottom: 8.h,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -164,15 +165,15 @@ class _RecipeStarViewState extends State<RecipeStarView>
               children: [
                 Text(
                   'star.title'.tr(),
-                  style: const TextStyle(
-                    fontSize: 18,
+                  style: TextStyle(
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   widget.rootRecipe.foodName,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 13.sp,
                     color: Colors.grey[600],
                   ),
                 ),
@@ -188,10 +189,10 @@ class _RecipeStarViewState extends State<RecipeStarView>
 
   Widget _buildLegend() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -203,7 +204,7 @@ class _RecipeStarViewState extends State<RecipeStarView>
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildLegendItem('📌', 'star.root'.tr()),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           _buildLegendItem('🔀', '${widget.variants.length}'),
         ],
       ),
@@ -214,12 +215,12 @@ class _RecipeStarViewState extends State<RecipeStarView>
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 12)),
-        const SizedBox(width: 4),
+        Text(emoji, style: TextStyle(fontSize: 12.sp)),
+        SizedBox(width: 4.w),
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 11.sp,
             color: Colors.grey[700],
             fontWeight: FontWeight.w500,
           ),
@@ -256,7 +257,7 @@ class _RecipeStarViewState extends State<RecipeStarView>
                   isSelected: _selectedRecipe?.publicId == widget.rootRecipe.publicId,
                   onTap: () => _onNodeTap(widget.rootRecipe),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 StarNodeLabel(
                   text: widget.rootRecipe.title,
                   isRoot: true,
@@ -290,7 +291,7 @@ class _RecipeStarViewState extends State<RecipeStarView>
                     isSelected: _selectedRecipe?.publicId == variant.publicId,
                     onTap: () => _onNodeTap(variant),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   StarNodeLabel(text: variant.title),
                 ],
               ),
@@ -333,7 +334,7 @@ class _RecipeStarViewState extends State<RecipeStarView>
       curve: Curves.easeOut,
       child: Container(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).padding.bottom + 16,
+          bottom: MediaQuery.of(context).padding.bottom + 16.h,
         ),
         child: StarNodeCard(
           recipe: _selectedRecipe!,
@@ -418,20 +419,20 @@ class StarPreviewMini extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('⭐', style: TextStyle(fontSize: 12)),
-          const SizedBox(width: 4),
+          Text('⭐', style: TextStyle(fontSize: 12.sp)),
+          SizedBox(width: 4.w),
           Text(
             '$variantCount',
-            style: const TextStyle(
-              fontSize: 12,
+            style: TextStyle(
+              fontSize: 12.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -439,16 +440,16 @@ class StarPreviewMini extends StatelessWidget {
             Text(
               ' · ',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 color: Colors.grey[400],
               ),
             ),
-            Icon(Icons.edit_note, size: 12, color: Colors.grey[600]),
-            const SizedBox(width: 2),
+            Icon(Icons.edit_note, size: 12.sp, color: Colors.grey[600]),
+            SizedBox(width: 2.w),
             Text(
               '$logCount',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w500,
                 color: Colors.grey[700],
               ),

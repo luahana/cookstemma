@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/network/dio_provider.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
@@ -89,10 +90,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           TextButton(
             onPressed: _hasChanges && !_isLoading ? _saveProfile : null,
             child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                ? SizedBox(
+                    width: 20.w,
+                    height: 20.w,
+                    child: const CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Text(
                     'common.save'.tr(),
@@ -116,31 +117,31 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
   Widget _buildForm(UserDto user) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Birthday Section
           _buildSectionTitle('profile.birthday'.tr()),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           _buildBirthdayPicker(),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           // Gender Section
           _buildSectionTitle('profile.gender'.tr()),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           _buildGenderDropdown(),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
           // Language Section
           _buildSectionTitle('profile.language'.tr()),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           _buildLocaleDropdown(),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Text(
             'profile.languageHint'.tr(),
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.sp,
               color: Colors.grey[600],
             ),
           ),
@@ -153,7 +154,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     return Text(
       title,
       style: TextStyle(
-        fontSize: 16,
+        fontSize: 16.sp,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
       ),
@@ -169,10 +170,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       onTap: _showDatePicker,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: Colors.grey[300]!),
         ),
         child: Row(
@@ -181,7 +182,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
             Text(
               dateText,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 16.sp,
                 color: _selectedBirthDate != null ? Colors.black : Colors.grey[500],
               ),
             ),
@@ -216,10 +217,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   Widget _buildGenderDropdown() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.grey[300]!),
       ),
       child: DropdownButtonHideUnderline(
@@ -247,10 +248,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   Widget _buildLocaleDropdown() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.grey[300]!),
       ),
       child: DropdownButtonHideUnderline(

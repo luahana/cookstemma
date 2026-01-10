@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
@@ -51,15 +52,15 @@ class EnhancedRecipeCard extends StatelessWidget {
           onTap?.call();
         },
         child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: EdgeInsets.only(bottom: 16.h),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
-              offset: const Offset(0, 4),
+              offset: Offset(0, 4.h),
             ),
           ],
         ),
@@ -70,24 +71,24 @@ class EnhancedRecipeCard extends StatelessWidget {
             _buildImageHeader(),
             // Content section
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.r),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Food name and title
                   _buildTitleSection(),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   // Description
                   HighlightedText(
                     text: recipe.description,
                     query: searchQuery,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14.sp),
                   ),
                   // Ingredient preview (if available)
                   if (ingredientPreviews != null && ingredientPreviews!.isNotEmpty) ...[
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     IngredientPreviewChips(
                       ingredients: ingredientPreviews!,
                       showDiffBadges: !isOriginal && diffSummary != null,
@@ -95,13 +96,13 @@ class EnhancedRecipeCard extends StatelessWidget {
                   ],
                   // Diff summary for variants
                   if (!isOriginal && diffSummary != null && diffSummary!.hasChanges) ...[
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     DiffSummaryRow(summary: diffSummary!),
                   ],
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
                   // Creator row
                   _buildCreatorRow(),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12.h),
                   // Action buttons
                   CardActionRow(
                     isOriginal: isOriginal,
@@ -127,7 +128,7 @@ class EnhancedRecipeCard extends StatelessWidget {
         AppCachedImage(
           imageUrl: recipe.thumbnailUrl ?? 'https://via.placeholder.com/400x200',
           width: double.infinity,
-          height: 180,
+          height: 180.h,
           borderRadius: 16,
         ),
         // Gradient overlay at bottom for badges
@@ -136,11 +137,11 @@ class EnhancedRecipeCard extends StatelessWidget {
           left: 0,
           right: 0,
           child: Container(
-            height: 60,
+            height: 60.h,
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(16),
-                bottomRight: Radius.circular(16),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(16.r),
+                bottomRight: Radius.circular(16.r),
               ),
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -155,14 +156,14 @@ class EnhancedRecipeCard extends StatelessWidget {
         ),
         // Original/Variant badge (top left)
         Positioned(
-          top: 12,
-          left: 12,
+          top: 12.h,
+          left: 12.w,
           child: _buildTypeBadge(),
         ),
         // Locale badge (top right)
         Positioned(
-          top: 12,
-          right: 12,
+          top: 12.h,
+          right: 12.w,
           child: LocaleBadge(
             localeCode: recipe.culinaryLocale,
             showLabel: false,
@@ -171,9 +172,9 @@ class EnhancedRecipeCard extends StatelessWidget {
         // Star preview (bottom left) for originals
         // Or Based on badge (bottom left) for variants
         Positioned(
-          bottom: 12,
-          left: 12,
-          right: 12,
+          bottom: 12.h,
+          left: 12.w,
+          right: 12.w,
           child: isOriginal
               ? StarPreviewBadge(
                   variantCount: recipe.variantCount,
@@ -192,24 +193,24 @@ class EnhancedRecipeCard extends StatelessWidget {
 
   Widget _buildTypeBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: isOriginal ? AppColors.textPrimary : AppColors.primary,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             isOriginal ? '📌' : '🔀',
-            style: const TextStyle(fontSize: 11),
+            style: TextStyle(fontSize: 11.sp),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4.w),
           Text(
             isOriginal ? 'recipe.originalBadge'.tr() : 'recipe.variant'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 11,
+              fontSize: 11.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -227,16 +228,16 @@ class EnhancedRecipeCard extends StatelessWidget {
           query: searchQuery,
           style: TextStyle(
             color: AppColors.primary,
-            fontSize: 12,
+            fontSize: 12.sp,
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4.h),
         HighlightedText(
           text: recipe.title,
           query: searchQuery,
-          style: const TextStyle(
-            fontSize: 18,
+          style: TextStyle(
+            fontSize: 18.sp,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -249,22 +250,22 @@ class EnhancedRecipeCard extends StatelessWidget {
       children: [
         Icon(
           Icons.person_outline,
-          size: 16,
+          size: 16.sp,
           color: Colors.grey[400],
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: 4.w),
         Text(
           recipe.creatorName,
-          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+          style: TextStyle(color: Colors.grey[600], fontSize: 13.sp),
         ),
         if (recipe.logCount > 0) ...[
           Text(
             " · ",
-            style: TextStyle(color: Colors.grey[400], fontSize: 13),
+            style: TextStyle(color: Colors.grey[400], fontSize: 13.sp),
           ),
           Text(
             'recipe.logCountLabel'.tr(namedArgs: {'count': recipe.logCount.toString()}),
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            style: TextStyle(color: Colors.grey[600], fontSize: 13.sp),
           ),
         ],
       ],

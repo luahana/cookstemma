@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/data/datasources/sync/log_sync_engine.dart';
 import 'package:pairing_planet2_frontend/data/datasources/sync/sync_queue_local_data_source.dart';
@@ -105,10 +106,10 @@ class _SyncIndicatorContentState extends State<_SyncIndicatorContent>
           return Transform.scale(
             scale: isSyncing ? 1.0 : _pulseAnimation.value,
             child: Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(8.r),
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.r),
                 boxShadow: [
                   BoxShadow(
                     color: iconColor.withValues(alpha: 0.2),
@@ -127,7 +128,7 @@ class _SyncIndicatorContentState extends State<_SyncIndicatorContent>
                       Icon(
                         hasFailed ? Icons.cloud_off : Icons.cloud_done,
                         color: iconColor,
-                        size: 20,
+                        size: 20.sp,
                       ),
                       if (isSyncing)
                         Transform.rotate(
@@ -135,28 +136,28 @@ class _SyncIndicatorContentState extends State<_SyncIndicatorContent>
                           child: Icon(
                             Icons.sync,
                             color: iconColor,
-                            size: 14,
+                            size: 14.sp,
                           ),
                         ),
                     ],
                   ),
                   // Badge count
                   if (pendingCount > 0) ...[
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4.w),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.w,
+                        vertical: 2.h,
                       ),
                       decoration: BoxDecoration(
                         color: iconColor,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(10.r),
                       ),
                       child: Text(
                         pendingCount.toString(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 11,
+                          fontSize: 11.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -177,37 +178,37 @@ class _SyncIndicatorContentState extends State<_SyncIndicatorContent>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
       ),
       builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24.r),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Sync Status',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             _buildStatRow('Pending', stats.pending, AppColors.primary),
             _buildStatRow('Syncing', stats.syncing, AppColors.growth),
             _buildStatRow('Failed', stats.failed, AppColors.error),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             Text(
               stats.hasUnsyncedItems
                   ? 'Your data will sync automatically when connected.'
                   : 'All data is synced!',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 14.sp,
                 color: Colors.grey[600],
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
           ],
         ),
       ),
@@ -216,27 +217,27 @@ class _SyncIndicatorContentState extends State<_SyncIndicatorContent>
 
   Widget _buildStatRow(String label, int count, Color color) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: 4.h),
       child: Row(
         children: [
           Container(
-            width: 8,
-            height: 8,
+            width: 8.w,
+            height: 8.w,
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           Text(
             label,
-            style: const TextStyle(fontSize: 14),
+            style: TextStyle(fontSize: 14.sp),
           ),
           const Spacer(),
           Text(
             count.toString(),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: FontWeight.bold,
               color: count > 0 ? color : Colors.grey[400],
             ),

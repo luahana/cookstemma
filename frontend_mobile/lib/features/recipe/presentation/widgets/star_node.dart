@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
@@ -94,14 +95,14 @@ class StarNode extends StatelessWidget {
                   right: 0,
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                       decoration: BoxDecoration(
                         color: AppColors.textPrimary,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(8.r),
                       ),
-                      child: const Text(
+                      child: Text(
                         '📌',
-                        style: TextStyle(fontSize: 10),
+                        style: TextStyle(fontSize: 10.sp),
                       ),
                     ),
                   ),
@@ -124,14 +125,14 @@ class StarNode extends StatelessWidget {
   Widget _buildDiffIndicator() {
     // Show a small indicator of what changed in this variant
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
       decoration: BoxDecoration(
         color: AppColors.primary,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6.r),
       ),
-      child: const Text(
+      child: Text(
         '🔀',
-        style: TextStyle(fontSize: 8),
+        style: TextStyle(fontSize: 8.sp),
       ),
     );
   }
@@ -159,11 +160,11 @@ class StarNodeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.symmetric(horizontal: 16.w),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.15),
@@ -181,15 +182,15 @@ class StarNodeCard extends StatelessWidget {
             children: [
               // Recipe image
               ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 child: AppCachedImage(
                   imageUrl: recipe.thumbnailUrl ?? 'https://via.placeholder.com/80',
-                  width: 80,
-                  height: 80,
-                  borderRadius: 12,
+                  width: 80.w,
+                  height: 80.w,
+                  borderRadius: 12.r,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
               // Recipe info
               Expanded(
                 child: Column(
@@ -197,36 +198,36 @@ class StarNodeCard extends StatelessWidget {
                   children: [
                     // Type badge
                     _buildTypeBadge(),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     // Food name
                     Text(
                       recipe.foodName,
                       style: TextStyle(
                         color: AppColors.primary,
-                        fontSize: 11,
+                        fontSize: 11.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2.h),
                     // Title
                     Text(
                       recipe.title,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: TextStyle(
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     // Creator
                     Row(
                       children: [
-                        Icon(Icons.person_outline, size: 14, color: Colors.grey[500]),
-                        const SizedBox(width: 4),
+                        Icon(Icons.person_outline, size: 14.sp, color: Colors.grey[500]),
+                        SizedBox(width: 4.w),
                         Text(
                           recipe.creatorName,
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
                         ),
                       ],
                     ),
@@ -235,11 +236,11 @@ class StarNodeCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           // Stats row for root
           if (isRoot) ...[
             _buildStatsRow(),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
           ],
           // Action buttons
           Row(
@@ -252,7 +253,7 @@ class StarNodeCard extends StatelessWidget {
                   isPrimary: true,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Expanded(
                 child: _ActionButton(
                   icon: Icons.edit_note,
@@ -260,7 +261,7 @@ class StarNodeCard extends StatelessWidget {
                   onTap: onLog,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Expanded(
                 child: _ActionButton(
                   icon: Icons.call_split,
@@ -277,24 +278,24 @@ class StarNodeCard extends StatelessWidget {
 
   Widget _buildTypeBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: isRoot ? AppColors.textPrimary : AppColors.primary,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             isRoot ? '📌' : '🔀',
-            style: const TextStyle(fontSize: 10),
+            style: TextStyle(fontSize: 10.sp),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4.w),
           Text(
             isRoot ? 'recipe.originalBadge'.tr() : 'recipe.variant'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 10,
+              fontSize: 10.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -305,16 +306,16 @@ class StarNodeCard extends StatelessWidget {
 
   Widget _buildStatsRow() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildStatItem(Icons.call_split, recipe.variantCount, 'star.variants'.tr()),
-          Container(width: 1, height: 24, color: Colors.grey[300]),
+          Container(width: 1, height: 24.h, color: Colors.grey[300]),
           _buildStatItem(Icons.edit_note, recipe.logCount, 'star.logs'.tr()),
         ],
       ),
@@ -325,20 +326,20 @@ class StarNodeCard extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: AppColors.primary),
-        const SizedBox(width: 6),
+        Icon(icon, size: 18.sp, color: AppColors.primary),
+        SizedBox(width: 6.w),
         Text(
           count.toString(),
-          style: const TextStyle(
-            fontSize: 16,
+          style: TextStyle(
+            fontSize: 16.sp,
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: 4.w),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 12.sp,
             color: Colors.grey[600],
           ),
         ),
@@ -367,28 +368,28 @@ class _ActionButton extends StatelessWidget {
       label: label,
       child: Material(
         color: isPrimary ? AppColors.primary : Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         child: InkWell(
           onTap: () {
             HapticFeedback.lightImpact();
             onTap?.call();
           },
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            padding: EdgeInsets.symmetric(vertical: 10.h),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   icon,
-                  size: 18,
+                  size: 18.sp,
                   color: isPrimary ? Colors.white : Colors.grey[700],
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 10.sp,
                     fontWeight: FontWeight.w600,
                     color: isPrimary ? Colors.white : Colors.grey[700],
                   ),
@@ -417,11 +418,11 @@ class StarNodeLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(maxWidth: 80),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      constraints: BoxConstraints(maxWidth: 80.w),
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
       decoration: BoxDecoration(
         color: isRoot ? AppColors.textPrimary.withValues(alpha: 0.9) : Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(4.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -432,7 +433,7 @@ class StarNodeLabel extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: 10.sp,
           fontWeight: FontWeight.w600,
           color: isRoot ? Colors.white : Colors.grey[800],
         ),

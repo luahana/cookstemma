@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Ingredient preview data for browse cards
@@ -44,10 +45,10 @@ class IngredientPreviewChips extends StatelessWidget {
         ingredients.where((i) => i.type == 'SEASONING').take(maxItemsPerCategory).toList();
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
@@ -60,7 +61,7 @@ class IngredientPreviewChips extends StatelessWidget {
               items: mainIngredients,
             ),
           if (secondaryIngredients.isNotEmpty) ...[
-            if (mainIngredients.isNotEmpty) const SizedBox(height: 6),
+            if (mainIngredients.isNotEmpty) SizedBox(height: 6.h),
             _buildCategoryRow(
               icon: '🥬',
               label: 'Side',
@@ -69,7 +70,7 @@ class IngredientPreviewChips extends StatelessWidget {
           ],
           if (seasoningIngredients.isNotEmpty) ...[
             if (mainIngredients.isNotEmpty || secondaryIngredients.isNotEmpty)
-              const SizedBox(height: 6),
+              SizedBox(height: 6.h),
             _buildCategoryRow(
               icon: '🌶️',
               label: 'Season',
@@ -89,12 +90,12 @@ class IngredientPreviewChips extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(icon, style: const TextStyle(fontSize: 14)),
-        const SizedBox(width: 6),
+        Text(icon, style: TextStyle(fontSize: 14.sp)),
+        SizedBox(width: 6.w),
         Expanded(
           child: Wrap(
-            spacing: 6,
-            runSpacing: 4,
+            spacing: 6.w,
+            runSpacing: 4.h,
             children: items.map((item) => _buildIngredientChip(item)).toList(),
           ),
         ),
@@ -110,7 +111,7 @@ class IngredientPreviewChips extends StatelessWidget {
     return Text(
       item.name,
       style: TextStyle(
-        fontSize: 13,
+        fontSize: 13.sp,
         color: Colors.grey[700],
       ),
     );
@@ -140,15 +141,15 @@ class IngredientPreviewChips extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(4.r),
       ),
       child: Text(
         '$prefix${item.name}',
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 12.sp,
           color: textColor,
           fontWeight: FontWeight.w600,
         ),

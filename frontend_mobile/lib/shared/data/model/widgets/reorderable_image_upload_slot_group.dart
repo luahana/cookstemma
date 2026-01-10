@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 
 class ReorderableImageUploadSlotGroup extends StatelessWidget {
@@ -20,7 +21,7 @@ class ReorderableImageUploadSlotGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 100,
+      height: 100.w,
       child: ReorderableListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: items.length + (items.length < 3 ? 1 : 0), // 최대 3장까지 허용
@@ -47,21 +48,21 @@ class ReorderableImageUploadSlotGroup extends StatelessWidget {
       key: key,
       onTap: onAddPressed,
       child: Container(
-        width: 100,
-        margin: const EdgeInsets.only(right: 12),
+        width: 100.w,
+        margin: EdgeInsets.only(right: 12.w),
         decoration: BoxDecoration(
           color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: Colors.grey[300]!, width: 1),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.add_a_photo, color: Colors.grey[600]),
-            const SizedBox(height: 4),
+            SizedBox(height: 4.h),
             Text(
               "${items.length}/3",
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              style: TextStyle(color: Colors.grey[600], fontSize: 12.sp),
             ),
           ],
         ),
@@ -73,17 +74,17 @@ class ReorderableImageUploadSlotGroup extends StatelessWidget {
   Widget _buildImageSlot(UploadItem item, int index, {required Key key}) {
     return Container(
       key: key,
-      width: 100,
-      margin: const EdgeInsets.only(right: 12),
+      width: 100.w,
+      margin: EdgeInsets.only(right: 12.w),
       child: Stack(
         children: [
           // 배경 이미지
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             child: Image.file(
               item.file,
-              width: 100,
-              height: 100,
+              width: 100.w,
+              height: 100.w,
               fit: BoxFit.cover,
             ),
           ),
@@ -102,27 +103,27 @@ class ReorderableImageUploadSlotGroup extends StatelessWidget {
 
           // 삭제 버튼 (우측 상단)
           Positioned(
-            top: 4,
-            right: 4,
+            top: 4.h,
+            right: 4.w,
             child: GestureDetector(
               onTap: () => onRemovePressed(index),
               child: Container(
-                padding: const EdgeInsets.all(2),
+                padding: EdgeInsets.all(2.r),
                 decoration: const BoxDecoration(
                   color: Colors.black54,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close, size: 16, color: Colors.white),
+                child: Icon(Icons.close, size: 16.sp, color: Colors.white),
               ),
             ),
           ),
 
           // 성공 표시 (선택사항)
           if (item.status == UploadStatus.success)
-            const Positioned(
-              bottom: 4,
-              right: 4,
-              child: Icon(Icons.check_circle, color: Colors.green, size: 18),
+            Positioned(
+              bottom: 4.h,
+              right: 4.w,
+              child: Icon(Icons.check_circle, color: Colors.green, size: 18.sp),
             ),
         ],
       ),
@@ -134,7 +135,7 @@ class ReorderableImageUploadSlotGroup extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.black38,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: Center(child: child),
     );

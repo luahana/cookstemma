@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'nav_progress_ring.dart';
 
 /// Custom bottom navigation bar with pill-style active indicators
@@ -40,7 +41,7 @@ class CustomBottomNavBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 64,
+          height: 64.h,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -85,21 +86,21 @@ class CustomBottomNavBar extends StatelessWidget {
       selected: isActive,
       child: InkWell(
         onTap: () => onTap(index),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
           decoration: BoxDecoration(
             color: isActive
                 ? _primaryColor.withValues(alpha: 0.1)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
           ),
           child: Icon(
             isActive ? activeIcon : icon,
             color: isActive ? _primaryColor : _inactiveColor,
-            size: 24,
+            size: 24.sp,
           ),
         ),
       ),
@@ -113,8 +114,8 @@ class CustomBottomNavBar extends StatelessWidget {
       child: GestureDetector(
         onTap: onFabTap,
         child: Container(
-          width: 56,
-          height: 56,
+          width: 56.w,
+          height: 56.w,
           decoration: BoxDecoration(
             color: _primaryColor,
             shape: BoxShape.circle,
@@ -126,10 +127,10 @@ class CustomBottomNavBar extends StatelessWidget {
               ),
             ],
           ),
-          child: const Icon(
+          child: Icon(
             Icons.add,
             color: Colors.white,
-            size: 28,
+            size: 28.sp,
           ),
         ),
       ),
@@ -146,37 +147,37 @@ class CustomBottomNavBar extends StatelessWidget {
       selected: isActive,
       child: InkWell(
         onTap: () => onTap(3),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
           decoration: BoxDecoration(
             color: isActive
                 ? _primaryColor.withValues(alpha: 0.1)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
           ),
           child: showProgress
               ? NavProgressRing(
                   progress: levelProgress!,
                   level: level,
                   isActive: isActive,
-                  size: 40,
+                  size: 40.sp,
                   strokeWidth: 3,
                   progressColor: _primaryColor,
                   child: Icon(
                     isActive ? Icons.person : Icons.person_outline,
                     color: isActive ? _primaryColor : _inactiveColor,
-                    size: 22,
+                    size: 22.sp,
                   ),
                 )
               : Padding(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8.r),
                   child: Icon(
                     isActive ? Icons.person : Icons.person_outline,
                     color: isActive ? _primaryColor : _inactiveColor,
-                    size: 24,
+                    size: 24.sp,
                   ),
                 ),
         ),

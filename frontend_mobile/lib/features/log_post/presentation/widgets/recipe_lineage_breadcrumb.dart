@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -51,15 +52,15 @@ class RecipeLineageBreadcrumb extends StatelessWidget {
         children: [
           Icon(
             Icons.pin_drop_outlined,
-            size: 14,
+            size: 14.sp,
             color: AppColors.primary,
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4.w),
           Expanded(
             child: Text(
               recipeTitle,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w500,
                 color: AppColors.primary,
               ),
@@ -69,7 +70,7 @@ class RecipeLineageBreadcrumb extends StatelessWidget {
           ),
           Icon(
             Icons.chevron_right,
-            size: 16,
+            size: 16.sp,
             color: Colors.grey[400],
           ),
         ],
@@ -79,10 +80,10 @@ class RecipeLineageBreadcrumb extends StatelessWidget {
 
   Widget _buildFullBreadcrumb(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
           color: AppColors.primary.withValues(alpha: 0.2),
           width: 1,
@@ -103,7 +104,7 @@ class RecipeLineageBreadcrumb extends StatelessWidget {
           ),
           // Variant info (if applicable)
           if (isVariant) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             _buildVariantIndicator(context),
           ],
         ],
@@ -133,36 +134,36 @@ class RecipeLineageBreadcrumb extends StatelessWidget {
             context.push(RouteConstants.recipeDetailPath(publicId));
           }
         },
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6.r),
         child: Row(
           children: [
             Icon(
               icon,
-              size: 18,
+              size: 18.sp,
               color: isPrimary ? AppColors.primary : Colors.orange[600],
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
               decoration: BoxDecoration(
                 color: isPrimary ? AppColors.primary.withValues(alpha: 0.2) : Colors.orange[100],
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(4.r),
               ),
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 10.sp,
                   fontWeight: FontWeight.bold,
                   color: isPrimary ? AppColors.primary : Colors.orange[800],
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             Expanded(
               child: Text(
                 title,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
                   color: Colors.grey[800],
                 ),
@@ -171,7 +172,7 @@ class RecipeLineageBreadcrumb extends StatelessWidget {
             ),
             Icon(
               Icons.chevron_right,
-              size: 20,
+              size: 20.sp,
               color: Colors.grey[400],
             ),
           ],
@@ -193,29 +194,29 @@ class RecipeLineageBreadcrumb extends StatelessWidget {
             context.push(RouteConstants.recipeDetailPath(rootPublicId!));
           }
         },
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6.r),
         child: Row(
           children: [
-            const SizedBox(width: 26), // Indent to align with recipe title
+            SizedBox(width: 26.w), // Indent to align with recipe title
             Icon(
               Icons.subdirectory_arrow_right,
-              size: 16,
+              size: 16.sp,
               color: Colors.orange[600],
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4.w),
             Text(
               'logPost.lineage.variantOf'.tr(),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 color: Colors.grey[600],
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4.w),
             Expanded(
               child: Text(
                 '"$rootTitle"',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.w500,
                   color: Colors.orange[700],
                   fontStyle: FontStyle.italic,
@@ -225,7 +226,7 @@ class RecipeLineageBreadcrumb extends StatelessWidget {
             ),
             Icon(
               Icons.chevron_right,
-              size: 16,
+              size: 16.sp,
               color: Colors.grey[400],
             ),
           ],
@@ -252,15 +253,15 @@ class InlineRecipeLineage extends StatelessWidget {
       children: [
         Icon(
           Icons.pin_drop_outlined,
-          size: 12,
+          size: 12.sp,
           color: AppColors.primary,
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: 4.w),
         Flexible(
           child: Text(
             recipeTitle,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w500,
               color: AppColors.primary,
             ),
@@ -269,10 +270,10 @@ class InlineRecipeLineage extends StatelessWidget {
           ),
         ),
         if (rootTitle != null) ...[
-          const SizedBox(width: 4),
+          SizedBox(width: 4.w),
           Icon(
             Icons.subdirectory_arrow_right,
-            size: 10,
+            size: 10.sp,
             color: Colors.orange[500],
           ),
         ],

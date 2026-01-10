@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pairing_planet2_frontend/core/providers/autocomplete_providers.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
@@ -87,14 +88,14 @@ class _HookSectionState extends ConsumerState<HookSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         MinimalHeader(icon: Icons.edit_note, title: 'recipe.hook.basicInfo'.tr()),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
 
         // 1. 이미지 등록 섹션 추가
         Text(
           'recipe.hook.finishedPhotos'.tr(),
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         ReorderableImagePicker(
           images: widget.finishedImages,
           maxImages: 3,
@@ -106,20 +107,20 @@ class _HookSectionState extends ConsumerState<HookSection> {
             onSourceSelected: _pickImage,
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: 24.h),
 
         _buildTextField(
           controller: widget.titleController,
           label: 'recipe.hook.title'.tr(),
           hint: 'recipe.hook.titleHint'.tr(),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
 
         Text(
           'recipe.hook.foodName'.tr(),
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         Autocomplete<AutocompleteResult>(
           displayStringForOption: (option) => option.name,
           optionsBuilder: (TextEditingValue textEditingValue) async {
@@ -165,7 +166,7 @@ class _HookSectionState extends ConsumerState<HookSection> {
           optionsViewBuilder: (context, onSelected, options) =>
               _buildOptionsView(onSelected, options),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
 
         _buildTextField(
           controller: widget.descriptionController,
@@ -173,7 +174,7 @@ class _HookSectionState extends ConsumerState<HookSection> {
           hint: 'recipe.hook.descriptionHint'.tr(),
           maxLines: 3,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
 
         // Culinary locale dropdown
         LocaleDropdown(
@@ -200,10 +201,10 @@ class _HookSectionState extends ConsumerState<HookSection> {
       alignment: Alignment.topLeft,
       child: Material(
         elevation: 4,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         child: Container(
-          width: MediaQuery.of(context).size.width - 40,
-          constraints: const BoxConstraints(maxHeight: 200),
+          width: MediaQuery.of(context).size.width - 40.w,
+          constraints: BoxConstraints(maxHeight: 200.h),
           child: ListView.builder(
             padding: EdgeInsets.zero,
             shrinkWrap: true,
@@ -232,9 +233,9 @@ class _HookSectionState extends ConsumerState<HookSection> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         _buildTextFieldRaw(
           controller: controller,
           hint: hint,
@@ -254,10 +255,10 @@ class _HookSectionState extends ConsumerState<HookSection> {
     Color? backgroundColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: EdgeInsets.symmetric(horizontal: 12.w),
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: TextField(
@@ -269,7 +270,7 @@ class _HookSectionState extends ConsumerState<HookSection> {
         decoration: InputDecoration(
           hintText: hint,
           border: InputBorder.none,
-          hintStyle: const TextStyle(fontSize: 14, color: Colors.grey),
+          hintStyle: TextStyle(fontSize: 14.sp, color: Colors.grey),
         ),
       ),
     );

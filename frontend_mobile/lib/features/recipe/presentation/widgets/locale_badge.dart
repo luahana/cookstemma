@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'locale_dropdown.dart';
 
 /// Compact badge showing culinary locale with flag emoji
@@ -27,10 +28,10 @@ class LocaleBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(4.r),
         border: Border.all(color: Colors.grey[300]!, width: 0.5),
       ),
       child: Row(
@@ -38,14 +39,14 @@ class LocaleBadge extends StatelessWidget {
         children: [
           Text(
             locale.flagEmoji,
-            style: TextStyle(fontSize: fontSize),
+            style: TextStyle(fontSize: fontSize.sp),
           ),
           if (showLabel) ...[
-            const SizedBox(width: 3),
+            SizedBox(width: 3.w),
             Text(
               locale.labelKey.tr(),
               style: TextStyle(
-                fontSize: fontSize,
+                fontSize: fontSize.sp,
                 color: Colors.grey[700],
                 fontWeight: FontWeight.w500,
               ),
@@ -78,10 +79,10 @@ class LocaleBadgeLarge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: Colors.grey[200]!),
       ),
       child: Row(
@@ -89,13 +90,13 @@ class LocaleBadgeLarge extends StatelessWidget {
         children: [
           Text(
             locale.flagEmoji,
-            style: const TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 16.sp),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6.w),
           Text(
             locale.labelKey.tr(),
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.sp,
               color: Colors.grey[800],
               fontWeight: FontWeight.w500,
             ),

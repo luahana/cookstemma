@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Outcome types for cooking logs with associated styling
 enum LogOutcome {
@@ -95,10 +96,10 @@ class OutcomeBadge extends StatelessWidget {
 
   Widget _buildFullBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: outcome.backgroundColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         border: Border.all(
           color: outcome.primaryColor.withValues(alpha: 0.3),
           width: 1,
@@ -109,14 +110,14 @@ class OutcomeBadge extends StatelessWidget {
         children: [
           Text(
             outcome.emoji,
-            style: const TextStyle(fontSize: 14),
+            style: TextStyle(fontSize: 14.sp),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6.w),
           Text(
             outcome.label,
             style: TextStyle(
               color: outcome.primaryColor,
-              fontSize: 12,
+              fontSize: 12.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -127,14 +128,14 @@ class OutcomeBadge extends StatelessWidget {
 
   Widget _buildCompactBadge() {
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: EdgeInsets.all(6.r),
       decoration: BoxDecoration(
         color: outcome.backgroundColor,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6.r),
       ),
       child: Text(
         outcome.emoji,
-        style: const TextStyle(fontSize: 16),
+        style: TextStyle(fontSize: 16.sp),
       ),
     );
   }
@@ -145,14 +146,14 @@ class OutcomeBadge extends StatelessWidget {
       children: [
         Text(
           outcome.emoji,
-          style: const TextStyle(fontSize: 24),
+          style: TextStyle(fontSize: 24.sp),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8.w),
         Text(
           outcome.value,
           style: TextStyle(
             color: outcome.primaryColor,
-            fontSize: 16,
+            fontSize: 16.sp,
             fontWeight: FontWeight.bold,
             letterSpacing: 0.5,
           ),
@@ -166,10 +167,10 @@ class OutcomeBadge extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: isSelected ? outcome.primaryColor : outcome.backgroundColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
             color: isSelected ? outcome.primaryColor : outcome.primaryColor.withValues(alpha: 0.3),
             width: isSelected ? 2 : 1,
@@ -179,7 +180,7 @@ class OutcomeBadge extends StatelessWidget {
                   BoxShadow(
                     color: outcome.primaryColor.withValues(alpha: 0.3),
                     blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    offset: Offset(0, 2.h),
                   ),
                 ]
               : null,
@@ -189,14 +190,14 @@ class OutcomeBadge extends StatelessWidget {
           children: [
             Text(
               outcome.emoji,
-              style: const TextStyle(fontSize: 14),
+              style: TextStyle(fontSize: 14.sp),
             ),
-            const SizedBox(width: 6),
+            SizedBox(width: 6.w),
             Text(
               outcome.label,
               style: TextStyle(
                 color: isSelected ? Colors.white : outcome.primaryColor,
-                fontSize: 13,
+                fontSize: 13.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -229,9 +230,9 @@ class OutcomeStatsRow extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildCompactStat(LogOutcome.success, successCount),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           _buildCompactStat(LogOutcome.partial, partialCount),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           _buildCompactStat(LogOutcome.failed, failedCount),
         ],
       );
@@ -255,14 +256,14 @@ class OutcomeStatsRow extends StatelessWidget {
       children: [
         Text(
           outcome.emoji,
-          style: const TextStyle(fontSize: 14),
+          style: TextStyle(fontSize: 14.sp),
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: 4.w),
         Text(
           count.toString(),
           style: TextStyle(
             color: outcome.primaryColor,
-            fontSize: 14,
+            fontSize: 14.sp,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -276,14 +277,14 @@ class OutcomeStatsRow extends StatelessWidget {
       children: [
         Text(
           outcome.emoji,
-          style: const TextStyle(fontSize: 12),
+          style: TextStyle(fontSize: 12.sp),
         ),
-        const SizedBox(width: 2),
+        SizedBox(width: 2.w),
         Text(
           count.toString(),
           style: TextStyle(
             color: Colors.grey[600],
-            fontSize: 12,
+            fontSize: 12.sp,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -293,12 +294,12 @@ class OutcomeStatsRow extends StatelessWidget {
 
   Widget _buildDivider() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: EdgeInsets.symmetric(horizontal: 12.w),
       child: Text(
         '\u00B7',
         style: TextStyle(
           color: Colors.grey[400],
-          fontSize: 16,
+          fontSize: 16.sp,
           fontWeight: FontWeight.bold,
         ),
       ),
