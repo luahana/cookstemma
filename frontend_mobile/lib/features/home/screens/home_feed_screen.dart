@@ -12,6 +12,7 @@ import 'package:pairing_planet2_frontend/data/models/recipe/trending_tree_dto.da
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart';
+import 'package:pairing_planet2_frontend/core/widgets/app_logo.dart';
 import '../providers/home_feed_provider.dart';
 import '../widgets/cache_status_banner.dart';
 import '../widgets/section_header.dart';
@@ -220,6 +221,8 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
       foregroundColor: Colors.black,
       elevation: innerBoxIsScrolled ? 1 : 0,
       expandedHeight: 100.h,
+      centerTitle: false,
+      title: const AppLogo(),
       flexibleSpace: FlexibleSpaceBar(
         background: SafeArea(
           child: Padding(
