@@ -119,18 +119,40 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
       ],
       body: Builder(
         builder: (context) {
-          // Match LogPostListScreen pattern - return different widget types
+          // IMPORTANT: Always return CustomScrollView to coordinate with
+          // NestedScrollViewPlus + CupertinoSliverRefreshControl
           // Show skeleton if loading with no data
           if (feedState.isLoading && feedState.data == null) {
-            return const HomeFeedSkeleton();
+            return CustomScrollView(
+              slivers: [
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: HomeFeedSkeleton(),
+                ),
+              ],
+            );
           }
           // Show error if error with no data
           if (feedState.error != null && feedState.data == null) {
-            return _buildErrorBody(feedState.error!);
+            return CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _buildErrorContent(feedState.error!),
+                ),
+              ],
+            );
           }
           // Show no data message if null
           if (feedState.data == null) {
-            return _buildErrorBody('common.noData'.tr());
+            return CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _buildErrorContent('common.noData'.tr()),
+                ),
+              ],
+            );
           }
           // Normal content - return CustomScrollView with proper slivers
           return _buildContentBody(feedState);
@@ -223,7 +245,8 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     ];
   }
 
-  Widget _buildErrorBody(Object err) {
+  /// Error content for use inside SliverFillRemaining
+  Widget _buildErrorContent(Object err) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
