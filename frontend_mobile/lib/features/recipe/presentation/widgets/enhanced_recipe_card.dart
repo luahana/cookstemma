@@ -225,14 +225,14 @@ class EnhancedRecipeCard extends StatelessWidget {
         _buildStatBadge(
           icon: Icons.call_split,
           count: recipe.variantCount,
-          label: 'recipe.variants'.tr(),
+          label: 'grid.variants'.tr(),
         ),
         SizedBox(width: 12.w),
         // Log count
         _buildStatBadge(
           icon: Icons.edit_note,
           count: recipe.logCount,
-          label: 'recipe.logs'.tr(),
+          label: 'grid.logs'.tr(),
         ),
       ],
     );
