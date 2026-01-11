@@ -13,7 +13,7 @@ import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/recent_search_tile.dart';
-import 'package:pairing_planet2_frontend/core/widgets/skeleton/skeleton_loader.dart';
+import 'package:pairing_planet2_frontend/core/widgets/skeletons/skeleton_loader.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_list_provider.dart';
 

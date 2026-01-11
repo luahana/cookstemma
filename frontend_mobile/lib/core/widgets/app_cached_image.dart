@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:pairing_planet2_frontend/core/config/app_config.dart';
+import 'package:pairing_planet2_frontend/core/config/platform_url_resolver.dart';
 import 'package:pairing_planet2_frontend/domain/entities/image/image_variants.dart';
 
 /// A cached network image widget that automatically selects the optimal
@@ -89,7 +89,7 @@ class AppCachedImage extends StatelessWidget {
     }
 
     // Adjust URL for platform (iOS uses localhost, Android uses 10.0.2.2)
-    return AppConfig.adjustUrlForPlatform(url);
+    return PlatformUrlResolver.adjustUrlForPlatform(url);
   }
 
   double _estimateDisplayWidth(BuildContext context) {

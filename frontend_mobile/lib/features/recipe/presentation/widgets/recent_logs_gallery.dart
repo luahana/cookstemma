@@ -6,7 +6,7 @@ import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
-import 'package:pairing_planet2_frontend/core/utils/outcome_utils.dart';
+import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 
 /// Horizontal scrolling gallery showing recent cooking logs for a recipe.
 /// Shows outcome emoji overlay on each log's thumbnail.
@@ -98,7 +98,7 @@ class RecentLogsGallery extends StatelessWidget {
   }
 
   Widget _buildLogCard(BuildContext context, LogPostSummary log) {
-    final outcomeEmoji = OutcomeUtils.getEmoji(log.outcome);
+    final outcomeEmoji = LogOutcome.getEmoji(log.outcome);
 
     return GestureDetector(
       onTap: () => context.push(RouteConstants.logPostDetailPath(log.id)),

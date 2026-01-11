@@ -2,8 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/utils/relative_time_formatter.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
-import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
+import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/recipe_lineage_breadcrumb.dart';
 
 /// Extended log post data for the journey card
@@ -165,7 +166,7 @@ class JourneyLogCard extends StatelessWidget {
           // Timestamp
           if (logData.createdAt != null)
             Text(
-              _formatRelativeTime(logData.createdAt!),
+              RelativeTimeFormatter.format(logData.createdAt!),
               style: TextStyle(
                 fontSize: 12.sp,
                 color: outcome.primaryColor.withValues(alpha: 0.7),
@@ -292,23 +293,6 @@ class JourneyLogCard extends StatelessWidget {
       ],
     );
   }
-
-  String _formatRelativeTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inMinutes < 1) {
-      return 'logPost.time.justNow'.tr();
-    } else if (difference.inMinutes < 60) {
-      return 'logPost.time.minutesAgo'.tr(namedArgs: {'count': difference.inMinutes.toString()});
-    } else if (difference.inHours < 24) {
-      return 'logPost.time.hoursAgo'.tr(namedArgs: {'count': difference.inHours.toString()});
-    } else if (difference.inDays < 7) {
-      return 'logPost.time.daysAgo'.tr(namedArgs: {'count': difference.inDays.toString()});
-    } else {
-      return DateFormat.MMMd().format(dateTime);
-    }
-  }
 }
 
 /// Compact version of the journey log card for grid view
@@ -418,7 +402,7 @@ class CompactJourneyLogCard extends StatelessWidget {
                       // Time
                       if (logData.createdAt != null)
                         Text(
-                          _formatRelativeTime(logData.createdAt!),
+                          RelativeTimeFormatter.formatCompact(logData.createdAt!),
                           style: TextStyle(
                             fontSize: 11.sp,
                             color: Colors.grey[500],
@@ -433,18 +417,5 @@ class CompactJourneyLogCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatRelativeTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inHours < 24) {
-      return 'logPost.time.hoursAgo'.tr(namedArgs: {'count': difference.inHours.toString()});
-    } else if (difference.inDays < 7) {
-      return 'logPost.time.daysAgo'.tr(namedArgs: {'count': difference.inDays.toString()});
-    } else {
-      return DateFormat.MMMd().format(dateTime);
-    }
   }
 }

@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
-import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/create_recipe_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/ingredient.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_step.dart';
@@ -22,6 +21,8 @@ import '../widgets/step_section.dart';
 import '../widgets/hashtag_input_section.dart';
 import '../widgets/draft_status_indicator.dart';
 import '../widgets/continue_draft_dialog.dart';
+import '../widgets/change_reason_field.dart';
+import '../widgets/recipe_submit_button.dart';
 import '../../../../core/utils/form_validators.dart';
 
 class RecipeCreateScreen extends ConsumerStatefulWidget {
@@ -667,7 +668,10 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
 
                     if (isVariantMode) ...[
                       SizedBox(height: 32.h),
-                      _buildChangeReasonField(),
+                      ChangeReasonField(
+                        controller: _changeReasonController,
+                        onChanged: () => setState(() {}),
+                      ),
                     ],
 
                     SizedBox(height: 120.h),
@@ -675,7 +679,19 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
                 ),
               ),
             ),
-            _buildSubmitButton(),
+            RecipeSubmitButton(
+              isReady: RecipeFormValidator.isFormValid(
+                title: _titleController.text,
+                foodName: _foodNameController.text,
+                photos: _finishedImages,
+                ingredients: _ingredients,
+                steps: _steps,
+                changeReason: _changeReasonController.text,
+                isVariantMode: isVariantMode,
+              ),
+              isLoading: _isLoading,
+              onSubmit: _handleSubmit,
+            ),
           ],
         ),
         ),
@@ -699,85 +715,4 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
         ),
     ],
   );
-
-  Widget _buildChangeReasonField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.auto_awesome, color: Colors.orange, size: 20.sp),
-            SizedBox(width: 8.w),
-            Text.rich(
-              TextSpan(
-                text: 'recipe.changeReasonRequired'.tr(),
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
-                children: [
-                  TextSpan(
-                    text: ' *',
-                    style: TextStyle(color: Colors.red, fontSize: 16.sp),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 12.h),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-          decoration: BoxDecoration(
-            color: Colors.orange[50],
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: Colors.orange[100]!),
-          ),
-          child: TextField(
-            controller: _changeReasonController, // 💡 사용자가 언급한 컨트롤러 연결
-            onChanged: (_) => setState(() {}), // 💡 입력 시 등록 버튼 활성화를 위해 호출
-            maxLines: 2,
-            decoration: InputDecoration(
-              hintText: 'recipe.changeReasonHint'.tr(),
-              hintStyle: TextStyle(fontSize: 14.sp, color: Colors.grey),
-              border: InputBorder.none,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    // Use centralized validator for button activation
-    final bool isReady = RecipeFormValidator.isFormValid(
-      title: _titleController.text,
-      foodName: _foodNameController.text,
-      photos: _finishedImages,
-      ingredients: _ingredients,
-      steps: _steps,
-      changeReason: _changeReasonController.text,
-      isVariantMode: isVariantMode,
-    );
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 30.h),
-      child: SizedBox(
-        width: double.infinity,
-        height: 56.h,
-        child: ElevatedButton(
-          onPressed: isReady && !_isLoading ? _handleSubmit : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.r),
-            ),
-          ),
-          child: Text(
-            _isLoading ? 'recipe.submitting'.tr() : 'recipe.submit'.tr(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
