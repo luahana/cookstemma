@@ -3,9 +3,24 @@ import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.d
 
 part 'recipe_summary_dto.g.dart';
 
+// Helper function to safely parse foodName which might be String or Map (from stale cache)
+String _parseFoodName(dynamic value) {
+  if (value == null) return 'Unknown Food';
+  if (value is String) return value;
+  if (value is Map) {
+    // If it's a Map (multilingual name), try to extract a name
+    if (value.containsKey('ko-KR')) return value['ko-KR']?.toString() ?? 'Unknown Food';
+    if (value.containsKey('en-US')) return value['en-US']?.toString() ?? 'Unknown Food';
+    // Fallback to first value in map
+    return value.values.firstOrNull?.toString() ?? 'Unknown Food';
+  }
+  return value.toString();
+}
+
 @JsonSerializable(explicitToJson: true)
 class RecipeSummaryDto {
   final String publicId;
+  @JsonKey(fromJson: _parseFoodName)
   final String foodName;
   final String foodMasterPublicId;
   final String title;

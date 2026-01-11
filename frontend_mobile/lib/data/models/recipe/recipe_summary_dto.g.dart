@@ -9,7 +9,7 @@ part of 'recipe_summary_dto.dart';
 RecipeSummaryDto _$RecipeSummaryDtoFromJson(Map<String, dynamic> json) =>
     RecipeSummaryDto(
       publicId: json['publicId'] as String,
-      foodName: json['foodName'] as String,
+      foodName: _parseFoodName(json['foodName']),
       foodMasterPublicId: json['foodMasterPublicId'] as String,
       title: json['title'] as String,
       description: json['description'] as String?,
