@@ -10,7 +10,7 @@ RecipeDetailResponseDto _$RecipeDetailResponseDtoFromJson(
         Map<String, dynamic> json) =>
     RecipeDetailResponseDto(
       publicId: json['publicId'] as String,
-      foodName: _parseFoodName(json['foodName']),
+      foodName: json['foodName'] as String,
       foodMasterPublicId: json['foodMasterPublicId'] as String,
       creatorName: json['creatorName'] as String?,
       title: json['title'] as String,

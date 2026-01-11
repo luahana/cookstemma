@@ -18,22 +18,10 @@ class RecentlyViewedRecipeDto {
   });
 
   factory RecentlyViewedRecipeDto.fromJson(Map<String, dynamic> json) {
-    // Helper to safely parse foodName which might be String or Map (from stale cache)
-    String parseFoodName(dynamic value) {
-      if (value == null) return 'Unknown Food';
-      if (value is String) return value;
-      if (value is Map) {
-        if (value.containsKey('ko-KR')) return value['ko-KR']?.toString() ?? 'Unknown Food';
-        if (value.containsKey('en-US')) return value['en-US']?.toString() ?? 'Unknown Food';
-        return value.values.firstOrNull?.toString() ?? 'Unknown Food';
-      }
-      return value.toString();
-    }
-
     return RecentlyViewedRecipeDto(
       publicId: json['publicId'] as String,
       title: json['title'] as String,
-      foodName: parseFoodName(json['foodName']),
+      foodName: json['foodName'] as String,
       thumbnailUrl: json['thumbnailUrl'] as String?,
       viewedAt: DateTime.parse(json['viewedAt'] as String),
     );
