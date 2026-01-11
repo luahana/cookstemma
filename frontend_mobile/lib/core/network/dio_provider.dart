@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pairing_planet2_frontend/core/config/app_config.dart';
+import 'package:pairing_planet2_frontend/core/config/platform_url_resolver.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/network/auth_interceptor.dart';
 import 'package:pairing_planet2_frontend/core/network/idempotency_interceptor.dart';
@@ -22,7 +22,7 @@ final dioProvider = Provider<Dio>((ref) {
 
   final dio = Dio(
     BaseOptions(
-      baseUrl: AppConfig.baseUrl,
+      baseUrl: PlatformUrlResolver.baseUrl,
       connectTimeout: const Duration(seconds: 5),
       receiveTimeout: const Duration(seconds: 3),
       contentType: 'application/json',

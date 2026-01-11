@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
+import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 
 /// Large outcome selection buttons for quick log flow
 /// Designed for rapid, one-tap selection (~2 seconds)

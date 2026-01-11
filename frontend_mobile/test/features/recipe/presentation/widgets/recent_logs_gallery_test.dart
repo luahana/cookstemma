@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
-import 'package:pairing_planet2_frontend/core/utils/outcome_utils.dart';
+import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 
 /// Unit tests for RecentLogsGallery logic.
 ///
@@ -134,21 +134,21 @@ void main() {
         const outcome = 'SUCCESS';
 
         // Act
-        final emoji = OutcomeUtils.getEmoji(outcome);
+        final emoji = LogOutcome.getEmoji(outcome);
 
         // Assert
         expect(emoji, '😊');
       });
 
-      test('should map PARTIAL to slightly smiling emoji', () {
+      test('should map PARTIAL to neutral emoji', () {
         // Arrange
         const outcome = 'PARTIAL';
 
         // Act
-        final emoji = OutcomeUtils.getEmoji(outcome);
+        final emoji = LogOutcome.getEmoji(outcome);
 
         // Assert
-        expect(emoji, '🙂');
+        expect(emoji, '😐');
       });
 
       test('should map FAILED to sad emoji', () {
@@ -156,7 +156,7 @@ void main() {
         const outcome = 'FAILED';
 
         // Act
-        final emoji = OutcomeUtils.getEmoji(outcome);
+        final emoji = LogOutcome.getEmoji(outcome);
 
         // Assert
         expect(emoji, '😢');
@@ -167,7 +167,7 @@ void main() {
         const outcome = 'UNKNOWN';
 
         // Act
-        final emoji = OutcomeUtils.getEmoji(outcome);
+        final emoji = LogOutcome.getEmoji(outcome);
 
         // Assert
         expect(emoji, '🍳');
@@ -178,7 +178,7 @@ void main() {
         const String? outcome = null;
 
         // Act
-        final emoji = OutcomeUtils.getEmoji(outcome);
+        final emoji = LogOutcome.getEmoji(outcome);
 
         // Assert
         expect(emoji, '🍳');

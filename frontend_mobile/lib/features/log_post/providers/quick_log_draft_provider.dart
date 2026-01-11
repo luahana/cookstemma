@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
+import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 
 /// State machine steps for quick log flow
 /// Flow: Outcome (1) → Photo (2) → Notes (3) → Hashtags (4) → Submit

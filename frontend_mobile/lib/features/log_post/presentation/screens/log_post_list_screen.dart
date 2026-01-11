@@ -18,7 +18,7 @@ import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summa
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_list_provider.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_filter_provider.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
-import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
+import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/log_empty_state.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/sync_status_indicator.dart';
 

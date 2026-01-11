@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class AppConfig {
+/// Resolves URLs for different platforms (iOS vs Android) during local development.
+/// Handles the difference between localhost (iOS) and 10.0.2.2 (Android emulator).
+class PlatformUrlResolver {
   static String get baseUrl {
     final envUrl = dotenv.maybeGet('BASE_URL');
 

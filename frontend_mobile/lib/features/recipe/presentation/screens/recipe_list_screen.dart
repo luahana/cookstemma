@@ -11,7 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/illustrated_empty_state.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
-import 'package:pairing_planet2_frontend/core/widgets/skeleton/skeleton_loader.dart';
+import 'package:pairing_planet2_frontend/core/widgets/skeletons/skeleton_loader.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/compact_recipe_card.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/enhanced_recipe_card.dart';

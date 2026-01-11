@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/update_log_post_request_dto.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_detail.dart';
-import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
+import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 
 /// Unit tests for LogEditSheet and related components.
 /// Note: Full widget tests require extensive mocking of providers.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:shimmer/shimmer.dart';
+
+import 'skeleton_loader.dart';
 
 /// Skeleton widget for log post grid loading state.
 /// Matches the 2-column grid layout with aspect ratio 0.75.
@@ -18,9 +19,7 @@ class LogPostGridSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+    return ShimmerEffect(
       child: CustomScrollView(
         physics: const NeverScrollableScrollPhysics(),
         slivers: [

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
+import 'package:pairing_planet2_frontend/core/widgets/stat_badge.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/diff_summary_row.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/ingredient_preview_chips.dart';
@@ -222,56 +223,19 @@ class EnhancedRecipeCard extends StatelessWidget {
     return Row(
       children: [
         // Variant count
-        _buildStatBadge(
+        StatBadge(
           icon: Icons.call_split,
           count: recipe.variantCount,
           label: 'grid.variants'.tr(),
         ),
         SizedBox(width: 12.w),
         // Log count
-        _buildStatBadge(
+        StatBadge(
           icon: Icons.edit_note,
           count: recipe.logCount,
           label: 'grid.logs'.tr(),
         ),
       ],
-    );
-  }
-
-  Widget _buildStatBadge({
-    required IconData icon,
-    required int count,
-    required String label,
-  }) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16.sp, color: Colors.grey[600]),
-          SizedBox(width: 6.w),
-          Text(
-            count.toString(),
-            style: TextStyle(
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
-          ),
-          SizedBox(width: 4.w),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: Colors.grey[500],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

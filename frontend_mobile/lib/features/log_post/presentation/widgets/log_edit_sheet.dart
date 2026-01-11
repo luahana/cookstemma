@@ -10,7 +10,7 @@ import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
 import 'package:pairing_planet2_frontend/core/widgets/reorderable_image_picker.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_detail.dart';
-import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_badge.dart';
+import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/outcome_selector.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_providers.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/hashtag_input_section.dart';
