@@ -154,6 +154,7 @@
     "detail": "Recipe Detail",
     "by": "by {}",
     "steps": "Steps",
+    "style": "Style",
     "create": "Create Recipe",
     "edit": "Edit Recipe",
     "delete": "Delete Recipe",
