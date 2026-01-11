@@ -24,7 +24,9 @@ class MainScreen extends ConsumerWidget {
     }
     navigationShell.goBranch(
       index,
-      initialLocation: index == navigationShell.currentIndex,
+      // Home tab (0) always goes to initial location for consistent UX
+      // Other tabs preserve navigation state unless re-tapped
+      initialLocation: index == 0 || index == navigationShell.currentIndex,
     );
   }
 
