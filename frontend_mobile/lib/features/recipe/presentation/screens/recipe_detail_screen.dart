@@ -156,24 +156,57 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                               color: Colors.grey[600],
                             ),
                           ),
-                          SizedBox(height: 8.h),
-                          Text(
-                            recipe.description ?? "",
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              color: Colors.grey[700],
-                              height: 1.5,
+                          if (!recipe.isVariant && recipe.description != null && recipe.description!.isNotEmpty) ...[
+                            SizedBox(height: 20.h),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '"',
+                                  style: TextStyle(
+                                    fontSize: 28.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                    height: 0.8,
+                                  ),
+                                ),
+                                SizedBox(width: 8.w),
+                                Flexible(
+                                  child: Text(
+                                    recipe.description ?? "",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 15.sp,
+                                      fontStyle: FontStyle.italic,
+                                      color: AppColors.primary,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  '"',
+                                  style: TextStyle(
+                                    fontSize: 28.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                    height: 0.8,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                            SizedBox(height: 12.h),
+                          ],
                         ],
                       ),
                     ),
                     // Recipe Family Section (for variant recipes - star layout)
                     // Recipe Family Section
                     // - For variants: Shows "Based on" with root recipe
-                    // - For originals with variants: Shows "Variations"
-                    if (recipe.rootInfo != null || recipe.variants.isNotEmpty) ...[
-                      SizedBox(height: 8.h),
+                    // - For originals: Shows "Variations" (with empty state if none)
+                    if (recipe.rootInfo != null || !recipe.isVariant) ...[
+                      SizedBox(height: 20.h),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20.w),
                         child: RecipeFamilySection(
@@ -228,7 +261,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: 12.h),
                     ],
                     // Change Diff Section (for variant recipes)
                     if (recipe.isVariant && recipe.hasChanges) ...[

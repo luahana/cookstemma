@@ -140,24 +140,6 @@ class CookingDnaHeader extends StatelessWidget {
         Expanded(
           child: _buildTappableStatItem(
             context,
-            'profile.followers'.tr(),
-            profile.user.followerCount,
-            () => context.push(RouteConstants.followersPath(profile.user.id.toString())),
-          ),
-        ),
-        Expanded(
-          child: _buildTappableStatItem(
-            context,
-            'profile.following'.tr(),
-            profile.user.followingCount,
-            () => context.push(
-              '${RouteConstants.followersPath(profile.user.id.toString())}?tab=1',
-            ),
-          ),
-        ),
-        Expanded(
-          child: _buildTappableStatItem(
-            context,
             'profile.recipes'.tr(),
             profile.recipeCount,
             onRecipesTap,
@@ -169,6 +151,42 @@ class CookingDnaHeader extends StatelessWidget {
             'profile.logs'.tr(),
             profile.logCount,
             onLogsTap,
+          ),
+        ),
+        Expanded(
+          child: _buildStatItem(
+            'profile.savedCount'.tr(),
+            profile.savedCount,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatItem(String label, int count) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          count.toString(),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: 4.h),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 11.sp,
+              color: Colors.grey[600],
+            ),
           ),
         ),
       ],

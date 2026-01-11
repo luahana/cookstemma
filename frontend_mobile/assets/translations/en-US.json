@@ -256,7 +256,10 @@
       "basedOn": "Based on",
       "variations": "Variations",
       "otherVariations": "Other Variations",
-      "current": "Current"
+      "current": "Current",
+      "noVariationsYet": "No variations yet",
+      "createVariationCta": "Be the first to create your own twist!",
+      "createVariationButton": "Make Variation"
     },
     "variants": {
       "viewAll": "View All"

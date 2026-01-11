@@ -256,7 +256,10 @@
       "basedOn": "원본 레시피",
       "variations": "변형 레시피",
       "otherVariations": "다른 변형들",
-      "current": "현재"
+      "current": "현재",
+      "noVariationsYet": "아직 변형 레시피가 없어요",
+      "createVariationCta": "나만의 변형 레시피를 만들어보세요!",
+      "createVariationButton": "변형 만들기"
     },
     "variants": {
       "viewAll": "모두 보기"

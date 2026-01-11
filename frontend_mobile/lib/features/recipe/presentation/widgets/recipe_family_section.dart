@@ -36,8 +36,6 @@ class RecipeFamilySection extends StatelessWidget {
 
   /// For original recipes: Show "Variations" with variant list
   Widget _buildVariationsSection(BuildContext context) {
-    if (variants.isEmpty) return const SizedBox.shrink();
-
     // Show only first 5 variants, use 6th to detect if there are more
     final displayVariants = variants.take(5).toList();
     final hasMore = variants.length > 5;
@@ -89,22 +87,59 @@ class RecipeFamilySection extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          // Variant list
-          SizedBox(
-            height: 100.h,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-              itemCount: displayVariants.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                    right: index < displayVariants.length - 1 ? 10.w : 0,
-                  ),
-                  child: _VariantMiniCard(variant: displayVariants[index]),
-                );
-              },
+          // Empty state or variant list
+          if (variants.isEmpty)
+            _buildEmptyVariationsState()
+          else
+            SizedBox(
+              height: 100.h,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+                itemCount: displayVariants.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      right: index < displayVariants.length - 1 ? 10.w : 0,
+                    ),
+                    child: _VariantMiniCard(variant: displayVariants[index]),
+                  );
+                },
+              ),
             ),
+        ],
+      ),
+    );
+  }
+
+  /// Empty state for variations section
+  Widget _buildEmptyVariationsState() {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 16.h),
+      child: Column(
+        children: [
+          Text(
+            'recipe.family.createVariationCta'.tr(),
+            style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 13.sp,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'recipe.family.createVariationButton'.tr(),
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(width: 4.w),
+              Icon(Icons.arrow_downward, size: 14.sp, color: AppColors.primary),
+            ],
           ),
         ],
       ),
