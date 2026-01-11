@@ -99,9 +99,17 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
 
   # Mocking for tests
   mocktail: ^1.0.4
+
+  # Visual regression testing
+  golden_toolkit: ^0.15.0
+
+  # Mock network images in tests
+  network_image_mock: ^2.1.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

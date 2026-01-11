@@ -201,6 +201,19 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                         ],
                       ),
                     ),
+                    // Hashtags section (after metadata, Instagram-style no header)
+                    if (recipe.hashtags.isNotEmpty) ...[
+                      SizedBox(height: 12.h),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
+                        child: HashtagChips(
+                          hashtags: recipe.hashtags,
+                          onHashtagTap: (tag) {
+                            context.push('${RouteConstants.search}?q=%23$tag');
+                          },
+                        ),
+                      ),
+                    ],
                     // Recipe Family Section (for variant recipes - star layout)
                     // Recipe Family Section
                     // - For variants: Shows "Based on" with root recipe
@@ -318,14 +331,6 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                         ],
                       ),
                     ),
-                    // Hashtags section
-                    if (recipe.hashtags.isNotEmpty) ...[
-                      SizedBox(height: 24.h),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20.w),
-                        child: HashtagChips(hashtags: recipe.hashtags),
-                      ),
-                    ],
                     // Recent Logs Gallery section
                     SizedBox(height: 24.h),
                     RecentLogsGallery(

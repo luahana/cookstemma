@@ -22,7 +22,6 @@ class LogRecipeLineage extends StatelessWidget {
     if (linkedRecipe == null) return const SizedBox.shrink();
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.w),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),

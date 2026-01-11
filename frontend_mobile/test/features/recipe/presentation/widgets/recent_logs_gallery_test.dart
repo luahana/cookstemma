@@ -140,7 +140,7 @@ void main() {
         expect(emoji, '😊');
       });
 
-      test('should map PARTIAL to neutral emoji', () {
+      test('should map PARTIAL to slightly smiling emoji', () {
         // Arrange
         const outcome = 'PARTIAL';
 
@@ -148,7 +148,7 @@ void main() {
         final emoji = LogOutcome.getEmoji(outcome);
 
         // Assert
-        expect(emoji, '😐');
+        expect(emoji, '🙂');
       });
 
       test('should map FAILED to sad emoji', () {

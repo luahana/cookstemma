@@ -17,7 +17,11 @@ import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_list_p
 
 /// Dedicated recipe search screen with search history overlay and results.
 class RecipeSearchScreen extends ConsumerStatefulWidget {
-  const RecipeSearchScreen({super.key});
+  /// Optional initial query to pre-fill and auto-search.
+  /// Used when navigating from hashtag tap.
+  final String? initialQuery;
+
+  const RecipeSearchScreen({super.key, this.initialQuery});
 
   @override
   ConsumerState<RecipeSearchScreen> createState() => _RecipeSearchScreenState();
@@ -35,6 +39,13 @@ class _RecipeSearchScreenState extends ConsumerState<RecipeSearchScreen> {
     super.initState();
     // Infinite scroll listener
     _scrollController.addListener(_onScroll);
+
+    // Auto-search if initial query provided (e.g., from hashtag tap)
+    if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _onSearch(widget.initialQuery!);
+      });
+    }
   }
 
   @override

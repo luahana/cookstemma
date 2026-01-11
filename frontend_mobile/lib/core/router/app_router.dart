@@ -152,25 +152,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteConstants.search,
         name: 'search',
-        pageBuilder: (context, state) => CustomTransitionPage(
-          child: const RecipeSearchScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            // Fade + slide up transition
-            return FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.03),
-                  end: Offset.zero,
-                ).animate(CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeOut,
-                )),
-                child: child,
-              ),
-            );
-          },
-        ),
+        pageBuilder: (context, state) {
+          // Support ?q=query for hashtag searches
+          final initialQuery = state.uri.queryParameters['q'];
+          return CustomTransitionPage(
+            child: RecipeSearchScreen(initialQuery: initialQuery),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              // Fade + slide up transition
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.03),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOut,
+                  )),
+                  child: child,
+                ),
+              );
+            },
+          );
+        },
       ),
       GoRoute(
         path: RouteConstants.followers, // '/users/:userId/followers'

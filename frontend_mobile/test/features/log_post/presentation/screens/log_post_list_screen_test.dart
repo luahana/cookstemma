@@ -46,9 +46,9 @@ void main() {
     });
 
     test('emoji returns correct emoji for each outcome', () {
-      expect(LogOutcome.success.emoji, '\u{1F60A}');
-      expect(LogOutcome.partial.emoji, '\u{1F610}');
-      expect(LogOutcome.failed.emoji, '\u{1F622}');
+      expect(LogOutcome.success.emoji, '\u{1F60A}'); // 😊
+      expect(LogOutcome.partial.emoji, '\u{1F642}'); // 🙂
+      expect(LogOutcome.failed.emoji, '\u{1F622}'); // 😢
     });
   });
 

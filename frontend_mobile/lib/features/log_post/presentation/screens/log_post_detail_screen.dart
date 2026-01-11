@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/login_prompt_sheet.dart';
@@ -13,6 +14,7 @@ import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_pr
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_list_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/hashtag_chips.dart';
+import 'package:share_plus/share_plus.dart';
 import '../widgets/log_recipe_lineage.dart';
 import '../widgets/log_edit_sheet.dart';
 import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
@@ -29,6 +31,26 @@ class LogPostDetailScreen extends ConsumerStatefulWidget {
 class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
   bool _saveStateInitialized = false;
   bool _isDeleting = false;
+  int _currentImageIndex = 0;
+  PageController? _pageController;
+
+  @override
+  void dispose() {
+    _pageController?.dispose();
+    super.dispose();
+  }
+
+  void _shareLog(LogPostDetail log) async {
+    HapticFeedback.selectionClick();
+    final shareUrl = 'https://api.pairingplanet.com/share/log/${log.publicId}';
+    final title = log.linkedRecipe?.title ?? 'logPost.detail'.tr();
+    await SharePlus.instance.share(
+      ShareParams(
+        text: '$title\n$shareUrl',
+        subject: title,
+      ),
+    );
+  }
 
   bool _isCreator(LogPostDetail log) {
     final authState = ref.read(authStateProvider);
@@ -146,6 +168,14 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
         foregroundColor: Colors.black,
         elevation: 0,
         actions: [
+          // Share button
+          logAsync.maybeWhen(
+            data: (log) => IconButton(
+              icon: Icon(Icons.share_outlined, color: Colors.grey[600]),
+              onPressed: () => _shareLog(log),
+            ),
+            orElse: () => const SizedBox.shrink(),
+          ),
           // Bookmark button
           saveState.when(
             data: (isSaved) => IconButton(
@@ -234,70 +264,54 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Image gallery (horizontal scroll)
+              // 1. Image gallery (full-width, edge-to-edge)
               _buildImageGallery(log.imageUrls),
 
-              // 2. Linked recipe card
-              SizedBox(height: 16.h),
-              LogRecipeLineage(linkedRecipe: log.linkedRecipe),
-
+              // Content with padding starts here
               Padding(
-                      padding: EdgeInsets.all(20.r),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 2. 날짜 및 결과
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                DateFormat('yyyy년 MM월 dd일').format(log.createdAt),
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 14.sp,
-                                ),
-                              ),
-                              _buildOutcomeEmoji(log.outcome),
-                            ],
-                          ),
-                          SizedBox(height: 20.h),
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 20.h),
 
-                          // 3. 로그 본문 내용
-                          Text(
-                            'logPost.myReview'.tr(),
-                            style: TextStyle(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 12.h),
-                          Text(
-                            log.content,
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              height: 1.6,
-                              color: Colors.black87,
-                            ),
-                          ),
+                    // 2. Metadata row with styled badges
+                    _buildMetadataRow(log),
 
-                          // 4. 해시태그
-                          if (log.hashtags.isNotEmpty) ...[
-                            SizedBox(height: 24.h),
-                            Text(
-                              'logPost.hashtags'.tr(),
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 12.h),
-                            HashtagChips(hashtags: log.hashtags),
-                          ],
+                    // 3. Hashtags (after metadata, Instagram-style no header)
+                    if (log.hashtags.isNotEmpty) ...[
+                      SizedBox(height: 12.h),
+                      HashtagChips(
+                        hashtags: log.hashtags,
+                        onHashtagTap: (tag) {
+                          context.push('${RouteConstants.search}?q=%23$tag');
+                        },
+                      ),
+                    ],
+                    SizedBox(height: 24.h),
 
-                          SizedBox(height: 50.h),
-                        ],
+                    // 4. Review section with icon header
+                    _buildSectionHeader(Icons.rate_review_outlined, 'logPost.myReview'.tr()),
+                    SizedBox(height: 12.h),
+                    Text(
+                      log.content,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        height: 1.6,
+                        color: Colors.black87,
                       ),
                     ),
+
+                    // 5. Recipe section (header is inside LogRecipeLineage widget)
+                    if (log.linkedRecipe != null) ...[
+                      SizedBox(height: 24.h),
+                      LogRecipeLineage(linkedRecipe: log.linkedRecipe),
+                    ],
+
+                    SizedBox(height: 40.h),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -307,50 +321,123 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
     );
   }
 
-  // 💡 여러 장의 사진을 보여주는 갤러리 위젯
+  // Full-width image gallery with PageView and dots indicator
   Widget _buildImageGallery(List<String?> urls) {
     if (urls.isEmpty) return const SizedBox.shrink();
 
-    // Single image - center it
-    if (urls.length == 1) {
-      return SizedBox(
+    final validUrls = urls.whereType<String>().toList();
+    if (validUrls.isEmpty) return const SizedBox.shrink();
+
+    _pageController ??= PageController();
+
+    // Single image - full width, edge-to-edge
+    if (validUrls.length == 1) {
+      return AppCachedImage(
+        imageUrl: validUrls[0],
+        width: double.infinity,
         height: 300.h,
-        child: Center(
-          child: AppCachedImage(
-            imageUrl: urls[0],
-            width: MediaQuery.of(context).size.width * 0.8,
-            height: 300.h,
-            borderRadius: 16.r,
-          ),
-        ),
+        borderRadius: 0,
       );
     }
 
-    // Multiple images - horizontal scroll with first image centered
-    final screenWidth = MediaQuery.of(context).size.width;
+    // Multiple images - PageView with dots indicator
     return SizedBox(
       height: 300.h,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: urls.length,
-        padding: EdgeInsets.only(left: screenWidth * 0.1),
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: EdgeInsets.only(right: 12.w),
-            child: AppCachedImage(
-              imageUrl: urls[index],
-              width: screenWidth * 0.8,
-              height: 300.h,
-              borderRadius: 16.r,
+      child: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            itemCount: validUrls.length,
+            onPageChanged: (index) {
+              setState(() => _currentImageIndex = index);
+            },
+            itemBuilder: (context, index) {
+              return AppCachedImage(
+                imageUrl: validUrls[index],
+                width: double.infinity,
+                height: 300.h,
+                borderRadius: 0,
+              );
+            },
+          ),
+          // Page indicator dots
+          Positioned(
+            bottom: 12.h,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                validUrls.length,
+                (index) => Container(
+                  margin: EdgeInsets.symmetric(horizontal: 4.w),
+                  width: _currentImageIndex == index ? 8.w : 6.w,
+                  height: _currentImageIndex == index ? 8.w : 6.w,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentImageIndex == index
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 
-  // 💡 요리 결과 이모지 표시
-  Widget _buildOutcomeEmoji(String outcome) {
-    return Text(LogOutcome.getEmoji(outcome), style: TextStyle(fontSize: 24.sp));
+  // Section header with icon + text (matching recipe detail pattern)
+  Widget _buildSectionHeader(IconData icon, String title) {
+    return Row(
+      children: [
+        Icon(icon, size: 20.sp, color: AppColors.textPrimary),
+        SizedBox(width: 8.w),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Metadata row with styled date badge and outcome badge
+  Widget _buildMetadataRow(LogPostDetail log) {
+    return Row(
+      children: [
+        // Date badge
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.calendar_today, size: 14.sp, color: Colors.grey[600]),
+              SizedBox(width: 4.w),
+              Text(
+                DateFormat('yyyy.MM.dd').format(log.createdAt),
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: 8.w),
+        // Outcome badge
+        OutcomeBadge.fromString(
+          outcomeValue: log.outcome,
+          variant: OutcomeBadgeVariant.compact,
+        ),
+      ],
+    );
   }
 }
