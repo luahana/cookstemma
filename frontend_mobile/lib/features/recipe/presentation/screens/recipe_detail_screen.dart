@@ -165,11 +165,6 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                               height: 1.5,
                             ),
                           ),
-                          // Hashtags section
-                          if (recipe.hashtags.isNotEmpty) ...[
-                            SizedBox(height: 16.h),
-                            HashtagChips(hashtags: recipe.hashtags),
-                          ],
                         ],
                       ),
                     ),
@@ -285,6 +280,14 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                         ),
                       ),
                     ),
+                    // Hashtags section
+                    if (recipe.hashtags.isNotEmpty) ...[
+                      SizedBox(height: 24.h),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
+                        child: HashtagChips(hashtags: recipe.hashtags),
+                      ),
+                    ],
                     // Recent Logs Gallery section
                     SizedBox(height: 24.h),
                     RecentLogsGallery(

@@ -261,6 +261,7 @@
     "variants": {
       "viewAll": "View All"
     },
+    "noVariations": "No variations yet",
     "action": {
       "logRecord": "Log Record",
       "logSubtitle": "I tried this!",
@@ -317,7 +318,8 @@
       "subtitle": "Get inspired by the community",
       "viewAll": "View All",
       "emptyTitle": "No cooking logs yet",
-      "emptySubtitle": "Be the first to cook this recipe!"
+      "emptyCta": "Be the first to share your cooking experience!",
+      "emptyButton": "Record Log"
     },
     "variantsGallery": {
       "title": "Variations of this Recipe",
@@ -644,6 +646,7 @@
     "all": "All",
     "originals": "Originals",
     "variants": "Variants",
+    "sort": "Sort",
     "sortRecent": "Recent",
     "sortTrending": "Trending",
     "sortMostForked": "Most Forked",

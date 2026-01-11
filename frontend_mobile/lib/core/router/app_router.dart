@@ -25,6 +25,7 @@ import '../../features/recipe/presentation/screens/recipe_detail_screen.dart';
 import '../../features/recipe/presentation/screens/recipe_edit_screen.dart';
 import '../../features/recipe/presentation/screens/recipe_search_screen.dart';
 import '../../features/recipe/presentation/screens/star_view_screen.dart';
+import '../../features/recipe/presentation/screens/recipe_variations_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -227,6 +228,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                         builder: (context, state) {
                           final id = state.pathParameters['id']!;
                           return StarViewScreen(recipeId: id);
+                        },
+                      ),
+                      GoRoute(
+                        path: RouteConstants.recipeVariations,
+                        name: 'recipe_variations',
+                        builder: (context, state) {
+                          final id = state.pathParameters['id']!;
+                          return RecipeVariationsScreen(rootRecipeId: id);
                         },
                       ),
                     ],

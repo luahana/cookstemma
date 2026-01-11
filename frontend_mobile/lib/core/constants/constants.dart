@@ -63,11 +63,13 @@ class RouteConstants {
 
   // Star view for recipe family
   static const String recipeStar = '/recipes/:id/star';
+  static const String recipeVariations = 'variations';
 
   // 이동 시 사용할 전체 경로 헬퍼
   static String recipeDetailPath(String id) => '/recipes/$id';
   static String recipeEditPath(String id) => '/recipe/edit/$id';
   static String recipeStarPath(String id) => '/recipes/$id/star';
+  static String recipeVariationsPath(String id) => '/recipes/$id/variations';
   static String logPostDetailPath(String id) => '/log_post/$id';
   static String followersPath(String userId) => '/users/$userId/followers';
 }

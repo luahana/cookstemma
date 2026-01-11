@@ -147,9 +147,10 @@ public class RecipeService {
         // [원칙 1] 어디서든 루트 레시피 정보 포함
         Recipe root = (recipe.getRootRecipe() != null) ? recipe.getRootRecipe() : recipe;
 
-        // 변형 및 로그 리스트 조회
-        List<RecipeSummaryDto> variants = recipeRepository.findByParentRecipeIdAndIsDeletedFalse(recipe.getId())
+        // 변형 및 로그 리스트 조회 - 루트에 연결된 모든 변형을 가져옴
+        List<RecipeSummaryDto> variants = recipeRepository.findByRootRecipeIdAndIsDeletedFalse(root.getId())
                 .stream()
+                .filter(v -> !v.getId().equals(recipe.getId())) // Exclude current recipe
                 .limit(6)  // Limit to 6 for "View All" detection (show 5, detect more if 6)
                 .map(this::convertToSummary)
                 .toList();

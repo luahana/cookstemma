@@ -65,27 +65,12 @@ class RecipeFamilySection extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(width: 8.w),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-                  decoration: BoxDecoration(
-                    color: AppColors.badgeBackground,
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: Text(
-                    '${variants.length}',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
                 const Spacer(),
                 if (hasMore)
                   TextButton(
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      context.push(RouteConstants.recipeStarPath(currentRecipeId));
+                      context.push(RouteConstants.recipeVariationsPath(currentRecipeId));
                     },
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.symmetric(horizontal: 8.w),

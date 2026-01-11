@@ -41,11 +41,14 @@ class RecentLogsGallery extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'recipe.recentLogs.title'.tr(),
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
+                  Flexible(
+                    child: Text(
+                      'recipe.recentLogs.title'.tr(),
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (hasMore)
@@ -177,38 +180,88 @@ class RecentLogsGallery extends StatelessWidget {
   }
 
   Widget _buildEmptyState() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.w),
-      padding: EdgeInsets.all(20.r),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.history_edu,
-            size: 40.sp,
-            color: Colors.grey[400],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Same section header as non-empty state
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'recipe.recentLogs.title'.tr(),
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 4.h),
+              Text(
+                'recipe.recentLogs.subtitle'.tr(),
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 12.h),
-          Text(
-            'recipe.recentLogs.emptyTitle'.tr(),
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14.sp,
-            ),
+        ),
+        SizedBox(height: 12.h),
+        // Empty state card with guidance
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: 20.w),
+          padding: EdgeInsets.all(24.r),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: AppColors.border),
           ),
-          SizedBox(height: 4.h),
-          Text(
-            'recipe.recentLogs.emptySubtitle'.tr(),
-            style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 12.sp,
-            ),
+          child: Column(
+            children: [
+              Icon(Icons.restaurant_menu, size: 48.sp, color: Colors.grey[300]),
+              SizedBox(height: 12.h),
+              Text(
+                'recipe.recentLogs.emptyTitle'.tr(),
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                'recipe.recentLogs.emptyCta'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 13.sp,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              // Visual indicator pointing to bottom button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.arrow_downward, size: 16.sp, color: AppColors.primary),
+                  SizedBox(width: 4.w),
+                  Flexible(
+                    child: Text(
+                      'recipe.recentLogs.emptyButton'.tr(),
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

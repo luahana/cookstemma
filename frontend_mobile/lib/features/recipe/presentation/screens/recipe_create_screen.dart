@@ -576,6 +576,10 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
             // Invalidate profile providers so they refresh when user visits profile
             ref.invalidate(myRecipesProvider);
             ref.invalidate(myProfileProvider);
+            // For variations: invalidate root recipe so variations section updates
+            if (isVariantMode && request.rootPublicId != null) {
+              ref.invalidate(recipeDetailWithTrackingProvider(request.rootPublicId!));
+            }
             // Navigate to the newly created recipe detail page
             context.go(RouteConstants.recipeDetailPath(newId));
           }
