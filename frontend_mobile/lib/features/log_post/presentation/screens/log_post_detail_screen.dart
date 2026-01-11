@@ -15,6 +15,7 @@ import 'package:pairing_planet2_frontend/features/profile/providers/profile_prov
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/hashtag_chips.dart';
 import '../widgets/log_recipe_lineage.dart';
 import '../widgets/log_edit_sheet.dart';
+import 'package:pairing_planet2_frontend/core/utils/outcome_utils.dart';
 
 class LogPostDetailScreen extends ConsumerStatefulWidget {
   final String logId;
@@ -350,12 +351,6 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
 
   // 💡 요리 결과 이모지 표시
   Widget _buildOutcomeEmoji(String outcome) {
-    final emoji = switch (outcome) {
-      'SUCCESS' => '😊',
-      'PARTIAL' => '😐',
-      'FAILED' => '😢',
-      _ => '😐',
-    };
-    return Text(emoji, style: TextStyle(fontSize: 24.sp));
+    return Text(OutcomeUtils.getEmoji(outcome), style: TextStyle(fontSize: 24.sp));
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
+import 'package:pairing_planet2_frontend/core/utils/outcome_utils.dart';
 
 /// Unit tests for RecentLogsGallery logic.
 ///
@@ -133,21 +134,21 @@ void main() {
         const outcome = 'SUCCESS';
 
         // Act
-        final emoji = _getOutcomeEmoji(outcome);
+        final emoji = OutcomeUtils.getEmoji(outcome);
 
         // Assert
-        expect(emoji, '\u{1F60A}'); // 😊
+        expect(emoji, '😊');
       });
 
-      test('should map PARTIAL to neutral emoji', () {
+      test('should map PARTIAL to slightly smiling emoji', () {
         // Arrange
         const outcome = 'PARTIAL';
 
         // Act
-        final emoji = _getOutcomeEmoji(outcome);
+        final emoji = OutcomeUtils.getEmoji(outcome);
 
         // Assert
-        expect(emoji, '\u{1F610}'); // 😐
+        expect(emoji, '🙂');
       });
 
       test('should map FAILED to sad emoji', () {
@@ -155,10 +156,10 @@ void main() {
         const outcome = 'FAILED';
 
         // Act
-        final emoji = _getOutcomeEmoji(outcome);
+        final emoji = OutcomeUtils.getEmoji(outcome);
 
         // Assert
-        expect(emoji, '\u{1F622}'); // 😢
+        expect(emoji, '😢');
       });
 
       test('should map unknown outcome to cooking emoji', () {
@@ -166,10 +167,10 @@ void main() {
         const outcome = 'UNKNOWN';
 
         // Act
-        final emoji = _getOutcomeEmoji(outcome);
+        final emoji = OutcomeUtils.getEmoji(outcome);
 
         // Assert
-        expect(emoji, '\u{1F373}'); // 🍳
+        expect(emoji, '🍳');
       });
 
       test('should handle null outcome with cooking emoji', () {
@@ -177,10 +178,10 @@ void main() {
         const String? outcome = null;
 
         // Act
-        final emoji = _getOutcomeEmoji(outcome);
+        final emoji = OutcomeUtils.getEmoji(outcome);
 
         // Assert
-        expect(emoji, '\u{1F373}'); // 🍳
+        expect(emoji, '🍳');
       });
     });
 
@@ -285,14 +286,4 @@ void main() {
       });
     });
   });
-}
-
-/// Helper function matching RecentLogsGallery's outcome emoji logic
-String _getOutcomeEmoji(String? outcome) {
-  return switch (outcome) {
-    'SUCCESS' => '\u{1F60A}', // 😊
-    'PARTIAL' => '\u{1F610}', // 😐
-    'FAILED' => '\u{1F622}', // 😢
-    _ => '\u{1F373}', // 🍳
-  };
 }

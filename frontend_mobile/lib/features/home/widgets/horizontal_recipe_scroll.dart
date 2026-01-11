@@ -6,6 +6,7 @@ import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/data/models/home/recent_activity_dto.dart';
+import 'package:pairing_planet2_frontend/core/utils/outcome_utils.dart';
 
 /// Horizontal scrolling activity cards for "Hot Right Now" section
 class HorizontalActivityScroll extends StatelessWidget {
@@ -44,12 +45,7 @@ class _ActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final outcomeEmoji = switch (activity.outcome) {
-      'SUCCESS' => '😊',
-      'PARTIAL' => '😐',
-      'FAILED' => '😢',
-      _ => '🍳',
-    };
+    final outcomeEmoji = OutcomeUtils.getEmoji(activity.outcome);
 
     return GestureDetector(
       onTap: () {
