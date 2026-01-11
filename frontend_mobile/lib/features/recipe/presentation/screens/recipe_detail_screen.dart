@@ -134,21 +134,20 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildLineageTag(recipe),
-                          SizedBox(height: 12.h),
                           Row(
                             children: [
-                              Expanded(
-                                child: Text(
-                                  recipe.title,
-                                  style: TextStyle(
-                                    fontSize: 26.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              LocaleBadgeLarge(localeCode: recipe.culinaryLocale),
+                              _buildLineageTag(recipe),
+                              SizedBox(width: 8.w),
+                              LocaleBadgeStyled(localeCode: recipe.culinaryLocale),
                             ],
+                          ),
+                          SizedBox(height: 12.h),
+                          Text(
+                            recipe.title,
+                            style: TextStyle(
+                              fontSize: 26.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           SizedBox(height: 4.h),
                           Text(
