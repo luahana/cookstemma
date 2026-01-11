@@ -219,25 +219,13 @@ class RecipeDraftDto {
   });
 
   factory RecipeDraftDto.fromJson(Map<String, dynamic> json) {
-    // Helper to safely parse foodName which might be String or Map (from stale cache)
-    String? parseFoodName(dynamic value) {
-      if (value == null) return null;
-      if (value is String) return value;
-      if (value is Map) {
-        if (value.containsKey('ko-KR')) return value['ko-KR']?.toString();
-        if (value.containsKey('en-US')) return value['en-US']?.toString();
-        return value.values.firstOrNull?.toString();
-      }
-      return value.toString();
-    }
-
     return RecipeDraftDto(
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
       culinaryLocale: json['culinaryLocale'] as String?,
       food1MasterPublicId: json['food1MasterPublicId'] as String?,
-      foodName: parseFoodName(json['foodName']),
+      foodName: json['foodName'] as String?,
       ingredients: (json['ingredients'] as List<dynamic>)
           .map((e) => DraftIngredientDto.fromJson(e as Map<String, dynamic>))
           .toList(),

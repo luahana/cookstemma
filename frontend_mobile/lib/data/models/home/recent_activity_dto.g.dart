@@ -14,7 +14,7 @@ RecentActivityDto _$RecentActivityDtoFromJson(Map<String, dynamic> json) =>
       creatorName: json['creatorName'] as String,
       recipeTitle: json['recipeTitle'] as String,
       recipePublicId: json['recipePublicId'] as String,
-      foodName: _parseFoodName(json['foodName']),
+      foodName: json['foodName'] as String,
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
