@@ -253,6 +253,7 @@
     "family": {
       "title": "Recipe Family",
       "basedOn": "Based on",
+      "variations": "Variations",
       "otherVariations": "Other Variations",
       "current": "Current"
     },
@@ -369,6 +370,7 @@
     "noLogsHint": "Try cooking a recipe and\nleave a log!",
     "couldNotLoad": "Could not load logs",
     "detail": "Cooking Log Detail",
+    "recipeUsed": "Recipe Used",
     "myReview": "My Cooking Review",
     "hashtags": "Hashtags",
     "createTitle": "Write Cooking Log",

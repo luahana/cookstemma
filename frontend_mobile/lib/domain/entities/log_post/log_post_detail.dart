@@ -12,6 +12,7 @@ class LogImage {
 /// Linked recipe info for log post lineage display
 class LinkedRecipeInfo {
   final String publicId;
+  final String foodName;
   final String title;
   final String creatorName;
   final String? rootPublicId;
@@ -20,6 +21,7 @@ class LinkedRecipeInfo {
 
   LinkedRecipeInfo({
     required this.publicId,
+    required this.foodName,
     required this.title,
     required this.creatorName,
     this.rootPublicId,
@@ -32,6 +34,7 @@ class LinkedRecipeInfo {
   factory LinkedRecipeInfo.fromRecipeSummary(RecipeSummary summary) {
     return LinkedRecipeInfo(
       publicId: summary.publicId,
+      foodName: summary.foodName,
       title: summary.title,
       creatorName: summary.creatorName,
       rootPublicId: summary.rootPublicId,

@@ -77,6 +77,7 @@ class MyRecipesNotifier extends StateNotifier<MyRecipesState> {
   final UserLocalDataSource _localDataSource;
   final NetworkInfo _networkInfo;
   RecipeTypeFilter _currentFilter = RecipeTypeFilter.all;
+  bool _isRefreshing = false;  // Guard against concurrent refresh calls
 
   MyRecipesNotifier({
     required UserRemoteDataSource remoteDataSource,
@@ -189,8 +190,14 @@ class MyRecipesNotifier extends StateNotifier<MyRecipesState> {
   }
 
   Future<void> refresh() async {
-    state = state.copyWith(isLoading: true, error: null);
-    await _fetchFromNetwork();
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+      await _fetchFromNetwork();
+    } finally {
+      _isRefreshing = false;
+    }
   }
 }
 
@@ -258,6 +265,7 @@ class MyLogsNotifier extends StateNotifier<MyLogsState> {
   final UserLocalDataSource _localDataSource;
   final NetworkInfo _networkInfo;
   LogOutcomeFilter _currentFilter = LogOutcomeFilter.all;
+  bool _isRefreshing = false;  // Guard against concurrent refresh calls
 
   MyLogsNotifier({
     required Ref ref,
@@ -408,8 +416,14 @@ class MyLogsNotifier extends StateNotifier<MyLogsState> {
   }
 
   Future<void> refresh() async {
-    state = state.copyWith(isLoading: true, error: null);
-    await _fetchFromNetwork();
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+      await _fetchFromNetwork();
+    } finally {
+      _isRefreshing = false;
+    }
   }
 }
 
@@ -473,6 +487,7 @@ class SavedRecipesNotifier extends StateNotifier<SavedRecipesState> {
   final UserRemoteDataSource _remoteDataSource;
   final UserLocalDataSource _localDataSource;
   final NetworkInfo _networkInfo;
+  bool _isRefreshing = false;  // Guard against concurrent refresh calls
 
   SavedRecipesNotifier({
     required UserRemoteDataSource remoteDataSource,
@@ -560,8 +575,14 @@ class SavedRecipesNotifier extends StateNotifier<SavedRecipesState> {
   }
 
   Future<void> refresh() async {
-    state = state.copyWith(isLoading: true, error: null);
-    await _fetchFromNetwork();
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+      await _fetchFromNetwork();
+    } finally {
+      _isRefreshing = false;
+    }
   }
 }
 
@@ -610,6 +631,7 @@ class SavedLogsState {
 class SavedLogsNotifier extends StateNotifier<SavedLogsState> {
   final LogPostRemoteDataSource _remoteDataSource;
   final NetworkInfo _networkInfo;
+  bool _isRefreshing = false;  // Guard against concurrent refresh calls
 
   SavedLogsNotifier({
     required LogPostRemoteDataSource remoteDataSource,
@@ -674,8 +696,14 @@ class SavedLogsNotifier extends StateNotifier<SavedLogsState> {
   }
 
   Future<void> refresh() async {
-    state = state.copyWith(isLoading: true, error: null);
-    await _fetchFromNetwork();
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+      await _fetchFromNetwork();
+    } finally {
+      _isRefreshing = false;
+    }
   }
 }
 

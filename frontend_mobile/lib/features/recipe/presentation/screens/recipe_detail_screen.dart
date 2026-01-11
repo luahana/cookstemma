@@ -13,7 +13,6 @@ import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.d
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/quick_log_sheet.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/quick_log_draft_provider.dart';
 import '../../providers/recipe_providers.dart';
-import '../widgets/lineage_breadcrumb.dart';
 import '../widgets/recent_logs_gallery.dart';
 import '../widgets/variants_gallery.dart';
 import '../widgets/hashtag_chips.dart';
@@ -57,7 +56,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('recipe.detail'.tr()),
+        title: recipeAsync.maybeWhen(
+          data: (recipe) => Text(recipe.foodName, overflow: TextOverflow.ellipsis),
+          orElse: () => Text('recipe.detail'.tr()),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -121,11 +123,6 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       body: recipeAsync.when(
         data: (recipe) => Column(
           children: [
-            // Lineage breadcrumb at TOP (for variant recipes)
-            LineageBreadcrumb(
-              rootInfo: recipe.rootInfo,
-              parentInfo: recipe.parentInfo,
-            ),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -139,14 +136,6 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                         children: [
                           _buildLineageTag(recipe),
                           SizedBox(height: 12.h),
-                          Text(
-                            "[${recipe.foodName}]",
-                            style: TextStyle(
-                              fontSize: 18.sp,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
                           Row(
                             children: [
                               Expanded(
@@ -187,12 +176,16 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                       ),
                     ),
                     // Recipe Family Section (for variant recipes - star layout)
-                    if (recipe.isVariant && recipe.rootInfo != null) ...[
+                    // Recipe Family Section
+                    // - For variants: Shows "Based on" with root recipe
+                    // - For originals with variants: Shows "Variations"
+                    if (recipe.rootInfo != null || recipe.variants.isNotEmpty) ...[
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20.w),
                         child: RecipeFamilySection(
-                          rootInfo: recipe.rootInfo!,
-                          allVariants: recipe.variants,
+                          isOriginal: !recipe.isVariant,
+                          rootInfo: recipe.rootInfo,
+                          variants: recipe.variants,
                           currentRecipeId: recipe.publicId,
                         ),
                       ),

@@ -253,6 +253,7 @@
     "family": {
       "title": "레시피 가족",
       "basedOn": "원본 레시피",
+      "variations": "변형 레시피",
       "otherVariations": "다른 변형들",
       "current": "현재"
     },
@@ -365,6 +366,7 @@
     "noLogsHint": "레시피를 따라 요리하고\n기록을 남겨보세요!",
     "couldNotLoad": "로그를 불러올 수 없습니다",
     "detail": "요리 로그 상세",
+    "recipeUsed": "사용한 레시피",
     "myReview": "나의 요리 후기",
     "hashtags": "해시태그",
     "createTitle": "요리 로그 기록",

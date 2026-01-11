@@ -170,6 +170,16 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
     ref.invalidateSelf();
   }
 
+  /// Pull-to-refresh: uses ref.invalidateSelf() for atomic state management.
+  /// This matches the working pattern in LogPostListNotifier.
+  Future<void> refresh() async {
+    _currentPage = 0;
+    _hasNext = true;
+    _isFromCache = false;
+    _cachedAt = null;
+    ref.invalidateSelf();
+  }
+
   /// 다음 페이지 로드
   Future<void> fetchNextPage() async {
     // 💡 이미 데이터를 가져오는 중이거나 다음 페이지가 없으면 중단합니다.

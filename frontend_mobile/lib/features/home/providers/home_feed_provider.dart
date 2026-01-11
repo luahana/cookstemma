@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info.dart';
 import 'package:pairing_planet2_frontend/core/utils/cache_utils.dart';
@@ -70,6 +72,7 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
   final RecipeRemoteDataSource remoteDataSource;
   final HomeLocalDataSource localDataSource;
   final NetworkInfo networkInfo;
+  Completer<void>? _refreshCompleter;  // Used to coordinate concurrent refresh calls
 
   HomeFeedNotifier({
     required this.remoteDataSource,
@@ -99,11 +102,26 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
   }
 
   /// Refresh: Force fetch from network.
+  /// Uses Completer pattern to ensure all concurrent refresh calls wait
+  /// for the same refresh to complete (prevents blank page issues).
   Future<void> refresh() async {
-    // Clear error but don't set isLoading if we have data
-    // (CupertinoSliverRefreshControl shows its own spinner)
-    state = state.copyWith(error: null);
-    await _fetchFromNetwork();
+    // If already refreshing, wait for the existing refresh to complete
+    if (_refreshCompleter != null) {
+      await _refreshCompleter!.future;
+      return;
+    }
+
+    _refreshCompleter = Completer<void>();
+
+    try {
+      // Clear error but don't set isLoading if we have data
+      // (CupertinoSliverRefreshControl shows its own spinner)
+      state = state.copyWith(error: null);
+      await _fetchFromNetwork();
+    } finally {
+      _refreshCompleter?.complete();
+      _refreshCompleter = null;
+    }
   }
 
   /// Fetch data from network and update cache.
@@ -117,11 +135,13 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
         // Cache the new data
         await localDataSource.cacheHomeFeed(feed);
 
-        state = HomeFeedState(
+        // Use copyWith to preserve state continuity during refresh
+        state = state.copyWith(
           data: feed,
           isFromCache: false,
           cachedAt: DateTime.now(),
           isLoading: false,
+          error: null,
         );
       } else {
         // Offline: keep showing cached data if available
