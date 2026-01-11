@@ -16,6 +16,7 @@ import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_pr
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/hashtag_input_section.dart';
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 import '../../../../core/providers/image_providers.dart'; // 💡 이미지 프로바이더 추가
+import 'package:pairing_planet2_frontend/core/utils/outcome_utils.dart';
 
 class LogPostCreateScreen extends ConsumerStatefulWidget {
   final RecipeDetail recipe;
@@ -276,9 +277,9 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildOutcomeOption('SUCCESS', '😊', 'logPost.successLabel'.tr()),
-        _buildOutcomeOption('PARTIAL', '😐', 'logPost.partialLabel'.tr()),
-        _buildOutcomeOption('FAILED', '😢', 'logPost.failedLabel'.tr()),
+        _buildOutcomeOption('SUCCESS', OutcomeUtils.getEmoji('SUCCESS'), 'logPost.successLabel'.tr()),
+        _buildOutcomeOption('PARTIAL', OutcomeUtils.getEmoji('PARTIAL'), 'logPost.partialLabel'.tr()),
+        _buildOutcomeOption('FAILED', OutcomeUtils.getEmoji('FAILED'), 'logPost.failedLabel'.tr()),
       ],
     );
   }

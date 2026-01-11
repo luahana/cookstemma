@@ -15,6 +15,7 @@ import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.d
 import '../providers/profile_provider.dart';
 import '../providers/cooking_dna_provider.dart';
 import '../widgets/cooking_dna_header.dart';
+import 'package:pairing_planet2_frontend/core/utils/outcome_utils.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   final int initialTabIndex;
@@ -533,12 +534,7 @@ class _MyLogsTab extends ConsumerStatefulWidget {
 
 class _MyLogsTabState extends ConsumerState<_MyLogsTab> {
   String _getOutcomeEmoji(String? outcome) {
-    return switch (outcome) {
-      'SUCCESS' => '😊',
-      'PARTIAL' => '😐',
-      'FAILED' => '😢',
-      _ => '🍳',
-    };
+    return OutcomeUtils.getEmoji(outcome);
   }
 
   @override
@@ -764,12 +760,7 @@ class _SavedTabState extends ConsumerState<_SavedTab> {
   SavedTypeFilter _currentFilter = SavedTypeFilter.all;
 
   String _getOutcomeEmoji(String? outcome) {
-    return switch (outcome) {
-      'SUCCESS' => '😊',
-      'PARTIAL' => '😐',
-      'FAILED' => '😢',
-      _ => '🍳',
-    };
+    return OutcomeUtils.getEmoji(outcome);
   }
 
   @override
