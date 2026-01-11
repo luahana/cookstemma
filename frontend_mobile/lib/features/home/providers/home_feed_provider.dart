@@ -72,7 +72,8 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
   final RecipeRemoteDataSource remoteDataSource;
   final HomeLocalDataSource localDataSource;
   final NetworkInfo networkInfo;
-  Completer<void>? _refreshCompleter;  // Used to coordinate concurrent refresh calls
+  bool _isRefreshing = false; // Guard against race condition in rapid pulls
+  Completer<void>? _refreshCompleter; // Used to coordinate concurrent refresh calls
 
   HomeFeedNotifier({
     required this.remoteDataSource,
@@ -102,15 +103,18 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
   }
 
   /// Refresh: Force fetch from network.
-  /// Uses Completer pattern to ensure all concurrent refresh calls wait
-  /// for the same refresh to complete (prevents blank page issues).
+  /// Uses _isRefreshing guard + Completer pattern to prevent race conditions
+  /// during rapid pull-to-refresh (prevents blank page issues).
   Future<void> refresh() async {
-    // If already refreshing, wait for the existing refresh to complete
-    if (_refreshCompleter != null) {
-      await _refreshCompleter!.future;
+    // Early return if already refreshing (covers race condition)
+    if (_isRefreshing) {
+      if (_refreshCompleter != null) {
+        await _refreshCompleter!.future;
+      }
       return;
     }
 
+    _isRefreshing = true;
     _refreshCompleter = Completer<void>();
 
     try {
@@ -121,6 +125,7 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
     } finally {
       _refreshCompleter?.complete();
       _refreshCompleter = null;
+      _isRefreshing = false; // Set false AFTER null assignment
     }
   }
 
