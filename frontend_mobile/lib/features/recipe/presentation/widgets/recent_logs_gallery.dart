@@ -210,6 +210,7 @@ class RecentLogsGallery extends StatelessWidget {
         SizedBox(height: 12.h),
         // Empty state card with guidance
         Container(
+          width: double.infinity,
           margin: EdgeInsets.symmetric(horizontal: 20.w),
           padding: EdgeInsets.all(24.r),
           decoration: BoxDecoration(
