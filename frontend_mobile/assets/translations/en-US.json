@@ -152,6 +152,7 @@
   "recipe": {
     "title": "Recipes",
     "detail": "Recipe Detail",
+    "by": "by {}",
     "steps": "Steps",
     "create": "Create Recipe",
     "edit": "Edit Recipe",
@@ -225,17 +226,17 @@
     "variantSuffix": "(Variant)",
     "createNew": "Create New Recipe",
     "createVariantTitle": "Create Variant",
-    "changeReasonRequired": "Change Reason (Required)",
-    "changeReasonHint": "E.g.: Added spicier peppers and changed the cooking order.",
+    "changeReasonRequired": "What's different?",
+    "changeReasonHint": "What did you change?",
     "changeReasonError": "Please enter the reason for this variation.",
     "submitting": "Submitting...",
     "submit": "Submit",
     "submitFailed": "Failed: {error}",
     "ingredients": {
       "title": "Ingredients",
-      "main": "Main Ingredients",
-      "secondary": "Secondary Ingredients",
-      "seasoning": "Seasonings"
+      "main": "Main",
+      "secondary": "Secondary",
+      "seasoning": "Seasoning"
     },
     "diff": {
       "whatChanged": "What Changed",
@@ -252,6 +253,7 @@
     "family": {
       "title": "Recipe Family",
       "basedOn": "Based on",
+      "variations": "Variations",
       "otherVariations": "Other Variations",
       "current": "Current"
     },
@@ -280,14 +282,14 @@
     },
     "hook": {
       "basicInfo": "Recipe Basic Info",
-      "finishedPhotos": "Finished Photos (max 3)",
+      "finishedPhotos": "Photos",
       "thumbnail": "Thumbnail",
-      "title": "Recipe Title",
-      "titleHint": "e.g. My Spicy Kimchi Stew",
-      "foodName": "Dish Name",
-      "foodNameHint": "What dish is this? (e.g. Kimchi Stew)",
-      "description": "Recipe Description",
-      "descriptionHint": "Briefly describe this recipe's features"
+      "title": "Title",
+      "titleHint": "Recipe title",
+      "foodName": "Dish",
+      "foodNameHint": "e.g. Kimchi Stew",
+      "description": "Description",
+      "descriptionHint": "Optional"
     },
     "ingredient": {
       "name": "Ingredient Name",
@@ -368,6 +370,7 @@
     "noLogsHint": "Try cooking a recipe and\nleave a log!",
     "couldNotLoad": "Could not load logs",
     "detail": "Cooking Log Detail",
+    "recipeUsed": "Recipe Used",
     "myReview": "My Cooking Review",
     "hashtags": "Hashtags",
     "createTitle": "Write Cooking Log",
@@ -623,10 +626,10 @@
     "daysAgo": "{} days ago"
   },
   "steps": {
-    "header": "Cooking Steps (drag to reorder)",
+    "header": "Steps",
     "addStep": "Add Step",
     "addMultiple": "Add Photos",
-    "descriptionHint": "Describe this step...",
+    "descriptionHint": "Step description",
     "deleted": "Deleted",
     "step": "Step",
     "restore": "Restore"
@@ -684,5 +687,17 @@
     "bunch": "bunch",
     "can": "can",
     "package": "pkg"
+  },
+  "validation": {
+    "error": "Please fill in all required fields",
+    "recipe": {
+      "titleRequired": "Please add a recipe title",
+      "titleMinLength": "Title must be at least 2 characters",
+      "foodNameRequired": "Please specify what dish this is",
+      "photoRequired": "Please add at least one photo",
+      "ingredientRequired": "Please add at least one ingredient",
+      "stepRequired": "Please add at least one cooking step",
+      "changeReasonRequired": "Please describe what you changed"
+    }
   }
 }

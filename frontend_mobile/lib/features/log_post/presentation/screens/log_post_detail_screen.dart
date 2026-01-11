@@ -134,7 +134,13 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('logPost.detail'.tr()),
+        title: logAsync.maybeWhen(
+          data: (log) => Text(
+            log.linkedRecipe?.foodName ?? 'logPost.detail'.tr(),
+            overflow: TextOverflow.ellipsis,
+          ),
+          orElse: () => Text('logPost.detail'.tr()),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -223,19 +229,18 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
         ],
       ),
       body: logAsync.when(
-        data: (log) => Column(
-          children: [
-            // Recipe lineage at TOP (shows which recipe was used and its origin)
-            LogRecipeLineage(linkedRecipe: log.linkedRecipe),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. 이미지 갤러리 (가로 스크롤)
-                    _buildImageGallery(log.imageUrls),
+        data: (log) => SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Image gallery (horizontal scroll)
+              _buildImageGallery(log.imageUrls),
 
-                    Padding(
+              // 2. Linked recipe card
+              SizedBox(height: 16.h),
+              LogRecipeLineage(linkedRecipe: log.linkedRecipe),
+
+              Padding(
                       padding: EdgeInsets.all(20.r),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,11 +297,8 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('common.errorWithMessage'.tr(namedArgs: {'message': err.toString()}))),

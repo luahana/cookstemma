@@ -22,6 +22,7 @@ import '../widgets/step_section.dart';
 import '../widgets/hashtag_input_section.dart';
 import '../widgets/draft_status_indicator.dart';
 import '../widgets/continue_draft_dialog.dart';
+import '../../../../core/utils/form_validators.dart';
 
 class RecipeCreateScreen extends ConsumerStatefulWidget {
   final RecipeDetail? parentRecipe; // 💡 변경: ID 대신 객체 수신
@@ -473,12 +474,25 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
   }
 
   Future<void> _handleSubmit() async {
-    if (isVariantMode && _changeReasonController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('recipe.changeReasonError'.tr())));
+    // Validate all required fields using RecipeFormValidator
+    final validations = RecipeFormValidator.getAllValidations(
+      title: _titleController.text,
+      foodName: _foodNameController.text,
+      photos: _finishedImages,
+      ingredients: _ingredients,
+      steps: _steps,
+      changeReason: _changeReasonController.text,
+      isVariantMode: isVariantMode,
+    );
+
+    final firstError = validations.where((v) => !v.isValid).firstOrNull;
+    if (firstError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(firstError.errorMessage ?? 'validation.error'.tr())),
+      );
       return;
     }
+
     setState(() => _isLoading = true);
     try {
       // Phase 7-3: Compute change diff for variations
@@ -602,20 +616,6 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
                       },
                     ),
 
-                    SizedBox(height: 24.h),
-                    HashtagInputSection(
-                      hashtags: _hashtags,
-                      onHashtagsChanged: (tags) => setState(() {
-                        _hashtags.clear();
-                        _hashtags.addAll(tags);
-                      }),
-                    ),
-
-                    if (isVariantMode) ...[
-                      SizedBox(height: 32.h),
-                      _buildChangeReasonField(),
-                    ],
-
                     SizedBox(height: 32.h),
                     IngredientSection(
                       ingredients: _ingredients,
@@ -633,6 +633,20 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
                       onReorder: _onReorderSteps,
                       onStateChanged: () => setState(() {}),
                     ),
+                    SizedBox(height: 32.h),
+                    HashtagInputSection(
+                      hashtags: _hashtags,
+                      onHashtagsChanged: (tags) => setState(() {
+                        _hashtags.clear();
+                        _hashtags.addAll(tags);
+                      }),
+                    ),
+
+                    if (isVariantMode) ...[
+                      SizedBox(height: 32.h),
+                      _buildChangeReasonField(),
+                    ],
+
                     SizedBox(height: 120.h),
                   ],
                 ),
@@ -671,9 +685,17 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
           children: [
             Icon(Icons.auto_awesome, color: Colors.orange, size: 20.sp),
             SizedBox(width: 8.w),
-            Text(
-              'recipe.changeReasonRequired'.tr(),
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+            Text.rich(
+              TextSpan(
+                text: 'recipe.changeReasonRequired'.tr(),
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                children: [
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(color: Colors.red, fontSize: 16.sp),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -701,15 +723,16 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
   }
 
   Widget _buildSubmitButton() {
-    final bool hasBaseInfo =
-        _titleController.text.isNotEmpty && _ingredients.isNotEmpty;
-
-    // 2. 변형 모드일 경우 변경 이유 입력 여부 체크
-    final bool hasChangeReason =
-        !isVariantMode || _changeReasonController.text.trim().isNotEmpty;
-
-    // 💡 두 조건이 모두 충족되어야 버튼 활성화
-    final bool isReady = hasBaseInfo && hasChangeReason;
+    // Use centralized validator for button activation
+    final bool isReady = RecipeFormValidator.isFormValid(
+      title: _titleController.text,
+      foodName: _foodNameController.text,
+      photos: _finishedImages,
+      ingredients: _ingredients,
+      steps: _steps,
+      changeReason: _changeReasonController.text,
+      isVariantMode: isVariantMode,
+    );
     return Padding(
       padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 30.h),
       child: SizedBox(

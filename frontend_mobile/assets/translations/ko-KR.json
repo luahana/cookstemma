@@ -152,6 +152,7 @@
   "recipe": {
     "title": "레시피",
     "detail": "레시피 상세",
+    "by": "{} 님의 레시피",
     "steps": "조리 순서",
     "create": "레시피 만들기",
     "edit": "레시피 수정",
@@ -225,8 +226,8 @@
     "variantSuffix": "(변형)",
     "createNew": "새 레시피 등록",
     "createVariantTitle": "레시피 변형하기",
-    "changeReasonRequired": "변경 이유 (필수)",
-    "changeReasonHint": "예: 더 매콤한 맛을 위해 청양고추를 추가하고 조리 순서를 바꿨어요.",
+    "changeReasonRequired": "무엇이 달라졌나요?",
+    "changeReasonHint": "어떤 점을 바꿨나요?",
     "changeReasonError": "레시피를 변형한 이유를 입력해주세요.",
     "submitting": "등록 중...",
     "submit": "등록 완료",
@@ -235,7 +236,7 @@
       "title": "재료",
       "main": "주재료",
       "secondary": "부재료",
-      "seasoning": "양념"
+      "seasoning": "양념류"
     },
     "diff": {
       "whatChanged": "변경 내용",
@@ -252,6 +253,7 @@
     "family": {
       "title": "레시피 가족",
       "basedOn": "원본 레시피",
+      "variations": "변형 레시피",
       "otherVariations": "다른 변형들",
       "current": "현재"
     },
@@ -276,14 +278,14 @@
     },
     "hook": {
       "basicInfo": "레시피 기본 정보",
-      "finishedPhotos": "완성 사진 (최대 3장)",
+      "finishedPhotos": "사진",
       "thumbnail": "대표 사진",
-      "title": "레시피 제목",
-      "titleHint": "예: 나만의 매콤한 김치찌개",
-      "foodName": "요리명",
-      "foodNameHint": "어떤 요리인가요? (예: 김치찌개)",
-      "description": "레시피 설명",
-      "descriptionHint": "이 레시피의 특징을 간단히 적어주세요"
+      "title": "제목",
+      "titleHint": "레시피 제목",
+      "foodName": "요리",
+      "foodNameHint": "예: 김치찌개",
+      "description": "설명",
+      "descriptionHint": "선택사항"
     },
     "ingredient": {
       "name": "재료명",
@@ -364,6 +366,7 @@
     "noLogsHint": "레시피를 따라 요리하고\n기록을 남겨보세요!",
     "couldNotLoad": "로그를 불러올 수 없습니다",
     "detail": "요리 로그 상세",
+    "recipeUsed": "사용한 레시피",
     "myReview": "나의 요리 후기",
     "hashtags": "해시태그",
     "createTitle": "요리 로그 기록",
@@ -619,10 +622,10 @@
     "daysAgo": "{}일 전"
   },
   "steps": {
-    "header": "요리 단계 (드래그하여 순서 변경)",
+    "header": "조리 순서",
     "addStep": "단계 추가",
     "addMultiple": "사진 여러장",
-    "descriptionHint": "과정 설명...",
+    "descriptionHint": "설명",
     "deleted": "삭제됨",
     "step": "단계",
     "restore": "복원"
@@ -680,5 +683,17 @@
     "bunch": "묶음",
     "can": "캔",
     "package": "봉지"
+  },
+  "validation": {
+    "error": "필수 항목을 모두 입력해주세요",
+    "recipe": {
+      "titleRequired": "레시피 제목을 입력해주세요",
+      "titleMinLength": "제목은 2자 이상이어야 합니다",
+      "foodNameRequired": "요리 이름을 입력해주세요",
+      "photoRequired": "사진을 1장 이상 추가해주세요",
+      "ingredientRequired": "재료를 1개 이상 추가해주세요",
+      "stepRequired": "조리 순서를 1개 이상 추가해주세요",
+      "changeReasonRequired": "변경 내용을 설명해주세요"
+    }
   }
 }

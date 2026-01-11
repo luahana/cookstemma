@@ -8,6 +8,7 @@ import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/providers/scroll_to_top_provider.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
+import 'package:pairing_planet2_frontend/data/models/home/home_feed_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/trending_tree_dto.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
@@ -118,98 +119,108 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
       ],
       body: Builder(
         builder: (context) {
-          // Show shimmer skeleton only if no data available
+          // Match LogPostListScreen pattern - return different widget types
+          // Show skeleton if loading with no data
           if (feedState.isLoading && feedState.data == null) {
             return const HomeFeedSkeleton();
           }
-
-          // Show error only if no data available
+          // Show error if error with no data
           if (feedState.error != null && feedState.data == null) {
             return _buildErrorBody(feedState.error!);
           }
-
-          final feed = feedState.data;
-          if (feed == null) {
+          // Show no data message if null
+          if (feedState.data == null) {
             return _buildErrorBody('common.noData'.tr());
           }
-
-          // Sort trending trees by evolution (variantCount + logCount) descending
-          final sortedTrending = List<TrendingTreeDto>.from(feed.trendingTrees)
-            ..sort((a, b) {
-              final aScore = a.variantCount + a.logCount;
-              final bScore = b.variantCount + b.logCount;
-              return bScore.compareTo(aScore);
-            });
-
-          return CustomScrollView(
-            slivers: [
-              // Cache status banner
-              SliverToBoxAdapter(
-                child: CacheStatusBanner(
-                  isFromCache: feedState.isFromCache,
-                  cachedAt: feedState.cachedAt,
-                  isLoading: feedState.isLoading,
-                ),
-              ),
-
-              // Section 1: Most Evolved (Bento Grid)
-              if (sortedTrending.isNotEmpty) ...[
-                SliverToBoxAdapter(
-                  child: SectionHeader(
-                    title: 'home.mostEvolved'.tr(),
-                    padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
-                    onSeeAll: () {
-                      ref.read(browseFilterProvider.notifier).setSortOption(RecipeSortOption.mostForked);
-                      context.push(RouteConstants.recipes);
-                    },
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: BentoGridFromTrending(trendingTrees: sortedTrending.take(3).toList()),
-                ),
-              ],
-
-              // Section 2: Hot Right Now (Horizontal Activity)
-              if (feed.recentActivity.isNotEmpty) ...[
-                SliverToBoxAdapter(
-                  child: SectionHeader(
-                    title: 'home.hotRightNow'.tr(),
-                    onSeeAll: () => context.push(RouteConstants.logPosts),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: HorizontalActivityScroll(activities: feed.recentActivity),
-                ),
-              ],
-
-              // Section 3: Fresh Uploads (Vertical Recipe List)
-              if (feed.recentRecipes.isNotEmpty) ...[
-                SliverToBoxAdapter(
-                  child: SectionHeader(
-                    title: 'home.freshUploads'.tr(),
-                    onSeeAll: () => context.push(RouteConstants.recipes),
-                  ),
-                ),
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final recipe = feed.recentRecipes[index];
-                      return EvolutionRecipeCard(recipe: recipe);
-                    },
-                    childCount: feed.recentRecipes.length,
-                  ),
-                ),
-              ],
-
-              // Bottom padding
-              SliverToBoxAdapter(
-                child: SizedBox(height: 32.h),
-              ),
-            ],
-          );
+          // Normal content - return CustomScrollView with proper slivers
+          return _buildContentBody(feedState);
         },
       ),
     );
+  }
+
+  /// Build content body - returns CustomScrollView with proper slivers
+  Widget _buildContentBody(HomeFeedState feedState) {
+    return CustomScrollView(
+      slivers: [
+        // Cache status banner
+        SliverToBoxAdapter(
+          child: CacheStatusBanner(
+            isFromCache: feedState.isFromCache,
+            cachedAt: feedState.cachedAt,
+            isLoading: feedState.isLoading,
+          ),
+        ),
+        // Content slivers
+        ..._buildContentSlivers(feedState.data!, context),
+      ],
+    );
+  }
+
+  List<Widget> _buildContentSlivers(HomeFeedResponseDto feed, BuildContext context) {
+    // Sort trending trees by evolution (variantCount + logCount) descending
+    final sortedTrending = List<TrendingTreeDto>.from(feed.trendingTrees)
+      ..sort((a, b) {
+        final aScore = a.variantCount + a.logCount;
+        final bScore = b.variantCount + b.logCount;
+        return bScore.compareTo(aScore);
+      });
+
+    return [
+      // Section 1: Most Evolved (Bento Grid)
+      if (sortedTrending.isNotEmpty) ...[
+        SliverToBoxAdapter(
+          child: SectionHeader(
+            title: 'home.mostEvolved'.tr(),
+            padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
+            onSeeAll: () {
+              ref.read(browseFilterProvider.notifier).setSortOption(RecipeSortOption.mostForked);
+              context.push(RouteConstants.recipes);
+            },
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: BentoGridFromTrending(trendingTrees: sortedTrending.take(3).toList()),
+        ),
+      ],
+
+      // Section 2: Hot Right Now (Horizontal Activity)
+      if (feed.recentActivity.isNotEmpty) ...[
+        SliverToBoxAdapter(
+          child: SectionHeader(
+            title: 'home.hotRightNow'.tr(),
+            onSeeAll: () => context.push(RouteConstants.logPosts),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: HorizontalActivityScroll(activities: feed.recentActivity),
+        ),
+      ],
+
+      // Section 3: Fresh Uploads (Vertical Recipe List)
+      if (feed.recentRecipes.isNotEmpty) ...[
+        SliverToBoxAdapter(
+          child: SectionHeader(
+            title: 'home.freshUploads'.tr(),
+            onSeeAll: () => context.push(RouteConstants.recipes),
+          ),
+        ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final recipe = feed.recentRecipes[index];
+              return EvolutionRecipeCard(recipe: recipe);
+            },
+            childCount: feed.recentRecipes.length,
+          ),
+        ),
+      ],
+
+      // Bottom padding
+      SliverToBoxAdapter(
+        child: SizedBox(height: 32.h),
+      ),
+    ];
   }
 
   Widget _buildErrorBody(Object err) {

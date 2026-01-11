@@ -11,8 +11,8 @@ import 'package:pairing_planet2_frontend/core/widgets/reorderable_image_picker.d
 import 'package:pairing_planet2_frontend/domain/entities/autocomplete/autocomplete_result.dart';
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 import '../../../../core/providers/image_providers.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'locale_dropdown.dart';
-import 'minimal_header.dart';
 
 class HookSection extends ConsumerStatefulWidget {
   final TextEditingController titleController;
@@ -87,13 +87,24 @@ class _HookSectionState extends ConsumerState<HookSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MinimalHeader(icon: Icons.edit_note, title: 'recipe.hook.basicInfo'.tr()),
-        SizedBox(height: 16.h),
-
-        // 1. 이미지 등록 섹션 추가
-        Text(
-          'recipe.hook.finishedPhotos'.tr(),
-          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+        // 1. 이미지 등록 섹션
+        Row(
+          children: [
+            Icon(Icons.photo_library, color: AppColors.primary, size: 20.sp),
+            SizedBox(width: 8.w),
+            Text.rich(
+              TextSpan(
+                text: 'recipe.hook.finishedPhotos'.tr(),
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                children: [
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(color: Colors.red, fontSize: 16.sp),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         SizedBox(height: 12.h),
         ReorderableImagePicker(
@@ -113,12 +124,29 @@ class _HookSectionState extends ConsumerState<HookSection> {
           controller: widget.titleController,
           label: 'recipe.hook.title'.tr(),
           hint: 'recipe.hook.titleHint'.tr(),
+          icon: Icons.title,
+          isRequired: true,
         ),
         SizedBox(height: 16.h),
 
-        Text(
-          'recipe.hook.foodName'.tr(),
-          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+        Row(
+          children: [
+            Icon(Icons.restaurant, color: AppColors.primary, size: 20.sp),
+            SizedBox(width: 8.w),
+            Text.rich(
+              TextSpan(
+                text: 'recipe.hook.foodName'.tr(),
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                children: [
+                  if (!widget.isReadOnly)
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(color: Colors.red, fontSize: 16.sp),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
         SizedBox(height: 8.h),
         Autocomplete<AutocompleteResult>(
@@ -172,16 +200,17 @@ class _HookSectionState extends ConsumerState<HookSection> {
           controller: widget.descriptionController,
           label: 'recipe.hook.description'.tr(),
           hint: 'recipe.hook.descriptionHint'.tr(),
+          icon: Icons.notes,
           maxLines: 3,
         ),
         SizedBox(height: 16.h),
 
-        // Culinary locale dropdown
+        // Culinary locale dropdown (always editable, even in variant mode)
         LocaleDropdown(
           value: widget.localeController.text.isNotEmpty
               ? widget.localeController.text
               : null,
-          enabled: !widget.isReadOnly,
+          enabled: true,
           onChanged: (value) {
             if (value != null) {
               widget.localeController.text = value;
@@ -226,14 +255,31 @@ class _HookSectionState extends ConsumerState<HookSection> {
     required TextEditingController controller,
     required String label,
     required String hint,
+    required IconData icon,
     int maxLines = 1,
+    bool isRequired = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+        Row(
+          children: [
+            Icon(icon, color: AppColors.primary, size: 20.sp),
+            SizedBox(width: 8.w),
+            Text.rich(
+              TextSpan(
+                text: label,
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                children: [
+                  if (isRequired)
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(color: Colors.red, fontSize: 16.sp),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
         SizedBox(height: 8.h),
         _buildTextFieldRaw(
@@ -255,11 +301,11 @@ class _HookSectionState extends ConsumerState<HookSection> {
     Color? backgroundColor,
   }) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.grey[50],
+        color: backgroundColor ?? Colors.grey[100],
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: Colors.grey[300]!),
       ),
       child: TextField(
         controller: controller,
