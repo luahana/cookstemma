@@ -103,6 +103,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
         MinimalHeader(
           icon: Icons.format_list_numbered,
           title: 'steps.header'.tr(),
+          isRequired: true,
         ),
         SizedBox(height: 12.h),
         // 💡 드래그 앤 드롭 리스트 (active steps only)
@@ -187,19 +188,30 @@ class _StepSectionState extends ConsumerState<StepSection> {
   }
 
   Widget _buildDescriptionField(Map<String, dynamic> step, bool isOriginal) {
-    return TextField(
-      readOnly: isOriginal, // 💡 기존 단계 텍스트 수정 불가
-      onChanged: (v) => step["description"] = v,
-      controller: TextEditingController(text: step["description"])
-        ..selection = TextSelection.collapsed(
-          offset: step["description"]?.length ?? 0,
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: isOriginal ? Colors.grey[200] : Colors.grey[100],
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: TextField(
+        readOnly: isOriginal, // 💡 기존 단계 텍스트 수정 불가
+        onChanged: (v) => step["description"] = v,
+        controller: TextEditingController(text: step["description"])
+          ..selection = TextSelection.collapsed(
+            offset: step["description"]?.length ?? 0,
+          ),
+        maxLines: null,
+        style: TextStyle(
+          color: isOriginal ? Colors.grey[600] : Colors.black,
         ),
-      maxLines: null,
-      decoration: InputDecoration(
-        hintText: isOriginal ? "" : 'recipe.step.hintText'.tr(),
-        border: InputBorder.none,
-        filled: isOriginal,
-        fillColor: isOriginal ? Colors.grey[100] : Colors.transparent,
+        decoration: InputDecoration(
+          hintText: isOriginal ? "" : 'recipe.step.hintText'.tr(),
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(vertical: 8.h),
+        ),
       ),
     );
   }

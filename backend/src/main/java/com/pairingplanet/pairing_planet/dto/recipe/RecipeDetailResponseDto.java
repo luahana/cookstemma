@@ -17,6 +17,7 @@ public record RecipeDetailResponseDto(
         String culinaryLocale,
         String foodName,              // [추가] UI 상단 표시용
         UUID foodMasterPublicId,      // [추가] 음식 상세 이동용
+        String creatorName,           // [추가] 레시피 작성자 이름
         String changeCategory,
         RecipeSummaryDto rootInfo,    // 11개 필드 규격 적용 필요
         RecipeSummaryDto parentInfo,  // 11개 필드 규격 적용 필요
@@ -32,7 +33,7 @@ public record RecipeDetailResponseDto(
         List<String> changeCategories,       // Auto-detected: INGREDIENT, TECHNIQUE, AMOUNT, SEASONING
         String changeReason                  // User-provided reason for changes
 ) {
-    public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix, Boolean isSavedByCurrentUser) {
+    public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix, Boolean isSavedByCurrentUser, String creatorName) {
         Recipe root = recipe.getRootRecipe();
         Recipe parent = recipe.getParentRecipe();
 
@@ -99,6 +100,7 @@ public record RecipeDetailResponseDto(
                 .culinaryLocale(recipe.getCulinaryLocale())
                 .foodName(currentFoodName) // [적용]
                 .foodMasterPublicId(currentFoodMasterPublicId) // [적용]
+                .creatorName(creatorName) // [적용]
                 .changeCategory(recipe.getChangeCategory())
                 .rootInfo(rootInfo)
                 .parentInfo(parentInfo)

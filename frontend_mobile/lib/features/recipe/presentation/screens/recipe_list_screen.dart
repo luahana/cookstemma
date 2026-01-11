@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
@@ -12,9 +13,8 @@ import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/illustrated_empty_state.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
 import 'package:pairing_planet2_frontend/core/widgets/skeleton/skeleton_loader.dart';
-import 'package:pairing_planet2_frontend/core/widgets/transitions/animated_view_switcher.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/bento_grid_view.dart';
+import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/compact_recipe_card.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/enhanced_recipe_card.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/view_mode_toggle.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart';
@@ -191,8 +191,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
           // Instagram-style pull-to-refresh
           CupertinoSliverRefreshControl(
             onRefresh: () async {
-              ref.invalidate(recipeListProvider);
-              return ref.read(recipeListProvider.future);
+              await ref.read(recipeListProvider.notifier).refresh();
             },
           ),
         ],
@@ -208,17 +207,11 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
           },
           child: Builder(
             builder: (context) {
+              // Match LogPostListScreen pattern - return different widget types
               return recipesAsync.when(
                 data: (state) => _buildContentBody(state, viewMode),
                 loading: () => _buildSkeletonLoading(viewMode),
-                error: (err, stack) => IllustratedEmptyState(
-                  icon: Icons.cloud_off_outlined,
-                  title: 'common.error'.tr(),
-                  subtitle: err.toString(),
-                  actionLabel: 'common.tryAgain'.tr(),
-                  onAction: () => ref.invalidate(recipeListProvider),
-                  iconColor: Colors.red[300],
-                ),
+                error: (error, stack) => _buildErrorBody(error),
               );
             },
           ),
@@ -227,58 +220,124 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
     );
   }
 
+  /// Build content body - matches LogPostListScreen pattern
+  /// Returns Column for empty states, CustomScrollView for content
   Widget _buildContentBody(RecipeListState state, BrowseViewMode viewMode) {
     final recipes = state.items;
-    final hasNext = state.hasNext;
 
-    // Empty state
+    // Empty state - return Column (non-scrollable)
     if (recipes.isEmpty) {
-      // Search results empty
-      if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
-        return SearchEmptyState(
-          query: state.searchQuery!,
-          entityName: 'recipe.title'.tr(),
-          onClearSearch: () {
-            ref.read(recipeListProvider.notifier).clearSearch();
-          },
-        );
-      }
-      // Filter results empty
-      if (state.filterState?.hasActiveFilters == true) {
-        return _buildFilterEmptyState();
-      }
-      // General empty state
       return Column(
         children: [
           if (state.isFromCache && state.cachedAt != null)
             _buildCacheIndicator(state),
-          Expanded(
-            child: IllustratedEmptyState(
-              icon: Icons.restaurant_menu_outlined,
-              title: 'recipe.noRecipesYet'.tr(),
-              subtitle: 'recipe.pullToRefresh'.tr(),
-              iconColor: Colors.orange[300],
-            ),
-          ),
+          Expanded(child: _buildEmptyStateContent(state)),
         ],
       );
     }
 
-    // Data available - build content based on view mode
-    return Column(
-      children: [
+    // Data available - return CustomScrollView with proper slivers
+    return CustomScrollView(
+      slivers: [
+        // Cache indicator
         if (state.isFromCache && state.cachedAt != null)
-          _buildCacheIndicator(state),
-        Expanded(
-          child: AnimatedViewSwitcher(
-            key: ValueKey(viewMode),
-            child: KeyedSubtree(
-              key: ValueKey('content_$viewMode'),
-              child: _buildContentView(recipes, hasNext, state, viewMode),
+          SliverToBoxAdapter(child: _buildCacheIndicator(state)),
+
+        // Content based on view mode - using direct slivers
+        if (viewMode == BrowseViewMode.list)
+          SliverPadding(
+            padding: EdgeInsets.all(16.r),
+            sliver: SliverList.builder(
+              itemCount: recipes.length,
+              itemBuilder: (context, index) => _buildRecipeCard(context, recipes[index], state.searchQuery),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.all(16.r),
+            sliver: SliverMasonryGrid.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 12.h,
+              crossAxisSpacing: 12.w,
+              childCount: recipes.length,
+              itemBuilder: (context, index) => _buildGridTile(recipes[index]),
             ),
           ),
-        ),
+
+        // Loading indicator or end message
+        if (state.hasNext)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 32.h),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+          )
+        else
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 24.h),
+              child: Center(
+                child: Text(
+                  'recipe.allLoaded'.tr(),
+                  style: TextStyle(color: Colors.grey, fontSize: 13.sp),
+                ),
+              ),
+            ),
+          ),
       ],
+    );
+  }
+
+  /// Build empty state content based on current filters/search
+  Widget _buildEmptyStateContent(RecipeListState state) {
+    // Search results empty
+    if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
+      return SearchEmptyState(
+        query: state.searchQuery!,
+        entityName: 'recipe.title'.tr(),
+        onClearSearch: () {
+          ref.read(recipeListProvider.notifier).clearSearch();
+        },
+      );
+    }
+    // Filter results empty
+    if (state.filterState?.hasActiveFilters == true) {
+      return _buildFilterEmptyState();
+    }
+    // General empty state
+    return IllustratedEmptyState(
+      icon: Icons.restaurant_menu_outlined,
+      title: 'recipe.noRecipesYet'.tr(),
+      subtitle: 'recipe.pullToRefresh'.tr(),
+      iconColor: Colors.orange[300],
+    );
+  }
+
+  /// Build error body - non-scrollable
+  Widget _buildErrorBody(Object error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.cloud_off_outlined, size: 48.sp, color: Colors.red[300]),
+          SizedBox(height: 16.h),
+          Text(
+            'common.error'.tr(),
+            style: TextStyle(fontSize: 16.sp, color: Colors.grey[700]),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            error.toString(),
+            style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 16.h),
+          ElevatedButton(
+            onPressed: () => ref.invalidate(recipeListProvider),
+            child: Text('common.tryAgain'.tr()),
+          ),
+        ],
+      ),
     );
   }
 
@@ -291,62 +350,16 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
     }
   }
 
-  Widget _buildContentView(
-    List<RecipeSummary> recipes,
-    bool hasNext,
-    RecipeListState state,
-    BrowseViewMode viewMode,
-  ) {
-    switch (viewMode) {
-      case BrowseViewMode.grid:
-        return _buildGridView(recipes, hasNext, state);
-      case BrowseViewMode.list:
-        return _buildListView(recipes, hasNext, state);
-    }
-  }
+  /// Build a grid tile for the masonry grid
+  Widget _buildGridTile(RecipeSummary recipe) {
+    // Alternate heights for visual interest
+    final isShort = recipe.publicId.hashCode % 3 == 0;
+    final height = isShort ? 200.h : 240.h;
 
-  Widget _buildListView(List<RecipeSummary> recipes, bool hasNext, RecipeListState state) {
-    return ListView.builder(
-      padding: EdgeInsets.all(16.r),
-      physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: hasNext ? recipes.length + 1 : recipes.length,
-      itemBuilder: (context, index) {
-        // 다음 페이지가 있고, 마지막 인덱스일 때 로딩바 표시
-        if (hasNext && index == recipes.length) {
-          return Padding(
-            padding: EdgeInsets.symmetric(vertical: 32.h),
-            child: const Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        final recipe = recipes[index];
-        final card = _buildRecipeCard(context, recipe, state.searchQuery);
-
-        // 더 이상 데이터가 없을 때 하단에 안내 문구 표시
-        if (!hasNext && index == recipes.length - 1) {
-          return Column(
-            children: [
-              card,
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 24.h),
-                child: Text(
-                  'recipe.allLoaded'.tr(),
-                  style: TextStyle(color: Colors.grey, fontSize: 13.sp),
-                ),
-              ),
-            ],
-          );
-        }
-
-        return card;
-      },
-    );
-  }
-
-  Widget _buildGridView(List<RecipeSummary> recipes, bool hasNext, RecipeListState state) {
-    return BentoGridView(
-      recipes: recipes,
-      hasNext: hasNext,
+    return CompactRecipeCardFixed(
+      recipe: recipe,
+      height: height,
+      onTap: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
     );
   }
 

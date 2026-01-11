@@ -28,6 +28,7 @@ class RecipeDetailResponseDto {
   final String publicId;
   final String foodName;
   final String foodMasterPublicId;
+  final String? creatorName;
   final String title;
   final String? description;
   final String? culinaryLocale;
@@ -53,6 +54,7 @@ class RecipeDetailResponseDto {
     required this.publicId,
     required this.foodName,
     required this.foodMasterPublicId,
+    this.creatorName,
     required this.title,
     required this.description,
     this.culinaryLocale,
@@ -80,6 +82,7 @@ class RecipeDetailResponseDto {
     publicId: publicId,
     foodName: foodName,
     foodMasterPublicId: foodMasterPublicId,
+    creatorName: creatorName ?? 'Unknown',
     title: title,
     description: description ?? "",
     culinaryLocale: (culinaryLocale?.isEmpty ?? true) ? "ko-KR" : culinaryLocale!,

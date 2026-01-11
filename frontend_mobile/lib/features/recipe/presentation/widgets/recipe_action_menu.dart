@@ -5,6 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
+import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
+import '../../providers/recipe_list_provider.dart';
 import '../../providers/recipe_providers.dart';
 
 /// Action menu for recipe detail screen.
@@ -151,6 +153,11 @@ class RecipeActionMenu extends ConsumerWidget {
                   .read(recipeDeleteProvider.notifier)
                   .deleteRecipe(recipePublicId);
               if (success && context.mounted) {
+                // Invalidate list providers to remove deleted recipe
+                ref.invalidate(recipeListProvider);
+                ref.invalidate(myRecipesProvider);
+                ref.invalidate(savedRecipesProvider);
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('recipe.deleted'.tr())),
                 );

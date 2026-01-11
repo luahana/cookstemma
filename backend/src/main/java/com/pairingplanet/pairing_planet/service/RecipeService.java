@@ -165,7 +165,12 @@ public class RecipeService {
                 ? savedRecipeRepository.existsByUserIdAndRecipeId(userId, recipe.getId())
                 : null;
 
-        return RecipeDetailResponseDto.from(recipe, variants, logs, this.urlPrefix, isSavedByCurrentUser);
+        // 작성자 이름 조회
+        String creatorName = userRepository.findById(recipe.getCreatorId())
+                .map(user -> user.getUsername())
+                .orElse("Unknown");
+
+        return RecipeDetailResponseDto.from(recipe, variants, logs, this.urlPrefix, isSavedByCurrentUser, creatorName);
     }
 
     @Transactional(readOnly = true)
