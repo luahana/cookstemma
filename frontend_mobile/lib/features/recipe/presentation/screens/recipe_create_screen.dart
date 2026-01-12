@@ -667,7 +667,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
               if (isVariantMode && request.rootPublicId != null) {
                 ref.invalidate(recipeDetailWithTrackingProvider(request.rootPublicId!));
               }
-              context.go(RouteConstants.recipeDetailPath(newId));
+              context.pushReplacement(RouteConstants.recipeDetailPath(newId));
             }
           },
           error: (error, _) => ScaffoldMessenger.of(context)
