@@ -507,7 +507,7 @@ User logs in within 30 days?
 
 **Acceptance Criteria:**
 - [x] Filter autocomplete by type (DISH, MAIN, SECONDARY, SEASONING)
-- [x] SECONDARY type includes both SECONDARY_INGREDIENT and MAIN_INGREDIENT results
+- [x] MAIN type includes both MAIN_INGREDIENT and SECONDARY_INGREDIENT results
 - [x] Multilingual support (7 languages: en-US, ko-KR, ja-JP, zh-CN, es-ES, fr-FR, de-DE)
 - [x] CJK single-character search (Korean, Japanese, Chinese work with 1 character)
 - [x] pg_trgm fuzzy search for 3+ character queries
@@ -526,8 +526,8 @@ User logs in within 30 days?
 - API: `GET /api/v1/autocomplete?keyword={}&locale={}&type={}`
 - Type mapping:
   - `DISH` → dishes only
-  - `MAIN` → main ingredients only
-  - `SECONDARY` → secondary + main ingredients (merged results)
+  - `MAIN` → main + secondary ingredients (merged results)
+  - `SECONDARY` → secondary ingredients only
   - `SEASONING` → seasonings only
 - CJK optimization: Uses prefix search (ILIKE) for ko-KR, ja-JP, zh-CN with < 3 chars
 
