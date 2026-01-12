@@ -4,9 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
-import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
-import 'package:pairing_planet2_frontend/core/models/log_outcome.dart';
-import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
+import 'package:pairing_planet2_frontend/core/widgets/log_post_card.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/user_profile_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/widgets/profile_shared.dart';
 
@@ -68,7 +66,13 @@ class UserLogsTab extends ConsumerWidget {
                     if (index >= state.items.length) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    return _buildLogCard(context, state.items[index]);
+                    final log = state.items[index];
+                    return LogPostCard(
+                      log: log.toEntity(),
+                      onTap: () => context.push(
+                        RouteConstants.logPostDetailPath(log.publicId),
+                      ),
+                    );
                   },
                   childCount: state.items.length + (state.hasNext ? 1 : 0),
                 ),
@@ -81,84 +85,4 @@ class UserLogsTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildLogCard(BuildContext context, LogPostSummaryDto log) {
-    return GestureDetector(
-      onTap: () =>
-          context.push(RouteConstants.logPostDetailPath(log.publicId)),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(12.r)),
-                    child: log.thumbnailUrl != null
-                        ? AppCachedImage(
-                            imageUrl: log.thumbnailUrl!,
-                            width: double.infinity,
-                            height: double.infinity,
-                            borderRadius: 0,
-                          )
-                        : Container(
-                            width: double.infinity,
-                            color: Colors.grey[200],
-                            child: Icon(Icons.restaurant,
-                                size: 40.sp, color: Colors.grey[400]),
-                          ),
-                  ),
-                  Positioned(
-                    right: 8.w,
-                    bottom: 8.h,
-                    child: Container(
-                      padding: EdgeInsets.all(6.r),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        LogOutcome.getEmoji(log.outcome),
-                        style: TextStyle(fontSize: 18.sp),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(10.r),
-              child: Text(
-                log.title ?? '',
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

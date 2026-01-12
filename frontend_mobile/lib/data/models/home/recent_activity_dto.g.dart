@@ -18,6 +18,9 @@ RecentActivityDto _$RecentActivityDtoFromJson(Map<String, dynamic> json) =>
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
+      hashtags: (json['hashtags'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$RecentActivityDtoToJson(RecentActivityDto instance) =>
@@ -30,4 +33,5 @@ Map<String, dynamic> _$RecentActivityDtoToJson(RecentActivityDto instance) =>
       'recipePublicId': instance.recipePublicId,
       'foodName': instance.foodName,
       'createdAt': instance.createdAt?.toIso8601String(),
+      'hashtags': instance.hashtags,
     };

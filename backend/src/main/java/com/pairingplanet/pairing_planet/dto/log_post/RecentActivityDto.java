@@ -3,6 +3,7 @@ package com.pairingplanet.pairing_planet.dto.log_post;
 import lombok.Builder;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -18,5 +19,6 @@ public record RecentActivityDto(
         String recipeTitle,       // What recipe was followed
         UUID recipePublicId,      // Link to recipe
         String foodName,          // Food name for display
-        Instant createdAt         // When the log was created
+        Instant createdAt,        // When the log was created
+        List<String> hashtags     // Hashtag names for display
 ) {}

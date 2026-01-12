@@ -199,13 +199,28 @@ public class LogPostService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
+        // Get food name from linked recipe
+        RecipeLog recipeLog = log.getRecipeLog();
+        String foodName = null;
+        if (recipeLog != null && recipeLog.getRecipe() != null) {
+            Recipe recipe = recipeLog.getRecipe();
+            foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCulinaryLocale());
+        }
+
+        // Get hashtag names
+        List<String> hashtags = log.getHashtags().stream()
+                .map(Hashtag::getName)
+                .toList();
+
         return new LogPostSummaryDto(
                 log.getPublicId(),
                 log.getTitle(),
                 log.getRecipeLog().getOutcome(),
                 thumbnailUrl,
                 creatorPublicId,
-                creatorName
+                creatorName,
+                foodName,
+                hashtags
         );
     }
 

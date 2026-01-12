@@ -6,8 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
-import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
-import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
+import 'package:pairing_planet2_frontend/core/widgets/log_post_card.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/widgets/profile_shared.dart';
@@ -166,14 +165,33 @@ class _SavedTabState extends ConsumerState<SavedTab> {
                   ),
                 ),
                 SizedBox(height: 8.h),
-                ...logsState.items
-                    .take(3)
-                    .map((log) => _buildSavedLogCard(context, log)),
-                if (logsState.items.length > 3)
+                // Grid preview of saved logs
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12.h,
+                    crossAxisSpacing: 12.w,
+                    childAspectRatio: 0.85,
+                  ),
+                  itemCount: logsState.items.length > 4 ? 4 : logsState.items.length,
+                  itemBuilder: (context, index) {
+                    final log = logsState.items[index];
+                    return LogPostCard(
+                      log: log.toEntity(),
+                      showUsername: true,
+                      onTap: () => context.push(
+                        RouteConstants.logPostDetailPath(log.publicId),
+                      ),
+                    );
+                  },
+                ),
+                if (logsState.items.length > 4)
                   TextButton(
                     onPressed: () =>
                         setState(() => _currentFilter = SavedTypeFilter.logs),
-                    child: Text('+ ${logsState.items.length - 3} more'),
+                    child: Text('+ ${logsState.items.length - 4} more'),
                   ),
               ],
               SizedBox(height: 16.h),
@@ -238,19 +256,27 @@ class _SavedTabState extends ConsumerState<SavedTab> {
 
     return [
       SliverPadding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        sliver: SliverList(
+        padding: EdgeInsets.all(12.r),
+        sliver: SliverGrid(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12.h,
+            crossAxisSpacing: 12.w,
+            childAspectRatio: 0.85,
+          ),
           delegate: SliverChildBuilderDelegate(
             (context, index) {
               if (index >= state.items.length) {
-                return Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.r),
-                    child: const CircularProgressIndicator(),
-                  ),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
-              return _buildSavedLogCard(context, state.items[index]);
+              final log = state.items[index];
+              return LogPostCard(
+                log: log.toEntity(),
+                showUsername: true,
+                onTap: () => context.push(
+                  RouteConstants.logPostDetailPath(log.publicId),
+                ),
+              );
             },
             childCount: state.items.length + (state.hasNext ? 1 : 0),
           ),
@@ -340,82 +366,4 @@ class _SavedTabState extends ConsumerState<SavedTab> {
     );
   }
 
-  Widget _buildSavedLogCard(BuildContext context, LogPostSummaryDto log) {
-    return GestureDetector(
-      onTap: () =>
-          context.push(RouteConstants.logPostDetailPath(log.publicId)),
-      child: Container(
-        margin: EdgeInsets.only(bottom: 12.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius:
-                  BorderRadius.horizontal(left: Radius.circular(12.r)),
-              child: log.thumbnailUrl != null
-                  ? AppCachedImage(
-                      imageUrl: log.thumbnailUrl!,
-                      width: 80.w,
-                      height: 80.h,
-                      borderRadius: 0,
-                    )
-                  : Container(
-                      width: 80.w,
-                      height: 80.h,
-                      color: Colors.grey[200],
-                      child: Icon(Icons.restaurant, color: Colors.grey[400]),
-                    ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(12.r),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            log.title ?? 'Cooking Log',
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Text(
-                          LogOutcome.getEmoji(log.outcome),
-                          style: TextStyle(fontSize: 16.sp),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      'by ${log.creatorName}',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

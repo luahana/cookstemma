@@ -12,6 +12,8 @@ class LogPostSummaryDto {
   final String? thumbnailUrl;
   final String? creatorPublicId; // Creator's publicId for profile navigation
   final String? creatorName;
+  final String? foodName; // Dish name from linked recipe
+  final List<String>? hashtags; // Hashtag names
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   final bool isPending;
@@ -23,6 +25,8 @@ class LogPostSummaryDto {
     this.thumbnailUrl,
     this.creatorPublicId,
     this.creatorName,
+    this.foodName,
+    this.hashtags,
     this.isPending = false,
   });
 
@@ -45,6 +49,8 @@ class LogPostSummaryDto {
       outcome: payload.outcome,
       thumbnailUrl: thumbnailUrl,
       creatorName: null, // User's own log, no need to show name
+      foodName: null, // Not available for pending items
+      hashtags: payload.hashtags,
       isPending: true,
     );
   }
@@ -60,6 +66,8 @@ class LogPostSummaryDto {
     thumbnailUrl: thumbnailUrl,
     creatorPublicId: creatorPublicId,
     creatorName: creatorName,
+    foodName: foodName,
+    hashtags: hashtags,
     isPending: isPending,
   );
 }

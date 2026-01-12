@@ -1,5 +1,6 @@
 package com.pairingplanet.pairing_planet.service;
 
+import com.pairingplanet.pairing_planet.domain.entity.hashtag.Hashtag;
 import com.pairingplanet.pairing_planet.domain.entity.image.Image;
 import com.pairingplanet.pairing_planet.domain.entity.log_post.LogPost;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
@@ -133,6 +134,11 @@ public class UserService {
         // 5. 언어 설정 업데이트
         if (request.locale() != null) {
             user.setLocale(request.locale());
+        }
+
+        // 6. 기본 요리 스타일 업데이트
+        if (request.defaultFoodStyle() != null) {
+            user.setDefaultFoodStyle(request.defaultFoodStyle());
         }
 
         return UserDto.from(user, urlPrefix);
@@ -281,13 +287,27 @@ public class UserService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
+        // Get food name from linked recipe
+        String foodName = null;
+        if (log.getRecipeLog() != null && log.getRecipeLog().getRecipe() != null) {
+            Recipe recipe = log.getRecipeLog().getRecipe();
+            foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCulinaryLocale());
+        }
+
+        // Get hashtag names
+        List<String> hashtags = log.getHashtags().stream()
+                .map(Hashtag::getName)
+                .toList();
+
         return new LogPostSummaryDto(
                 log.getPublicId(),
                 log.getTitle(),
                 log.getRecipeLog() != null ? log.getRecipeLog().getOutcome() : null,
                 thumbnailUrl,
                 creatorPublicId,
-                creatorName
+                creatorName,
+                foodName,
+                hashtags
         );
     }
 

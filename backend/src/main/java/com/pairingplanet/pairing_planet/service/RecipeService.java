@@ -181,13 +181,23 @@ public class RecipeService {
                     User logCreator = userRepository.findById(logPost.getCreatorId()).orElse(null);
                     UUID logCreatorPublicId = logCreator != null ? logCreator.getPublicId() : null;
                     String logCreatorName = logCreator != null ? logCreator.getUsername() : null;
+                    // Get food name from linked recipe
+                    String foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCulinaryLocale());
+
+                    // Get hashtag names
+                    List<String> logHashtags = logPost.getHashtags().stream()
+                            .map(Hashtag::getName)
+                            .toList();
+
                     return new LogPostSummaryDto(
                             logPost.getPublicId(),
                             logPost.getTitle(),
                             rl.getOutcome(),
                             thumbnailUrl,
                             logCreatorPublicId,
-                            logCreatorName
+                            logCreatorName,
+                            foodName,
+                            logHashtags
                     );
                 }).toList();
 
@@ -414,6 +424,7 @@ public class RecipeService {
                             .recipePublicId(recipe.getPublicId())
                             .foodName(getFoodName(recipe))
                             .createdAt(log.getCreatedAt())
+                            .hashtags(log.getHashtags().stream().map(Hashtag::getName).toList())
                             .build();
                 })
                 .toList();

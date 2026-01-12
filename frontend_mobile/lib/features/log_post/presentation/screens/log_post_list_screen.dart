@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,13 +6,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/models/log_outcome.dart';
 import 'package:pairing_planet2_frontend/core/providers/scroll_to_top_provider.dart';
-import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
-import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
+import 'package:pairing_planet2_frontend/core/widgets/log_post_card.dart';
 import 'package:pairing_planet2_frontend/core/widgets/skeletons/log_post_card_skeleton.dart';
-import 'package:pairing_planet2_frontend/data/models/sync/sync_queue_item.dart';
-import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_list_provider.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_filter_provider.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -47,10 +43,6 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
         curve: Curves.easeOut,
       );
     }
-  }
-
-  LogOutcome _getOutcome(String? outcome) {
-    return LogOutcome.fromString(outcome) ?? LogOutcome.partial;
   }
 
   Widget _buildFilterTabs() {
@@ -194,7 +186,26 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 if (index < state.items.length) {
-                  return _buildLogCard(context, state.items[index], state.searchQuery);
+                  final logPost = state.items[index];
+                  final outcome = LogOutcome.fromString(logPost.outcome) ?? LogOutcome.partial;
+                  return Semantics(
+                    button: true,
+                    label: '${outcome.label}: ${logPost.title}',
+                    hint: 'logPost.card.tapToView'.tr(),
+                    child: LogPostCard(
+                      log: logPost,
+                      searchQuery: state.searchQuery,
+                      onTap: () {
+                        // Don't navigate to detail if pending (not yet synced)
+                        if (logPost.isPending) {
+                          HapticFeedback.lightImpact();
+                          return;
+                        }
+                        HapticFeedback.selectionClick();
+                        context.push(RouteConstants.logPostDetailPath(logPost.id));
+                      },
+                    ),
+                  );
                 }
                 return null;
               },
@@ -227,165 +238,6 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildLogCard(BuildContext context, LogPostSummary logPost, String? searchQuery) {
-    final outcome = _getOutcome(logPost.outcome);
-
-    return Semantics(
-      button: true,
-      label: '${outcome.label}: ${logPost.title}',
-      hint: 'logPost.card.tapToView'.tr(),
-      child: GestureDetector(
-        onTap: () {
-          // Don't navigate to detail if pending (not yet synced)
-          if (logPost.isPending) {
-            HapticFeedback.lightImpact();
-            return;
-          }
-          HapticFeedback.selectionClick();
-          context.push(RouteConstants.logPostDetailPath(logPost.id));
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12.r),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Photo with outcome badge overlay
-              Expanded(
-                flex: 3,
-                child: Stack(
-                  children: [
-                    // Photo - handle both network URLs and local file paths
-                    ClipRRect(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
-                      child: _buildThumbnail(logPost),
-                    ),
-                    // Outcome badge overlay (top-left for prominence)
-                    Positioned(
-                      left: 8.w,
-                      top: 8.h,
-                      child: OutcomeBadge(
-                        outcome: outcome,
-                        variant: OutcomeBadgeVariant.compact,
-                      ),
-                    ),
-                    // Sync status indicator for pending items (top-right)
-                    if (logPost.isPending)
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: CardSyncIndicator(
-                          status: SyncStatus.syncing,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              // Text info
-              Expanded(
-                flex: 1,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      HighlightedText(
-                        text: logPost.title,
-                        query: searchQuery,
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 2.h),
-                      if (logPost.isPending)
-                        Text(
-                          'logPost.sync.syncing'.tr(),
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            color: Colors.orange[600],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      else if (logPost.creatorName != null)
-                        Text(
-                          "@${logPost.creatorName}",
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            color: Colors.grey[600],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Build thumbnail widget - handles both network URLs and local file paths
-  Widget _buildThumbnail(LogPostSummary logPost) {
-    if (logPost.thumbnailUrl == null) {
-      return Container(
-        width: double.infinity,
-        color: Colors.grey[200],
-        child: Icon(
-          Icons.restaurant,
-          size: 40.sp,
-          color: Colors.grey[400],
-        ),
-      );
-    }
-
-    // Handle local file URLs (for pending items)
-    if (logPost.thumbnailUrl!.startsWith('file://')) {
-      final filePath = logPost.thumbnailUrl!.replaceFirst('file://', '');
-      return Image.file(
-        File(filePath),
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            width: double.infinity,
-            color: Colors.grey[200],
-            child: Icon(
-              Icons.broken_image,
-              size: 40.sp,
-              color: Colors.grey[400],
-            ),
-          );
-        },
-      );
-    }
-
-    // Network URL
-    return AppCachedImage(
-      imageUrl: logPost.thumbnailUrl!,
-      width: double.infinity,
-      height: double.infinity,
-      borderRadius: 0,
     );
   }
 

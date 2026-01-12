@@ -1,7 +1,9 @@
 package com.pairingplanet.pairing_planet.service;
 
+import com.pairingplanet.pairing_planet.domain.entity.hashtag.Hashtag;
 import com.pairingplanet.pairing_planet.domain.entity.log_post.LogPost;
 import com.pairingplanet.pairing_planet.domain.entity.log_post.SavedLog;
+import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import com.pairingplanet.pairing_planet.dto.log_post.LogPostSummaryDto;
 import com.pairingplanet.pairing_planet.repository.log_post.LogPostRepository;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -73,13 +76,27 @@ public class SavedLogService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
+        // Get food name from linked recipe
+        String foodName = null;
+        if (log.getRecipeLog() != null && log.getRecipeLog().getRecipe() != null) {
+            Recipe recipe = log.getRecipeLog().getRecipe();
+            foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCulinaryLocale());
+        }
+
+        // Get hashtag names
+        List<String> hashtags = log.getHashtags().stream()
+                .map(Hashtag::getName)
+                .toList();
+
         return new LogPostSummaryDto(
                 log.getPublicId(),
                 log.getTitle(),
                 log.getRecipeLog() != null ? log.getRecipeLog().getOutcome() : null,
                 thumbnailUrl,
                 creatorPublicId,
-                creatorName
+                creatorName,
+                foodName,
+                hashtags
         );
     }
 }

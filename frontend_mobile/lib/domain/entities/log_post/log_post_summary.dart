@@ -7,6 +7,8 @@ class LogPostSummary {
   final String? thumbnailUrl;
   final String? creatorPublicId; // Creator's publicId for profile navigation
   final String? creatorName;
+  final String? foodName; // Dish name from linked recipe
+  final List<String>? hashtags; // Hashtag names
   final DateTime? createdAt;
   final bool isPending; // For optimistic UI - true if not yet synced to server
 
@@ -17,6 +19,8 @@ class LogPostSummary {
     this.thumbnailUrl,
     this.creatorPublicId,
     this.creatorName,
+    this.foodName,
+    this.hashtags,
     this.createdAt,
     this.isPending = false,
   });
@@ -40,6 +44,8 @@ class LogPostSummary {
       outcome: payload.outcome,
       thumbnailUrl: thumbnailUrl,
       creatorName: null, // User's own log, no need to show name
+      foodName: null, // Not available for pending items
+      hashtags: payload.hashtags,
       createdAt: item.createdAt,
       isPending: true,
     );
