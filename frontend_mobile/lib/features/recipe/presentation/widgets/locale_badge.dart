@@ -183,20 +183,63 @@ class LocaleBadgeLarge extends StatelessWidget {
 }
 
 /// Locale badge showing "flag + Style" for recipe detail screens
-class LocaleBadgeStyled extends StatelessWidget {
+/// Tappable to toggle between "Style" text and country name
+class LocaleBadgeStyled extends StatefulWidget {
   final String? localeCode;
 
   const LocaleBadgeStyled({super.key, this.localeCode});
 
   @override
+  State<LocaleBadgeStyled> createState() => _LocaleBadgeStyledState();
+}
+
+class _LocaleBadgeStyledState extends State<LocaleBadgeStyled> {
+  bool _showCountryName = false;
+
+  @override
   Widget build(BuildContext context) {
-    if (localeCode == null || localeCode!.isEmpty) {
+    if (widget.localeCode == null || widget.localeCode!.isEmpty) {
       return const SizedBox.shrink();
     }
 
     // Handle "other" case
-    if (localeCode == 'other') {
-      return Container(
+    if (widget.localeCode == 'other') {
+      return GestureDetector(
+        onTap: () => setState(() => _showCountryName = !_showCountryName),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('🌍', style: TextStyle(fontSize: 12.sp)),
+              SizedBox(width: 4.w),
+              Text(
+                _showCountryName ? 'International' : 'foodStyle.style'.tr(),
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final country = _getCountry(widget.localeCode);
+    if (country == null) {
+      return const SizedBox.shrink();
+    }
+
+    return GestureDetector(
+      onTap: () => setState(() => _showCountryName = !_showCountryName),
+      child: Container(
         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
         decoration: BoxDecoration(
           color: Colors.grey[50],
@@ -206,10 +249,10 @@ class LocaleBadgeStyled extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('🌍', style: TextStyle(fontSize: 12.sp)),
+            Text(country.flagEmoji, style: TextStyle(fontSize: 12.sp)),
             SizedBox(width: 4.w),
             Text(
-              'foodStyle.style'.tr(),
+              _showCountryName ? country.name : 'foodStyle.style'.tr(),
               style: TextStyle(
                 fontSize: 12.sp,
                 color: Colors.grey[700],
@@ -218,35 +261,6 @@ class LocaleBadgeStyled extends StatelessWidget {
             ),
           ],
         ),
-      );
-    }
-
-    final country = _getCountry(localeCode);
-    if (country == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(country.flagEmoji, style: TextStyle(fontSize: 12.sp)),
-          SizedBox(width: 4.w),
-          Text(
-            'foodStyle.style'.tr(),
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }
