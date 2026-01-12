@@ -96,21 +96,27 @@ public class AutocompleteService {
             return List.of();
         }
 
-        // Build key: autocomplete:{locale}:{type} or autocomplete:{locale} if no type
-        String key = buildRedisKey(locale, type);
-        Range<String> range = Range.rightOpen(prefix, prefix + "\uffff");
-        Limit limit = Limit.limit().count(50);
+        try {
+            // Build key: autocomplete:{locale}:{type} or autocomplete:{locale} if no type
+            String key = buildRedisKey(locale, type);
+            Range<String> range = Range.rightOpen(prefix, prefix + "\uffff");
+            Limit limit = Limit.limit().count(50);
 
-        Set<String> results = redisTemplate.opsForZSet().rangeByLex(key, range, limit);
+            Set<String> results = redisTemplate.opsForZSet().rangeByLex(key, range, limit);
 
-        if (results == null || results.isEmpty()) return List.of();
+            if (results == null || results.isEmpty()) return List.of();
 
-        return results.stream()
-                .map(this::parse)
-                .filter(dto -> dto.name().toLowerCase().startsWith(prefix.toLowerCase()))
-                .sorted(Comparator.comparing(AutocompleteDto::score).reversed())
-                .limit(MAX_RESULTS)
-                .collect(Collectors.toList());
+            return results.stream()
+                    .map(this::parse)
+                    .filter(dto -> dto.name().toLowerCase().startsWith(prefix.toLowerCase()))
+                    .sorted(Comparator.comparing(AutocompleteDto::score).reversed())
+                    .limit(MAX_RESULTS)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            // Redis unavailable, fallback to empty (will use DB)
+            log.debug("Redis search failed, falling back to DB: {}", e.getMessage());
+            return List.of();
+        }
     }
 
     private List<AutocompleteDto> searchDbWithFuzzy(String keyword, String locale, String type) {
@@ -139,10 +145,13 @@ public class AutocompleteService {
             return;
         }
 
-        String key = buildRedisKey(locale, type);
-        String value = name + DELIMITER + type + DELIMITER + publicId.toString() + DELIMITER + score;
-
-        redisTemplate.opsForZSet().add(key, value, 0);
+        try {
+            String key = buildRedisKey(locale, type);
+            String value = name + DELIMITER + type + DELIMITER + publicId.toString() + DELIMITER + score;
+            redisTemplate.opsForZSet().add(key, value, 0);
+        } catch (Exception e) {
+            log.debug("Redis add failed: {}", e.getMessage());
+        }
     }
 
     /**
@@ -152,9 +161,14 @@ public class AutocompleteService {
         if (redisTemplate == null) {
             return;
         }
-        // Clear type-specific keys
-        for (String type : List.of("DISH", "MAIN_INGREDIENT", "SECONDARY_INGREDIENT", "SEASONING")) {
-            redisTemplate.delete(buildRedisKey(locale, type));
+
+        try {
+            // Clear type-specific keys
+            for (String type : List.of("DISH", "MAIN_INGREDIENT", "SECONDARY_INGREDIENT", "SEASONING")) {
+                redisTemplate.delete(buildRedisKey(locale, type));
+            }
+        } catch (Exception e) {
+            log.debug("Redis clear failed: {}", e.getMessage());
         }
     }
 

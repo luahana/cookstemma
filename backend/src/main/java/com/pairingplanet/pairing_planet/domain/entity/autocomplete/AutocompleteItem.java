@@ -20,7 +20,7 @@ import java.util.Map;
 public class AutocompleteItem extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, columnDefinition = "autocomplete_type")
+    @Column(name = "type", nullable = false, length = 30)
     private AutocompleteType type;
 
     @JdbcTypeCode(SqlTypes.JSON)
