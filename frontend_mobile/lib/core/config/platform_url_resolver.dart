@@ -5,7 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// Handles the difference between localhost (iOS) and 10.0.2.2 (Android emulator).
 class PlatformUrlResolver {
   static String get baseUrl {
-    final envUrl = dotenv.maybeGet('BASE_URL');
+    final envUrl = _getEnvValue('BASE_URL');
 
     // If .env specifies a URL, use it directly without auto-conversion
     // This allows explicit localhost for physical devices with adb reverse
@@ -17,8 +17,14 @@ class PlatformUrlResolver {
     return _getDefaultLocalUrl();
   }
 
-  static String _adjustLocalUrl(String url) {
-    return adjustUrlForPlatform(url);
+  /// Safely get env value, returns null if dotenv not initialized (e.g., in tests)
+  static String? _getEnvValue(String key) {
+    try {
+      return dotenv.maybeGet(key);
+    } catch (_) {
+      // dotenv not initialized (e.g., in tests)
+      return null;
+    }
   }
 
   /// Adjusts any URL containing local dev hostnames (10.0.2.2 or localhost)
@@ -34,7 +40,7 @@ class PlatformUrlResolver {
     }
 
     // If BASE_URL explicitly uses localhost, don't convert (adb reverse mode)
-    final envUrl = dotenv.maybeGet('BASE_URL');
+    final envUrl = _getEnvValue('BASE_URL');
     if (envUrl != null && envUrl.contains('localhost')) {
       // Convert any 10.0.2.2 URLs to localhost for consistency
       return url.replaceAll('10.0.2.2', 'localhost');
@@ -62,5 +68,5 @@ class PlatformUrlResolver {
     return 'http://$host:4001/api/v1';
   }
 
-  static bool get isDev => dotenv.get('ENV', fallback: 'dev') == 'dev';
+  static bool get isDev => (_getEnvValue('ENV') ?? 'dev') == 'dev';
 }
