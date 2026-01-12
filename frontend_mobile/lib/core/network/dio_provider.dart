@@ -23,8 +23,8 @@ final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
     BaseOptions(
       baseUrl: AppConfig.current.baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 30),
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 10),
       contentType: 'application/json',
     ),
   );
@@ -65,7 +65,6 @@ final dioProvider = Provider<Dio>((ref) {
   dio.interceptors.add(IdempotencyInterceptor());
 
   // 5. 네트워크 재시도 인터셉터
-  // 💡 GET 요청만 재시도 (POST/PATCH/DELETE는 중복 생성 위험으로 재시도 안함)
   dio.interceptors.add(
     RetryInterceptor(
       dio: dio,
@@ -76,21 +75,6 @@ final dioProvider = Provider<Dio>((ref) {
         Duration(seconds: 2),
         Duration(seconds: 4),
       ],
-      // Custom retry logic - only retry GET requests
-      retryEvaluator: (error, attempt) {
-        // Don't retry write operations (POST, PATCH, PUT, DELETE)
-        final method = error.requestOptions.method.toUpperCase();
-        if (method == 'POST' || method == 'PATCH' || method == 'PUT' || method == 'DELETE') {
-          return false;
-        }
-        // For GET requests, retry on network errors and 5xx
-        return error.type == DioExceptionType.connectionTimeout ||
-               error.type == DioExceptionType.receiveTimeout ||
-               error.type == DioExceptionType.connectionError ||
-               (error.response?.statusCode == 502) ||
-               (error.response?.statusCode == 503) ||
-               (error.response?.statusCode == 504);
-      },
     ),
   );
 

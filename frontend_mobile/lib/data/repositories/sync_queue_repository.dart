@@ -133,11 +133,6 @@ class SyncQueueRepository {
     return await _localDataSource.clearAbandonedItems();
   }
 
-  /// Clear ALL items from the sync queue (use with caution)
-  Future<int> clearAllItems() async {
-    return await _localDataSource.clearAllItems();
-  }
-
   /// Get all items (for debugging)
   Future<List<SyncQueueItem>> getAllItems() async {
     return await _localDataSource.getAllItems();

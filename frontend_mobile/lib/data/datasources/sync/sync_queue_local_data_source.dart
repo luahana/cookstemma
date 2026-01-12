@@ -153,15 +153,6 @@ class SyncQueueLocalDataSource {
     });
   }
 
-  /// Clear ALL items from the sync queue (for debugging/cleanup)
-  Future<int> clearAllItems() async {
-    final count = await _isar.syncQueueEntrys.count();
-    await _isar.writeTxn(() async {
-      await _isar.syncQueueEntrys.clear();
-    });
-    return count;
-  }
-
   Future<SyncQueueStats> getStats() async {
     int pending = 0;
     int syncing = 0;

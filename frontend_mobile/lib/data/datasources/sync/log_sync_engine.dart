@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/providers/image_providers.dart';
 import 'package:pairing_planet2_frontend/core/providers/isar_provider.dart';
@@ -32,21 +31,6 @@ class LogSyncEngine {
 
   /// Start the sync engine
   void start() {
-    // Clear all stale items from sync queue FIRST (one-time cleanup)
-    // The sync queue should only be used for offline-first mode,
-    // but direct API creation doesn't use it, causing duplicates
-    _syncQueueRepository.clearAllItems().then((count) {
-      if (count > 0) {
-        debugPrint('🧹 SYNC ENGINE: Cleared $count stale items from queue');
-      }
-
-      // Only start sync processing AFTER queue is cleared
-      _startSyncProcessing();
-    });
-  }
-
-  /// Internal method to start sync processing (called after cleanup)
-  void _startSyncProcessing() {
     // Reset any items stuck in syncing state from previous session
     _syncQueueRepository.resetSyncingItems();
 
