@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/widgets/custom_bottom_nav_bar.dart';
 import 'package:pairing_planet2_frontend/data/models/follow/follower_dto.dart';
+import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
+import 'package:pairing_planet2_frontend/features/profile/providers/cooking_dna_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/follow_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/widgets/follow_button.dart';
 
@@ -39,8 +44,30 @@ class _FollowersListScreenState extends ConsumerState<FollowersListScreen>
     super.dispose();
   }
 
+  void _navigateToTab(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go(RouteConstants.home);
+        break;
+      case 1:
+        context.go(RouteConstants.recipes);
+        break;
+      case 2:
+        context.go(RouteConstants.logPosts);
+        break;
+      case 3:
+        context.go(RouteConstants.profile);
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Get auth state and cooking DNA for bottom nav
+    final authState = ref.watch(authStateProvider);
+    final isGuest = authState.status == AuthStatus.guest;
+    final cookingDnaState = isGuest ? null : ref.watch(cookingDnaProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('팔로워 / 팔로잉'),
@@ -51,6 +78,14 @@ class _FollowersListScreenState extends ConsumerState<FollowersListScreen>
             Tab(text: '팔로잉'),
           ],
         ),
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: -1,
+        onTap: (index) => _navigateToTab(context, index),
+        onFabTap: () => context.go(RouteConstants.home),
+        levelProgress: cookingDnaState?.data?.levelProgress,
+        level: cookingDnaState?.data?.level,
+        isGuest: isGuest,
       ),
       body: TabBarView(
         controller: _tabController,

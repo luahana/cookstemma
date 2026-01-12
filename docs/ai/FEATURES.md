@@ -604,6 +604,91 @@ User logs in within 30 days?
 
 ---
 
+### [FEAT-033]: Variation Page UX Improvements
+
+**Status:** ✅ Done
+**Branch:** `dev`
+
+**Description:** Enhanced UX for recipe variation creation with clear visual distinction between inherited and new content, and editable hashtags.
+
+**Acceptance Criteria:**
+- [x] Orange background theme for editable/interactive elements
+- [x] Editable hashtags with inherited/new visual distinction
+- [x] Delete inherited hashtags with restore capability
+- [x] Title field left empty (not auto-populated from parent)
+- [x] Less saturated orange for interactive buttons (orange[300])
+- [x] Consistent orange theme across all editable sections
+
+**Technical Notes:**
+- Frontend:
+  - `app_colors.dart`: Added `editableBackground` (orange[50]), `editableBorder` (orange[100]), `inheritedInteractive` (orange[300])
+  - `hashtag_input_section.dart`: Changed from `List<String>` to `List<Map<String, dynamic>>` with `isOriginal`/`isDeleted` flags
+  - Updated: `ingredient_section.dart`, `step_section.dart`, `hook_section.dart`, `servings_cooking_time_section.dart`, `locale_dropdown.dart`
+  - Also updated: `log_post_create_screen.dart`, `log_edit_sheet.dart`, `hashtag_step.dart` for hashtag consistency
+
+---
+
+### [FEAT-034]: Image Upload Status Blocking
+
+**Status:** ✅ Done
+**Branch:** `dev`
+
+**Description:** Prevent recipe submission when images are still uploading or have failed, with clear visual feedback about upload status.
+
+**Acceptance Criteria:**
+- [x] Status banner showing upload progress (orange) or errors (red)
+- [x] Submit button disabled during active uploads
+- [x] Submit button disabled when upload errors exist
+- [x] Users can retry failed uploads or remove them to proceed
+- [x] Applied to both recipe create and edit screens
+- [x] Translations (en-US, ko-KR)
+
+**Technical Notes:**
+- Frontend:
+  - `recipe_create_screen.dart`: Added `_hasUploadingImages`, `_hasUploadErrors`, `_uploadStatusCounts` getters and `_buildUploadStatusBanner()` widget
+  - `recipe_edit_screen.dart`: Same changes
+  - Translation keys: `recipe.uploadingPhotos`, `recipe.uploadFailed`
+- UX Flow:
+  - Images uploading → Orange banner with spinner + count
+  - Images failed → Red banner with error icon + retry guidance
+  - All success → Banner hidden, submit enabled
+
+---
+
+### [FEAT-035]: Profile Navigation Bar Visibility
+
+**Status:** ✅ Done
+**Branch:** `dev`
+
+**Description:** Keep the bottom navigation bar visible when viewing other users' profiles, matching the UX pattern used by Instagram, Twitter, and other social apps.
+
+**User Story:** As a user browsing other users' profiles, I want the bottom navigation bar to stay visible so I can quickly return to any main tab without tapping "back" multiple times.
+
+**Research Findings:**
+- How Instagram does it: Profile pages keep bottom nav visible, tapping nav icons returns to tab root
+- How Twitter/X does it: Same pattern - bottom nav always visible on profiles
+- Industry standard: All major social apps keep bottom nav visible on user profile pages
+
+**Acceptance Criteria:**
+- [x] Bottom nav visible on UserProfileScreen
+- [x] Bottom nav visible on FollowersListScreen
+- [x] Tapping nav icon navigates directly to tab root (Home, Recipes, Logs, Profile)
+- [x] No tab highlighted when viewing user profiles (currentIndex = -1)
+- [x] Level progress ring shown for authenticated users
+- [x] Unit tests for navigation logic
+
+**Technical Notes:**
+- Frontend:
+  - `user_profile_screen.dart`: Added `CustomBottomNavBar` to Scaffold, `_navigateToTab()` method
+  - `followers_list_screen.dart`: Same changes
+  - Uses `context.go()` (not push) to navigate to tab roots - clears profile from stack
+  - `currentIndex: -1` means no tab is highlighted when on profile screens
+- Why not nested shell routes: Attempted but caused GoRouter duplicate key errors with `StatefulShellRoute`
+- Tests:
+  - `profile_bottom_nav_test.dart`: Route mapping and configuration tests (10 tests)
+
+---
+
 ## Planned 📋
 
 ### [FEAT-016]: Improved Onboarding
@@ -829,3 +914,5 @@ User logs in within 30 days?
 | FEAT-030 | Autocomplete Category Filtering | ✅ |
 | FEAT-031 | Gamification Level Display | ✅ |
 | FEAT-032 | Servings & Cooking Time | ✅ |
+| FEAT-033 | Variation Page UX | ✅ |
+| FEAT-034 | Image Upload Status | ✅ |

@@ -15,6 +15,9 @@ import 'package:pairing_planet2_frontend/features/profile/widgets/level_badge.da
 import 'package:pairing_planet2_frontend/features/profile/widgets/profile_shared.dart';
 import 'package:pairing_planet2_frontend/features/profile/widgets/tabs/user_recipes_tab.dart';
 import 'package:pairing_planet2_frontend/features/profile/widgets/tabs/user_logs_tab.dart';
+import 'package:pairing_planet2_frontend/core/widgets/custom_bottom_nav_bar.dart';
+import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
+import 'package:pairing_planet2_frontend/features/profile/providers/cooking_dna_provider.dart';
 
 /// Screen for viewing other user's public profile
 class UserProfileScreen extends ConsumerStatefulWidget {
@@ -44,13 +47,48 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     super.dispose();
   }
 
+  void _navigateToTab(BuildContext context, int index) {
+    // Navigate to tab root using go (replaces current route)
+    switch (index) {
+      case 0:
+        context.go(RouteConstants.home);
+        break;
+      case 1:
+        context.go(RouteConstants.recipes);
+        break;
+      case 2:
+        context.go(RouteConstants.logPosts);
+        break;
+      case 3:
+        context.go(RouteConstants.profile);
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(userProfileProvider(widget.userId));
     final followStatusAsync = ref.watch(followStatusProvider(widget.userId));
 
+    // Get auth state and cooking DNA for bottom nav
+    final authState = ref.watch(authStateProvider);
+    final isGuest = authState.status == AuthStatus.guest;
+    final cookingDnaState = isGuest ? null : ref.watch(cookingDnaProvider);
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: -1, // No tab selected when viewing user profile
+        onTap: (index) => _navigateToTab(context, index),
+        onFabTap: () {
+          // For now, just navigate to home if FAB is tapped
+          // Could show create options sheet if needed
+          context.go(RouteConstants.home);
+        },
+        levelProgress: cookingDnaState?.data?.levelProgress,
+        level: cookingDnaState?.data?.level,
+        isGuest: isGuest,
+      ),
       body: profileAsync.when(
         data: (user) => RefreshIndicator(
           onRefresh: () async {
