@@ -35,6 +35,12 @@ public class AutocompleteService {
     public List<AutocompleteDto> search(String keyword, String locale, String type) {
         if (keyword == null || keyword.isBlank()) return List.of();
 
+        // Special case: SECONDARY searches both secondary and main ingredients
+        if ("SECONDARY".equalsIgnoreCase(type)) {
+            return searchMultipleTypes(keyword, locale,
+                List.of("SECONDARY_INGREDIENT", "MAIN_INGREDIENT"));
+        }
+
         // Map frontend type to autocomplete type
         String mappedType = mapToAutocompleteType(type);
 
@@ -47,6 +53,28 @@ public class AutocompleteService {
 
         // 2. Fallback to DB fuzzy search
         return searchDbWithFuzzy(keyword, locale, mappedType);
+    }
+
+    /**
+     * Search multiple types and merge results (for SECONDARY which includes MAIN)
+     */
+    private List<AutocompleteDto> searchMultipleTypes(String keyword, String locale, List<String> types) {
+        List<AutocompleteDto> allResults = new ArrayList<>();
+
+        for (String type : types) {
+            List<AutocompleteDto> redisResults = searchRedis(keyword, locale, type);
+            if (!redisResults.isEmpty()) {
+                allResults.addAll(redisResults);
+            } else {
+                allResults.addAll(searchDbWithFuzzy(keyword, locale, type));
+            }
+        }
+
+        return allResults.stream()
+                .distinct()
+                .sorted(Comparator.comparing(AutocompleteDto::score).reversed())
+                .limit(MAX_RESULTS)
+                .collect(Collectors.toList());
     }
 
     /**
