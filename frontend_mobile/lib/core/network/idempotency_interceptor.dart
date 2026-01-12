@@ -4,13 +4,28 @@ import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pairing_planet2_frontend/core/utils/logger.dart';
 
+/// Entry storing an idempotency key with its creation time
+class _IdempotencyEntry {
+  final String key;
+  final DateTime createdAt;
+
+  _IdempotencyEntry(this.key) : createdAt = DateTime.now();
+
+  bool get isExpired =>
+      DateTime.now().difference(createdAt).inSeconds > IdempotencyInterceptor._keyTtlSeconds;
+}
+
 /// Interceptor that adds idempotency keys to POST/PATCH requests.
 ///
-/// This prevents duplicate writes when requests are retried due to network issues.
-/// The same idempotency key is reused for retries, so the server can detect duplicates.
+/// This prevents duplicate writes when requests are retried due to network issues
+/// or rapid double-taps. The same idempotency key is reused for identical requests
+/// within a 30-second window, so the server can detect and dedupe duplicates.
 class IdempotencyInterceptor extends Interceptor {
-  /// Map of request ID -> idempotency key for pending requests
-  final Map<String, String> _pendingKeys = {};
+  /// How long to keep idempotency keys (in seconds)
+  static const _keyTtlSeconds = 30;
+
+  /// Map of request ID -> idempotency entry (key + timestamp)
+  final Map<String, _IdempotencyEntry> _entries = {};
 
   final _uuid = const Uuid();
 
@@ -18,15 +33,25 @@ class IdempotencyInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Only add idempotency keys to POST and PATCH requests
     if (options.method == 'POST' || options.method == 'PATCH') {
+      // Clean up expired entries lazily
+      _cleanupExpiredEntries();
+
       final requestId = _generateRequestId(options);
 
-      // Reuse existing key if this is a retry, otherwise generate new one
-      final idempotencyKey = _pendingKeys[requestId] ?? _uuid.v4();
-      _pendingKeys[requestId] = idempotencyKey;
+      // Reuse existing key if not expired, otherwise generate new one
+      final existingEntry = _entries[requestId];
+      final String idempotencyKey;
+
+      if (existingEntry != null && !existingEntry.isExpired) {
+        idempotencyKey = existingEntry.key;
+        talker.debug('Reusing idempotency key for ${options.method} ${options.path}: $idempotencyKey');
+      } else {
+        idempotencyKey = _uuid.v4();
+        _entries[requestId] = _IdempotencyEntry(idempotencyKey);
+        talker.debug('New idempotency key for ${options.method} ${options.path}: $idempotencyKey');
+      }
 
       options.headers['Idempotency-Key'] = idempotencyKey;
-
-      talker.debug('Idempotency key for ${options.method} ${options.path}: $idempotencyKey');
     }
 
     handler.next(options);
@@ -34,13 +59,8 @@ class IdempotencyInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    // Clear the key on successful response
-    final requestId = _generateRequestId(response.requestOptions);
-    if (_pendingKeys.containsKey(requestId)) {
-      talker.debug('Clearing idempotency key for successful request: $requestId');
-      _pendingKeys.remove(requestId);
-    }
-
+    // Don't remove the key immediately - keep it for TTL duration
+    // This prevents duplicates from rapid double-taps
     handler.next(response);
   }
 
@@ -50,15 +70,20 @@ class IdempotencyInterceptor extends Interceptor {
     // Retryable errors: timeout, connection error, 502, 503, 504
     if (!_isRetryableError(err)) {
       final requestId = _generateRequestId(err.requestOptions);
-      if (_pendingKeys.containsKey(requestId)) {
+      if (_entries.containsKey(requestId)) {
         talker.debug('Clearing idempotency key for non-retryable error: $requestId');
-        _pendingKeys.remove(requestId);
+        _entries.remove(requestId);
       }
     } else {
       talker.debug('Keeping idempotency key for retry: ${err.requestOptions.path}');
     }
 
     handler.next(err);
+  }
+
+  /// Remove expired entries to prevent memory leaks
+  void _cleanupExpiredEntries() {
+    _entries.removeWhere((_, entry) => entry.isExpired);
   }
 
   /// Generate a unique request ID based on method, path, and body hash
