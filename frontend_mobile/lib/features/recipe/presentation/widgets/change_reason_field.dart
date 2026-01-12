@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Field for entering the reason for creating a recipe variation
 class ChangeReasonField extends StatelessWidget {
@@ -20,7 +21,7 @@ class ChangeReasonField extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.auto_awesome, color: Colors.orange, size: 20.sp),
+            Icon(Icons.auto_awesome, color: AppColors.inheritedInteractive, size: 20.sp),
             SizedBox(width: 8.w),
             Text.rich(
               TextSpan(
@@ -40,9 +41,9 @@ class ChangeReasonField extends StatelessWidget {
         Container(
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
           decoration: BoxDecoration(
-            color: Colors.orange[50],
+            color: AppColors.editableBackground,
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: Colors.orange[100]!),
+            border: Border.all(color: AppColors.editableBorder),
           ),
           child: TextField(
             controller: controller,

@@ -37,7 +37,7 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
   final List<Map<String, dynamic>> _ingredients = [];
   final List<Map<String, dynamic>> _steps = [];
   final List<UploadItem> _finishedImages = [];
-  final List<String> _hashtags = [];
+  final List<Map<String, dynamic>> _hashtags = [];
 
   bool _isLoading = false;
   bool _dataInitialized = false;
@@ -112,12 +112,27 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
       ));
     }
 
-    // Load hashtags (extract names from Hashtag entities)
-    _hashtags.addAll(recipe.hashtags.map((h) => h.name));
+    // Load hashtags as map structure (no isOriginal in edit mode)
+    for (final tag in recipe.hashtags) {
+      _hashtags.add({
+        'name': tag.name,
+        'isOriginal': false,
+        'isDeleted': false,
+      });
+    }
 
     // Load servings and cooking time
     _servings = recipe.servings;
     _cookingTimeRange = recipe.cookingTimeRange;
+  }
+
+  /// Extract active (non-deleted) hashtag names as a string list for API
+  List<String>? _getActiveHashtagNames() {
+    final active = _hashtags
+        .where((h) => h['isDeleted'] != true)
+        .map((h) => h['name'] as String)
+        .toList();
+    return active.isNotEmpty ? active : null;
   }
 
   void _addIngredient(String type) {
@@ -237,7 +252,7 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
             .where((img) => img.status == UploadStatus.success && img.publicId != null)
             .map((img) => img.publicId!)
             .toList(),
-        hashtags: _hashtags.isNotEmpty ? _hashtags : null,
+        hashtags: _getActiveHashtagNames(),
         servings: _servings,
         cookingTimeRange: _cookingTimeRange,
       );

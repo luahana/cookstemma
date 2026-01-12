@@ -186,9 +186,13 @@ class _HookSectionState extends ConsumerState<HookSection> {
               focusNode: focusNode,
               hint: 'recipe.hook.foodNameHint'.tr(),
               enabled: !widget.isReadOnly,
+              // Orange for editable, grey for inherited/read-only
               backgroundColor: widget.isReadOnly
                   ? Colors.grey[100]
-                  : Colors.grey[50],
+                  : AppColors.editableBackground,
+              borderColor: widget.isReadOnly
+                  ? Colors.grey[300]
+                  : AppColors.editableBorder,
             );
           },
           optionsViewBuilder: (context, onSelected, options) =>
@@ -302,13 +306,18 @@ class _HookSectionState extends ConsumerState<HookSection> {
     int maxLines = 1,
     bool enabled = true,
     Color? backgroundColor,
+    Color? borderColor,
   }) {
+    // Default to orange for editable fields
+    final effectiveBg = backgroundColor ?? (enabled ? AppColors.editableBackground : Colors.grey[100]);
+    final effectiveBorder = borderColor ?? (enabled ? AppColors.editableBorder : Colors.grey[300]!);
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.grey[100],
+        color: effectiveBg,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: effectiveBorder),
       ),
       child: TextField(
         controller: controller,

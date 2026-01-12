@@ -129,7 +129,7 @@ class IngredientDto {
             )
           : null,
       type: IngredientType.values.firstWhere(
-        (e) => e.name.toUpperCase() == ingredient.type?.toUpperCase(),
+        (e) => e.name.toUpperCase() == ingredient.type.toUpperCase(),
         orElse: () => IngredientType.main,
       ),
     );

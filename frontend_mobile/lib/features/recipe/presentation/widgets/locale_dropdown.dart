@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Cooking style options for recipe creation
 class CulinaryLocale {
@@ -83,9 +84,10 @@ class LocaleDropdown extends StatelessWidget {
         Container(
           padding: EdgeInsets.symmetric(horizontal: 12.w),
           decoration: BoxDecoration(
-            color: enabled ? Colors.grey[50] : Colors.grey[100],
+            // Orange background when editable
+            color: enabled ? AppColors.editableBackground : Colors.grey[100],
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: Colors.grey[200]!),
+            border: Border.all(color: enabled ? AppColors.editableBorder : Colors.grey[200]!),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(

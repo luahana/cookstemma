@@ -25,12 +25,19 @@ class HashtagStep extends ConsumerStatefulWidget {
 }
 
 class _HashtagStepState extends ConsumerState<HashtagStep> {
-  final List<String> _hashtags = [];
+  final List<Map<String, dynamic>> _hashtags = [];
 
   @override
   void initState() {
     super.initState();
-    _hashtags.addAll(widget.draft.hashtags);
+    // Convert string hashtags from draft to map format for HashtagInputSection
+    for (final tag in widget.draft.hashtags) {
+      _hashtags.add({
+        'name': tag,
+        'isOriginal': false,
+        'isDeleted': false,
+      });
+    }
   }
 
   @override
@@ -67,7 +74,12 @@ class _HashtagStepState extends ConsumerState<HashtagStep> {
                 _hashtags.clear();
                 _hashtags.addAll(tags);
               });
-              ref.read(quickLogDraftProvider.notifier).setHashtags(tags);
+              // Extract active hashtag names for the provider
+              final activeNames = tags
+                  .where((h) => h['isDeleted'] != true)
+                  .map((h) => h['name'] as String)
+                  .toList();
+              ref.read(quickLogDraftProvider.notifier).setHashtags(activeNames);
             },
           ),
           SizedBox(height: 24.h),

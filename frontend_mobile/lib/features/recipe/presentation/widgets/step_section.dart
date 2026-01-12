@@ -136,9 +136,10 @@ class _StepSectionState extends ConsumerState<StepSection> {
                 children: [
                   ReorderableDragStartListener(
                     index: index,
-                    child: const Icon(
+                    child: Icon(
                       Icons.drag_handle,
-                      color: Colors.grey,
+                      // Orange color for inherited steps to show it's interactive
+                      color: isOriginal ? AppColors.inheritedInteractive : Colors.grey,
                     ),
                   ),
                   SizedBox(width: 8.w),
@@ -149,9 +150,10 @@ class _StepSectionState extends ConsumerState<StepSection> {
                   Expanded(child: _buildDescriptionField(step, isOriginal)),
                   IconButton(
                     onPressed: () => widget.onRemoveStep(originalIndex),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.remove_circle_outline,
-                      color: Colors.redAccent,
+                      // Orange color for inherited steps to show it's interactive
+                      color: isOriginal ? AppColors.inheritedInteractive : Colors.redAccent,
                     ),
                   ),
                 ],
@@ -191,9 +193,10 @@ class _StepSectionState extends ConsumerState<StepSection> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: isOriginal ? Colors.grey[200] : Colors.grey[100],
+        // Orange background for editable fields, grey for inherited
+        color: isOriginal ? Colors.grey[200] : AppColors.editableBackground,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: isOriginal ? Colors.grey[300]! : AppColors.editableBorder),
       ),
       child: TextField(
         readOnly: isOriginal, // 💡 기존 단계 텍스트 수정 불가

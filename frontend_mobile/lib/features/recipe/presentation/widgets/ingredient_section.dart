@@ -166,8 +166,13 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
           ),
           SizedBox(width: 2.w),
           // 💡 삭제 버튼은 기존 재료라도 항상 활성화 (빼는 기능)
+          // Orange color highlights it as interactive even when fields are disabled
           IconButton(
-            icon: Icon(Icons.close, color: Colors.grey, size: 18.sp),
+            icon: Icon(
+              Icons.close,
+              color: isOriginal ? AppColors.inheritedInteractive : Colors.grey,
+              size: 18.sp,
+            ),
             onPressed: () => widget.onRemoveIngredient(index),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -186,9 +191,10 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     return Container(
       height: 44.h,
       decoration: BoxDecoration(
-        color: enabled ? Colors.grey[100] : Colors.grey[200],
+        // Orange background for editable fields, grey for inherited
+        color: enabled ? AppColors.editableBackground : Colors.grey[200],
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: enabled ? AppColors.editableBorder : Colors.grey[300]!),
       ),
       child: TextField(
         controller: controller,
@@ -238,9 +244,10 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     return Container(
       height: 44.h,
       decoration: BoxDecoration(
-        color: enabled ? Colors.grey[100] : Colors.grey[200],
+        // Orange background for editable fields, grey for inherited
+        color: enabled ? AppColors.editableBackground : Colors.grey[200],
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: enabled ? AppColors.editableBorder : Colors.grey[300]!),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -321,10 +328,10 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     return Container(
       height: 44.h,
       decoration: BoxDecoration(
-        // 💡 비활성 상태일 때 시각적으로 다르게 표시
-        color: enabled ? Colors.grey[100] : Colors.grey[200],
+        // Orange background for editable fields, grey for inherited
+        color: enabled ? AppColors.editableBackground : Colors.grey[200],
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: enabled ? AppColors.editableBorder : Colors.grey[300]!),
       ),
       child: TextField(
         controller: controller,

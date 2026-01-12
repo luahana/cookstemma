@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:pairing_planet2_frontend/core/models/log_outcome.dart';
 import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 
 void main() {

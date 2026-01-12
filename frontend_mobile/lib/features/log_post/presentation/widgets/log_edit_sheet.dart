@@ -50,7 +50,7 @@ class LogEditSheet extends ConsumerStatefulWidget {
 class _LogEditSheetState extends ConsumerState<LogEditSheet> {
   late TextEditingController _contentController;
   late LogOutcome _selectedOutcome;
-  late List<String> _hashtags;
+  late List<Map<String, dynamic>> _hashtags;
   late List<UploadItem> _images;
   bool _isLoading = false;
 
@@ -59,7 +59,11 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
     super.initState();
     _contentController = TextEditingController(text: widget.log.content);
     _selectedOutcome = LogOutcome.fromString(widget.log.outcome) ?? LogOutcome.partial;
-    _hashtags = widget.log.hashtags.map((h) => h.name).toList();
+    _hashtags = widget.log.hashtags.map((h) => {
+      'name': h.name,
+      'isOriginal': false,
+      'isDeleted': false,
+    }).toList();
 
     // Initialize images from existing log
     _images = widget.log.images
@@ -148,12 +152,17 @@ class _LogEditSheetState extends ConsumerState<LogEditSheet> {
         .map((img) => img.publicId!)
         .toList();
 
+    final hashtagNames = _hashtags
+        .where((h) => h['isDeleted'] != true)
+        .map((h) => h['name'] as String)
+        .toList();
+
     final repository = ref.read(logPostRepositoryProvider);
     final result = await repository.updateLog(
       widget.log.publicId,
       content: _contentController.text.trim(),
       outcome: _selectedOutcome.value,
-      hashtags: _hashtags.isEmpty ? null : _hashtags,
+      hashtags: hashtagNames.isEmpty ? null : hashtagNames,
       imagePublicIds: imagePublicIds,
     );
 

@@ -48,7 +48,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
   final List<Map<String, dynamic>> _ingredients = [];
   final List<Map<String, dynamic>> _steps = [];
   final List<UploadItem> _finishedImages = [];
-  final List<String> _hashtags = [];
+  final List<Map<String, dynamic>> _hashtags = [];
 
   String? _food1MasterPublicId;
   bool _isLoading = false;
@@ -92,7 +92,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
 
   void _initVariantData() {
     final p = widget.parentRecipe!;
-    _titleController.text = "${p.title} ${'recipe.variantSuffix'.tr()}";
+    // Title left empty for user to fill in
     _descriptionController.text = p.description ?? "";
     _foodNameController.text = p.foodName; // 💡 실제 요리명 매핑 권장
     _localeController.text = p.culinaryLocale ?? "ko-KR"; // Inherit locale from parent
@@ -128,6 +128,23 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
         'originalIndex': i,
       });
     }
+    // 💡 기존 해시태그 복사 (삭제만 가능)
+    for (final tag in p.hashtags) {
+      _hashtags.add({
+        'name': tag.name,
+        'isOriginal': true,
+        'isDeleted': false,
+      });
+    }
+  }
+
+  /// Extract active (non-deleted) hashtag names as a string list for API/draft
+  List<String>? _getActiveHashtagNames() {
+    final active = _hashtags
+        .where((h) => h['isDeleted'] != true)
+        .map((h) => h['name'] as String)
+        .toList();
+    return active.isNotEmpty ? active : null;
   }
 
   @override
@@ -197,7 +214,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
                 status: img.status.name,
               ))
           .toList(),
-      hashtags: _hashtags,
+      hashtags: _getActiveHashtagNames() ?? [],
       createdAt: now,
       updatedAt: now,
       servings: _servings,
@@ -314,9 +331,15 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
       }
     }
 
-    // Restore hashtags
+    // Restore hashtags (convert from string list to map format)
     _hashtags.clear();
-    _hashtags.addAll(draft.hashtags);
+    for (final tag in draft.hashtags) {
+      _hashtags.add({
+        'name': tag,
+        'isOriginal': false,
+        'isDeleted': false,
+      });
+    }
 
     // Restore servings and cooking time
     _servings = draft.servings;
@@ -573,7 +596,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
             widget.parentRecipe?.publicId,
         changeDiff: changeDiff,
         changeReason: isVariantMode ? _changeReasonController.text.trim() : null,
-        hashtags: _hashtags.isNotEmpty ? _hashtags : null,
+        hashtags: _getActiveHashtagNames(),
         servings: _servings,
         cookingTimeRange: _cookingTimeRange,
       );

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:easy_localization/easy_localization.dart';
 
 /// Wraps a widget with required providers for testing.
 /// Use this for widget tests that need Riverpod providers.

@@ -60,9 +60,10 @@ class ServingsCookingTimeSection extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        // Orange background to show it's editable
+        color: AppColors.editableBackground,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: AppColors.editableBorder),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -125,9 +126,10 @@ class ServingsCookingTimeSection extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        // Orange background to show it's editable
+        color: AppColors.editableBackground,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: AppColors.editableBorder),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(

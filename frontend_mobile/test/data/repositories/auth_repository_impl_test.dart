@@ -2,12 +2,9 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pairing_planet2_frontend/core/error/failures.dart';
-import 'package:pairing_planet2_frontend/data/datasources/auth/auth_local_data_source.dart';
-import 'package:pairing_planet2_frontend/data/datasources/auth/auth_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/auth/social_login_request_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/auth/token_reissue_request_dto.dart';
 import 'package:pairing_planet2_frontend/data/repositories/auth_repository_impl.dart';
-import 'package:pairing_planet2_frontend/core/services/social_auth_service.dart';
 
 import '../../helpers/mock_providers.dart';
 import '../../helpers/test_data.dart';

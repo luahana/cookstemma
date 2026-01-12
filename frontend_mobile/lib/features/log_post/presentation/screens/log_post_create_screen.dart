@@ -31,7 +31,7 @@ class LogPostCreateScreen extends ConsumerStatefulWidget {
 class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
   final _contentController = TextEditingController();
   final List<UploadItem> _images = []; // 💡 업로드 이미지 리스트
-  final List<String> _hashtags = []; // 해시태그 리스트
+  final List<Map<String, dynamic>> _hashtags = []; // 해시태그 리스트
   String _selectedOutcome = 'SUCCESS'; // 💡 요리 결과 (SUCCESS, PARTIAL, FAILED)
   bool _isLoading = false;
 
@@ -96,12 +96,16 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
         .map((img) => img.publicId!)
         .toList();
 
+    final hashtagNames = _hashtags
+        .where((h) => h['isDeleted'] != true)
+        .map((h) => h['name'] as String)
+        .toList();
     final request = CreateLogPostRequest(
       recipePublicId: widget.recipe.publicId,
       content: _contentController.text,
       outcome: _selectedOutcome,
       imagePublicIds: imagePublicIds,
-      hashtags: _hashtags.isNotEmpty ? _hashtags : null,
+      hashtags: hashtagNames.isNotEmpty ? hashtagNames : null,
     );
 
     try {

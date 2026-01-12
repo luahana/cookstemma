@@ -288,7 +288,10 @@
       "hint": "Enter hashtag and press Enter",
       "example": "e.g. quick-meal, korean, spicy",
       "maxError": "You can add up to {max} hashtags",
-      "duplicateError": "This hashtag is already added"
+      "duplicateError": "This hashtag is already added",
+      "fromOriginal": "From original",
+      "deleted": "Deleted",
+      "restore": "Restore"
     },
     "hook": {
       "basicInfo": "Recipe Basic Info",

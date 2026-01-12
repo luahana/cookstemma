@@ -284,7 +284,10 @@
       "hint": "해시태그 입력 후 Enter",
       "example": "예: 간편요리, 한식, 매운맛",
       "maxError": "최대 {max}개의 해시태그만 추가할 수 있습니다",
-      "duplicateError": "이미 추가된 해시태그입니다"
+      "duplicateError": "이미 추가된 해시태그입니다",
+      "fromOriginal": "원본에서",
+      "deleted": "삭제됨",
+      "restore": "복원"
     },
     "hook": {
       "basicInfo": "레시피 기본 정보",

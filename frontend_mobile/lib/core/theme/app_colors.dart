@@ -35,4 +35,9 @@ class AppColors {
   static const Color diffAddedBg = Color(0xFFE8F5E9);     // Light green
   static const Color diffRemovedBg = Color(0xFFFFEBEE);   // Light red
   static const Color diffModifiedBg = Color(0xFFFFF3E0);  // Light orange
+
+  // 💡 Variation mode: editable/interactive elements
+  static const Color editableBackground = Color(0xFFFFF3E0);  // Orange[50] - editable textbox bg
+  static const Color editableBorder = Color(0xFFFFE0B2);      // Orange[100] - editable textbox border
+  static const Color inheritedInteractive = Color(0xFFFFB74D); // Orange[300] - less saturated, interactive buttons on inherited items
 }
