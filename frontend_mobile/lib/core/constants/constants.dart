@@ -25,6 +25,11 @@ class ApiEndpoints {
   static const String savedLogs = '/log_posts/saved';
   static String logPostSave(String id) => '/log_posts/$id/save';
 
+  // Other User Profile 관련
+  static String userProfile(String userId) => '/users/$userId';
+  static String userRecipes(String userId) => '/users/$userId/recipes';
+  static String userLogs(String userId) => '/users/$userId/logs';
+
   // Follow 관련
   static String follow(String userId) => '/users/$userId/follow';
   static String followStatus(String userId) => '/users/$userId/follow-status';
@@ -58,12 +63,17 @@ class RouteConstants {
   static const String deleteAccount = '/profile/delete-account';
   static const String notifications = '/notifications';
 
+  // User Profile 관련
+  static const String userProfile = '/users/:userId';
+
   // Follow 관련
   static const String followers = '/users/:userId/followers';
 
-  // Star view for recipe family
+  // Top-level recipe routes (with :id parameter for router)
+  static const String recipeDetailFull = '/recipes/:id';
   static const String recipeStar = '/recipes/:id/star';
-  static const String recipeVariations = 'variations';
+  static const String recipeVariationsFull = '/recipes/:id/variations';
+  static const String recipeVariations = 'variations'; // Nested path only
 
   // 이동 시 사용할 전체 경로 헬퍼
   static String recipeDetailPath(String id) => '/recipes/$id';
@@ -71,6 +81,7 @@ class RouteConstants {
   static String recipeStarPath(String id) => '/recipes/$id/star';
   static String recipeVariationsPath(String id) => '/recipes/$id/variations';
   static String logPostDetailPath(String id) => '/log_post/$id';
+  static String userProfilePath(String userId) => '/users/$userId';
   static String followersPath(String userId) => '/users/$userId/followers';
 }
 

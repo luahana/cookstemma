@@ -18,5 +18,6 @@ public record LogPostDetailResponseDto(
         Instant createdAt,
         List<HashtagDto> hashtags,
         Boolean isSavedByCurrentUser,  // null if not logged in
-        UUID creatorPublicId  // for ownership check (UUID for frontend comparison)
+        UUID creatorPublicId,  // for ownership check (UUID for frontend comparison)
+        String creatorName     // Creator's username for display
 ) {}

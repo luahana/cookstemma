@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -73,7 +74,7 @@ class FollowButton extends ConsumerWidget {
                 ),
               )
             : Text(
-                isFollowing ? '팔로잉' : '팔로우',
+                isFollowing ? 'profile.following'.tr() : 'profile.follow'.tr(),
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
@@ -152,7 +153,7 @@ class FollowButtonCompact extends ConsumerWidget {
                 ),
               )
             : Text(
-                isFollowing ? '팔로잉' : '팔로우',
+                isFollowing ? 'profile.following'.tr() : 'profile.follow'.tr(),
                 style: TextStyle(
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w500,

@@ -5,6 +5,7 @@ class LogPostSummary {
   final String title;
   final String? outcome; // SUCCESS, PARTIAL, FAILED
   final String? thumbnailUrl;
+  final String? creatorPublicId; // Creator's publicId for profile navigation
   final String? creatorName;
   final DateTime? createdAt;
   final bool isPending; // For optimistic UI - true if not yet synced to server
@@ -14,6 +15,7 @@ class LogPostSummary {
     required this.title,
     this.outcome,
     this.thumbnailUrl,
+    this.creatorPublicId,
     this.creatorName,
     this.createdAt,
     this.isPending = false,

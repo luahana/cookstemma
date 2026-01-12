@@ -17,6 +17,7 @@ import 'package:pairing_planet2_frontend/features/profile/screens/profile_edit_s
 import 'package:pairing_planet2_frontend/features/profile/screens/settings_screen.dart';
 import 'package:pairing_planet2_frontend/features/profile/screens/delete_account_screen.dart';
 import 'package:pairing_planet2_frontend/features/profile/screens/followers_list_screen.dart';
+import 'package:pairing_planet2_frontend/features/profile/screens/user_profile_screen.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart'; // 💡 추가
 import 'package:pairing_planet2_frontend/features/notification/screens/notification_inbox_screen.dart';
 import 'package:pairing_planet2_frontend/features/splash/screens/splash_screen.dart';
@@ -144,6 +145,31 @@ final routerProvider = Provider<GoRouter>((ref) {
           return LogPostDetailScreen(logId: id);
         },
       ),
+      // Top-level recipe routes (avoids StatefulShellRoute key conflicts)
+      GoRoute(
+        path: RouteConstants.recipeDetailFull,
+        name: 'recipe_detail_standalone',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return RecipeDetailScreen(recipeId: id);
+        },
+      ),
+      GoRoute(
+        path: RouteConstants.recipeStar,
+        name: 'recipe_star_standalone',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return StarViewScreen(recipeId: id);
+        },
+      ),
+      GoRoute(
+        path: RouteConstants.recipeVariationsFull,
+        name: 'recipe_variations_standalone',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return RecipeVariationsScreen(rootRecipeId: id);
+        },
+      ),
       GoRoute(
         path: RouteConstants.notifications,
         name: 'notifications',
@@ -174,6 +200,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               );
             },
           );
+        },
+      ),
+      GoRoute(
+        path: RouteConstants.userProfile, // '/users/:userId'
+        name: 'user_profile',
+        builder: (context, state) {
+          final userId = state.pathParameters['userId']!;
+          return UserProfileScreen(userId: userId);
         },
       ),
       GoRoute(

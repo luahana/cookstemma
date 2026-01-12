@@ -132,14 +132,14 @@ public class CookingDnaService {
         return counts;
     }
 
-    private int calculateTotalXp(long recipeCount, int successCount, int partialCount, int failedCount) {
+    public int calculateTotalXp(long recipeCount, int successCount, int partialCount, int failedCount) {
         return (int) (recipeCount * XP_RECIPE_CREATED)
                 + (successCount * XP_LOG_SUCCESS)
                 + (partialCount * XP_LOG_PARTIAL)
                 + (failedCount * XP_LOG_FAILED);
     }
 
-    private int calculateLevel(int totalXp) {
+    public int calculateLevel(int totalXp) {
         for (int i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
             if (totalXp >= LEVEL_THRESHOLDS[i]) {
                 return i + 1;
@@ -148,7 +148,7 @@ public class CookingDnaService {
         return 1;
     }
 
-    private String getLevelName(int level) {
+    public String getLevelName(int level) {
         if (level <= 5) return "beginner";
         if (level <= 10) return "homeCook";
         if (level <= 15) return "skilledCook";

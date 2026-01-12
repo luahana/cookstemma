@@ -8,6 +8,7 @@ class RecipeDetail {
   final String publicId;
   final String foodName;
   final String foodMasterPublicId;
+  final String? creatorPublicId;
   final String creatorName;
   final String title;
   final String? description;
@@ -33,6 +34,7 @@ class RecipeDetail {
     required this.publicId,
     required this.foodName,
     required this.foodMasterPublicId,
+    this.creatorPublicId,
     required this.creatorName,
     required this.title,
     required this.description,

@@ -13,6 +13,10 @@ class UserDto {
   final String? locale;  // 언어 설정: ko-KR, en-US
   final int followerCount;
   final int followingCount;
+  final int recipeCount;  // Number of recipes created by user
+  final int logCount;     // Number of logs created by user
+  final int level;        // Gamification level (1-26+)
+  final String levelName; // Level title (beginner, homeCook, etc.)
 
   UserDto({
     required this.id,
@@ -24,6 +28,10 @@ class UserDto {
     this.locale,
     this.followerCount = 0,
     this.followingCount = 0,
+    this.recipeCount = 0,
+    this.logCount = 0,
+    this.level = 1,
+    this.levelName = 'beginner',
   });
 
   factory UserDto.fromJson(Map<String, dynamic> json) => _$UserDtoFromJson(json);

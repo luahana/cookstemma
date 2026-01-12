@@ -10,6 +10,7 @@ class LogPostSummaryDto {
   final String? title;
   final String? outcome; // SUCCESS, PARTIAL, FAILED
   final String? thumbnailUrl;
+  final String? creatorPublicId; // Creator's publicId for profile navigation
   final String? creatorName;
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -20,6 +21,7 @@ class LogPostSummaryDto {
     this.title,
     this.outcome,
     this.thumbnailUrl,
+    this.creatorPublicId,
     this.creatorName,
     this.isPending = false,
   });
@@ -56,6 +58,7 @@ class LogPostSummaryDto {
     title: title ?? '',
     outcome: outcome,
     thumbnailUrl: thumbnailUrl,
+    creatorPublicId: creatorPublicId,
     creatorName: creatorName,
     isPending: isPending,
   );

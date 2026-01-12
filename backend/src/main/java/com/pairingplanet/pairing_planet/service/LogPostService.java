@@ -168,10 +168,10 @@ public class LogPostService {
             isSavedByCurrentUser = savedLogRepository.existsByUserIdAndLogPostId(userId, logPost.getId());
         }
 
-        // 5. 소유자 publicId 조회 (edit/delete 권한 확인용)
-        UUID creatorPublicId = userRepository.findById(logPost.getCreatorId())
-                .map(User::getPublicId)
-                .orElse(null);
+        // 5. 소유자 정보 조회 (edit/delete 권한 확인 및 프로필 링크용)
+        User creator = userRepository.findById(logPost.getCreatorId()).orElse(null);
+        UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
+        String creatorName = creator != null ? creator.getUsername() : "Unknown";
 
         // 6. 최종 DTO 생성
         return new LogPostDetailResponseDto(
@@ -184,14 +184,15 @@ public class LogPostService {
                 logPost.getCreatedAt(),
                 hashtagDtos,
                 isSavedByCurrentUser,
-                creatorPublicId
+                creatorPublicId,
+                creatorName
         );
     }
 
     private LogPostSummaryDto convertToLogSummary(LogPost log) {
-        String creatorName = userRepository.findById(log.getCreatorId())
-                .map(User::getUsername)
-                .orElse("Unknown");
+        User creator = userRepository.findById(log.getCreatorId()).orElse(null);
+        UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
+        String creatorName = creator != null ? creator.getUsername() : "Unknown";
 
         String thumbnailUrl = log.getImages().stream()
                 .findFirst() // 로그의 첫 번째 이미지를 썸네일로 사용
@@ -203,15 +204,16 @@ public class LogPostService {
                 log.getTitle(),
                 log.getRecipeLog().getOutcome(),
                 thumbnailUrl,
+                creatorPublicId,
                 creatorName
         );
     }
 
     private RecipeSummaryDto convertToRecipeSummary(Recipe recipe) {
-        // 1. 작성자 이름 조회
-        String creatorName = userRepository.findById(recipe.getCreatorId())
-                .map(User::getUsername)
-                .orElse("Unknown");
+        // 1. 작성자 정보 조회
+        User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
+        UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
+        String creatorName = creator != null ? creator.getUsername() : "Unknown";
 
         // 2. [추가] 음식 이름 추출 (FoodMaster의 fallback 로직 사용)
         String foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCulinaryLocale());
@@ -232,7 +234,6 @@ public class LogPostService {
         // 6. 루트 레시피 제목 추출 (for lineage display in variants)
         String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
 
-        // 13개 인자 생성자 호출
         return new RecipeSummaryDto(
                 recipe.getPublicId(),
                 foodName,
@@ -240,6 +241,7 @@ public class LogPostService {
                 recipe.getTitle(),
                 recipe.getDescription(),
                 recipe.getCulinaryLocale(),
+                creatorPublicId,
                 creatorName,
                 thumbnail,
                 variantCount,

@@ -28,6 +28,7 @@ class RecipeDetailResponseDto {
   final String publicId;
   final String foodName;
   final String foodMasterPublicId;
+  final String? creatorPublicId;
   final String? creatorName;
   final String title;
   final String? description;
@@ -54,6 +55,7 @@ class RecipeDetailResponseDto {
     required this.publicId,
     required this.foodName,
     required this.foodMasterPublicId,
+    this.creatorPublicId,
     this.creatorName,
     required this.title,
     required this.description,
@@ -82,6 +84,7 @@ class RecipeDetailResponseDto {
     publicId: publicId,
     foodName: foodName,
     foodMasterPublicId: foodMasterPublicId,
+    creatorPublicId: creatorPublicId,
     creatorName: creatorName ?? 'Unknown',
     title: title,
     description: description ?? "",

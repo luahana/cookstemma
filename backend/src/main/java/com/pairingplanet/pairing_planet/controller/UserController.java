@@ -1,5 +1,7 @@
 package com.pairingplanet.pairing_planet.controller;
 
+import com.pairingplanet.pairing_planet.dto.log_post.LogPostSummaryDto;
+import com.pairingplanet.pairing_planet.dto.recipe.RecipeSummaryDto;
 import com.pairingplanet.pairing_planet.dto.user.CookingDnaDto;
 import com.pairingplanet.pairing_planet.dto.user.UpdateProfileRequestDto;
 import com.pairingplanet.pairing_planet.dto.user.UserDto;
@@ -8,6 +10,8 @@ import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import com.pairingplanet.pairing_planet.service.CookingDnaService;
 import com.pairingplanet.pairing_planet.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -75,5 +79,31 @@ public class UserController {
     public ResponseEntity<Void> deleteMyAccount(@AuthenticationPrincipal UserPrincipal principal) {
         userService.deleteAccount(principal);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 타인의 레시피 목록 조회 (공개)
+     * @param userId 조회할 사용자의 publicId
+     * @param typeFilter "original" (only root recipes), "variants" (only variants), or null (all)
+     */
+    @GetMapping("/{userId}/recipes")
+    public ResponseEntity<Slice<RecipeSummaryDto>> getUserRecipes(
+            @PathVariable("userId") UUID userId,
+            @RequestParam(required = false) String typeFilter,
+            Pageable pageable) {
+        Slice<RecipeSummaryDto> response = userService.getUserRecipes(userId, typeFilter, pageable);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 타인의 로그 목록 조회 (공개)
+     * @param userId 조회할 사용자의 publicId
+     */
+    @GetMapping("/{userId}/logs")
+    public ResponseEntity<Slice<LogPostSummaryDto>> getUserLogs(
+            @PathVariable("userId") UUID userId,
+            Pageable pageable) {
+        Slice<LogPostSummaryDto> response = userService.getUserLogs(userId, pageable);
+        return ResponseEntity.ok(response);
     }
 }

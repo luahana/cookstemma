@@ -1,25 +1,34 @@
 package com.pairingplanet.pairing_planet.service;
 
 import com.pairingplanet.pairing_planet.domain.entity.image.Image;
+import com.pairingplanet.pairing_planet.domain.entity.log_post.LogPost;
+import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import com.pairingplanet.pairing_planet.domain.enums.AccountStatus;
+import com.pairingplanet.pairing_planet.domain.enums.ImageType;
+import com.pairingplanet.pairing_planet.dto.log_post.LogPostSummaryDto;
+import com.pairingplanet.pairing_planet.dto.recipe.RecipeSummaryDto;
 import com.pairingplanet.pairing_planet.dto.user.MyProfileResponseDto;
 import com.pairingplanet.pairing_planet.dto.user.UpdateProfileRequestDto;
 import com.pairingplanet.pairing_planet.dto.user.UserDto;
 import com.pairingplanet.pairing_planet.repository.image.ImageRepository;
 import com.pairingplanet.pairing_planet.repository.log_post.LogPostRepository;
+import com.pairingplanet.pairing_planet.repository.recipe.RecipeLogRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.RecipeRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.SavedRecipeRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -30,9 +39,11 @@ public class UserService {
     private final UserRepository userRepository;
     private final ImageService imageService;
     private final RecipeRepository recipeRepository;
+    private final RecipeLogRepository recipeLogRepository;
     private final ImageRepository imageRepository;
     private final LogPostRepository logPostRepository;
     private final SavedRecipeRepository savedRecipeRepository;
+    private final CookingDnaService cookingDnaService;
 
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
@@ -58,11 +69,32 @@ public class UserService {
 
     /**
      * 사용자 상세 정보 조회 (공통)
+     * Returns user profile with recipe and log counts, including gamification level
      */
     public UserDto getUserProfile(UUID publicId) {
         User user = userRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return UserDto.from(user, urlPrefix);
+
+        Long userId = user.getId();
+        long recipeCount = recipeRepository.countByCreatorIdAndIsDeletedFalse(userId);
+        long logCount = logPostRepository.countByCreatorIdAndIsDeletedFalse(userId);
+
+        // Calculate gamification level
+        List<Object[]> outcomeCounts = recipeLogRepository.countByOutcomeForUser(userId);
+        int successCount = 0, partialCount = 0, failedCount = 0;
+        for (Object[] row : outcomeCounts) {
+            String outcome = (String) row[0];
+            int count = ((Number) row[1]).intValue();
+            if ("SUCCESS".equals(outcome)) successCount = count;
+            else if ("PARTIAL".equals(outcome)) partialCount = count;
+            else if ("FAILED".equals(outcome)) failedCount = count;
+        }
+
+        int totalXp = cookingDnaService.calculateTotalXp(recipeCount, successCount, partialCount, failedCount);
+        int level = cookingDnaService.calculateLevel(totalXp);
+        String levelName = cookingDnaService.getLevelName(level);
+
+        return UserDto.from(user, urlPrefix, recipeCount, logCount, level, levelName);
     }
 
     /**
@@ -164,5 +196,109 @@ public class UserService {
             // Then delete user (other data handled by cascade)
             userRepository.delete(user);
         }
+    }
+
+    /**
+     * Get a user's public recipes
+     * @param publicId user's publicId
+     * @param typeFilter "original" (only root recipes), "variants" (only variants), or null (all)
+     */
+    public Slice<RecipeSummaryDto> getUserRecipes(UUID publicId, String typeFilter, Pageable pageable) {
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Long userId = user.getId();
+        Slice<Recipe> recipes;
+
+        if ("original".equalsIgnoreCase(typeFilter)) {
+            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseAndParentRecipeIsNullOrderByCreatedAtDesc(userId, pageable);
+        } else if ("variants".equalsIgnoreCase(typeFilter)) {
+            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseAndParentRecipeIsNotNullOrderByCreatedAtDesc(userId, pageable);
+        } else {
+            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+        }
+
+        return recipes.map(this::convertToRecipeSummary);
+    }
+
+    /**
+     * Get a user's public logs
+     */
+    public Slice<LogPostSummaryDto> getUserLogs(UUID publicId, Pageable pageable) {
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Long userId = user.getId();
+        Slice<LogPost> logs = logPostRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+
+        return logs.map(this::convertToLogSummary);
+    }
+
+    private RecipeSummaryDto convertToRecipeSummary(Recipe recipe) {
+        User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
+        UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
+        String creatorName = creator != null ? creator.getUsername() : "Unknown";
+
+        String foodName = getFoodName(recipe);
+
+        String thumbnail = recipe.getImages().stream()
+                .filter(img -> img.getType() == ImageType.THUMBNAIL)
+                .findFirst()
+                .map(img -> urlPrefix + "/" + img.getStoredFilename())
+                .orElse(null);
+
+        int variantCount = (int) recipeRepository.countByRootRecipeIdAndIsDeletedFalse(recipe.getId());
+        int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
+        String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
+
+        return new RecipeSummaryDto(
+                recipe.getPublicId(),
+                foodName,
+                recipe.getFoodMaster().getPublicId(),
+                recipe.getTitle(),
+                recipe.getDescription(),
+                recipe.getCulinaryLocale(),
+                creatorPublicId,
+                creatorName,
+                thumbnail,
+                variantCount,
+                logCount,
+                recipe.getParentRecipe() != null ? recipe.getParentRecipe().getPublicId() : null,
+                recipe.getRootRecipe() != null ? recipe.getRootRecipe().getPublicId() : null,
+                rootTitle
+        );
+    }
+
+    private LogPostSummaryDto convertToLogSummary(LogPost log) {
+        User creator = userRepository.findById(log.getCreatorId()).orElse(null);
+        UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
+        String creatorName = creator != null ? creator.getUsername() : "Unknown";
+
+        String thumbnailUrl = log.getImages().stream()
+                .findFirst()
+                .map(img -> urlPrefix + "/" + img.getStoredFilename())
+                .orElse(null);
+
+        return new LogPostSummaryDto(
+                log.getPublicId(),
+                log.getTitle(),
+                log.getRecipeLog() != null ? log.getRecipeLog().getOutcome() : null,
+                thumbnailUrl,
+                creatorPublicId,
+                creatorName
+        );
+    }
+
+    private String getFoodName(Recipe recipe) {
+        Map<String, String> nameMap = recipe.getFoodMaster().getName();
+        String locale = recipe.getCulinaryLocale();
+
+        if (locale != null && nameMap.containsKey(locale)) {
+            return nameMap.get(locale);
+        }
+        if (nameMap.containsKey("en-US")) {
+            return nameMap.get("en-US");
+        }
+        return nameMap.values().stream().findFirst().orElse("Unknown Food");
     }
 }

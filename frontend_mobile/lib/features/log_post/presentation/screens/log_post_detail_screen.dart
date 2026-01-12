@@ -278,6 +278,10 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
                     // 2. Metadata row with styled badges
                     _buildMetadataRow(log),
 
+                    // 2.5. Creator row (clickable username)
+                    SizedBox(height: 12.h),
+                    _buildCreatorRow(log),
+
                     // 3. Hashtags (after metadata, Instagram-style no header)
                     if (log.hashtags.isNotEmpty) ...[
                       SizedBox(height: 12.h),
@@ -402,6 +406,47 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  // Creator row (clickable username for profile navigation)
+  Widget _buildCreatorRow(LogPostDetail log) {
+    final hasCreatorId = log.creatorPublicId != null;
+
+    return GestureDetector(
+      onTap: hasCreatorId
+          ? () {
+              HapticFeedback.selectionClick();
+              // Check if this is the current user's own profile (same logic as _isCreator)
+              final isOwnProfile = _isCreator(log);
+
+              if (isOwnProfile) {
+                // Navigate to My Profile tab to avoid key conflicts
+                context.go(RouteConstants.profile);
+              } else {
+                // Navigate to other user's profile
+                context.push(RouteConstants.userProfilePath(log.creatorPublicId!));
+              }
+            }
+          : null,
+      child: Row(
+        children: [
+          Icon(
+            Icons.person_outline,
+            size: 16.sp,
+            color: Colors.grey[400],
+          ),
+          SizedBox(width: 4.w),
+          Text(
+            log.creatorName ?? 'Unknown',
+            style: TextStyle(
+              color: hasCreatorId ? AppColors.primary : Colors.grey[600],
+              fontSize: 13.sp,
+              fontWeight: hasCreatorId ? FontWeight.w500 : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

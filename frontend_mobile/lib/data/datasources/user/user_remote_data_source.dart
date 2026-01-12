@@ -149,4 +149,68 @@ class UserRemoteDataSource {
       throw ServerException(e.toString());
     }
   }
+
+  /// 타인 프로필 조회
+  Future<UserDto> getUserProfile(String userId) async {
+    try {
+      final response = await _dio.get(ApiEndpoints.userProfile(userId));
+
+      if (response.statusCode == HttpStatus.ok) {
+        return UserDto.fromJson(response.data);
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  /// 타인의 레시피 목록 조회
+  /// [typeFilter] - 'original', 'variants', or null for all
+  Future<SliceResponseDto<RecipeSummaryDto>> getUserRecipes({
+    required String userId,
+    required int page,
+    int size = 10,
+    String? typeFilter,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{'page': page, 'size': size};
+      if (typeFilter != null && typeFilter.isNotEmpty) {
+        queryParams['typeFilter'] = typeFilter;
+      }
+
+      final response = await _dio.get(
+        ApiEndpoints.userRecipes(userId),
+        queryParameters: queryParams,
+      );
+
+      return SliceResponseDto.fromJson(
+        response.data as Map<String, dynamic>,
+        (json) => RecipeSummaryDto.fromJson(json),
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// 타인의 로그 목록 조회
+  Future<SliceResponseDto<LogPostSummaryDto>> getUserLogs({
+    required String userId,
+    required int page,
+    int size = 10,
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiEndpoints.userLogs(userId),
+        queryParameters: {'page': page, 'size': size},
+      );
+
+      return SliceResponseDto.fromJson(
+        response.data as Map<String, dynamic>,
+        (json) => LogPostSummaryDto.fromJson(json),
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

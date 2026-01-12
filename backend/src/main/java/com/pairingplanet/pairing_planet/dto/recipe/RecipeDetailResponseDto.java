@@ -17,6 +17,7 @@ public record RecipeDetailResponseDto(
         String culinaryLocale,
         String foodName,              // [추가] UI 상단 표시용
         UUID foodMasterPublicId,      // [추가] 음식 상세 이동용
+        UUID creatorPublicId,         // Creator's publicId for profile navigation
         String creatorName,           // [추가] 레시피 작성자 이름
         String changeCategory,
         RecipeSummaryDto rootInfo,    // 11개 필드 규격 적용 필요
@@ -33,7 +34,7 @@ public record RecipeDetailResponseDto(
         List<String> changeCategories,       // Auto-detected: INGREDIENT, TECHNIQUE, AMOUNT, SEASONING
         String changeReason                  // User-provided reason for changes
 ) {
-    public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix, Boolean isSavedByCurrentUser, String creatorName) {
+    public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix, Boolean isSavedByCurrentUser, UUID creatorPublicId, String creatorName) {
         Recipe root = recipe.getRootRecipe();
         Recipe parent = recipe.getParentRecipe();
 
@@ -43,7 +44,7 @@ public record RecipeDetailResponseDto(
                         nameMap.values().stream().findFirst().orElse("Unknown Food")));
         UUID currentFoodMasterPublicId = recipe.getFoodMaster().getPublicId();
 
-        // 2. 루트 레시피 정보 생성 (13개 필드 생성자 대응)
+        // 2. 루트 레시피 정보 생성 (14개 필드 생성자 대응)
         RecipeSummaryDto rootInfo = (root != null) ? new RecipeSummaryDto(
                 root.getPublicId(), // 1. publicId (UUID)
                 // 2. foodName (String): 현재 로케일 -> 한국어 -> 첫 번째 이름 순으로 시도
@@ -54,16 +55,17 @@ public record RecipeDetailResponseDto(
                 root.getTitle(),       // 4. title
                 root.getDescription(), // 5. description
                 root.getCulinaryLocale(), // 6. culinaryLocale
-                null, // 7. creatorName (상세 카드 내 생략)
-                null, // 8. thumbnail (상세 카드 내 생략)
-                0,    // 9. variantCount (상세 카드 내 생략)
-                0,    // 10. logCount (상세 카드 내 생략)
-                null, // 11. parentPublicId
-                null, // 12. rootPublicId
-                null  // 13. rootTitle (root itself has no root)
+                null, // 7. creatorPublicId (상세 카드 내 생략)
+                null, // 8. creatorName (상세 카드 내 생략)
+                null, // 9. thumbnail (상세 카드 내 생략)
+                0,    // 10. variantCount (상세 카드 내 생략)
+                0,    // 11. logCount (상세 카드 내 생략)
+                null, // 12. parentPublicId
+                null, // 13. rootPublicId
+                null  // 14. rootTitle (root itself has no root)
         ) : null;
 
-        // 3. 부모 레시피 정보 생성 (13개 필드 생성자 대응)
+        // 3. 부모 레시피 정보 생성 (14개 필드 생성자 대응)
         RecipeSummaryDto parentInfo = (parent != null) ? new RecipeSummaryDto(
                 parent.getPublicId(),
                 parent.getFoodMaster().getName().getOrDefault(parent.getCulinaryLocale(), "Unknown Food"),
@@ -71,8 +73,9 @@ public record RecipeDetailResponseDto(
                 parent.getTitle(),
                 parent.getDescription(),
                 parent.getCulinaryLocale(),
-                null,
-                null,
+                null, // creatorPublicId
+                null, // creatorName
+                null, // thumbnail
                 0,    // variantCount
                 0,    // logCount
                 null, // parentPublicId
@@ -100,6 +103,7 @@ public record RecipeDetailResponseDto(
                 .culinaryLocale(recipe.getCulinaryLocale())
                 .foodName(currentFoodName) // [적용]
                 .foodMasterPublicId(currentFoodMasterPublicId) // [적용]
+                .creatorPublicId(creatorPublicId) // Creator's publicId for profile navigation
                 .creatorName(creatorName) // [적용]
                 .changeCategory(recipe.getChangeCategory())
                 .rootInfo(rootInfo)

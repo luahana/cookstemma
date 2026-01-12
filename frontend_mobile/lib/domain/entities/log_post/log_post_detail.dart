@@ -57,6 +57,7 @@ class LogPostDetail {
   final List<Hashtag> hashtags;
   final bool? isSavedByCurrentUser;
   final String? creatorPublicId; // For ownership check (UUID string)
+  final String? creatorName;     // Creator's username for display
 
   LogPostDetail({
     required this.publicId,
@@ -70,6 +71,7 @@ class LogPostDetail {
     this.hashtags = const [],
     this.isSavedByCurrentUser,
     this.creatorPublicId,
+    this.creatorName,
   });
 
   /// Get list of LogImage objects combining URL and publicId

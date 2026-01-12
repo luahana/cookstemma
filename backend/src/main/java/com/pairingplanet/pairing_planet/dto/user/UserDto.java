@@ -19,9 +19,21 @@ public record UserDto(
         LocalDate birthDate,
         String locale,           // 언어 설정: ko-KR, en-US
         int followerCount,
-        int followingCount
+        int followingCount,
+        long recipeCount,        // Number of recipes created by user
+        long logCount,           // Number of logs created by user
+        int level,               // Gamification level (1-26+)
+        String levelName         // Level title (beginner, homeCook, etc.)
 ) {
     public static UserDto from(User user, String urlPrefix) {
+        return from(user, urlPrefix, 0, 0, 1, "beginner");
+    }
+
+    public static UserDto from(User user, String urlPrefix, long recipeCount, long logCount) {
+        return from(user, urlPrefix, recipeCount, logCount, 1, "beginner");
+    }
+
+    public static UserDto from(User user, String urlPrefix, long recipeCount, long logCount, int level, String levelName) {
         if (user == null) return null;
 
         String profileUrl = user.getProfileImageUrl();
@@ -47,6 +59,10 @@ public record UserDto(
                 .locale(user.getLocale())
                 .followerCount(user.getFollowerCount())
                 .followingCount(user.getFollowingCount())
+                .recipeCount(recipeCount)
+                .logCount(logCount)
+                .level(level)
+                .levelName(levelName)
                 .build();
     }
 }

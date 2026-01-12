@@ -2,7 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/app_emojis.dart';
+import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
@@ -92,7 +94,7 @@ class EnhancedRecipeCard extends StatelessWidget {
                   ],
                   SizedBox(height: 12.h),
                   // Creator row
-                  _buildCreatorRow(),
+                  _buildCreatorRow(context),
                   SizedBox(height: 12.h),
                   // Stats row (log count + variant count)
                   _buildStatsRow(),
@@ -203,20 +205,34 @@ class EnhancedRecipeCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCreatorRow() {
-    return Row(
-      children: [
-        Icon(
-          Icons.person_outline,
-          size: 16.sp,
-          color: Colors.grey[400],
-        ),
-        SizedBox(width: 4.w),
-        Text(
-          recipe.creatorName,
-          style: TextStyle(color: Colors.grey[600], fontSize: 13.sp),
-        ),
-      ],
+  Widget _buildCreatorRow(BuildContext context) {
+    final hasCreatorId = recipe.creatorPublicId != null;
+
+    return GestureDetector(
+      onTap: hasCreatorId
+          ? () {
+              HapticFeedback.selectionClick();
+              context.push(RouteConstants.userProfilePath(recipe.creatorPublicId!));
+            }
+          : null,
+      child: Row(
+        children: [
+          Icon(
+            Icons.person_outline,
+            size: 16.sp,
+            color: Colors.grey[400],
+          ),
+          SizedBox(width: 4.w),
+          Text(
+            recipe.creatorName,
+            style: TextStyle(
+              color: hasCreatorId ? AppColors.primary : Colors.grey[600],
+              fontSize: 13.sp,
+              fontWeight: hasCreatorId ? FontWeight.w500 : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

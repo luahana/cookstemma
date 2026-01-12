@@ -7,5 +7,6 @@ public record LogPostSummaryDto(
         String title,
         String outcome,  // SUCCESS, PARTIAL, FAILED
         String thumbnailUrl, // [수정] thumbnail -> thumbnailUrl
+        UUID creatorPublicId,  // Creator's publicId for profile navigation
         String creatorName
 ) {}

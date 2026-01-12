@@ -164,15 +164,16 @@ public class RecipeService {
                     String thumbnailUrl = logPost.getImages().isEmpty()
                             ? null
                             : urlPrefix + "/" + logPost.getImages().get(0).getStoredFilename();
-                    // Get creator name
-                    String logCreatorName = userRepository.findById(logPost.getCreatorId())
-                            .map(user -> user.getUsername())
-                            .orElse(null);
+                    // Get creator info
+                    User logCreator = userRepository.findById(logPost.getCreatorId()).orElse(null);
+                    UUID logCreatorPublicId = logCreator != null ? logCreator.getPublicId() : null;
+                    String logCreatorName = logCreator != null ? logCreator.getUsername() : null;
                     return new LogPostSummaryDto(
                             logPost.getPublicId(),
                             logPost.getTitle(),
                             rl.getOutcome(),
                             thumbnailUrl,
+                            logCreatorPublicId,
                             logCreatorName
                     );
                 }).toList();
@@ -182,12 +183,12 @@ public class RecipeService {
                 ? savedRecipeRepository.existsByUserIdAndRecipeId(userId, recipe.getId())
                 : null;
 
-        // 작성자 이름 조회
-        String creatorName = userRepository.findById(recipe.getCreatorId())
-                .map(user -> user.getUsername())
-                .orElse("Unknown");
+        // 작성자 정보 조회
+        User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
+        UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
+        String creatorName = creator != null ? creator.getUsername() : "Unknown";
 
-        return RecipeDetailResponseDto.from(recipe, variants, logs, this.urlPrefix, isSavedByCurrentUser, creatorName);
+        return RecipeDetailResponseDto.from(recipe, variants, logs, this.urlPrefix, isSavedByCurrentUser, creatorPublicId, creatorName);
     }
 
     @Transactional(readOnly = true)
@@ -330,10 +331,10 @@ public class RecipeService {
     }
 
     private RecipeSummaryDto convertToSummary(Recipe recipe) {
-        // 1. 작성자 이름 조회
-        String creatorName = userRepository.findById(recipe.getCreatorId())
-                .map(User::getUsername)
-                .orElse("Unknown");
+        // 1. 작성자 정보 조회
+        User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
+        UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
+        String creatorName = creator != null ? creator.getUsername() : "Unknown";
 
         // 2. 음식 이름 추출 (JSONB 맵에서 현재 로케일에 맞는 이름 찾기)
         String foodName = getFoodName(recipe);
@@ -361,6 +362,7 @@ public class RecipeService {
                 recipe.getTitle(),
                 recipe.getDescription(),
                 recipe.getCulinaryLocale(),
+                creatorPublicId,
                 creatorName,
                 thumbnail,
                 variantCount,

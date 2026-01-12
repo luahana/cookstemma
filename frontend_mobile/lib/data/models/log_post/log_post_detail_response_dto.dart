@@ -18,6 +18,7 @@ class LogPostDetailResponseDto {
   final List<HashtagDto>? hashtags;
   final bool? isSavedByCurrentUser;
   final String? creatorPublicId; // For ownership check (UUID string)
+  final String? creatorName;     // Creator's username for display
 
   LogPostDetailResponseDto({
     required this.publicId,
@@ -30,6 +31,7 @@ class LogPostDetailResponseDto {
     this.hashtags,
     this.isSavedByCurrentUser,
     this.creatorPublicId,
+    this.creatorName,
   });
 
   factory LogPostDetailResponseDto.fromJson(Map<String, dynamic> json) =>
@@ -51,6 +53,7 @@ class LogPostDetailResponseDto {
       hashtags: hashtags?.map((e) => e.toEntity()).toList() ?? [],
       isSavedByCurrentUser: isSavedByCurrentUser,
       creatorPublicId: creatorPublicId,
+      creatorName: creatorName,
     );
   }
 }

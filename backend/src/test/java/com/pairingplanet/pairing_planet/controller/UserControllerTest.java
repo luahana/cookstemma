@@ -116,6 +116,28 @@ class UserControllerTest extends BaseIntegrationTest {
         }
 
         @Test
+        @DisplayName("Should return level field as integer in response")
+        void getOtherUserProfile_IncludesLevelAsInteger() throws Exception {
+            User user = testUserFactory.createTestUser();
+
+            mockMvc.perform(get("/api/v1/users/" + user.getPublicId()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.level").isNumber())
+                    .andExpect(jsonPath("$.level").value(1)); // New user starts at level 1
+        }
+
+        @Test
+        @DisplayName("Should return levelName field as string in response")
+        void getOtherUserProfile_IncludesLevelNameAsString() throws Exception {
+            User user = testUserFactory.createTestUser();
+
+            mockMvc.perform(get("/api/v1/users/" + user.getPublicId()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.levelName").isString())
+                    .andExpect(jsonPath("$.levelName").value("beginner")); // New user is beginner
+        }
+
+        @Test
         @DisplayName("Should return error for non-existent user")
         void getOtherUserProfile_InvalidId_ReturnsError() throws Exception {
             User viewer = testUserFactory.createTestUser();

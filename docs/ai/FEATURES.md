@@ -533,6 +533,49 @@ User logs in within 30 days?
 
 ---
 
+### [FEAT-031]: Gamification Level Display on User Profile
+
+**Status:** ✅ Done
+**Branch:** `dev`
+
+**Description:** Display user's gamification level and title on their public profile page. Users can see the level (Lv.1-26+) and tier title (Beginner → Master Chef) when viewing another user's profile.
+
+**Acceptance Criteria:**
+- [x] Show level badge (Lv.X) on user profile header
+- [x] Show tier title (Beginner Cook, Home Cook, etc.)
+- [x] Color-coded by tier (Grey → Green → Blue → Purple → Orange → Gold)
+- [x] Level calculated from user's recipes and cooking logs
+- [x] Comprehensive test coverage (backend + frontend)
+
+**Technical Notes:**
+- Backend:
+  - `UserDto.java`: Added `level` (int) and `levelName` (String) fields
+  - `UserService.getUserProfile()`: Calculates level from user's XP
+  - `CookingDnaService`: Public methods for XP/level calculation
+  - XP formula: 50/recipe + 30/success + 15/partial + 5/failed
+- Frontend:
+  - `LevelBadge` widget with color-coded level display
+  - `UserProfileScreen`: Shows LevelBadge below username
+  - `UserDto`: Added level and levelName fields
+- Level Tiers:
+  | Level | Tier | Color |
+  |-------|------|-------|
+  | 1-5 | Beginner | Grey |
+  | 6-10 | Home Cook | Green |
+  | 11-15 | Skilled Cook | Blue |
+  | 16-20 | Home Chef | Purple |
+  | 21-25 | Expert Chef | Orange |
+  | 26+ | Master Chef | Gold |
+- Tests:
+  - `CookingDnaServiceTest.java`: Unit tests for XP/level calculation
+  - `UserServiceTest.java`: Integration tests for profile with level
+  - `UserControllerTest.java`: API response includes level fields
+  - `level_badge_test.dart`: Widget tests for color/rendering
+  - `level_badge_golden_test.dart`: Visual regression tests
+  - `user_dto_test.dart`: JSON serialization tests
+
+---
+
 ## Planned 📋
 
 ### [FEAT-016]: Improved Onboarding

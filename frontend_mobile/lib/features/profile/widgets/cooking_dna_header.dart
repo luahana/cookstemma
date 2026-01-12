@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/data/models/user/cooking_dna_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/my_profile_response_dto.dart';
@@ -117,6 +119,24 @@ class CookingDnaHeader extends StatelessWidget {
         Expanded(
           child: _buildTappableStatItem(
             context,
+            'profile.followers'.tr(),
+            profile.user.followerCount,
+            () => context.push(RouteConstants.followersPath(profile.user.id)),
+          ),
+        ),
+        Expanded(
+          child: _buildTappableStatItem(
+            context,
+            'profile.following'.tr(),
+            profile.user.followingCount,
+            () => context.push(
+              '${RouteConstants.followersPath(profile.user.id)}?tab=1',
+            ),
+          ),
+        ),
+        Expanded(
+          child: _buildTappableStatItem(
+            context,
             'profile.recipes'.tr(),
             profile.recipeCount,
             onRecipesTap,
@@ -128,42 +148,6 @@ class CookingDnaHeader extends StatelessWidget {
             'profile.logs'.tr(),
             profile.logCount,
             onLogsTap,
-          ),
-        ),
-        Expanded(
-          child: _buildStatItem(
-            'profile.savedCount'.tr(),
-            profile.savedCount,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatItem(String label, int count) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          count.toString(),
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        SizedBox(height: 4.h),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            style: TextStyle(
-              fontSize: 11.sp,
-              color: Colors.grey[600],
-            ),
           ),
         ),
       ],

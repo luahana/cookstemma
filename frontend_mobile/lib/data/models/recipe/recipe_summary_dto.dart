@@ -11,6 +11,7 @@ class RecipeSummaryDto {
   final String title;
   final String? description;
   final String? culinaryLocale;
+  final String? creatorPublicId; // Creator's publicId for profile navigation
   final String? creatorName;
   final String? thumbnail;
   final int? variantCount;
@@ -26,6 +27,7 @@ class RecipeSummaryDto {
     required this.title,
     this.description,
     this.culinaryLocale,
+    this.creatorPublicId,
     required this.creatorName,
     this.thumbnail,
     this.variantCount,
@@ -48,6 +50,7 @@ class RecipeSummaryDto {
     description: description ?? "",
     culinaryLocale: culinaryLocale ?? "",
     thumbnailUrl: thumbnail,
+    creatorPublicId: creatorPublicId,
     creatorName: creatorName ?? "익명",
     variantCount: variantCount ?? 0,
     logCount: logCount ?? 0,

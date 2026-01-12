@@ -16,6 +16,10 @@ UserDto _$UserDtoFromJson(Map<String, dynamic> json) => UserDto(
       locale: json['locale'] as String?,
       followerCount: (json['followerCount'] as num?)?.toInt() ?? 0,
       followingCount: (json['followingCount'] as num?)?.toInt() ?? 0,
+      recipeCount: (json['recipeCount'] as num?)?.toInt() ?? 0,
+      logCount: (json['logCount'] as num?)?.toInt() ?? 0,
+      level: (json['level'] as num?)?.toInt() ?? 1,
+      levelName: json['levelName'] as String? ?? 'beginner',
     );
 
 Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
@@ -28,4 +32,8 @@ Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
       'locale': instance.locale,
       'followerCount': instance.followerCount,
       'followingCount': instance.followingCount,
+      'recipeCount': instance.recipeCount,
+      'logCount': instance.logCount,
+      'level': instance.level,
+      'levelName': instance.levelName,
     };

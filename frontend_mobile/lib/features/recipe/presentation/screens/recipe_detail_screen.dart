@@ -10,6 +10,7 @@ import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/login_prompt_sheet.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
+import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/quick_log_sheet.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/quick_log_draft_provider.dart';
 import '../../providers/recipe_providers.dart';
@@ -149,11 +150,33 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                             ),
                           ),
                           SizedBox(height: 4.h),
-                          Text(
-                            'recipe.by'.tr(args: [recipe.creatorName]),
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              color: Colors.grey[600],
+                          GestureDetector(
+                            onTap: recipe.creatorPublicId != null
+                                ? () {
+                                    HapticFeedback.selectionClick();
+                                    // Check if this is the current user's own profile
+                                    final myProfile = ref.read(myProfileProvider);
+                                    final isOwnProfile = myProfile.maybeWhen(
+                                      data: (profile) => profile.user.id == recipe.creatorPublicId,
+                                      orElse: () => false,
+                                    );
+
+                                    if (isOwnProfile) {
+                                      // Navigate to My Profile tab to avoid key conflicts
+                                      context.go(RouteConstants.profile);
+                                    } else {
+                                      // Navigate to other user's profile
+                                      context.push(RouteConstants.userProfilePath(recipe.creatorPublicId!));
+                                    }
+                                  }
+                                : null,
+                            child: Text(
+                              'recipe.by'.tr(args: [recipe.creatorName]),
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: recipe.creatorPublicId != null ? AppColors.primary : Colors.grey[600],
+                                fontWeight: recipe.creatorPublicId != null ? FontWeight.w500 : FontWeight.normal,
+                              ),
                             ),
                           ),
                           if (!recipe.isVariant && recipe.description != null && recipe.description!.isNotEmpty) ...[
