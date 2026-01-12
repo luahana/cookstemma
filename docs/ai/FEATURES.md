@@ -558,6 +558,45 @@ User logs in within 30 days?
 
 ---
 
+### [FEAT-037]: Duplicate Submission Prevention
+
+**Status:** ✅ Done
+**Branch:** `dev`
+
+**Description:** Comprehensive fix for duplicate submissions across the app. Prevents double form submissions, fixes race conditions in sync engine, and improves idempotency key handling.
+
+**Root Causes Fixed:**
+1. **Double-tap on submit buttons** - No guard against rapid taps before loading state updates
+2. **Sync engine race condition** - Multiple concurrent sync calls processing same queue items
+3. **Idempotency key removal** - Keys removed immediately after success, not protecting rapid retries
+
+**Acceptance Criteria:**
+- [x] Create reusable `SubmissionGuard` mixin for form submissions
+- [x] Apply guard to `LogPostCreateScreen` and `RecipeCreateScreen`
+- [x] Fix race condition in `LogSyncEngine._processSyncQueue()`
+- [x] Keep idempotency keys for 30 seconds (TTL) instead of removing immediately
+- [x] Comprehensive unit tests for all fixes (51 tests)
+
+**Technical Notes:**
+- `SubmissionGuard` mixin (`lib/core/utils/submission_guard.dart`):
+  - Provides `guardedSubmit<T>()` method that blocks concurrent calls
+  - Returns `null` for blocked calls, action result for executed calls
+  - Automatically resets state on completion or error
+- `LogSyncEngine` fix (`lib/data/datasources/sync/log_sync_engine.dart`):
+  - Set `_isSyncing = true` IMMEDIATELY after check, before any async operations
+  - Previous code had async gap allowing multiple concurrent executions
+- `IdempotencyInterceptor` fix (`lib/core/network/idempotency_interceptor.dart`):
+  - Added `_IdempotencyEntry` class with TTL tracking
+  - Keys persist for 30 seconds to prevent duplicates from rapid double-taps
+  - Keys still cleared on non-retryable errors (4xx, 500)
+
+**Tests Added:**
+- `test/core/utils/submission_guard_test.dart` (11 tests)
+- `test/core/network/idempotency_interceptor_test.dart` (25 tests)
+- `test/data/datasources/sync/log_sync_engine_test.dart` (5 new concurrency tests)
+
+---
+
 ## Planned 📋
 
 ### [FEAT-016]: Improved Onboarding
@@ -1072,6 +1111,7 @@ adb reverse tcp:9000 tcp:9000  # MinIO images
 | FEAT-034 | Image Upload Status | ✅ |
 | FEAT-035 | Profile Navigation Bar | ✅ |
 | FEAT-036 | Isar Migration & Performance | ✅ |
+| FEAT-037 | Duplicate Submission Prevention | ✅ |
 | INFRA-001 | AWS Dev Environment with ALB | ✅ |
 
 ## Website Features

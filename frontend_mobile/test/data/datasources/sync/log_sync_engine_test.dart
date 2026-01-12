@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pairing_planet2_frontend/data/datasources/sync/log_sync_engine.dart';
+import 'package:pairing_planet2_frontend/data/datasources/sync/sync_queue_local_data_source.dart'
+    show SyncQueueStats;
 import 'package:pairing_planet2_frontend/data/models/sync/sync_queue_item.dart';
 import 'package:pairing_planet2_frontend/data/repositories/sync_queue_repository.dart';
 
@@ -180,6 +184,153 @@ void main() {
       expect(payload.localPhotoPaths, isEmpty);
       expect(payload.recipePublicId, isNull);
       expect(payload.hashtags, isNull);
+    });
+  });
+
+  group('LogSyncEngine concurrency', () {
+    late MockSyncQueueRepository mockSyncQueueRepository;
+    late MockConnectivity mockConnectivity;
+    late MockRef mockRef;
+    late LogSyncEngine engine;
+
+    setUp(() {
+      mockSyncQueueRepository = MockSyncQueueRepository();
+      mockConnectivity = MockConnectivity();
+      mockRef = MockRef();
+      engine = LogSyncEngine(
+        mockRef,
+        mockSyncQueueRepository,
+        mockConnectivity,
+      );
+    });
+
+    test('blocks concurrent sync attempts - only first executes', () async {
+      final processingCompleter = Completer<void>();
+      var getPendingItemsCallCount = 0;
+
+      // Setup mocks
+      when(() => mockConnectivity.checkConnectivity())
+          .thenAnswer((_) async => [ConnectivityResult.wifi]);
+      when(() => mockSyncQueueRepository.getPendingItems())
+          .thenAnswer((_) async {
+        getPendingItemsCallCount++;
+        await processingCompleter.future;
+        return <SyncQueueItem>[];
+      });
+      when(() => mockSyncQueueRepository.cleanupSyncedItems())
+          .thenAnswer((_) async => 0);
+
+      // Start first sync
+      final firstSync = engine.triggerSync();
+
+      // Allow first sync to start processing
+      await Future.delayed(Duration.zero);
+
+      // Try second sync immediately (should be blocked)
+      final secondSync = engine.triggerSync();
+
+      // Try third sync (should also be blocked)
+      final thirdSync = engine.triggerSync();
+
+      // Complete first sync
+      processingCompleter.complete();
+      await firstSync;
+      await secondSync;
+      await thirdSync;
+
+      // Should only have called getPendingItems once
+      expect(getPendingItemsCallCount, 1);
+    });
+
+    test('allows sync after previous sync completes', () async {
+      var getPendingItemsCallCount = 0;
+
+      // Setup mocks
+      when(() => mockConnectivity.checkConnectivity())
+          .thenAnswer((_) async => [ConnectivityResult.wifi]);
+      when(() => mockSyncQueueRepository.getPendingItems())
+          .thenAnswer((_) async {
+        getPendingItemsCallCount++;
+        return <SyncQueueItem>[];
+      });
+      when(() => mockSyncQueueRepository.cleanupSyncedItems())
+          .thenAnswer((_) async => 0);
+
+      // First sync
+      await engine.triggerSync();
+
+      // Second sync (should work after first completes)
+      await engine.triggerSync();
+
+      // Third sync
+      await engine.triggerSync();
+
+      // Should have called getPendingItems three times
+      expect(getPendingItemsCallCount, 3);
+    });
+
+    test('skips sync when no network connectivity', () async {
+      var getPendingItemsCallCount = 0;
+
+      // Setup mocks - no connectivity
+      when(() => mockConnectivity.checkConnectivity())
+          .thenAnswer((_) async => [ConnectivityResult.none]);
+      when(() => mockSyncQueueRepository.getPendingItems())
+          .thenAnswer((_) async {
+        getPendingItemsCallCount++;
+        return <SyncQueueItem>[];
+      });
+
+      // Try sync
+      await engine.triggerSync();
+
+      // Should not have called getPendingItems
+      expect(getPendingItemsCallCount, 0);
+    });
+
+    test('sync resets flag even when connectivity check returns no network', () async {
+      var callCount = 0;
+
+      // First call - no connectivity
+      when(() => mockConnectivity.checkConnectivity())
+          .thenAnswer((_) async => [ConnectivityResult.none]);
+
+      await engine.triggerSync();
+
+      // Second call - with connectivity
+      when(() => mockConnectivity.checkConnectivity())
+          .thenAnswer((_) async => [ConnectivityResult.wifi]);
+      when(() => mockSyncQueueRepository.getPendingItems())
+          .thenAnswer((_) async {
+        callCount++;
+        return <SyncQueueItem>[];
+      });
+      when(() => mockSyncQueueRepository.cleanupSyncedItems())
+          .thenAnswer((_) async => 0);
+
+      await engine.triggerSync();
+
+      // Second sync should have executed
+      expect(callCount, 1);
+    });
+
+    test('getStatus returns correct syncing state', () async {
+      // Setup mocks for getStats
+      when(() => mockSyncQueueRepository.getStats()).thenAnswer(
+        (_) async => const SyncQueueStats(
+          pending: 2,
+          syncing: 1,
+          synced: 5,
+          failed: 0,
+          abandoned: 0,
+        ),
+      );
+
+      final status = await engine.getStatus();
+
+      expect(status.pendingCount, 2);
+      expect(status.failedCount, 0);
+      expect(status.hasUnsyncedItems, isTrue);
     });
   });
 }

@@ -18,6 +18,7 @@ import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/ha
 import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 import '../../../../core/providers/image_providers.dart'; // 💡 이미지 프로바이더 추가
 import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
+import 'package:pairing_planet2_frontend/core/utils/submission_guard.dart';
 
 class LogPostCreateScreen extends ConsumerStatefulWidget {
   final RecipeDetail recipe;
@@ -29,13 +30,13 @@ class LogPostCreateScreen extends ConsumerStatefulWidget {
       _LogPostCreateScreenState();
 }
 
-class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
+class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen>
+    with SubmissionGuard {
   final _contentController = TextEditingController();
   final List<UploadItem> _images = []; // 💡 업로드 이미지 리스트
   final List<Map<String, dynamic>> _hashtags = []; // 해시태그 리스트
   String _selectedOutcome = 'SUCCESS'; // 💡 요리 결과 (SUCCESS, PARTIAL, FAILED)
   bool _isLoading = false;
-  bool _isSubmitting = false; // Guard against double submission
 
   @override
   void dispose() {
@@ -110,66 +111,57 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
   }
 
   Future<void> _submit() async {
-    // Guard against double submission
-    if (_isSubmitting) return;
-    _isSubmitting = true;
+    if (_contentController.text.trim().isEmpty) return;
 
-    if (_contentController.text.trim().isEmpty) {
-      _isSubmitting = false;
-      return;
-    }
+    await guardedSubmit(() async {
+      setState(() => _isLoading = true);
 
-    setState(() => _isLoading = true); // 로딩 시작
+      try {
+        final imagePublicIds = _images
+            .where((img) => img.status == UploadStatus.success)
+            .map((img) => img.publicId!)
+            .toList();
 
-    final imagePublicIds = _images
-        .where((img) => img.status == UploadStatus.success)
-        .map((img) => img.publicId!)
-        .toList();
+        final hashtagNames = _hashtags
+            .where((h) => h['isDeleted'] != true)
+            .map((h) => h['name'] as String)
+            .toList();
 
-    final hashtagNames = _hashtags
-        .where((h) => h['isDeleted'] != true)
-        .map((h) => h['name'] as String)
-        .toList();
-    final request = CreateLogPostRequest(
-      recipePublicId: widget.recipe.publicId,
-      content: _contentController.text,
-      outcome: _selectedOutcome,
-      imagePublicIds: imagePublicIds,
-      hashtags: hashtagNames.isNotEmpty ? hashtagNames : null,
-    );
+        final request = CreateLogPostRequest(
+          recipePublicId: widget.recipe.publicId,
+          content: _contentController.text,
+          outcome: _selectedOutcome,
+          imagePublicIds: imagePublicIds,
+          hashtags: hashtagNames.isNotEmpty ? hashtagNames : null,
+        );
 
-    try {
-      // 1. 함수 호출 (내부 state가 AsyncValue<LogPostDetail?>로 변경됨)
-      await ref.read(logPostCreationProvider.notifier).createLog(request);
+        await ref.read(logPostCreationProvider.notifier).createLog(request);
 
-      if (mounted) {
-        final currentState = ref.read(logPostCreationProvider);
+        if (mounted) {
+          final currentState = ref.read(logPostCreationProvider);
 
-        if (currentState.hasError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('logPost.submitFailed'.tr(namedArgs: {'error': currentState.error.toString()}))),
-          );
-          return;
+          if (currentState.hasError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('logPost.submitFailed'.tr(namedArgs: {'error': currentState.error.toString()}))),
+            );
+            return;
+          }
+
+          final logDetail = currentState.value;
+
+          if (logDetail != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('logPost.createSuccess'.tr())),
+            );
+            context.pushReplacement(
+              RouteConstants.logPostDetailPath(logDetail.publicId),
+            );
+          }
         }
-
-        // 💡 이제 currentState.value가 LogPostDetail? 타입이므로 에러가 발생하지 않습니다.
-        final logDetail = currentState.value;
-
-        if (logDetail != null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('logPost.createSuccess'.tr())));
-
-          // 성공한 데이터의 publicId를 사용하여 상세 페이지로 이동
-          context.pushReplacement(
-            RouteConstants.logPostDetailPath(logDetail.publicId),
-          );
-        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
-    } finally {
-      _isSubmitting = false;
-      if (mounted) setState(() => _isLoading = false); // 로딩 종료
-    }
+    });
   }
 
   @override
@@ -414,7 +406,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
 
   Widget _buildSubmitButton() {
     // Disable button during loading, uploading, errors, OR when already submitting
-    final bool canSubmit = !_isLoading && !_isSubmitting && !_hasUploadingImages && !_hasUploadErrors;
+    final bool canSubmit = !_isLoading && !isSubmitting && !_hasUploadingImages && !_hasUploadErrors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

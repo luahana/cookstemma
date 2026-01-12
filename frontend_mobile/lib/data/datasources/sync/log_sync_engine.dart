@@ -66,17 +66,19 @@ class LogSyncEngine {
 
   /// Process the sync queue
   Future<void> _processSyncQueue() async {
+    // CRITICAL: Set _isSyncing IMMEDIATELY to prevent race conditions
+    // The previous code had a race window between the check and the async
+    // connectivity check, allowing multiple concurrent executions
     if (_isSyncing) return;
-
-    // Check connectivity first
-    final connectivityResult = await _connectivity.checkConnectivity();
-    if (connectivityResult.contains(ConnectivityResult.none)) {
-      return; // No network, skip sync
-    }
-
     _isSyncing = true;
 
     try {
+      // Check connectivity first
+      final connectivityResult = await _connectivity.checkConnectivity();
+      if (connectivityResult.contains(ConnectivityResult.none)) {
+        return; // No network, skip sync
+      }
+
       final pendingItems = await _syncQueueRepository.getPendingItems();
 
       for (final item in pendingItems) {

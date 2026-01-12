@@ -44,11 +44,9 @@ class IdempotencyInterceptor extends Interceptor {
 
       if (existingEntry != null && !existingEntry.isExpired) {
         idempotencyKey = existingEntry.key;
-        talker.debug('Reusing idempotency key for ${options.method} ${options.path}: $idempotencyKey');
       } else {
         idempotencyKey = _uuid.v4();
         _entries[requestId] = _IdempotencyEntry(idempotencyKey);
-        talker.debug('New idempotency key for ${options.method} ${options.path}: $idempotencyKey');
       }
 
       options.headers['Idempotency-Key'] = idempotencyKey;
