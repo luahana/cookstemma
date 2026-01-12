@@ -689,6 +689,34 @@ User logs in within 30 days?
 
 ---
 
+### [FEAT-036]: Hive to Isar Migration & Performance Optimizations
+
+**Status:** ✅ Done
+**Branch:** `dev`
+
+**Description:** Migrated local storage from Hive to Isar and implemented Flutter performance best practices for smoother UI and reduced memory usage.
+
+**Acceptance Criteria:**
+- [x] Migrate all local data sources from Hive to Isar
+- [x] Create Isar collection models for cached data
+- [x] Add cacheWidth/cacheHeight to Image.file widgets
+- [x] Wrap expensive widgets with RepaintBoundary
+- [x] Add itemExtent to ListViews for scroll performance
+- [x] Add ValueKey to dynamic list items
+- [x] Create background JSON parsing utility
+- [x] Implement provider singleton pattern for DataSources
+
+**Technical Notes:**
+- Frontend: 60 files changed, 12 new Isar collection files
+- Image optimization: 7 widget files with cacheWidth/cacheHeight
+- Repaint boundaries: 4 widget files (log_post_card, featured_star_card, recent_logs_gallery)
+- List performance: itemExtent added to 4 ListViews, ValueKey added to 3 dynamic lists
+- Background parsing: `json_parser.dart` with compute() for isolate-based JSON parsing
+- Provider singleton: `userRemoteDataSourceProvider` used by 5 profile providers
+- All 802 tests pass
+
+---
+
 ## Planned 📋
 
 ### [FEAT-016]: Improved Onboarding
@@ -916,3 +944,5 @@ User logs in within 30 days?
 | FEAT-032 | Servings & Cooking Time | ✅ |
 | FEAT-033 | Variation Page UX | ✅ |
 | FEAT-034 | Image Upload Status | ✅ |
+| FEAT-035 | Profile Navigation Bar | ✅ |
+| FEAT-036 | Isar Migration & Performance | ✅ |
