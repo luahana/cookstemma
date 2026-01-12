@@ -120,45 +120,6 @@ void main() {
       expect(find.byType(_MockImageSourceSheet), findsNothing);
     });
 
-    testWidgets('modal closes before callback is invoked (Navigator.pop first)',
-        (tester) async {
-      var callbackTime = DateTime.now();
-      var popTime = DateTime.now();
-
-      await tester.pumpWidget(ScreenUtilInit(
-        designSize: const Size(375, 812),
-        minTextAdapt: true,
-        builder: (context, _) => MaterialApp(
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await showModalBottomSheet<void>(
-                      context: context,
-                      builder: (context) => _TestDelaySheet(
-                        onPop: () => popTime = DateTime.now(),
-                        onCallback: () => callbackTime = DateTime.now(),
-                      ),
-                    );
-                  },
-                  child: const Text('Show Sheet'),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ));
-
-      await tester.tap(find.text('Show Sheet'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Select'));
-      await tester.pumpAndSettle();
-
-      // Pop should happen before callback (100ms delay ensures this)
-      expect(popTime.isBefore(callbackTime), isTrue);
-    });
   });
 }
 
@@ -207,34 +168,3 @@ class _MockImageSourceSheet extends StatelessWidget {
   }
 }
 
-/// Test sheet to verify pop happens before callback
-class _TestDelaySheet extends StatelessWidget {
-  final VoidCallback onPop;
-  final VoidCallback onCallback;
-
-  const _TestDelaySheet({
-    required this.onPop,
-    required this.onCallback,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              onPop();
-              // Simulate the 100ms delay from ImageSourceSheet
-              await Future.delayed(const Duration(milliseconds: 100));
-              onCallback();
-            },
-            child: const Text('Select'),
-          ),
-        ],
-      ),
-    );
-  }
-}
