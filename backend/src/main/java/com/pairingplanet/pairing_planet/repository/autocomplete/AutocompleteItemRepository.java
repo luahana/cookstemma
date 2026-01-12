@@ -44,4 +44,37 @@ public interface AutocompleteItemRepository extends JpaRepository<AutocompleteIt
             @Param("keyword") String keyword,
             @Param("locale") String locale,
             Pageable pageable);
+
+    /**
+     * Prefix-based search for CJK locales (works with single characters)
+     */
+    @Query(value = "SELECT public_id as publicId, " +
+            "name ->> :locale as name, " +
+            "type::text as type, " +
+            "score as score " +
+            "FROM autocomplete_items " +
+            "WHERE type::text = :type " +
+            "AND name ->> :locale ILIKE :pattern " +
+            "ORDER BY score DESC " +
+            "LIMIT :#{#pageable.pageSize}",
+            nativeQuery = true)
+    List<AutocompleteProjectionDto> searchByTypeAndNameWithPrefix(
+            @Param("type") String type,
+            @Param("pattern") String pattern,
+            @Param("locale") String locale,
+            Pageable pageable);
+
+    @Query(value = "SELECT public_id as publicId, " +
+            "name ->> :locale as name, " +
+            "type::text as type, " +
+            "score as score " +
+            "FROM autocomplete_items " +
+            "WHERE name ->> :locale ILIKE :pattern " +
+            "ORDER BY score DESC " +
+            "LIMIT :#{#pageable.pageSize}",
+            nativeQuery = true)
+    List<AutocompleteProjectionDto> searchByNameWithPrefix(
+            @Param("pattern") String pattern,
+            @Param("locale") String locale,
+            Pageable pageable);
 }

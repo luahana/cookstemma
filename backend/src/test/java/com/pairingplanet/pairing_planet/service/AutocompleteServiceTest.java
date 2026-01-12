@@ -43,9 +43,16 @@ class AutocompleteServiceTest extends BaseIntegrationTest {
     }
 
     private void createTestItem(String enName, String koName, AutocompleteType type, Double score) {
+        createTestItemWithLocales(enName, koName, null, null, type, score);
+    }
+
+    private void createTestItemWithLocales(String enName, String koName, String jaName, String zhName,
+                                           AutocompleteType type, Double score) {
         Map<String, String> names = new HashMap<>();
         names.put("en-US", enName);
         names.put("ko-KR", koName);
+        if (jaName != null) names.put("ja-JP", jaName);
+        if (zhName != null) names.put("zh-CN", zhName);
 
         AutocompleteItem item = AutocompleteItem.builder()
                 .name(names)
@@ -214,9 +221,18 @@ class AutocompleteServiceTest extends BaseIntegrationTest {
     class MultilingualSupport {
 
         @Test
-        @DisplayName("should search in Korean when using ko-KR locale")
-        void shouldSearchInKorean() {
-            // pg_trgm works with Korean when using at least 2-3 characters
+        @DisplayName("should search in Korean with single character using prefix search")
+        void shouldSearchInKoreanWithSingleChar() {
+            // CJK locales should work with single characters using prefix search
+            List<AutocompleteDto> results = autocompleteService.search("닭", "ko-KR", "MAIN");
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).name()).isEqualTo("닭고기");
+        }
+
+        @Test
+        @DisplayName("should search in Korean with full word")
+        void shouldSearchInKoreanWithFullWord() {
             List<AutocompleteDto> results = autocompleteService.search("닭고기", "ko-KR", "MAIN");
 
             assertThat(results).hasSize(1);
@@ -239,6 +255,30 @@ class AutocompleteServiceTest extends BaseIntegrationTest {
             List<AutocompleteDto> results = autocompleteService.search("닭고기", "en-US", "MAIN");
 
             assertThat(results).isEmpty();
+        }
+
+        @Test
+        @DisplayName("should search Japanese with single character")
+        void shouldSearchJapaneseWithSingleChar() {
+            // Create Japanese test data with ja-JP locale
+            createTestItemWithLocales("Sashimi", "사시미", "刺身", null, AutocompleteType.DISH, 85.0);
+
+            List<AutocompleteDto> results = autocompleteService.search("刺", "ja-JP", "DISH");
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).name()).isEqualTo("刺身");
+        }
+
+        @Test
+        @DisplayName("should search Chinese with single character")
+        void shouldSearchChineseWithSingleChar() {
+            // Create Chinese test data with zh-CN locale
+            createTestItemWithLocales("Fried Rice", "볶음밥", null, "炒饭", AutocompleteType.DISH, 85.0);
+
+            List<AutocompleteDto> results = autocompleteService.search("炒", "zh-CN", "DISH");
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).name()).isEqualTo("炒饭");
         }
     }
 

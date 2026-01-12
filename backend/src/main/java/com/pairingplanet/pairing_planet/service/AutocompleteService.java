@@ -28,6 +28,8 @@ public class AutocompleteService {
     private static final String AUTOCOMPLETE_KEY_PREFIX = "autocomplete:";
     private static final String DELIMITER = "::";
     private static final int MAX_RESULTS = 10;
+    private static final Set<String> CJK_LOCALES = Set.of("ko-KR", "ja-JP", "zh-CN");
+    private static final int MIN_FUZZY_LENGTH = 3;
 
     /**
      * Search with optional type filter
@@ -122,18 +124,38 @@ public class AutocompleteService {
     private List<AutocompleteDto> searchDbWithFuzzy(String keyword, String locale, String type) {
         PageRequest limit = PageRequest.of(0, MAX_RESULTS);
 
+        // For CJK locales with short keywords, use prefix search instead of fuzzy
+        boolean usePrefixSearch = isCjkLocale(locale) && keyword.length() < MIN_FUZZY_LENGTH;
+
         List<AutocompleteProjectionDto> results;
-        if (type != null) {
-            results = autocompleteItemRepository.searchByTypeAndNameWithFuzzy(
-                    type, keyword, locale, limit);
+        if (usePrefixSearch) {
+            String pattern = keyword + "%";
+            if (type != null) {
+                results = autocompleteItemRepository.searchByTypeAndNameWithPrefix(
+                        type, pattern, locale, limit);
+            } else {
+                results = autocompleteItemRepository.searchByNameWithPrefix(pattern, locale, limit);
+            }
         } else {
-            results = autocompleteItemRepository.searchByNameWithFuzzy(keyword, locale, limit);
+            if (type != null) {
+                results = autocompleteItemRepository.searchByTypeAndNameWithFuzzy(
+                        type, keyword, locale, limit);
+            } else {
+                results = autocompleteItemRepository.searchByNameWithFuzzy(keyword, locale, limit);
+            }
         }
 
         return results.stream()
                 .map(this::convertProjection)
                 .sorted(Comparator.comparing(AutocompleteDto::score).reversed())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Check if locale is CJK (Korean, Japanese, Chinese)
+     */
+    private boolean isCjkLocale(String locale) {
+        return locale != null && CJK_LOCALES.contains(locale);
     }
 
     /**
