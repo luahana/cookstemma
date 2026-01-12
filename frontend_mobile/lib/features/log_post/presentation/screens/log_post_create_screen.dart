@@ -35,6 +35,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
   final List<Map<String, dynamic>> _hashtags = []; // 해시태그 리스트
   String _selectedOutcome = 'SUCCESS'; // 💡 요리 결과 (SUCCESS, PARTIAL, FAILED)
   bool _isLoading = false;
+  bool _isSubmitting = false; // Guard against double submission
 
   @override
   void dispose() {
@@ -109,7 +110,14 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
   }
 
   Future<void> _submit() async {
-    if (_contentController.text.trim().isEmpty) return;
+    // Guard against double submission (sync check before async work)
+    if (_isSubmitting) return;
+    _isSubmitting = true;
+
+    if (_contentController.text.trim().isEmpty) {
+      _isSubmitting = false;
+      return;
+    }
 
     setState(() => _isLoading = true); // 로딩 시작
 
@@ -159,6 +167,7 @@ class _LogPostCreateScreenState extends ConsumerState<LogPostCreateScreen> {
         }
       }
     } finally {
+      _isSubmitting = false;
       if (mounted) setState(() => _isLoading = false); // 로딩 종료
     }
   }

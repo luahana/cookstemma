@@ -67,7 +67,7 @@ class _RecipeCard extends StatelessWidget {
     return InkWell(
       onTap: () {
         HapticFeedback.lightImpact();
-        context.go(RouteConstants.recipeDetailPath(linkedRecipe.publicId));
+        context.push(RouteConstants.recipeDetailPath(linkedRecipe.publicId));
       },
       child: Padding(
         padding: EdgeInsets.all(12.r),
