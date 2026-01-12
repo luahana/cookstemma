@@ -7,16 +7,13 @@ class PlatformUrlResolver {
   static String get baseUrl {
     final envUrl = dotenv.maybeGet('BASE_URL');
 
-    // If .env specifies a URL, check if it's a local dev URL that needs platform adjustment
+    // If .env specifies a URL, use it directly without auto-conversion
+    // This allows explicit localhost for physical devices with adb reverse
     if (envUrl != null && envUrl.isNotEmpty) {
-      // If it's a local dev URL (localhost or 10.0.2.2), adjust for platform
-      if (envUrl.contains('10.0.2.2') || envUrl.contains('localhost')) {
-        return _adjustLocalUrl(envUrl);
-      }
       return envUrl;
     }
 
-    // Default fallback with platform awareness
+    // Default fallback with platform awareness (only for emulator)
     return _getDefaultLocalUrl();
   }
 
@@ -28,11 +25,21 @@ class PlatformUrlResolver {
   /// to use the correct hostname for the current platform.
   /// Use this for image URLs, API URLs, or any other network resources.
   /// Note: Real IP addresses (like 10.0.0.x) are not modified.
+  /// Note: If BASE_URL is explicitly set to localhost, no conversion is done
+  ///       (for physical devices with adb reverse).
   static String adjustUrlForPlatform(String url) {
     // Don't modify URLs with real IP addresses (for real device testing)
     if (_hasRealIpAddress(url)) {
       return url;
     }
+
+    // If BASE_URL explicitly uses localhost, don't convert (adb reverse mode)
+    final envUrl = dotenv.maybeGet('BASE_URL');
+    if (envUrl != null && envUrl.contains('localhost')) {
+      // Convert any 10.0.2.2 URLs to localhost for consistency
+      return url.replaceAll('10.0.2.2', 'localhost');
+    }
+
     if (Platform.isIOS) {
       // iOS simulator uses localhost
       return url.replaceAll('10.0.2.2', 'localhost');

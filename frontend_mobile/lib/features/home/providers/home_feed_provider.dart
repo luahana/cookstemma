@@ -132,11 +132,26 @@ class HomeFeedNotifier extends StateNotifier<HomeFeedState> {
       // Clear error but don't set isLoading if we have data
       // (CupertinoSliverRefreshControl shows its own spinner)
       state = state.copyWith(error: null);
-      await _fetchFromNetwork();
+      // Timeout to prevent indefinite hang during network issues
+      await _fetchFromNetwork().timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          state = state.copyWith(
+            isLoading: false,
+            error: '요청 시간이 초과되었습니다.',
+          );
+        },
+      );
+    } catch (e) {
+      // Ensure any exception doesn't prevent completion
+      state = state.copyWith(
+        isLoading: false,
+        error: '새로고침 실패',
+      );
     } finally {
       _refreshCompleter?.complete();
       _refreshCompleter = null;
-      _isRefreshing = false; // Set false AFTER null assignment
+      _isRefreshing = false;
     }
   }
 

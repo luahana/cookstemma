@@ -109,6 +109,10 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
 
   Widget _buildContent(HomeFeedState feedState, String greeting, String displayName) {
     return RefreshIndicator(
+      notificationPredicate: (notification) {
+        // Allow refresh from any scroll depth (needed for NestedScrollView)
+        return notification.depth == 0 || notification.depth == 1;
+      },
       onRefresh: () async {
         await ref.read(homeFeedProvider.notifier).refresh();
       },
