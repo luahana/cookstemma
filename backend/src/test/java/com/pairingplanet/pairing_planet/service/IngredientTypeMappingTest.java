@@ -301,7 +301,9 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
                 null, // rootPublicId
                 null, // changeDiff
                 null, // changeReason
-                null  // hashtags
+                null, // hashtags
+                null, // servings
+                null  // cookingTimeRange
         );
     }
 }
