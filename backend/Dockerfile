@@ -16,6 +16,9 @@ RUN ./gradlew clean build -x test --no-daemon
 
 FROM eclipse-temurin:21-jre-alpine AS runner
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
 COPY --from=builder ./app/build/libs/*.jar ./app.jar
