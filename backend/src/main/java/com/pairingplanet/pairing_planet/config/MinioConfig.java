@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile("!test")
+@Profile("dev")
 public class MinioConfig {
 
     // application-dev.yml의 구조에 맞게 경로 수정
