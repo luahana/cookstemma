@@ -25,6 +25,7 @@ import '../widgets/change_reason_field.dart';
 import '../widgets/recipe_submit_button.dart';
 import '../widgets/servings_cooking_time_section.dart';
 import '../../../../core/utils/form_validators.dart';
+import 'package:pairing_planet2_frontend/core/utils/submission_guard.dart';
 
 class RecipeCreateScreen extends ConsumerStatefulWidget {
   final RecipeDetail? parentRecipe; // 💡 변경: ID 대신 객체 수신
@@ -36,7 +37,7 @@ class RecipeCreateScreen extends ConsumerStatefulWidget {
 }
 
 class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, SubmissionGuard {
   final _titleController = TextEditingController();
   final _foodNameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -597,88 +598,86 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
       return;
     }
 
-    setState(() => _isLoading = true);
-    try {
-      // Phase 7-3: Compute change diff for variations
-      final changeDiff = _computeChangeDiff();
+    await guardedSubmit(() async {
+      setState(() => _isLoading = true);
 
-      final request = CreateRecipeRequest(
-        title: _titleController.text,
-        description: _descriptionController.text,
-        culinaryLocale: _localeController.text.isEmpty
-            ? "ko-KR"
-            : _localeController.text,
-        food1MasterPublicId: _food1MasterPublicId,
-        newFoodName: isVariantMode ? null : _foodNameController.text.trim(),
-        ingredients: _ingredients
-            .where((i) => i['isDeleted'] != true)  // Exclude deleted items
-            .map(
-              (i) => Ingredient(
-                name: i['name'],
-                amount: i['amount'],
-                quantity: i['quantity'] as double?,
-                unit: i['unit'] as String?,
-                type: i['type'],
-              ),
-            )
-            .toList(),
-        steps: _steps
-            .where((s) => s['isDeleted'] != true)  // Exclude deleted items
-            .map(
-              (s) => RecipeStep(
-                stepNumber: s['stepNumber'],
-                description: s['description'],
-                imagePublicId: s['imagePublicId'],
-              ),
-            )
-            .toList(),
-        imagePublicIds: _finishedImages
-            .where((img) => img.status == UploadStatus.success)
-            .map((img) => img.publicId!)
-            .toList(),
-        changeCategory: _changeReasonController.text,
-        parentPublicId: widget.parentRecipe?.publicId,
-        rootPublicId:
-            widget.parentRecipe?.rootInfo?.publicId ??
-            widget.parentRecipe?.publicId,
-        changeDiff: changeDiff,
-        changeReason: isVariantMode ? _changeReasonController.text.trim() : null,
-        hashtags: _getActiveHashtagNames(),
-        servings: _servings,
-        cookingTimeRange: _cookingTimeRange,
-      );
+      try {
+        // Phase 7-3: Compute change diff for variations
+        final changeDiff = _computeChangeDiff();
 
-      // Use the new provider with analytics tracking
-      await ref.read(recipeCreationProvider.notifier).createRecipe(request);
+        final request = CreateRecipeRequest(
+          title: _titleController.text,
+          description: _descriptionController.text,
+          culinaryLocale: _localeController.text.isEmpty
+              ? "ko-KR"
+              : _localeController.text,
+          food1MasterPublicId: _food1MasterPublicId,
+          newFoodName: isVariantMode ? null : _foodNameController.text.trim(),
+          ingredients: _ingredients
+              .where((i) => i['isDeleted'] != true)
+              .map(
+                (i) => Ingredient(
+                  name: i['name'],
+                  amount: i['amount'],
+                  quantity: i['quantity'] as double?,
+                  unit: i['unit'] as String?,
+                  type: i['type'],
+                ),
+              )
+              .toList(),
+          steps: _steps
+              .where((s) => s['isDeleted'] != true)
+              .map(
+                (s) => RecipeStep(
+                  stepNumber: s['stepNumber'],
+                  description: s['description'],
+                  imagePublicId: s['imagePublicId'],
+                ),
+              )
+              .toList(),
+          imagePublicIds: _finishedImages
+              .where((img) => img.status == UploadStatus.success)
+              .map((img) => img.publicId!)
+              .toList(),
+          changeCategory: _changeReasonController.text,
+          parentPublicId: widget.parentRecipe?.publicId,
+          rootPublicId:
+              widget.parentRecipe?.rootInfo?.publicId ??
+              widget.parentRecipe?.publicId,
+          changeDiff: changeDiff,
+          changeReason: isVariantMode ? _changeReasonController.text.trim() : null,
+          hashtags: _getActiveHashtagNames(),
+          servings: _servings,
+          cookingTimeRange: _cookingTimeRange,
+        );
 
-      if (!mounted) return;
+        await ref.read(recipeCreationProvider.notifier).createRecipe(request);
 
-      final state = ref.read(recipeCreationProvider);
-      state.when(
-        data: (newId) {
-          if (newId != null) {
-            // Clear draft on successful publish (skip for variants)
-            if (!isVariantMode) {
-              ref.read(recipeDraftProvider.notifier).clearDraft();
+        if (!mounted) return;
+
+        final state = ref.read(recipeCreationProvider);
+        state.when(
+          data: (newId) {
+            if (newId != null) {
+              if (!isVariantMode) {
+                ref.read(recipeDraftProvider.notifier).clearDraft();
+              }
+              ref.invalidate(myRecipesProvider);
+              ref.invalidate(myProfileProvider);
+              if (isVariantMode && request.rootPublicId != null) {
+                ref.invalidate(recipeDetailWithTrackingProvider(request.rootPublicId!));
+              }
+              context.go(RouteConstants.recipeDetailPath(newId));
             }
-            // Invalidate profile providers so they refresh when user visits profile
-            ref.invalidate(myRecipesProvider);
-            ref.invalidate(myProfileProvider);
-            // For variations: invalidate root recipe so variations section updates
-            if (isVariantMode && request.rootPublicId != null) {
-              ref.invalidate(recipeDetailWithTrackingProvider(request.rootPublicId!));
-            }
-            // Navigate to the newly created recipe detail page
-            context.go(RouteConstants.recipeDetailPath(newId));
-          }
-        },
-        error: (error, _) => ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('recipe.submitFailed'.tr(namedArgs: {'error': error.toString()})))),
-        loading: () {},
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+          },
+          error: (error, _) => ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('recipe.submitFailed'.tr(namedArgs: {'error': error.toString()})))),
+          loading: () {},
+        );
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    });
   }
 
   /// Build upload status banner to show uploading/error states
