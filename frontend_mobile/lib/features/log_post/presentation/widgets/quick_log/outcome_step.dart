@@ -117,26 +117,29 @@ class _OutcomeButton extends StatelessWidget {
                   ),
                 ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              outcome.emoji,
-              style: TextStyle(fontSize: 36.sp),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              outcome.label,
-              style: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : outcome.primaryColor,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                outcome.emoji,
+                style: TextStyle(fontSize: 36.sp),
               ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+              SizedBox(height: 4.h),
+              Text(
+                outcome.label,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? Colors.white : outcome.primaryColor,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
