@@ -1,0 +1,282 @@
+package com.pairingplanet.pairing_planet.service;
+
+import com.pairingplanet.pairing_planet.domain.entity.autocomplete.AutocompleteItem;
+import com.pairingplanet.pairing_planet.domain.enums.AutocompleteType;
+import com.pairingplanet.pairing_planet.dto.autocomplete.AutocompleteDto;
+import com.pairingplanet.pairing_planet.repository.autocomplete.AutocompleteItemRepository;
+import com.pairingplanet.pairing_planet.support.BaseIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DisplayName("AutocompleteService Tests")
+class AutocompleteServiceTest extends BaseIntegrationTest {
+
+    @Autowired
+    private AutocompleteService autocompleteService;
+
+    @Autowired
+    private AutocompleteItemRepository autocompleteItemRepository;
+
+    @BeforeEach
+    void setUp() {
+        // Clear existing data for isolation
+        autocompleteItemRepository.deleteAll();
+
+        // Create test data with multilingual names
+        createTestItem("Chicken", "닭고기", AutocompleteType.MAIN_INGREDIENT, 80.0);
+        createTestItem("Cheese", "치즈", AutocompleteType.SECONDARY_INGREDIENT, 70.0);
+        createTestItem("Chili Powder", "고춧가루", AutocompleteType.SEASONING, 60.0);
+        createTestItem("Chicken Curry", "치킨 카레", AutocompleteType.DISH, 90.0);
+        createTestItem("Beef", "소고기", AutocompleteType.MAIN_INGREDIENT, 75.0);
+        createTestItem("Onion", "양파", AutocompleteType.SECONDARY_INGREDIENT, 65.0);
+        createTestItem("Salt", "소금", AutocompleteType.SEASONING, 85.0);
+        createTestItem("Bibimbap", "비빔밥", AutocompleteType.DISH, 95.0);
+    }
+
+    private void createTestItem(String enName, String koName, AutocompleteType type, Double score) {
+        Map<String, String> names = new HashMap<>();
+        names.put("en-US", enName);
+        names.put("ko-KR", koName);
+
+        AutocompleteItem item = AutocompleteItem.builder()
+                .name(names)
+                .type(type)
+                .score(score)
+                .build();
+        autocompleteItemRepository.save(item);
+    }
+
+    @Nested
+    @DisplayName("Search without type filter")
+    class SearchWithoutType {
+
+        @Test
+        @DisplayName("should return matching items from all types")
+        void shouldReturnMatchingItemsFromAllTypes() {
+            List<AutocompleteDto> results = autocompleteService.search("Chi", "en-US", null);
+
+            assertThat(results).isNotEmpty();
+            assertThat(results).extracting(AutocompleteDto::name)
+                    .contains("Chicken", "Chicken Curry", "Chili Powder");
+        }
+
+        @Test
+        @DisplayName("should return empty list for non-matching keyword")
+        void shouldReturnEmptyForNonMatchingKeyword() {
+            List<AutocompleteDto> results = autocompleteService.search("xyz123", "en-US", null);
+
+            assertThat(results).isEmpty();
+        }
+
+        @Test
+        @DisplayName("should return empty list for blank keyword")
+        void shouldReturnEmptyForBlankKeyword() {
+            List<AutocompleteDto> results = autocompleteService.search("", "en-US", null);
+
+            assertThat(results).isEmpty();
+        }
+
+        @Test
+        @DisplayName("should return empty list for null keyword")
+        void shouldReturnEmptyForNullKeyword() {
+            List<AutocompleteDto> results = autocompleteService.search(null, "en-US", null);
+
+            assertThat(results).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("Search with DISH type")
+    class SearchWithDishType {
+
+        @Test
+        @DisplayName("should return only dish items")
+        void shouldReturnOnlyDishItems() {
+            List<AutocompleteDto> results = autocompleteService.search("Chi", "en-US", "DISH");
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).name()).isEqualTo("Chicken Curry");
+            assertThat(results.get(0).type()).isEqualTo("DISH");
+        }
+
+        @Test
+        @DisplayName("should return Korean dishes when using Korean locale")
+        void shouldReturnKoreanDishes() {
+            List<AutocompleteDto> results = autocompleteService.search("비빔", "ko-KR", "DISH");
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).name()).isEqualTo("비빔밥");
+        }
+    }
+
+    @Nested
+    @DisplayName("Search with MAIN type")
+    class SearchWithMainType {
+
+        @Test
+        @DisplayName("should return only main ingredient items")
+        void shouldReturnOnlyMainIngredients() {
+            List<AutocompleteDto> results = autocompleteService.search("Chicken", "en-US", "MAIN");
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).name()).isEqualTo("Chicken");
+            assertThat(results.get(0).type()).isEqualTo("MAIN_INGREDIENT");
+        }
+
+        @Test
+        @DisplayName("should return multiple main ingredients when matching")
+        void shouldReturnMultipleMainIngredients() {
+            // pg_trgm requires at least 3 chars; 'Bee' matches Beef
+            List<AutocompleteDto> results = autocompleteService.search("Bee", "en-US", "MAIN");
+
+            assertThat(results).isNotEmpty();
+            assertThat(results).extracting(AutocompleteDto::type)
+                    .allMatch(type -> type.equals("MAIN_INGREDIENT"));
+        }
+    }
+
+    @Nested
+    @DisplayName("Search with SECONDARY type (includes MAIN)")
+    class SearchWithSecondaryType {
+
+        @Test
+        @DisplayName("should return both secondary and main ingredient items")
+        void shouldReturnBothSecondaryAndMainIngredients() {
+            // Using 'Che' to match both Cheese (SECONDARY) and Chicken (MAIN)
+            List<AutocompleteDto> results = autocompleteService.search("Che", "en-US", "SECONDARY");
+
+            assertThat(results).isNotEmpty();
+            // Should contain Cheese (SECONDARY) and possibly Chicken (MAIN)
+            assertThat(results).extracting(AutocompleteDto::type)
+                    .containsAnyOf("SECONDARY_INGREDIENT", "MAIN_INGREDIENT");
+        }
+
+        @Test
+        @DisplayName("should not return dishes or seasonings")
+        void shouldNotReturnDishesOrSeasonings() {
+            List<AutocompleteDto> results = autocompleteService.search("Che", "en-US", "SECONDARY");
+
+            assertThat(results).extracting(AutocompleteDto::type)
+                    .doesNotContain("DISH", "SEASONING");
+        }
+
+        @Test
+        @DisplayName("should sort by score descending")
+        void shouldSortByScoreDescending() {
+            // Using 'Oni' to get Onion from SECONDARY
+            List<AutocompleteDto> results = autocompleteService.search("Oni", "en-US", "SECONDARY");
+
+            assertThat(results).isNotEmpty();
+            // Verify sorted by score descending
+            for (int i = 0; i < results.size() - 1; i++) {
+                assertThat(results.get(i).score())
+                        .isGreaterThanOrEqualTo(results.get(i + 1).score());
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Search with SEASONING type")
+    class SearchWithSeasoningType {
+
+        @Test
+        @DisplayName("should return only seasoning items")
+        void shouldReturnOnlySeasoningItems() {
+            // pg_trgm requires at least 3 chars for effective fuzzy search
+            List<AutocompleteDto> results = autocompleteService.search("Sal", "en-US", "SEASONING");
+
+            assertThat(results).isNotEmpty();
+            assertThat(results).extracting(AutocompleteDto::type)
+                    .allMatch(type -> type.equals("SEASONING"));
+        }
+
+        @Test
+        @DisplayName("should return Salt when searching for 'Salt'")
+        void shouldReturnSaltWhenSearching() {
+            List<AutocompleteDto> results = autocompleteService.search("Salt", "en-US", "SEASONING");
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).name()).isEqualTo("Salt");
+        }
+    }
+
+    @Nested
+    @DisplayName("Multilingual support")
+    class MultilingualSupport {
+
+        @Test
+        @DisplayName("should search in Korean when using ko-KR locale")
+        void shouldSearchInKorean() {
+            // pg_trgm works with Korean when using at least 2-3 characters
+            List<AutocompleteDto> results = autocompleteService.search("닭고기", "ko-KR", "MAIN");
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).name()).isEqualTo("닭고기");
+        }
+
+        @Test
+        @DisplayName("should search in English when using en-US locale")
+        void shouldSearchInEnglish() {
+            List<AutocompleteDto> results = autocompleteService.search("Beef", "en-US", "MAIN");
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).name()).isEqualTo("Beef");
+        }
+
+        @Test
+        @DisplayName("should return empty when searching wrong locale")
+        void shouldReturnEmptyForWrongLocale() {
+            // Searching Korean text with English locale
+            List<AutocompleteDto> results = autocompleteService.search("닭고기", "en-US", "MAIN");
+
+            assertThat(results).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("Result limits")
+    class ResultLimits {
+
+        @BeforeEach
+        void addMoreItems() {
+            // Add many items to test limit
+            for (int i = 0; i < 20; i++) {
+                createTestItem("Test Item " + i, "테스트 아이템 " + i, AutocompleteType.DISH, 50.0 - i);
+            }
+        }
+
+        @Test
+        @DisplayName("should limit results to MAX_RESULTS (10)")
+        void shouldLimitResults() {
+            List<AutocompleteDto> results = autocompleteService.search("Test", "en-US", "DISH");
+
+            assertThat(results).hasSizeLessThanOrEqualTo(10);
+        }
+    }
+
+    @Nested
+    @DisplayName("Case sensitivity")
+    class CaseSensitivity {
+
+        @Test
+        @DisplayName("should match case-insensitively")
+        void shouldMatchCaseInsensitively() {
+            List<AutocompleteDto> lowerResults = autocompleteService.search("chicken", "en-US", "MAIN");
+            List<AutocompleteDto> upperResults = autocompleteService.search("CHICKEN", "en-US", "MAIN");
+            List<AutocompleteDto> mixedResults = autocompleteService.search("ChIcKeN", "en-US", "MAIN");
+
+            assertThat(lowerResults).hasSizeGreaterThanOrEqualTo(1);
+            assertThat(upperResults).hasSizeGreaterThanOrEqualTo(1);
+            assertThat(mixedResults).hasSizeGreaterThanOrEqualTo(1);
+        }
+    }
+}
