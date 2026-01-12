@@ -895,6 +895,26 @@ User logs in within 30 days?
 
 ---
 
+### [DEC-007]: Physical Device Development with ADB Reverse
+
+**Date:** 2026-01-12
+**Status:** ✅ Accepted
+
+**Context:** Need to test on physical Android devices connected via USB while backend runs on localhost.
+**Decision:** Use `adb reverse` for port forwarding, with explicit localhost config in .env
+**Reason:** Simple setup, no network configuration needed, works reliably with USB
+**Setup:**
+```bash
+adb reverse tcp:4001 tcp:4001  # Backend API
+adb reverse tcp:9000 tcp:9000  # MinIO images
+```
+**Config:** Set `BASE_URL=http://localhost:4001/api/v1` in `.env` to use localhost mode
+**Alternatives:**
+- Use computer's IP address (requires same network, IP changes)
+- Android emulator with 10.0.2.2 (can't test real device features)
+
+---
+
 # 📖 GLOSSARY
 
 | Term | Definition |
