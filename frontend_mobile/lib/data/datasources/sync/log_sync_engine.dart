@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/providers/image_providers.dart';
+import 'package:pairing_planet2_frontend/core/providers/isar_provider.dart';
 import 'package:pairing_planet2_frontend/data/datasources/sync/sync_queue_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/sync/sync_queue_item.dart';
 import 'package:pairing_planet2_frontend/data/repositories/sync_queue_repository.dart';
@@ -155,9 +156,8 @@ class LogSyncEngine {
 
       final updatedItem = item.copyWith(payload: updatedPayload.toJsonString());
       await _syncQueueRepository.markSyncing(item.id);
-      // Update the item with the new payload
-      final localDataSource = SyncQueueLocalDataSource();
-      await localDataSource.updateItem(updatedItem);
+      // Update the item with the new payload via repository
+      await _syncQueueRepository.updateItem(updatedItem);
     }
 
     // Step 2: Create log post
@@ -244,7 +244,8 @@ class SyncEngineStatus {
 
 /// Provider for sync queue local data source
 final syncQueueLocalDataSourceProvider = Provider((ref) {
-  return SyncQueueLocalDataSource();
+  final isar = ref.read(isarProvider);
+  return SyncQueueLocalDataSource(isar);
 });
 
 /// Provider for sync queue repository

@@ -1,84 +1,91 @@
-import 'dart:convert';
-import 'package:hive/hive.dart';
+import 'package:isar/isar.dart';
+import 'package:pairing_planet2_frontend/data/models/local/search_history_entry.dart';
 
-/// Type of search context for separate history tracking.
 enum SearchType { recipe, logPost }
 
-/// Local data source for managing search history using Hive.
 class SearchLocalDataSource {
-  static const String _boxName = 'search_history_box';
-  static const String _recipeHistoryKey = 'recipe_search_history';
-  static const String _logPostHistoryKey = 'log_post_search_history';
+  final Isar _isar;
   static const int _maxHistoryItems = 15;
 
-  String _getKey(SearchType type) {
-    return type == SearchType.recipe ? _recipeHistoryKey : _logPostHistoryKey;
+  SearchLocalDataSource(this._isar);
+
+  String _getTypeString(SearchType type) {
+    return type == SearchType.recipe ? 'recipe' : 'logPost';
   }
 
-  /// Add a search term to history for a specific search type.
-  /// Moves existing term to top if already present.
   Future<void> addSearchTerm(String term, SearchType type) async {
     final trimmedTerm = term.trim();
     if (trimmedTerm.isEmpty || trimmedTerm.length < 2) return;
 
-    final box = await Hive.openBox(_boxName);
-    final key = _getKey(type);
+    final typeString = _getTypeString(type);
 
-    final history = await getSearchHistory(type);
+    await _isar.writeTxn(() async {
+      await _isar.searchHistoryEntrys
+          .filter()
+          .searchTypeEqualTo(typeString)
+          .termEqualTo(trimmedTerm)
+          .deleteAll();
 
-    // Remove if exists (to move to top)
-    history.remove(trimmedTerm);
+      final entry = SearchHistoryEntry()
+        ..searchType = typeString
+        ..term = trimmedTerm
+        ..searchedAt = DateTime.now();
 
-    // Add to front
-    history.insert(0, trimmedTerm);
+      await _isar.searchHistoryEntrys.put(entry);
 
-    // Trim to max size
-    if (history.length > _maxHistoryItems) {
-      history.removeRange(_maxHistoryItems, history.length);
-    }
+      final allEntries = await _isar.searchHistoryEntrys
+          .filter()
+          .searchTypeEqualTo(typeString)
+          .sortBySearchedAtDesc()
+          .findAll();
 
-    await box.put(key, jsonEncode(history));
+      if (allEntries.length > _maxHistoryItems) {
+        final entriesToDelete = allEntries.sublist(_maxHistoryItems);
+        await _isar.searchHistoryEntrys
+            .deleteAll(entriesToDelete.map((e) => e.id).toList());
+      }
+    });
   }
 
-  /// Get search history for a specific type.
-  /// Returns empty list if no history exists.
   Future<List<String>> getSearchHistory(SearchType type) async {
-    final box = await Hive.openBox(_boxName);
-    final key = _getKey(type);
-    final jsonString = box.get(key);
+    final typeString = _getTypeString(type);
 
-    if (jsonString == null) return [];
+    final entries = await _isar.searchHistoryEntrys
+        .filter()
+        .searchTypeEqualTo(typeString)
+        .sortBySearchedAtDesc()
+        .limit(_maxHistoryItems)
+        .findAll();
 
-    try {
-      return List<String>.from(jsonDecode(jsonString));
-    } catch (e) {
-      // Clear corrupted data
-      await box.delete(key);
-      return [];
-    }
+    return entries.map((e) => e.term).toList();
   }
 
-  /// Remove a specific search term from history.
   Future<void> removeSearchTerm(String term, SearchType type) async {
-    final box = await Hive.openBox(_boxName);
-    final key = _getKey(type);
+    final typeString = _getTypeString(type);
 
-    final history = await getSearchHistory(type);
-    history.remove(term);
-
-    await box.put(key, jsonEncode(history));
+    await _isar.writeTxn(() async {
+      await _isar.searchHistoryEntrys
+          .filter()
+          .searchTypeEqualTo(typeString)
+          .termEqualTo(term)
+          .deleteAll();
+    });
   }
 
-  /// Clear all history for a specific type.
   Future<void> clearHistory(SearchType type) async {
-    final box = await Hive.openBox(_boxName);
-    final key = _getKey(type);
-    await box.delete(key);
+    final typeString = _getTypeString(type);
+
+    await _isar.writeTxn(() async {
+      await _isar.searchHistoryEntrys
+          .filter()
+          .searchTypeEqualTo(typeString)
+          .deleteAll();
+    });
   }
 
-  /// Clear all search history (call on logout if needed).
   Future<void> clearAllHistory() async {
-    final box = await Hive.openBox(_boxName);
-    await box.clear();
+    await _isar.writeTxn(() async {
+      await _isar.searchHistoryEntrys.clear();
+    });
   }
 }

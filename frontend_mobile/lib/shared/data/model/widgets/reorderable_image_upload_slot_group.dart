@@ -36,7 +36,7 @@ class ReorderableImageUploadSlotGroup extends StatelessWidget {
 
           // 2. 개별 이미지 슬롯
           final item = items[index];
-          return _buildImageSlot(item, index, key: ValueKey(item.file!.path));
+          return _buildImageSlot(context, item, index, key: ValueKey(item.file!.path));
         },
       ),
     );
@@ -71,7 +71,10 @@ class ReorderableImageUploadSlotGroup extends StatelessWidget {
   }
 
   /// 업로드 상태가 반영된 이미지 슬롯 위젯
-  Widget _buildImageSlot(UploadItem item, int index, {required Key key}) {
+  Widget _buildImageSlot(BuildContext context, UploadItem item, int index, {required Key key}) {
+    // Use cacheWidth/cacheHeight to reduce memory footprint
+    // Display is 100x100, multiply by devicePixelRatio
+    final cacheSize = (100 * MediaQuery.devicePixelRatioOf(context)).toInt();
     return Container(
       key: key,
       width: 100.w,
@@ -86,6 +89,8 @@ class ReorderableImageUploadSlotGroup extends StatelessWidget {
               width: 100.w,
               height: 100.w,
               fit: BoxFit.cover,
+              cacheWidth: cacheSize,
+              cacheHeight: cacheSize,
             ),
           ),
 

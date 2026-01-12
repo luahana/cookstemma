@@ -87,6 +87,8 @@ class RecentLogsGallery extends StatelessWidget {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: 20.w),
+            // itemExtent improves scroll performance by pre-calculating item sizes
+            itemExtent: 112.w, // 100.w card + 12.w margin
             itemCount: displayLogs.length,
             itemBuilder: (context, index) {
               return _buildLogCard(context, displayLogs[index]);
@@ -102,10 +104,13 @@ class RecentLogsGallery extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => context.push(RouteConstants.logPostDetailPath(log.id)),
-      child: Container(
-        width: 100.w,
-        margin: EdgeInsets.only(right: 12.w),
-        child: Column(
+      // RepaintBoundary caches the card's pixels to avoid expensive repaints
+      // during scrolling (shadows + clips are costly to repaint)
+      child: RepaintBoundary(
+        child: Container(
+          width: 100.w,
+          margin: EdgeInsets.only(right: 12.w),
+          child: Column(
           children: [
             // Photo with outcome overlay
             Stack(
@@ -170,6 +175,7 @@ class RecentLogsGallery extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
           ],
+          ),
         ),
       ),
     );

@@ -132,11 +132,20 @@ class _DraftSummary extends StatelessWidget {
           if (draft.photoPaths.isNotEmpty)
             ClipRRect(
               borderRadius: BorderRadius.circular(8.r),
-              child: Image.file(
-                File(draft.photoPaths.first),
-                width: 60.w,
-                height: 60.w,
-                fit: BoxFit.cover,
+              child: Builder(
+                builder: (context) {
+                  // Use cacheWidth/cacheHeight to reduce memory footprint
+                  // Display is 60x60, multiply by devicePixelRatio
+                  final cacheSize = (60 * MediaQuery.devicePixelRatioOf(context)).toInt();
+                  return Image.file(
+                    File(draft.photoPaths.first),
+                    width: 60.w,
+                    height: 60.w,
+                    fit: BoxFit.cover,
+                    cacheWidth: cacheSize,
+                    cacheHeight: cacheSize,
+                  );
+                },
               ),
             )
           else

@@ -30,19 +30,22 @@ class LogPostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
+      // RepaintBoundary caches the card's pixels to avoid expensive repaints
+      // during scrolling (shadows + clips are costly to repaint)
+      child: RepaintBoundary(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Photo with outcome badge overlay
@@ -53,7 +56,7 @@ class LogPostCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(12.r)),
-                    child: _buildThumbnail(),
+                    child: _buildThumbnail(context),
                   ),
                   // Outcome emoji badge (bottom-right)
                   Positioned(
@@ -149,13 +152,14 @@ class LogPostCard extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       ),
     );
   }
 
   /// Build thumbnail widget - handles both network URLs and local file paths
-  Widget _buildThumbnail() {
+  Widget _buildThumbnail(BuildContext context) {
     if (log.thumbnailUrl == null) {
       return Container(
         width: double.infinity,
@@ -171,11 +175,16 @@ class LogPostCard extends StatelessWidget {
     // Handle local file URLs (for pending items)
     if (log.thumbnailUrl!.startsWith('file://')) {
       final filePath = log.thumbnailUrl!.replaceFirst('file://', '');
+      // Use cacheWidth/cacheHeight to reduce memory footprint
+      // Grid cards are approximately 150-200 pixels wide
+      final cacheSize = (200 * MediaQuery.devicePixelRatioOf(context)).toInt();
       return Image.file(
         File(filePath),
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
+        cacheWidth: cacheSize,
+        cacheHeight: cacheSize,
         errorBuilder: (context, error, stackTrace) {
           return Container(
             width: double.infinity,

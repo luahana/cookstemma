@@ -1,16 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pairing_planet2_frontend/core/network/dio_provider.dart';
 import 'package:pairing_planet2_frontend/data/datasources/user/user_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/user_dto.dart';
+import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart'
+    show userRemoteDataSourceProvider;
 import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart'
     show RecipeTypeFilter;
 
 /// Other user's profile provider (parameterized by userId)
 final userProfileProvider =
     FutureProvider.autoDispose.family<UserDto, String>((ref, userId) async {
-  final dataSource = UserRemoteDataSource(ref.read(dioProvider));
+  final dataSource = ref.read(userRemoteDataSourceProvider);
   return dataSource.getUserProfile(userId);
 });
 
@@ -138,7 +139,7 @@ class UserRecipesNotifier extends StateNotifier<UserRecipesState> {
 final userRecipesProvider = StateNotifierProvider.autoDispose
     .family<UserRecipesNotifier, UserRecipesState, String>((ref, userId) {
   return UserRecipesNotifier(
-    dataSource: UserRemoteDataSource(ref.read(dioProvider)),
+    dataSource: ref.read(userRemoteDataSourceProvider),
     userId: userId,
   );
 });
@@ -249,7 +250,7 @@ class UserLogsNotifier extends StateNotifier<UserLogsState> {
 final userLogsProvider = StateNotifierProvider.autoDispose
     .family<UserLogsNotifier, UserLogsState, String>((ref, userId) {
   return UserLogsNotifier(
-    dataSource: UserRemoteDataSource(ref.read(dioProvider)),
+    dataSource: ref.read(userRemoteDataSourceProvider),
     userId: userId,
   );
 });

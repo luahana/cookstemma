@@ -216,11 +216,20 @@ class _LogPreviewCard extends StatelessWidget {
           if (draft.photoPaths.isNotEmpty)
             ClipRRect(
               borderRadius: BorderRadius.circular(12.r),
-              child: Image.file(
-                File(draft.photoPaths.first),
-                width: 80.w,
-                height: 80.w,
-                fit: BoxFit.cover,
+              child: Builder(
+                builder: (context) {
+                  // Use cacheWidth/cacheHeight to reduce memory footprint
+                  // Display is 80x80, multiply by devicePixelRatio
+                  final cacheSize = (80 * MediaQuery.devicePixelRatioOf(context)).toInt();
+                  return Image.file(
+                    File(draft.photoPaths.first),
+                    width: 80.w,
+                    height: 80.w,
+                    fit: BoxFit.cover,
+                    cacheWidth: cacheSize,
+                    cacheHeight: cacheSize,
+                  );
+                },
               ),
             )
           else

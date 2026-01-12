@@ -174,6 +174,7 @@ class _FollowersTab extends ConsumerWidget {
         },
         child: ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
+          itemExtent: 72.h, // Fixed height for ListTile with CircleAvatar
           itemCount: state.items.length + (state.isLoading ? 1 : 0),
           itemBuilder: (context, index) {
             if (index >= state.items.length) {
@@ -186,7 +187,10 @@ class _FollowersTab extends ConsumerWidget {
             }
 
             final follower = state.items[index];
-            return _FollowerListItem(follower: follower);
+            return _FollowerListItem(
+              key: ValueKey(follower.publicId),
+              follower: follower,
+            );
           },
         ),
       ),
@@ -270,6 +274,7 @@ class _FollowingTab extends ConsumerWidget {
         },
         child: ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
+          itemExtent: 72.h, // Fixed height for ListTile with CircleAvatar
           itemCount: state.items.length + (state.isLoading ? 1 : 0),
           itemBuilder: (context, index) {
             if (index >= state.items.length) {
@@ -282,7 +287,11 @@ class _FollowingTab extends ConsumerWidget {
             }
 
             final following = state.items[index];
-            return _FollowerListItem(follower: following, showFollowBack: false);
+            return _FollowerListItem(
+              key: ValueKey(following.publicId),
+              follower: following,
+              showFollowBack: false,
+            );
           },
         ),
       ),
@@ -295,6 +304,7 @@ class _FollowerListItem extends StatelessWidget {
   final bool showFollowBack;
 
   const _FollowerListItem({
+    super.key,
     required this.follower,
     this.showFollowBack = true,
   });

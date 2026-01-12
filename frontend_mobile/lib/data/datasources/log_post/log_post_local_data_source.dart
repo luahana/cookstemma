@@ -1,38 +1,57 @@
-// lib/data/datasources/log/log_post_local_data_source.dart
-
 import 'dart:convert';
-import 'package:hive/hive.dart';
+import 'package:isar/isar.dart';
+import 'package:pairing_planet2_frontend/core/utils/json_parser.dart';
+import 'package:pairing_planet2_frontend/data/models/local/cached_log_post.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_detail_response_dto.dart';
 
 class LogPostLocalDataSource {
-  static const String _logBoxName = 'log_post_box';
+  final Isar _isar;
 
-  // 💡 로그 상세 정보를 Hive에 캐싱합니다.
+  LogPostLocalDataSource(this._isar);
+
   Future<void> cacheLogDetail(LogPostDetailResponseDto logPost) async {
-    final box = await Hive.openBox(_logBoxName);
-    await box.put(logPost.publicId, jsonEncode(logPost.toJson()));
+    await _isar.writeTxn(() async {
+      final existing = await _isar.cachedLogPosts
+          .filter()
+          .publicIdEqualTo(logPost.publicId)
+          .findFirst();
+
+      final cached = CachedLogPost()
+        ..publicId = logPost.publicId
+        ..jsonData = jsonEncode(logPost.toJson())
+        ..cachedAt = DateTime.now();
+
+      if (existing != null) {
+        cached.id = existing.id;
+      }
+      await _isar.cachedLogPosts.put(cached);
+    });
   }
 
-  // 💡 저장된 로그 상세 정보를 불러옵니다.
   Future<LogPostDetailResponseDto?> getLastLogDetail(String publicId) async {
-    final box = await Hive.openBox(_logBoxName);
-    final jsonString = box.get(publicId);
+    final cached = await _isar.cachedLogPosts
+        .filter()
+        .publicIdEqualTo(publicId)
+        .findFirst();
 
-    if (jsonString != null) {
+    if (cached != null) {
       try {
-        return LogPostDetailResponseDto.fromJson(jsonDecode(jsonString));
+        // Parse JSON in background isolate to avoid UI thread blocking
+        final json = await parseJsonInBackground(cached.jsonData);
+        return LogPostDetailResponseDto.fromJson(json);
       } catch (e) {
-        // Cache format mismatch - delete stale entry and return null
-        await box.delete(publicId);
+        await _isar.writeTxn(() async {
+          await _isar.cachedLogPosts.delete(cached.id);
+        });
         return null;
       }
     }
     return null;
   }
 
-  // 💡 캐시 전체 삭제 (스키마 변경 시 사용)
   Future<void> clearCache() async {
-    final box = await Hive.openBox(_logBoxName);
-    await box.clear();
+    await _isar.writeTxn(() async {
+      await _isar.cachedLogPosts.clear();
+    });
   }
 }

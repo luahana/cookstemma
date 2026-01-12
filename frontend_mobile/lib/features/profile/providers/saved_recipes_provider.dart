@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pairing_planet2_frontend/core/network/dio_provider.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart';
 import 'package:pairing_planet2_frontend/core/utils/cache_utils.dart';
@@ -161,7 +160,7 @@ class SavedRecipesNotifier extends StateNotifier<SavedRecipesState> {
 final savedRecipesProvider = StateNotifierProvider.autoDispose<
     SavedRecipesNotifier, SavedRecipesState>((ref) {
   return SavedRecipesNotifier(
-    remoteDataSource: UserRemoteDataSource(ref.read(dioProvider)),
+    remoteDataSource: ref.read(userRemoteDataSourceProvider),
     localDataSource: ref.read(userLocalDataSourceProvider),
     networkInfo: ref.read(networkInfoProvider),
   );

@@ -193,7 +193,7 @@ class _RecipeSearchScreenState extends ConsumerState<RecipeSearchScreen> {
             }
 
             final recipe = recipes[index];
-            return _buildSearchResultCard(recipe);
+            return _buildSearchResultCard(recipe, key: ValueKey(recipe.publicId));
           },
         );
       },
@@ -219,8 +219,9 @@ class _RecipeSearchScreenState extends ConsumerState<RecipeSearchScreen> {
     );
   }
 
-  Widget _buildSearchResultCard(RecipeSummary recipe) {
+  Widget _buildSearchResultCard(RecipeSummary recipe, {Key? key}) {
     return Semantics(
+      key: key,
       button: true,
       label: recipe.title,
       child: GestureDetector(

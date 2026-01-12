@@ -22,19 +22,22 @@ class FeaturedStarCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: Offset(0, 4.h),
-            ),
-          ],
-        ),
-        child: Column(
+      // RepaintBoundary caches the card's pixels to avoid expensive repaints
+      // during scrolling (shadows + clips are costly to repaint)
+      child: RepaintBoundary(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: Offset(0, 4.h),
+              ),
+            ],
+          ),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Large image with overlays
@@ -98,6 +101,7 @@ class FeaturedStarCard extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       ),
     );
@@ -311,21 +315,24 @@ class FeaturedStarCardHorizontal extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: width,
-        height: 160.h,
-        margin: EdgeInsets.only(right: 12.w),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: Offset(0, 2.h),
-            ),
-          ],
-        ),
-        child: Stack(
+      // RepaintBoundary caches the card's pixels to avoid expensive repaints
+      // during scrolling (shadows + clips are costly to repaint)
+      child: RepaintBoundary(
+        child: Container(
+          width: width,
+          height: 160.h,
+          margin: EdgeInsets.only(right: 12.w),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: Offset(0, 2.h),
+              ),
+            ],
+          ),
+          child: Stack(
           fit: StackFit.expand,
           children: [
             // Background image
@@ -406,6 +413,7 @@ class FeaturedStarCardHorizontal extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       ),
     );

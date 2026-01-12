@@ -172,7 +172,7 @@ class _RecipeLogsScreenState extends ConsumerState<RecipeLogsScreen> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
-                      child: _buildThumbnail(logPost),
+                      child: _buildThumbnail(context, logPost),
                     ),
                     Positioned(
                       left: 8.w,
@@ -224,7 +224,7 @@ class _RecipeLogsScreenState extends ConsumerState<RecipeLogsScreen> {
     );
   }
 
-  Widget _buildThumbnail(LogPostSummary logPost) {
+  Widget _buildThumbnail(BuildContext context, LogPostSummary logPost) {
     if (logPost.thumbnailUrl == null) {
       return Container(
         width: double.infinity,
@@ -239,11 +239,16 @@ class _RecipeLogsScreenState extends ConsumerState<RecipeLogsScreen> {
 
     if (logPost.thumbnailUrl!.startsWith('file://')) {
       final filePath = logPost.thumbnailUrl!.replaceFirst('file://', '');
+      // Use cacheWidth/cacheHeight to reduce memory footprint
+      // Grid cards are approximately 150-200 pixels wide
+      final cacheSize = (200 * MediaQuery.devicePixelRatioOf(context)).toInt();
       return Image.file(
         File(filePath),
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
+        cacheWidth: cacheSize,
+        cacheHeight: cacheSize,
         errorBuilder: (context, error, stackTrace) {
           return Container(
             width: double.infinity,

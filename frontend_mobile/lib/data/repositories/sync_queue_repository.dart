@@ -74,6 +74,11 @@ class SyncQueueRepository {
     return await _localDataSource.getItem(id);
   }
 
+  /// Update an item in the queue
+  Future<void> updateItem(SyncQueueItem item) async {
+    await _localDataSource.updateItem(item);
+  }
+
   /// Mark an item as syncing
   Future<void> markSyncing(String id) async {
     final item = await _localDataSource.getItem(id);

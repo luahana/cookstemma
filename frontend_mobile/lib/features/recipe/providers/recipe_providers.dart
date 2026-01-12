@@ -2,6 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info_impl.dart';
+import 'package:pairing_planet2_frontend/core/providers/isar_provider.dart';
 import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
@@ -30,7 +31,8 @@ final networkInfoProvider = Provider<NetworkInfo>((ref) {
 });
 
 final recipeLocalDataSourceProvider = Provider<RecipeLocalDataSource>((ref) {
-  return RecipeLocalDataSource();
+  final isar = ref.read(isarProvider);
+  return RecipeLocalDataSource(isar);
 });
 
 // ----------------------------------------------------------------

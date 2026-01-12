@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pairing_planet2_frontend/core/providers/isar_provider.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_draft.dart';
 import 'package:pairing_planet2_frontend/data/datasources/recipe/recipe_draft_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_draft_dto.dart';
@@ -7,7 +8,8 @@ import 'package:pairing_planet2_frontend/data/models/recipe/recipe_draft_dto.dar
 /// Draft local data source provider
 final recipeDraftLocalDataSourceProvider =
     Provider<RecipeDraftLocalDataSource>((ref) {
-  return RecipeDraftLocalDataSource();
+  final isar = ref.read(isarProvider);
+  return RecipeDraftLocalDataSource(isar);
 });
 
 /// Draft save status enum

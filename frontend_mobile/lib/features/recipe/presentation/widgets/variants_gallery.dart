@@ -65,6 +65,8 @@ class VariantsGallery extends StatelessWidget {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: 20.w),
+            // itemExtent improves scroll performance by pre-calculating item sizes
+            itemExtent: 152.w, // 140.w card + 12.w margin
             itemCount: variants.length,
             itemBuilder: (context, index) {
               return _buildVariantCard(context, variants[index]);

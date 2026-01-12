@@ -8,7 +8,6 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,13 +59,8 @@ Future<void> mainCommon(AppConfig config, FirebaseOptions firebaseOptions) async
   // Initialize other services
   await EasyLocalization.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  await Hive.initFlutter();
-  await Hive.openBox('recipe_box');
-  await Hive.openBox('profile_cache_box');
-  await Hive.openBox('search_history_box');
-  await Hive.openBox('recipe_draft_box');
 
-  // Initialize Isar database for event tracking
+  // Initialize Isar database for local storage
   final isar = await initializeIsar();
   talker.info('Isar database initialized');
   talker.info('Environment: ${config.environmentName}');

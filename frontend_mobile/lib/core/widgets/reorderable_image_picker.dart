@@ -53,7 +53,7 @@ class ReorderableImagePicker extends StatelessWidget {
           }
 
           final item = images[index];
-          return _buildImageItem(item, index);
+          return _buildImageItem(context, item, index);
         },
       ),
     );
@@ -82,7 +82,7 @@ class ReorderableImagePicker extends StatelessWidget {
     );
   }
 
-  Widget _buildImageItem(UploadItem item, int index) {
+  Widget _buildImageItem(BuildContext context, UploadItem item, int index) {
     final bool isThumbnail = index == 0 && showThumbnailBadge;
 
     return ReorderableDragStartListener(
@@ -111,7 +111,7 @@ class ReorderableImagePicker extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      _buildImageWidget(item),
+                      _buildImageWidget(context, item),
                       _buildStatusOverlay(item),
                     ],
                   ),
@@ -169,7 +169,7 @@ class ReorderableImagePicker extends StatelessWidget {
     );
   }
 
-  Widget _buildImageWidget(UploadItem item) {
+  Widget _buildImageWidget(BuildContext context, UploadItem item) {
     final opacity = item.status == UploadStatus.uploading
         ? 0.6
         : (item.status == UploadStatus.error ? 0.4 : 1.0);
@@ -187,10 +187,15 @@ class ReorderableImagePicker extends StatelessWidget {
       );
     } else {
       // Local file (new upload)
+      // Use cacheWidth/cacheHeight to reduce memory footprint
+      // Display is 100x100, multiply by devicePixelRatio
+      final cacheSize = (100 * MediaQuery.devicePixelRatioOf(context)).toInt();
       return Image.file(
         item.file!,
         fit: BoxFit.cover,
         opacity: AlwaysStoppedAnimation(opacity),
+        cacheWidth: cacheSize,
+        cacheHeight: cacheSize,
       );
     }
   }

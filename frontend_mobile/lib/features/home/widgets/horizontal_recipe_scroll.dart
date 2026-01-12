@@ -28,6 +28,7 @@ class HorizontalActivityScroll extends StatelessWidget {
         itemBuilder: (context, index) {
           final activity = activities[index];
           return Padding(
+            key: ValueKey(activity.logPublicId),
             padding: EdgeInsets.only(right: index < activities.length - 1 ? 12.w : 0),
             child: SizedBox(
               width: 140.w,

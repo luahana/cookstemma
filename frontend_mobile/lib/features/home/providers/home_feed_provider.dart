@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info.dart';
+import 'package:pairing_planet2_frontend/core/providers/isar_provider.dart';
 import 'package:pairing_planet2_frontend/core/utils/cache_utils.dart';
 import 'package:pairing_planet2_frontend/data/datasources/home/home_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/recipe/recipe_remote_data_source.dart';
@@ -50,7 +51,8 @@ class HomeFeedState {
 
 /// Provider for HomeLocalDataSource.
 final homeLocalDataSourceProvider = Provider<HomeLocalDataSource>((ref) {
-  return HomeLocalDataSource();
+  final isar = ref.read(isarProvider);
+  return HomeLocalDataSource(isar);
 });
 
 /// Cache-first home feed provider using StateNotifier.

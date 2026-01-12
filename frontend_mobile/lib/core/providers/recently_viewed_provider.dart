@@ -1,11 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pairing_planet2_frontend/core/providers/isar_provider.dart';
 import 'package:pairing_planet2_frontend/data/datasources/recipe/recently_viewed_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recently_viewed_recipe_dto.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 
 /// Provider for the recently viewed local data source.
 final recentlyViewedLocalDataSourceProvider = Provider(
-  (ref) => RecentlyViewedLocalDataSource(),
+  (ref) {
+    final isar = ref.read(isarProvider);
+    return RecentlyViewedLocalDataSource(isar);
+  },
 );
 
 /// Provider for recently viewed recipes.

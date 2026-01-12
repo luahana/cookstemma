@@ -1,6 +1,7 @@
 // lib/features/log/providers/log_providers.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/providers/analytics_providers.dart';
+import 'package:pairing_planet2_frontend/core/providers/isar_provider.dart';
 import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/repositories/log_post_repository_impl.dart';
@@ -23,7 +24,10 @@ final logRemoteDataSourceProvider = Provider(
 );
 
 final logPostLocalDataSourceProvider = Provider(
-  (ref) => LogPostLocalDataSource(),
+  (ref) {
+    final isar = ref.read(isarProvider);
+    return LogPostLocalDataSource(isar);
+  },
 );
 
 final logPostRepositoryProvider = Provider<LogPostRepository>(

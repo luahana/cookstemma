@@ -1,21 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart';
+import 'package:isar/isar.dart';
+import 'package:pairing_planet2_frontend/core/providers/isar_provider.dart';
+import 'package:pairing_planet2_frontend/data/models/local/progress_stats_entry.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/progress_overview_card.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_list_provider.dart';
 
-/// Local data source for storing progress stats
 class ProgressStatsLocalDataSource {
-  static const String _boxName = 'progress_stats_box';
+  final Isar _isar;
   static const String _statsKey = 'user_progress_stats';
-  static const String _lastLogDateKey = 'last_log_date';
-  static const String _currentStreakKey = 'current_streak';
-  static const String _longestStreakKey = 'longest_streak';
 
-  Future<Box<dynamic>> _getBox() async {
-    return await Hive.openBox(_boxName);
-  }
+  ProgressStatsLocalDataSource(this._isar);
 
-  /// Save progress stats
   Future<void> saveStats({
     required int successCount,
     required int partialCount,
@@ -24,47 +19,62 @@ class ProgressStatsLocalDataSource {
     required int longestStreak,
     DateTime? lastLogDate,
   }) async {
-    final box = await _getBox();
-    await box.put(_statsKey, {
-      'successCount': successCount,
-      'partialCount': partialCount,
-      'failedCount': failedCount,
+    await _isar.writeTxn(() async {
+      final existing = await _isar.progressStatsEntrys
+          .filter()
+          .statsKeyEqualTo(_statsKey)
+          .findFirst();
+
+      final entry = ProgressStatsEntry()
+        ..statsKey = _statsKey
+        ..successCount = successCount
+        ..partialCount = partialCount
+        ..failedCount = failedCount
+        ..currentStreak = currentStreak
+        ..longestStreak = longestStreak
+        ..lastLogDate = lastLogDate;
+
+      if (existing != null) {
+        entry.id = existing.id;
+      }
+      await _isar.progressStatsEntrys.put(entry);
     });
-    await box.put(_currentStreakKey, currentStreak);
-    await box.put(_longestStreakKey, longestStreak);
-    if (lastLogDate != null) {
-      await box.put(_lastLogDateKey, lastLogDate.toIso8601String());
-    }
   }
 
-  /// Get saved progress stats
   Future<ProgressStats> getStats() async {
-    final box = await _getBox();
-    final stats = box.get(_statsKey) as Map<dynamic, dynamic>?;
-    final currentStreak = box.get(_currentStreakKey) as int? ?? 0;
-    final longestStreak = box.get(_longestStreakKey) as int? ?? 0;
-    final lastLogDateStr = box.get(_lastLogDateKey) as String?;
+    final entry = await _isar.progressStatsEntrys
+        .filter()
+        .statsKeyEqualTo(_statsKey)
+        .findFirst();
+
+    if (entry == null) {
+      return const ProgressStats(
+        successCount: 0,
+        partialCount: 0,
+        failedCount: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        lastLogDate: null,
+      );
+    }
 
     return ProgressStats(
-      successCount: stats?['successCount'] as int? ?? 0,
-      partialCount: stats?['partialCount'] as int? ?? 0,
-      failedCount: stats?['failedCount'] as int? ?? 0,
-      currentStreak: currentStreak,
-      longestStreak: longestStreak,
-      lastLogDate: lastLogDateStr != null ? DateTime.parse(lastLogDateStr) : null,
+      successCount: entry.successCount,
+      partialCount: entry.partialCount,
+      failedCount: entry.failedCount,
+      currentStreak: entry.currentStreak,
+      longestStreak: entry.longestStreak,
+      lastLogDate: entry.lastLogDate,
     );
   }
 
-  /// Update streak after a new log
   Future<ProgressStats> updateStreak(DateTime logDate) async {
-    final box = await _getBox();
-    final lastLogDateStr = box.get(_lastLogDateKey) as String?;
-    var currentStreak = box.get(_currentStreakKey) as int? ?? 0;
-    var longestStreak = box.get(_longestStreakKey) as int? ?? 0;
+    final stats = await getStats();
+    var currentStreak = stats.currentStreak;
+    var longestStreak = stats.longestStreak;
 
-    if (lastLogDateStr != null) {
-      final lastLogDate = DateTime.parse(lastLogDateStr);
-      final daysDiff = _daysBetween(lastLogDate, logDate);
+    if (stats.lastLogDate != null) {
+      final daysDiff = _daysBetween(stats.lastLogDate!, logDate);
 
       if (daysDiff == 0) {
         // Same day, streak continues but no increment
@@ -85,46 +95,58 @@ class ProgressStatsLocalDataSource {
       longestStreak = currentStreak;
     }
 
-    // Save updated values
-    await box.put(_currentStreakKey, currentStreak);
-    await box.put(_longestStreakKey, longestStreak);
-    await box.put(_lastLogDateKey, logDate.toIso8601String());
+    await saveStats(
+      successCount: stats.successCount,
+      partialCount: stats.partialCount,
+      failedCount: stats.failedCount,
+      currentStreak: currentStreak,
+      longestStreak: longestStreak,
+      lastLogDate: logDate,
+    );
 
     return await getStats();
   }
 
-  /// Calculate days between two dates (ignoring time)
   int _daysBetween(DateTime from, DateTime to) {
     final fromDate = DateTime(from.year, from.month, from.day);
     final toDate = DateTime(to.year, to.month, to.day);
     return toDate.difference(fromDate).inDays;
   }
 
-  /// Check if streak should be reset (called on app open)
   Future<void> checkAndResetStreak() async {
-    final box = await _getBox();
-    final lastLogDateStr = box.get(_lastLogDateKey) as String?;
+    final stats = await getStats();
 
-    if (lastLogDateStr != null) {
-      final lastLogDate = DateTime.parse(lastLogDateStr);
+    if (stats.lastLogDate != null) {
       final now = DateTime.now();
-      final daysDiff = _daysBetween(lastLogDate, now);
+      final daysDiff = _daysBetween(stats.lastLogDate!, now);
 
       if (daysDiff > 1) {
         // More than a day has passed, reset streak
-        await box.put(_currentStreakKey, 0);
+        await saveStats(
+          successCount: stats.successCount,
+          partialCount: stats.partialCount,
+          failedCount: stats.failedCount,
+          currentStreak: 0,
+          longestStreak: stats.longestStreak,
+          lastLogDate: stats.lastLogDate,
+        );
       }
     }
   }
 }
 
-/// Notifier for progress stats
+final progressStatsLocalDataSourceProvider =
+    Provider<ProgressStatsLocalDataSource>((ref) {
+  final isar = ref.read(isarProvider);
+  return ProgressStatsLocalDataSource(isar);
+});
+
 class ProgressStatsNotifier extends AsyncNotifier<ProgressStats> {
   late final ProgressStatsLocalDataSource _localDataSource;
 
   @override
   Future<ProgressStats> build() async {
-    _localDataSource = ProgressStatsLocalDataSource();
+    _localDataSource = ref.read(progressStatsLocalDataSourceProvider);
 
     // Check if streak needs to be reset
     await _localDataSource.checkAndResetStreak();
@@ -167,36 +189,31 @@ class ProgressStatsNotifier extends AsyncNotifier<ProgressStats> {
         );
       },
       loading: () => localStats,
-      error: (_, _) => localStats,
+      error: (error, stackTrace) => localStats,
     );
   }
 
-  /// Record a new log and update streak
   Future<void> recordNewLog(String outcome) async {
     final now = DateTime.now();
     await _localDataSource.updateStreak(now);
     ref.invalidateSelf();
   }
 
-  /// Refresh stats from server
   Future<void> refresh() async {
     ref.invalidateSelf();
   }
 }
 
-/// Provider for progress stats
 final progressStatsProvider =
     AsyncNotifierProvider<ProgressStatsNotifier, ProgressStats>(
   ProgressStatsNotifier.new,
 );
 
-/// Provider for just the current streak (for quick access)
 final currentStreakProvider = Provider<int>((ref) {
   final statsAsync = ref.watch(progressStatsProvider);
   return statsAsync.valueOrNull?.currentStreak ?? 0;
 });
 
-/// Provider for checking if user logged today
 final loggedTodayProvider = Provider<bool>((ref) {
   final statsAsync = ref.watch(progressStatsProvider);
   return statsAsync.valueOrNull?.loggedToday ?? false;

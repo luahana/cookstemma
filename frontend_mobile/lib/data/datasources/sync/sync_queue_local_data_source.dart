@@ -1,177 +1,184 @@
-import 'package:hive/hive.dart';
+import 'dart:convert';
+import 'package:isar/isar.dart';
+import 'package:pairing_planet2_frontend/data/models/local/local_log_draft.dart';
+import 'package:pairing_planet2_frontend/data/models/local/sync_queue_entry.dart';
 import 'package:pairing_planet2_frontend/data/models/sync/sync_queue_item.dart';
 
-/// Local data source for the sync queue using Hive
 class SyncQueueLocalDataSource {
-  static const String _syncQueueBoxName = 'sync_queue_box';
-  static const String _localLogBoxName = 'local_log_drafts_box';
+  final Isar _isar;
 
-  /// Get the sync queue box
-  Future<Box<String>> _getSyncBox() async {
-    return await Hive.openBox<String>(_syncQueueBoxName);
+  SyncQueueLocalDataSource(this._isar);
+
+  SyncQueueStatus _mapStatus(SyncStatus status) {
+    switch (status) {
+      case SyncStatus.pending:
+        return SyncQueueStatus.pending;
+      case SyncStatus.syncing:
+        return SyncQueueStatus.syncing;
+      case SyncStatus.synced:
+        return SyncQueueStatus.synced;
+      case SyncStatus.failed:
+        return SyncQueueStatus.failed;
+      case SyncStatus.abandoned:
+        return SyncQueueStatus.abandoned;
+    }
   }
 
-  /// Get the local drafts box
-  Future<Box<String>> _getLocalDraftsBox() async {
-    return await Hive.openBox<String>(_localLogBoxName);
+  SyncQueueItem _entryToItem(SyncQueueEntry entry) {
+    return SyncQueueItem.fromJsonString(jsonEncode({
+      'id': entry.entryId,
+      'type': entry.operationType,
+      'payload': entry.payload,
+      'status': entry.status.name,
+      'retryCount': entry.retryCount,
+      'createdAt': entry.createdAt.toIso8601String(),
+      'lastAttemptAt': entry.lastAttemptAt?.toIso8601String(),
+      'errorMessage': entry.errorMessage,
+      'localId': entry.localId,
+    }));
   }
 
-  /// Add an item to the sync queue
   Future<void> addToQueue(SyncQueueItem item) async {
-    final box = await _getSyncBox();
-    await box.put(item.id, item.toJsonString());
+    await _isar.writeTxn(() async {
+      final entry = SyncQueueEntry()
+        ..entryId = item.id
+        ..operationType = item.type.name
+        ..payload = item.payload
+        ..status = _mapStatus(item.status)
+        ..retryCount = item.retryCount
+        ..createdAt = item.createdAt
+        ..lastAttemptAt = item.lastAttemptAt
+        ..errorMessage = item.errorMessage
+        ..localId = item.localId;
+
+      await _isar.syncQueueEntrys.put(entry);
+    });
   }
 
-  /// Update an existing queue item
   Future<void> updateItem(SyncQueueItem item) async {
-    final box = await _getSyncBox();
-    await box.put(item.id, item.toJsonString());
+    await _isar.writeTxn(() async {
+      final existing = await _isar.syncQueueEntrys
+          .filter()
+          .entryIdEqualTo(item.id)
+          .findFirst();
+
+      final entry = SyncQueueEntry()
+        ..entryId = item.id
+        ..operationType = item.type.name
+        ..payload = item.payload
+        ..status = _mapStatus(item.status)
+        ..retryCount = item.retryCount
+        ..createdAt = item.createdAt
+        ..lastAttemptAt = item.lastAttemptAt
+        ..errorMessage = item.errorMessage
+        ..localId = item.localId;
+
+      if (existing != null) {
+        entry.id = existing.id;
+      }
+      await _isar.syncQueueEntrys.put(entry);
+    });
   }
 
-  /// Get a specific queue item by ID
   Future<SyncQueueItem?> getItem(String id) async {
-    final box = await _getSyncBox();
-    final jsonString = box.get(id);
-    if (jsonString != null) {
-      return SyncQueueItem.fromJsonString(jsonString);
+    final entry = await _isar.syncQueueEntrys
+        .filter()
+        .entryIdEqualTo(id)
+        .findFirst();
+
+    if (entry != null) {
+      return _entryToItem(entry);
     }
     return null;
   }
 
-  /// Get all pending items (ready to sync)
   Future<List<SyncQueueItem>> getPendingItems() async {
-    final box = await _getSyncBox();
-    final items = <SyncQueueItem>[];
+    final entries = await _isar.syncQueueEntrys
+        .filter()
+        .group((q) => q
+            .statusEqualTo(SyncQueueStatus.pending)
+            .or()
+            .statusEqualTo(SyncQueueStatus.failed))
+        .sortByCreatedAt()
+        .findAll();
 
-    for (final key in box.keys) {
-      final jsonString = box.get(key);
-      if (jsonString != null) {
-        final item = SyncQueueItem.fromJsonString(jsonString);
-        if (item.isReadyToSync) {
-          items.add(item);
-        }
-      }
-    }
-
-    // Sort by creation time (oldest first - FIFO)
-    items.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    return items;
+    return entries
+        .map((e) => _entryToItem(e))
+        .where((item) => item.isReadyToSync)
+        .toList();
   }
 
-  /// Get all items with a specific status
   Future<List<SyncQueueItem>> getItemsByStatus(SyncStatus status) async {
-    final box = await _getSyncBox();
-    final items = <SyncQueueItem>[];
+    final entries = await _isar.syncQueueEntrys
+        .filter()
+        .statusEqualTo(_mapStatus(status))
+        .findAll();
 
-    for (final key in box.keys) {
-      final jsonString = box.get(key);
-      if (jsonString != null) {
-        final item = SyncQueueItem.fromJsonString(jsonString);
-        if (item.status == status) {
-          items.add(item);
-        }
-      }
-    }
-
-    return items;
+    return entries.map((e) => _entryToItem(e)).toList();
   }
 
-  /// Get all items (for debugging/stats)
   Future<List<SyncQueueItem>> getAllItems() async {
-    final box = await _getSyncBox();
-    final items = <SyncQueueItem>[];
+    final entries = await _isar.syncQueueEntrys
+        .where()
+        .sortByCreatedAt()
+        .findAll();
 
-    for (final key in box.keys) {
-      final jsonString = box.get(key);
-      if (jsonString != null) {
-        items.add(SyncQueueItem.fromJsonString(jsonString));
-      }
-    }
-
-    items.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    return items;
+    return entries.map((e) => _entryToItem(e)).toList();
   }
 
-  /// Remove an item from the queue
   Future<void> removeItem(String id) async {
-    final box = await _getSyncBox();
-    await box.delete(id);
+    await _isar.writeTxn(() async {
+      await _isar.syncQueueEntrys
+          .filter()
+          .entryIdEqualTo(id)
+          .deleteAll();
+    });
   }
 
-  /// Remove all synced items (cleanup)
   Future<int> clearSyncedItems() async {
-    final box = await _getSyncBox();
-    final keysToRemove = <String>[];
-
-    for (final key in box.keys) {
-      final jsonString = box.get(key);
-      if (jsonString != null) {
-        final item = SyncQueueItem.fromJsonString(jsonString);
-        if (item.status == SyncStatus.synced) {
-          keysToRemove.add(key as String);
-        }
-      }
-    }
-
-    for (final key in keysToRemove) {
-      await box.delete(key);
-    }
-
-    return keysToRemove.length;
+    return await _isar.writeTxn(() async {
+      return await _isar.syncQueueEntrys
+          .filter()
+          .statusEqualTo(SyncQueueStatus.synced)
+          .deleteAll();
+    });
   }
 
-  /// Remove all abandoned items
   Future<int> clearAbandonedItems() async {
-    final box = await _getSyncBox();
-    final keysToRemove = <String>[];
-
-    for (final key in box.keys) {
-      final jsonString = box.get(key);
-      if (jsonString != null) {
-        final item = SyncQueueItem.fromJsonString(jsonString);
-        if (item.status == SyncStatus.abandoned) {
-          keysToRemove.add(key as String);
-        }
-      }
-    }
-
-    for (final key in keysToRemove) {
-      await box.delete(key);
-    }
-
-    return keysToRemove.length;
+    return await _isar.writeTxn(() async {
+      return await _isar.syncQueueEntrys
+          .filter()
+          .statusEqualTo(SyncQueueStatus.abandoned)
+          .deleteAll();
+    });
   }
 
-  /// Get queue statistics
   Future<SyncQueueStats> getStats() async {
-    final box = await _getSyncBox();
     int pending = 0;
     int syncing = 0;
     int synced = 0;
     int failed = 0;
     int abandoned = 0;
 
-    for (final key in box.keys) {
-      final jsonString = box.get(key);
-      if (jsonString != null) {
-        final item = SyncQueueItem.fromJsonString(jsonString);
-        switch (item.status) {
-          case SyncStatus.pending:
-            pending++;
-            break;
-          case SyncStatus.syncing:
-            syncing++;
-            break;
-          case SyncStatus.synced:
-            synced++;
-            break;
-          case SyncStatus.failed:
-            failed++;
-            break;
-          case SyncStatus.abandoned:
-            abandoned++;
-            break;
-        }
+    final entries = await _isar.syncQueueEntrys.where().findAll();
+
+    for (final entry in entries) {
+      switch (entry.status) {
+        case SyncQueueStatus.pending:
+          pending++;
+          break;
+        case SyncQueueStatus.syncing:
+          syncing++;
+          break;
+        case SyncQueueStatus.synced:
+          synced++;
+          break;
+        case SyncQueueStatus.failed:
+          failed++;
+          break;
+        case SyncQueueStatus.abandoned:
+          abandoned++;
+          break;
       }
     }
 
@@ -184,24 +191,18 @@ class SyncQueueLocalDataSource {
     );
   }
 
-  /// Check if there are pending items
   Future<bool> hasPendingItems() async {
-    final box = await _getSyncBox();
+    final count = await _isar.syncQueueEntrys
+        .filter()
+        .group((q) => q
+            .statusEqualTo(SyncQueueStatus.pending)
+            .or()
+            .statusEqualTo(SyncQueueStatus.failed))
+        .count();
 
-    for (final key in box.keys) {
-      final jsonString = box.get(key);
-      if (jsonString != null) {
-        final item = SyncQueueItem.fromJsonString(jsonString);
-        if (item.isReadyToSync) {
-          return true;
-        }
-      }
-    }
-
-    return false;
+    return count > 0;
   }
 
-  /// Get count of pending items
   Future<int> getPendingCount() async {
     final items = await getPendingItems();
     return items.length;
@@ -209,32 +210,50 @@ class SyncQueueLocalDataSource {
 
   // ============ Local Draft Storage ============
 
-  /// Save a local log draft (for optimistic UI)
   Future<void> saveLocalDraft(String localId, Map<String, dynamic> draft) async {
-    final box = await _getLocalDraftsBox();
-    await box.put(localId, draft.toString());
+    await _isar.writeTxn(() async {
+      final existing = await _isar.localLogDrafts
+          .filter()
+          .localIdEqualTo(localId)
+          .findFirst();
+
+      final entry = LocalLogDraft()
+        ..localId = localId
+        ..jsonData = jsonEncode(draft);
+
+      if (existing != null) {
+        entry.id = existing.id;
+      }
+      await _isar.localLogDrafts.put(entry);
+    });
   }
 
-  /// Get a local log draft
   Future<Map<String, dynamic>?> getLocalDraft(String localId) async {
-    final box = await _getLocalDraftsBox();
-    final data = box.get(localId);
-    if (data != null) {
-      // Note: This is a simplified implementation
-      // In production, you'd want proper JSON serialization
-      return {'localId': localId, 'raw': data};
+    final entry = await _isar.localLogDrafts
+        .filter()
+        .localIdEqualTo(localId)
+        .findFirst();
+
+    if (entry != null) {
+      try {
+        return jsonDecode(entry.jsonData) as Map<String, dynamic>;
+      } catch (e) {
+        return {'localId': localId, 'raw': entry.jsonData};
+      }
     }
     return null;
   }
 
-  /// Remove a local draft (after successful sync)
   Future<void> removeLocalDraft(String localId) async {
-    final box = await _getLocalDraftsBox();
-    await box.delete(localId);
+    await _isar.writeTxn(() async {
+      await _isar.localLogDrafts
+          .filter()
+          .localIdEqualTo(localId)
+          .deleteAll();
+    });
   }
 }
 
-/// Statistics about the sync queue
 class SyncQueueStats {
   final int pending;
   final int syncing;

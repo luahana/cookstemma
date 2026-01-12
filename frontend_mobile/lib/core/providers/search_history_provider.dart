@@ -1,9 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pairing_planet2_frontend/core/providers/isar_provider.dart';
 import 'package:pairing_planet2_frontend/data/datasources/search/search_local_data_source.dart';
 
 /// Provider for the search local data source.
 final searchLocalDataSourceProvider = Provider(
-  (ref) => SearchLocalDataSource(),
+  (ref) {
+    final isar = ref.read(isarProvider);
+    return SearchLocalDataSource(isar);
+  },
 );
 
 /// Provider for recipe search history.
