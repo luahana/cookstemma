@@ -185,7 +185,7 @@ resource "aws_ecs_task_definition" "main" {
       environment = [
         {
           name  = "SPRING_PROFILES_ACTIVE"
-          value = var.environment
+          value = "aws"
         },
         {
           name  = "SERVER_PORT"
