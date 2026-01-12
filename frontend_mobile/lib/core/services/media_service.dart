@@ -1,29 +1,35 @@
 import 'package:image_picker/image_picker.dart';
-import 'package:pairing_planet2_frontend/core/services/permission_handler.dart';
 
 class MediaService {
-  final ImagePicker _picker = ImagePicker();
+  final ImagePicker _picker;
 
-  // 사진 촬영
+  /// Creates a MediaService with an optional ImagePicker for testing
+  MediaService({ImagePicker? picker}) : _picker = picker ?? ImagePicker();
+
+  /// Take photo using camera
+  /// Note: Let ImagePicker handle permissions natively - it handles
+  /// permanentlyDenied cases better than permission_handler
   Future<XFile?> takePhoto() async {
-    final hasPermission = await PermissionService.requestCameraPermission();
-    if (!hasPermission) return null;
-
-    return await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 80, // 용량 최적화
-      maxWidth: 1080,
-    );
+    try {
+      return await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+        maxWidth: 1080,
+      );
+    } catch (e) {
+      return null;
+    }
   }
 
-  // 갤러리에서 선택
+  /// Pick image from gallery
   Future<XFile?> pickImage() async {
-    final hasPermission = await PermissionService.requestGalleryPermission();
-    if (!hasPermission) return null;
-
-    return await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-    );
+    try {
+      return await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+    } catch (e) {
+      return null;
+    }
   }
 }

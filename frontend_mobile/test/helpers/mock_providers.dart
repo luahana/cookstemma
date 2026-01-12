@@ -1,6 +1,11 @@
+import 'dart:io';
+
+import 'package:image_picker/image_picker.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info.dart';
+import 'package:pairing_planet2_frontend/core/services/media_service.dart';
 import 'package:pairing_planet2_frontend/core/services/social_auth_service.dart';
+import 'package:pairing_planet2_frontend/core/providers/image_providers.dart';
 import 'package:pairing_planet2_frontend/data/datasources/auth/auth_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/auth/auth_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/recipe/recipe_local_data_source.dart';
@@ -68,6 +73,17 @@ class MockLoginUseCase extends Mock implements LoginUseCase {}
 
 class MockLogoutUseCase extends Mock implements LogoutUseCase {}
 
+class MockUploadImageWithTrackingUseCase extends Mock
+    implements UploadImageWithTrackingUseCase {}
+
+// ============================================================
+// Image/Media Mocks
+// ============================================================
+
+class MockImagePicker extends Mock implements ImagePicker {}
+
+class MockMediaService extends Mock implements MediaService {}
+
 // ============================================================
 // Fake Classes for registerFallbackValue
 // ============================================================
@@ -76,6 +92,10 @@ class MockLogoutUseCase extends Mock implements LogoutUseCase {}
 // Example:
 //   setUpAll(() {
 //     registerFallbackValue(FakeSocialLoginRequestDto());
+//     registerFallbackValue(FakeFile());
+//     registerFallbackValue(ImageSource.camera);
 //   });
+
+class FakeFile extends Fake implements File {}
 
 // Add fake classes as needed for DTOs used with any() matcher

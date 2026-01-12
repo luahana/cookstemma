@@ -1,7 +1,11 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
 import 'package:pairing_planet2_frontend/data/models/auth/auth_response_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/image/image_upload_response_dto.dart';
+import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dart';
 
 // ============================================================
 // Auth Test Data
@@ -122,6 +126,70 @@ class TestLogPostData {
       first: page == 0,
       last: !hasNext,
       hasNext: hasNext,
+    );
+  }
+}
+
+// ============================================================
+// Image/Upload Test Data
+// ============================================================
+
+class TestImageData {
+  static const String testImagePath = '/test/image.jpg';
+  static const String testPublicId = 'img-test-123';
+  static const String testImageUrl = 'https://example.com/image.jpg';
+
+  /// Create an XFile for testing
+  static XFile createXFile({String path = testImagePath}) => XFile(path);
+
+  /// Create an UploadItem for testing local file uploads
+  static UploadItem createUploadItem({
+    File? file,
+    UploadStatus status = UploadStatus.initial,
+    String? publicId,
+    String? serverUrl,
+  }) {
+    return UploadItem(
+      file: file ?? File(testImagePath),
+      status: status,
+      publicId: publicId,
+      serverUrl: serverUrl,
+    );
+  }
+
+  /// Create an UploadItem for testing existing remote images
+  static UploadItem createRemoteUploadItem({
+    String url = testImageUrl,
+    String publicId = testPublicId,
+  }) {
+    return UploadItem.fromRemote(url: url, publicId: publicId);
+  }
+
+  /// Create an ImageUploadResponseDto for testing
+  static ImageUploadResponseDto createUploadResponse({
+    String publicId = testPublicId,
+    String url = testImageUrl,
+    String filename = 'test_image.jpg',
+  }) {
+    return ImageUploadResponseDto(
+      imagePublicId: publicId,
+      imageUrl: url,
+      originalFilename: filename,
+    );
+  }
+
+  /// Create a list of UploadItems for testing
+  static List<UploadItem> createUploadItemList({
+    int count = 3,
+    UploadStatus status = UploadStatus.success,
+  }) {
+    return List.generate(
+      count,
+      (i) => createUploadItem(
+        file: File('/test/image_$i.jpg'),
+        status: status,
+        publicId: status == UploadStatus.success ? 'img-$i' : null,
+      ),
     );
   }
 }
