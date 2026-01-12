@@ -126,51 +126,25 @@ class AutocompleteServiceTest extends BaseIntegrationTest {
     }
 
     @Nested
-    @DisplayName("Search with MAIN type")
-    class SearchWithMainType {
+    @DisplayName("Search with MAIN type (includes SECONDARY)")
+    class SearchWithMainTypeIncludesSecondary {
 
         @Test
-        @DisplayName("should return only main ingredient items")
-        void shouldReturnOnlyMainIngredients() {
-            List<AutocompleteDto> results = autocompleteService.search("Chicken", "en-US", "MAIN");
-
-            assertThat(results).hasSize(1);
-            assertThat(results.get(0).name()).isEqualTo("Chicken");
-            assertThat(results.get(0).type()).isEqualTo("MAIN_INGREDIENT");
-        }
-
-        @Test
-        @DisplayName("should return multiple main ingredients when matching")
-        void shouldReturnMultipleMainIngredients() {
-            // pg_trgm requires at least 3 chars; 'Bee' matches Beef
-            List<AutocompleteDto> results = autocompleteService.search("Bee", "en-US", "MAIN");
+        @DisplayName("should return both main and secondary ingredient items")
+        void shouldReturnBothMainAndSecondaryIngredients() {
+            // Using 'Che' to match both Chicken (MAIN) and Cheese (SECONDARY)
+            List<AutocompleteDto> results = autocompleteService.search("Che", "en-US", "MAIN");
 
             assertThat(results).isNotEmpty();
+            // Should contain Chicken (MAIN) and Cheese (SECONDARY)
             assertThat(results).extracting(AutocompleteDto::type)
-                    .allMatch(type -> type.equals("MAIN_INGREDIENT"));
-        }
-    }
-
-    @Nested
-    @DisplayName("Search with SECONDARY type (includes MAIN)")
-    class SearchWithSecondaryType {
-
-        @Test
-        @DisplayName("should return both secondary and main ingredient items")
-        void shouldReturnBothSecondaryAndMainIngredients() {
-            // Using 'Che' to match both Cheese (SECONDARY) and Chicken (MAIN)
-            List<AutocompleteDto> results = autocompleteService.search("Che", "en-US", "SECONDARY");
-
-            assertThat(results).isNotEmpty();
-            // Should contain Cheese (SECONDARY) and possibly Chicken (MAIN)
-            assertThat(results).extracting(AutocompleteDto::type)
-                    .containsAnyOf("SECONDARY_INGREDIENT", "MAIN_INGREDIENT");
+                    .containsAnyOf("MAIN_INGREDIENT", "SECONDARY_INGREDIENT");
         }
 
         @Test
         @DisplayName("should not return dishes or seasonings")
         void shouldNotReturnDishesOrSeasonings() {
-            List<AutocompleteDto> results = autocompleteService.search("Che", "en-US", "SECONDARY");
+            List<AutocompleteDto> results = autocompleteService.search("Che", "en-US", "MAIN");
 
             assertThat(results).extracting(AutocompleteDto::type)
                     .doesNotContain("DISH", "SEASONING");
@@ -179,8 +153,8 @@ class AutocompleteServiceTest extends BaseIntegrationTest {
         @Test
         @DisplayName("should sort by score descending")
         void shouldSortByScoreDescending() {
-            // Using 'Oni' to get Onion from SECONDARY
-            List<AutocompleteDto> results = autocompleteService.search("Oni", "en-US", "SECONDARY");
+            // Using 'Che' to get both Chicken (MAIN) and Cheese (SECONDARY)
+            List<AutocompleteDto> results = autocompleteService.search("Che", "en-US", "MAIN");
 
             assertThat(results).isNotEmpty();
             // Verify sorted by score descending
@@ -188,6 +162,32 @@ class AutocompleteServiceTest extends BaseIntegrationTest {
                 assertThat(results.get(i).score())
                         .isGreaterThanOrEqualTo(results.get(i + 1).score());
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("Search with SECONDARY type (only SECONDARY)")
+    class SearchWithSecondaryTypeOnly {
+
+        @Test
+        @DisplayName("should return only secondary ingredient items")
+        void shouldReturnOnlySecondaryIngredients() {
+            // Using 'Che' which matches Cheese (SECONDARY) but not Chicken (MAIN)
+            List<AutocompleteDto> results = autocompleteService.search("Che", "en-US", "SECONDARY");
+
+            assertThat(results).isNotEmpty();
+            // Should contain only SECONDARY_INGREDIENT, not MAIN_INGREDIENT
+            assertThat(results).extracting(AutocompleteDto::type)
+                    .allMatch(type -> type.equals("SECONDARY_INGREDIENT"));
+        }
+
+        @Test
+        @DisplayName("should not return main ingredients, dishes or seasonings")
+        void shouldNotReturnMainDishesOrSeasonings() {
+            List<AutocompleteDto> results = autocompleteService.search("Oni", "en-US", "SECONDARY");
+
+            assertThat(results).extracting(AutocompleteDto::type)
+                    .doesNotContain("MAIN_INGREDIENT", "DISH", "SEASONING");
         }
     }
 

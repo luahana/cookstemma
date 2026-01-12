@@ -37,10 +37,10 @@ public class AutocompleteService {
     public List<AutocompleteDto> search(String keyword, String locale, String type) {
         if (keyword == null || keyword.isBlank()) return List.of();
 
-        // Special case: SECONDARY searches both secondary and main ingredients
-        if ("SECONDARY".equalsIgnoreCase(type)) {
+        // Special case: MAIN searches both main and secondary ingredients
+        if ("MAIN".equalsIgnoreCase(type)) {
             return searchMultipleTypes(keyword, locale,
-                List.of("SECONDARY_INGREDIENT", "MAIN_INGREDIENT"));
+                List.of("MAIN_INGREDIENT", "SECONDARY_INGREDIENT"));
         }
 
         // Map frontend type to autocomplete type
@@ -58,7 +58,7 @@ public class AutocompleteService {
     }
 
     /**
-     * Search multiple types and merge results (for SECONDARY which includes MAIN)
+     * Search multiple types and merge results (for MAIN which includes SECONDARY)
      */
     private List<AutocompleteDto> searchMultipleTypes(String keyword, String locale, List<String> types) {
         List<AutocompleteDto> allResults = new ArrayList<>();

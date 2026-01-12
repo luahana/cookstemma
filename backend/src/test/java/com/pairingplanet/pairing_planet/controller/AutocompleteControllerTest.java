@@ -126,16 +126,16 @@ class AutocompleteControllerTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("should filter by MAIN type")
-        void shouldFilterByMainType() throws Exception {
+        @DisplayName("should return both MAIN and SECONDARY for MAIN type")
+        void shouldReturnMainAndSecondaryForMainType() throws Exception {
             mockMvc.perform(get(AUTOCOMPLETE_URL)
-                            .param("keyword", "Chi")
+                            .param("keyword", "Ch")
                             .param("locale", "en-US")
                             .param("type", "MAIN"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(1))
-                    .andExpect(jsonPath("$[0].name").value("Chicken"))
-                    .andExpect(jsonPath("$[0].type").value("MAIN_INGREDIENT"));
+                    .andExpect(jsonPath("$.length()").value(2))
+                    .andExpect(jsonPath("$[*].name", containsInAnyOrder("Chicken", "Cheese")))
+                    .andExpect(jsonPath("$[*].type", containsInAnyOrder("MAIN_INGREDIENT", "SECONDARY_INGREDIENT")));
         }
 
         @Test
@@ -152,25 +152,25 @@ class AutocompleteControllerTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("should return both SECONDARY and MAIN for SECONDARY type")
-        void shouldReturnSecondaryAndMainForSecondaryType() throws Exception {
+        @DisplayName("should filter by SECONDARY type (only SECONDARY, not MAIN)")
+        void shouldFilterBySecondaryTypeOnly() throws Exception {
             mockMvc.perform(get(AUTOCOMPLETE_URL)
-                            .param("keyword", "Ch")
+                            .param("keyword", "Che")
                             .param("locale", "en-US")
                             .param("type", "SECONDARY"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(2))
-                    .andExpect(jsonPath("$[*].name", containsInAnyOrder("Cheese", "Chicken")))
-                    .andExpect(jsonPath("$[*].type", containsInAnyOrder("SECONDARY_INGREDIENT", "MAIN_INGREDIENT")));
+                    .andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].name").value("Cheese"))
+                    .andExpect(jsonPath("$[0].type").value("SECONDARY_INGREDIENT"));
         }
 
         @Test
-        @DisplayName("SECONDARY type should not include DISH or SEASONING")
-        void secondaryTypeShouldNotIncludeDishOrSeasoning() throws Exception {
+        @DisplayName("MAIN type should not include DISH or SEASONING")
+        void mainTypeShouldNotIncludeDishOrSeasoning() throws Exception {
             mockMvc.perform(get(AUTOCOMPLETE_URL)
                             .param("keyword", "Ch")
                             .param("locale", "en-US")
-                            .param("type", "SECONDARY"))
+                            .param("type", "MAIN"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[*].type", not(hasItem("DISH"))))
                     .andExpect(jsonPath("$[*].type", not(hasItem("SEASONING"))));
