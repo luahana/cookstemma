@@ -21,25 +21,25 @@ void main() {
       mockUseCase = MockUploadImageWithTrackingUseCase();
     });
 
-    group('image upload with THUMBNAIL type', () {
-      test('calls execute with THUMBNAIL type', () async {
+    group('image upload with COVER type', () {
+      test('calls execute with COVER type', () async {
         // Arrange
         final expectedResponse = TestImageData.createUploadResponse();
         when(() => mockUseCase.execute(
               file: any(named: 'file'),
-              type: 'THUMBNAIL',
+              type: 'COVER',
             )).thenAnswer((_) async => Right(expectedResponse));
 
         // Act
         await mockUseCase.execute(
           file: File('/test/image.jpg'),
-          type: 'THUMBNAIL',
+          type: 'COVER',
         );
 
         // Assert
         verify(() => mockUseCase.execute(
               file: any(named: 'file'),
-              type: 'THUMBNAIL',
+              type: 'COVER',
             )).called(1);
       });
 
@@ -58,7 +58,7 @@ void main() {
         // Act
         final result = await mockUseCase.execute(
           file: item.file!,
-          type: 'THUMBNAIL',
+          type: 'COVER',
         );
 
         // Simulate what HookSection does on success
@@ -87,7 +87,7 @@ void main() {
         // Act
         final result = await mockUseCase.execute(
           file: item.file!,
-          type: 'THUMBNAIL',
+          type: 'COVER',
         );
 
         // Simulate what HookSection does on failure

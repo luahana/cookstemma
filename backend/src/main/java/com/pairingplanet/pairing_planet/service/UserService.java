@@ -248,7 +248,7 @@ public class UserService {
         String foodName = getFoodName(recipe);
 
         String thumbnail = recipe.getImages().stream()
-                .filter(img -> img.getType() == ImageType.THUMBNAIL)
+                .filter(img -> img.getType() == ImageType.COVER)
                 .findFirst()
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);

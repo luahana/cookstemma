@@ -22,7 +22,7 @@ public class RecipeStep {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "image_id")
     private Image image;
 }
