@@ -48,16 +48,39 @@ class RecipeDraftState {
 class RecipeDraftNotifier extends StateNotifier<RecipeDraftState> {
   final RecipeDraftLocalDataSource _localDataSource;
   Timer? _autoSaveTimer;
+  Timer? _debounceTimer;
   bool _isSaving = false;
   RecipeDraft? _lastSavedDraft;
+  RecipeDraft Function()? _getCurrentDraft;
+
+  /// Debounce duration for state-change triggered saves
+  static const _debounceDuration = Duration(seconds: 2);
+
+  /// Periodic backup interval
+  static const _periodicInterval = Duration(seconds: 30);
 
   RecipeDraftNotifier(this._localDataSource) : super(const RecipeDraftState());
 
-  /// Start auto-save timer (30 second interval)
+  /// Start auto-save with both debounced and periodic saves
   void startAutoSave(RecipeDraft Function() getCurrentDraft) {
+    _getCurrentDraft = getCurrentDraft;
     _autoSaveTimer?.cancel();
-    _autoSaveTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    // Periodic backup every 30 seconds as fallback
+    _autoSaveTimer = Timer.periodic(_periodicInterval, (_) {
       final draft = getCurrentDraft();
+      if (draft.hasContent && draft != _lastSavedDraft) {
+        saveDraft(draft);
+      }
+    });
+  }
+
+  /// Trigger a debounced save (call this on state changes)
+  void triggerDebouncedSave() {
+    if (_getCurrentDraft == null) return;
+
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(_debounceDuration, () {
+      final draft = _getCurrentDraft!();
       if (draft.hasContent && draft != _lastSavedDraft) {
         saveDraft(draft);
       }
@@ -68,6 +91,9 @@ class RecipeDraftNotifier extends StateNotifier<RecipeDraftState> {
   void stopAutoSave() {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = null;
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
+    _getCurrentDraft = null;
   }
 
   /// Save draft to local storage

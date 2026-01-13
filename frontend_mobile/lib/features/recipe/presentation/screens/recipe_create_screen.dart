@@ -424,7 +424,13 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
     }
   }
 
-  void _rebuild() => setState(() {});
+  void _rebuild() {
+    setState(() {});
+    // Trigger debounced save on state change
+    if (!isVariantMode) {
+      ref.read(recipeDraftProvider.notifier).triggerDebouncedSave();
+    }
+  }
 
   void _addIngredient(String type) {
     setState(() {
@@ -767,15 +773,18 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
                       finishedImages: _finishedImages,
                       isReadOnly: isVariantMode, // 요리명 및 로케일 수정 불가 제약
                       // 💡 누락된 필수 파라미터 추가
-                      onFoodPublicIdSelected: (publicId) =>
-                          setState(() => _food1MasterPublicId = publicId),
-                      onStateChanged: () => setState(() {}),
+                      onFoodPublicIdSelected: (publicId) {
+                        setState(() => _food1MasterPublicId = publicId);
+                        _rebuild();
+                      },
+                      onStateChanged: _rebuild,
                       onReorder: (oldIndex, newIndex) {
                         setState(() {
                           if (newIndex > oldIndex) newIndex--;
                           final item = _finishedImages.removeAt(oldIndex);
                           _finishedImages.insert(newIndex, item);
                         });
+                        _rebuild();
                       },
                     ),
 
@@ -783,8 +792,14 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
                     ServingsCookingTimeSection(
                       servings: _servings,
                       cookingTimeRange: _cookingTimeRange,
-                      onServingsChanged: (value) => setState(() => _servings = value),
-                      onCookingTimeChanged: (value) => setState(() => _cookingTimeRange = value),
+                      onServingsChanged: (value) {
+                        setState(() => _servings = value);
+                        _rebuild();
+                      },
+                      onCookingTimeChanged: (value) {
+                        setState(() => _cookingTimeRange = value);
+                        _rebuild();
+                      },
                     ),
 
                     SizedBox(height: 32.h),
@@ -793,7 +808,7 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
                       onAddIngredient: _addIngredient,
                       onRemoveIngredient: _onRemoveIngredient,
                       onRestoreIngredient: _onRestoreIngredient,
-                      onStateChanged: () => setState(() {}),
+                      onStateChanged: _rebuild,
                     ),
                     SizedBox(height: 32.h),
                     StepSection(
@@ -803,15 +818,18 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
                       onRemoveStep: _onRemoveStep,
                       onRestoreStep: _onRestoreStep,
                       onReorder: _onReorderSteps,
-                      onStateChanged: () => setState(() {}),
+                      onStateChanged: _rebuild,
                     ),
                     SizedBox(height: 32.h),
                     HashtagInputSection(
                       hashtags: _hashtags,
-                      onHashtagsChanged: (tags) => setState(() {
-                        _hashtags.clear();
-                        _hashtags.addAll(tags);
-                      }),
+                      onHashtagsChanged: (tags) {
+                        setState(() {
+                          _hashtags.clear();
+                          _hashtags.addAll(tags);
+                        });
+                        _rebuild();
+                      },
                     ),
 
                     if (isVariantMode) ...[
