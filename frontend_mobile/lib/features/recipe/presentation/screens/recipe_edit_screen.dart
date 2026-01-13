@@ -401,6 +401,7 @@ class _RecipeEditScreenState extends ConsumerState<RecipeEditScreen> {
                             onAddIngredient: _addIngredient,
                             onRemoveIngredient: _onRemoveIngredient,
                             onRestoreIngredient: _onRestoreIngredient,
+                            onStateChanged: () => setState(() {}),
                           ),
                           SizedBox(height: 32.h),
                           StepSection(

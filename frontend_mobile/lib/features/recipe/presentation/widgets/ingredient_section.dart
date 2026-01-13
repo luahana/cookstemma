@@ -216,6 +216,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
           } else {
             ingredient['quantity'] = double.tryParse(v);
           }
+          widget.onStateChanged();
         },
         style: TextStyle(
           fontSize: 13,
@@ -277,7 +278,10 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
             color: enabled ? Colors.black : Colors.grey[600],
           ),
           onChanged: enabled
-              ? (value) => setState(() => ingredient['unit'] = value)
+              ? (value) {
+                  setState(() => ingredient['unit'] = value);
+                  widget.onStateChanged();
+                }
               : null,
           items: _buildUnitDropdownItems(),
         ),
