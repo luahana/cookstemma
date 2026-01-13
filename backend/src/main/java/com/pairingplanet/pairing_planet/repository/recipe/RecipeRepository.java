@@ -15,7 +15,7 @@ import java.util.UUID;
 public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
     // [보안] publicId로 상세 조회 시, 음식 정보와 계보 정보를 한 번에 가져옴 (N+1 방지)
-    @EntityGraph(attributePaths = {"foodMaster", "rootRecipe", "parentRecipe", "hashtags"})
+    @EntityGraph(attributePaths = {"foodMaster", "rootRecipe", "parentRecipe", "hashtags", "images"})
     Optional<Recipe> findByPublicId(UUID publicId);
 
     @Query("SELECT r FROM Recipe r WHERE r.isDeleted = false AND r.isPrivate = false")

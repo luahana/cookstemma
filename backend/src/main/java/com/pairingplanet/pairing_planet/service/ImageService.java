@@ -53,7 +53,7 @@ public class ImageService {
         String extension = getExtension(originalFilename);
         String savedFilename = UUID.randomUUID() + extension;
 
-        // Enum 타입명을 경로로 사용 (예: THUMBNAIL -> thumbnail)
+        // Enum 타입명을 경로로 사용 (예: COVER -> cover)
         String key = imageType.name().toLowerCase() + "/" + savedFilename;
 
         try {
@@ -105,8 +105,12 @@ public class ImageService {
 
             if (target instanceof Recipe recipe) {
                 image.setRecipe(recipe);
+                // Maintain bidirectional relationship for proper JPA consistency
+                recipe.getImages().add(image);
             } else if (target instanceof LogPost logPost) {
                 image.setLogPost(logPost);
+                // Maintain bidirectional relationship
+                logPost.getImages().add(image);
             } else if (target instanceof User user) {
                 // 유저 프로필 이미지의 경우, 파일명은 User 엔티티에 저장되므로
                 // 여기서는 상태만 ACTIVE로 변경하여 가비지 컬렉션을 방지합니다.
@@ -114,6 +118,9 @@ public class ImageService {
 
             image.setStatus(ImageStatus.ACTIVE);
             image.setDisplayOrder(index); // 복사한 상수를 사용
+
+            // Explicitly save to ensure changes are persisted
+            imageRepository.save(image);
 
             // Trigger async variant generation
             imageProcessingService.generateVariantsAsync(image.getId());

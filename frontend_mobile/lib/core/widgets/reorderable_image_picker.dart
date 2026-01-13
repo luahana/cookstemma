@@ -85,8 +85,11 @@ class ReorderableImagePicker extends StatelessWidget {
   Widget _buildImageItem(BuildContext context, UploadItem item, int index) {
     final bool isThumbnail = index == 0 && showThumbnailBadge;
 
+    // Use stable unique key (file path or remoteUrl) instead of index to prevent
+    // widget state desync during concurrent uploads
+    final stableKey = item.file?.path ?? item.remoteUrl ?? 'image_$index';
     return ReorderableDragStartListener(
-      key: ValueKey('image_$index'),
+      key: ValueKey(stableKey),
       index: index,
       child: SizedBox(
         width: 112.w,

@@ -33,6 +33,14 @@ class IdempotencyInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Only add idempotency keys to POST and PATCH requests
     if (options.method == 'POST' || options.method == 'PATCH') {
+      // Skip multipart/form-data requests (file uploads)
+      // FormData.toString() doesn't include file content, causing different uploads
+      // to get the same request ID and reuse the same idempotency key incorrectly.
+      if (options.data is FormData) {
+        handler.next(options);
+        return;
+      }
+
       // Clean up expired entries lazily
       _cleanupExpiredEntries();
 

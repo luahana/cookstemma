@@ -85,7 +85,7 @@ public class Recipe extends BaseEntity {
     private List<RecipeStep> steps = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @OrderBy("displayOrder ASC")
     private List<Image> images = new ArrayList<>();
 

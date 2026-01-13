@@ -131,6 +131,9 @@ public class RecipeService {
         saveIngredientsAndSteps(recipe, req);
         imageService.activateImages(req.imagePublicIds(), recipe);
 
+        // Flush to ensure images are persisted before fetching recipe detail
+        imageRepository.flush();
+
         // Notify parent recipe owner if this is a variation
         if (parent != null) {
             User sender = userRepository.findById(creatorId)
@@ -317,9 +320,10 @@ public class RecipeService {
                     stepImage = imageRepository.findByPublicId(stepDto.imagePublicId())
                             .orElseThrow(() -> new IllegalArgumentException("Step image not found"));
 
-                    // [해결] Image 엔티티에 Recipe를 연결하여 DB 제약 조건(chk_image_target) 충돌 방지
-                    stepImage.setRecipe(recipe);
+                    // Step images are linked ONLY via RecipeStep.image_id, NOT via recipe_id
+                    // This keeps them separate from cover images in recipe.getImages()
                     stepImage.setStatus(com.pairingplanet.pairing_planet.domain.enums.ImageStatus.ACTIVE);
+                    imageRepository.save(stepImage);
                 }
 
                 RecipeStep step = RecipeStep.builder()
@@ -438,7 +442,7 @@ public class RecipeService {
                     long variants = recipeRepository.countByRootRecipeIdAndIsDeletedFalse(root.getId());
                     long logs = recipeLogRepository.countByRecipeId(root.getId());
                     String thumbnail = root.getImages().stream()
-                            .filter(img -> img.getType() == com.pairingplanet.pairing_planet.domain.enums.ImageType.THUMBNAIL)
+                            .filter(img -> img.getType() == com.pairingplanet.pairing_planet.domain.enums.ImageType.COVER)
                             .findFirst()
                             .map(img -> urlPrefix + "/" + img.getStoredFilename())
                             .orElse(null);
@@ -612,8 +616,9 @@ public class RecipeService {
                 if (stepDto.imagePublicId() != null) {
                     stepImage = imageRepository.findByPublicId(stepDto.imagePublicId())
                             .orElseThrow(() -> new IllegalArgumentException("Step image not found"));
-                    stepImage.setRecipe(recipe);
+                    // Step images are linked ONLY via RecipeStep.image_id, NOT via recipe_id
                     stepImage.setStatus(com.pairingplanet.pairing_planet.domain.enums.ImageStatus.ACTIVE);
+                    imageRepository.save(stepImage);
                 }
 
                 RecipeStep step = RecipeStep.builder()
