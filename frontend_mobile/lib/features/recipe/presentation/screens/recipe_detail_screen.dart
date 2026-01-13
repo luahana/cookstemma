@@ -25,6 +25,7 @@ import '../widgets/change_diff_section.dart';
 import '../widgets/recipe_family_section.dart';
 import '../widgets/action_hub_bar.dart';
 import '../widgets/recipe_action_menu.dart';
+import 'cooking_mode_screen.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final String recipeId;
@@ -122,11 +123,13 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         ],
       ),
       body: recipeAsync.when(
-        data: (recipe) => Column(
+        data: (recipe) => Stack(
           children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
+            Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildImageHeader(recipe),
@@ -390,6 +393,19 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               onLogPressed: () => _handleLogPress(context, recipe),
               onVariationPressed: () => _handleVariationPress(context, recipe),
             ),
+              ],
+            ),
+            // FAB for cooking mode - positioned right side, 1/3 from bottom
+            if (recipe.steps.isNotEmpty)
+              Positioned(
+                right: 16.w,
+                bottom: MediaQuery.of(context).size.height / 3,
+                child: FloatingActionButton(
+                  onPressed: () => _handleCookingPress(context, recipe),
+                  backgroundColor: AppColors.primary,
+                  child: Icon(Icons.restaurant_menu, size: 24.sp, color: Colors.white),
+                ),
+              ),
           ],
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -451,6 +467,20 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       return;
     }
     context.push(RouteConstants.recipeCreate, extra: recipe);
+  }
+
+  // Handle cooking mode button press
+  void _handleCookingPress(BuildContext context, RecipeDetail recipe) {
+    HapticFeedback.mediumImpact();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CookingModeScreen(
+          steps: recipe.steps,
+          ingredients: recipe.ingredients,
+          recipeName: recipe.title,
+        ),
+      ),
+    );
   }
 
   Widget _buildLineageTag(RecipeDetail recipe) {

@@ -5,14 +5,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Action Hub Bar - Compact bottom action bar
-/// Single-line buttons for "Create Log" and "Create Variation"
+/// Buttons for "Start Cooking", "Create Log" and "Create Variation"
 class ActionHubBar extends StatelessWidget {
+  final VoidCallback? onCookingPressed;
   final VoidCallback onLogPressed;
   final VoidCallback onVariationPressed;
   final bool isLoading;
 
   const ActionHubBar({
     super.key,
+    this.onCookingPressed,
     required this.onLogPressed,
     required this.onVariationPressed,
     this.isLoading = false,
@@ -39,6 +41,22 @@ class ActionHubBar extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Cooking mode button (prominent)
+          if (onCookingPressed != null) ...[
+            Expanded(
+              child: _ActionButton(
+                icon: Icons.restaurant_menu,
+                title: 'cooking.startCooking'.tr(),
+                onPressed: isLoading ? null : () {
+                  HapticFeedback.mediumImpact();
+                  onCookingPressed!();
+                },
+                isPrimary: true,
+                isAccent: true,
+              ),
+            ),
+            SizedBox(width: 8.w),
+          ],
           // Log button (outlined/secondary)
           Expanded(
             child: _ActionButton(
@@ -51,7 +69,7 @@ class ActionHubBar extends StatelessWidget {
               isPrimary: false,
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: 8.w),
           // Variation button (filled/primary)
           Expanded(
             child: _ActionButton(
@@ -76,21 +94,58 @@ class _ActionButton extends StatelessWidget {
   final String title;
   final VoidCallback? onPressed;
   final bool isPrimary;
+  final bool isAccent;
 
   const _ActionButton({
     required this.icon,
     required this.title,
     required this.onPressed,
     required this.isPrimary,
+    this.isAccent = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (isPrimary) {
+    if (isAccent) {
+      return _buildAccentButton();
+    } else if (isPrimary) {
       return _buildPrimaryButton();
     } else {
       return _buildSecondaryButton();
     }
+  }
+
+  Widget _buildAccentButton() {
+    return Material(
+      color: AppColors.growth,
+      borderRadius: BorderRadius.circular(12.r),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 8.w),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 18.sp),
+              SizedBox(width: 4.w),
+              Flexible(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildPrimaryButton() {

@@ -24,7 +24,8 @@
     "skip": "건너뛰기",
     "done": "완료",
     "discard": "취소",
-    "retry": "재시도"
+    "retry": "재시도",
+    "set": "설정"
   },
   "nav": {
     "home": "홈",
@@ -739,5 +740,27 @@
       "stepRequired": "조리 순서를 1개 이상 추가해주세요",
       "changeReasonRequired": "변경 내용을 설명해주세요"
     }
+  },
+  "cooking": {
+    "startCooking": "요리",
+    "ingredients": "재료",
+    "addTimer": "타이머 추가",
+    "setTimer": "타이머 설정",
+    "minutes": "분",
+    "seconds": "초",
+    "tapToStart": "탭하여 시작",
+    "tapToPause": "탭하여 일시정지",
+    "timerDone": "완료!",
+    "reset": "초기화",
+    "editTimer": "타이머 수정",
+    "timerCompleteForStep": "{step}단계 타이머 완료!",
+    "previous": "이전",
+    "next": "다음",
+    "finish": "완료",
+    "completeTitle": "요리 완료!",
+    "completeMessage": "수고하셨습니다! 모든 단계를 완료했습니다.",
+    "exitTitle": "요리 모드를 종료하시겠어요?",
+    "exitMessage": "진행 상황이 저장되지 않습니다.",
+    "exit": "종료"
   }
 }

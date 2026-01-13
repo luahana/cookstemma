@@ -24,7 +24,8 @@
     "skip": "Skip",
     "done": "Done",
     "discard": "Discard",
-    "retry": "Retry"
+    "retry": "Retry",
+    "set": "Set"
   },
   "nav": {
     "home": "Home",
@@ -743,5 +744,27 @@
       "stepRequired": "Please add at least one cooking step",
       "changeReasonRequired": "Please describe what you changed"
     }
+  },
+  "cooking": {
+    "startCooking": "Cook",
+    "ingredients": "Ingredients",
+    "addTimer": "Add Timer",
+    "setTimer": "Set Timer",
+    "minutes": "min",
+    "seconds": "sec",
+    "tapToStart": "Tap to start",
+    "tapToPause": "Tap to pause",
+    "timerDone": "Done!",
+    "reset": "Reset",
+    "editTimer": "Edit timer",
+    "timerCompleteForStep": "Timer complete for step {step}!",
+    "previous": "Previous",
+    "next": "Next",
+    "finish": "Finish",
+    "completeTitle": "Cooking Complete!",
+    "completeMessage": "Great job! You've completed all the steps.",
+    "exitTitle": "Exit Cooking Mode?",
+    "exitMessage": "Your progress won't be saved.",
+    "exit": "Exit"
   }
 }

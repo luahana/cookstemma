@@ -5,17 +5,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
-import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
-import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
+import 'package:pairing_planet2_frontend/domain/entities/recipe/ingredient.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_step.dart';
-import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/quick_log_sheet.dart';
+import 'package:keep_screen_on/keep_screen_on.dart';
+import '../../providers/cooking_mode_provider.dart';
+import '../widgets/cooking_ingredients_sheet.dart';
+import '../widgets/cooking_step_view.dart';
 
 /// Full-screen cooking mode with step-by-step navigation
-/// Optimized for use during cooking with large touch targets
+/// Includes timer per step and ingredients checklist
 class CookingModeScreen extends ConsumerStatefulWidget {
-  final RecipeDetail recipe;
+  final List<RecipeStep> steps;
+  final List<Ingredient> ingredients;
+  final String recipeName;
 
-  const CookingModeScreen({super.key, required this.recipe});
+  const CookingModeScreen({
+    super.key,
+    required this.steps,
+    required this.ingredients,
+    required this.recipeName,
+  });
 
   @override
   ConsumerState<CookingModeScreen> createState() => _CookingModeScreenState();
@@ -23,50 +32,81 @@ class CookingModeScreen extends ConsumerStatefulWidget {
 
 class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
   late PageController _pageController;
-  int _currentStep = 0;
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    // Keep screen on during cooking
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+    // Keep screen awake during cooking
+    KeepScreenOn.turnOn();
+
+    // Initialize provider state
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(cookingModeProvider.notifier).initialize(
+            steps: widget.steps,
+            ingredients: widget.ingredients,
+          );
+
+      // Set up timer completion callback
+      ref.read(cookingModeProvider.notifier).onTimerComplete = _onTimerComplete;
+    });
   }
 
   @override
   void dispose() {
+    // Disable screen awake when leaving cooking mode
+    KeepScreenOn.turnOff();
     _pageController.dispose();
-    // Restore normal system UI mode
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    _sheetController.dispose();
     super.dispose();
   }
 
-  int get _totalSteps => widget.recipe.steps.length;
-  bool get _isFirstStep => _currentStep == 0;
-  bool get _isLastStep => _currentStep == _totalSteps - 1;
+  void _onTimerComplete(int stepIndex) {
+    // Vibrate and show snackbar when timer completes
+    HapticFeedback.heavyImpact();
 
-  void _goToStep(int step) {
-    if (step < 0 || step >= _totalSteps) return;
-    HapticFeedback.mediumImpact();
-    setState(() => _currentStep = step);
-    _pageController.animateToPage(
-      step,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'cooking.timerCompleteForStep'.tr(
+            namedArgs: {'step': (stepIndex + 1).toString()},
+          ),
+        ),
+        backgroundColor: AppColors.growth,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 5),
+      ),
     );
   }
 
-  void _nextStep() {
-    if (_isLastStep) {
-      _showCompletionDialog();
+  void _onPageChanged(int index) {
+    ref.read(cookingModeProvider.notifier).goToStep(index);
+  }
+
+  void _goToNextStep() {
+    final state = ref.read(cookingModeProvider);
+    if (state.hasNextStep) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     } else {
-      _goToStep(_currentStep + 1);
+      _showCompletionDialog();
     }
   }
 
-  void _previousStep() {
-    if (!_isFirstStep) {
-      _goToStep(_currentStep - 1);
+  void _goToPreviousStep() {
+    final state = ref.read(cookingModeProvider);
+    if (state.hasPreviousStep) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     }
   }
 
@@ -76,23 +116,16 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Text('recipe.cooking.complete'.tr()),
-        content: Text('recipe.cooking.logPrompt'.tr()),
+        title: Text('cooking.completeTitle'.tr()),
+        content: Text('cooking.completeMessage'.tr()),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.pop();
-            },
-            child: Text('common.notNow'.tr()),
-          ),
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
+              ref.read(cookingModeProvider.notifier).cleanup();
               context.pop();
-              QuickLogSheet.show(context);
             },
-            child: Text('recipe.cooking.logNow'.tr()),
+            child: Text('cooking.finish'.tr()),
           ),
         ],
       ),
@@ -100,12 +133,11 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
   }
 
   void _exitCookingMode() {
-    HapticFeedback.lightImpact();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('recipe.cooking.exitTitle'.tr()),
-        content: Text('recipe.cooking.exitMessage'.tr()),
+        title: Text('cooking.exitTitle'.tr()),
+        content: Text('cooking.exitMessage'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -114,9 +146,10 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
           FilledButton(
             onPressed: () {
               Navigator.pop(context);
+              ref.read(cookingModeProvider.notifier).cleanup();
               context.pop();
             },
-            child: Text('recipe.cooking.exit'.tr()),
+            child: Text('cooking.exit'.tr()),
           ),
         ],
       ),
@@ -125,208 +158,168 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
+    final cookingState = ref.watch(cookingModeProvider);
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _exitCookingMode();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: _buildAppBar(cookingState),
+        body: Stack(
           children: [
-            // Top bar with progress and exit
-            _buildTopBar(),
-            // Step content
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _totalSteps,
-                onPageChanged: (page) {
-                  setState(() => _currentStep = page);
-                },
-                itemBuilder: (context, index) {
-                  final step = widget.recipe.steps[index];
-                  return _buildStepContent(step, index);
-                },
-              ),
+            // Main content with PageView
+            Column(
+              children: [
+                // Progress indicator
+                _buildProgressIndicator(cookingState),
+
+                // Step PageView
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    itemCount: widget.steps.length,
+                    itemBuilder: (context, index) => CookingStepView(
+                      step: widget.steps[index],
+                      stepIndex: index,
+                    ),
+                  ),
+                ),
+
+                // Navigation buttons
+                _buildNavigationButtons(cookingState),
+
+                // Space for bottom sheet handle
+                SizedBox(height: 80.h),
+              ],
             ),
-            // Bottom navigation buttons (64pt+ height)
-            _buildBottomNavigation(),
+
+            // Ingredients bottom sheet
+            DraggableScrollableSheet(
+              controller: _sheetController,
+              initialChildSize: 0.12,
+              minChildSize: 0.12,
+              maxChildSize: 0.6,
+              snap: true,
+              snapSizes: const [0.12, 0.4, 0.6],
+              builder: (context, scrollController) {
+                return CookingIngredientsSheet(
+                  ingredients: widget.ingredients,
+                  scrollController: scrollController,
+                  onHeaderTap: () {
+                    final currentSize = _sheetController.size;
+                    final targetSize = currentSize > 0.15 ? 0.12 : 0.4;
+                    _sheetController.animateTo(
+                      targetSize,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    );
+                  },
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTopBar() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      color: Colors.black,
-      child: Row(
-        children: [
-          // Exit button
-          IconButton(
-            onPressed: _exitCookingMode,
-            icon: const Icon(Icons.close, color: Colors.white),
-            iconSize: 28.sp,
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.1),
-              minimumSize: Size(48.w, 48.w),
-            ),
-          ),
-          SizedBox(width: 16.w),
-          // Progress indicator
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'recipe.cooking.step'.tr(namedArgs: {
-                    'current': '${_currentStep + 1}',
-                    'total': '$_totalSteps',
-                  }),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 4.h),
-                LinearProgressIndicator(
-                  value: (_currentStep + 1) / _totalSteps,
-                  backgroundColor: Colors.white.withValues(alpha: 0.2),
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 16.w),
-          // Timer placeholder (future enhancement)
-          IconButton(
-            onPressed: () {
-              // TODO: Timer functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('recipe.cooking.timerComingSoon'.tr())),
-              );
-            },
-            icon: const Icon(Icons.timer_outlined, color: Colors.white),
-            iconSize: 28.sp,
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.1),
-              minimumSize: Size(48.w, 48.w),
-            ),
-          ),
-        ],
+  PreferredSizeWidget _buildAppBar(CookingModeState state) {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: Icon(Icons.close, color: Colors.grey[800]),
+        onPressed: _exitCookingMode,
       ),
-    );
-  }
-
-  Widget _buildStepContent(RecipeStep step, int index) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(24.r),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Step number badge
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(20.r),
-            ),
+      title: Text(
+        widget.recipeName,
+        style: TextStyle(
+          fontSize: 16.sp,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey[800],
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      actions: [
+        Padding(
+          padding: EdgeInsets.only(right: 16.w),
+          child: Center(
             child: Text(
-              'recipe.cooking.stepNumber'.tr(namedArgs: {'number': '${index + 1}'}),
+              state.progressText,
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: AppColors.primary,
               ),
             ),
           ),
-          SizedBox(height: 24.h),
-          // Step image (if available)
-          if (step.imageUrl != null && step.imageUrl!.isNotEmpty)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16.r),
-              child: AppCachedImage(
-                imageUrl: step.imageUrl!,
-                width: double.infinity,
-                height: 250.h,
-                borderRadius: 16.r,
-              ),
-            ),
-          if (step.imageUrl != null && step.imageUrl!.isNotEmpty)
-            SizedBox(height: 24.h),
-          // Step description
-          if (step.description != null && step.description!.isNotEmpty)
-            Text(
-              step.description!,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22.sp,
-                fontWeight: FontWeight.w500,
-                height: 1.5,
-              ),
-            ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildBottomNavigation() {
+  Widget _buildProgressIndicator(CookingModeState state) {
     return Container(
-      padding: EdgeInsets.all(16.r),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      height: 4.h,
+      margin: EdgeInsets.symmetric(horizontal: 16.w),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(2.r),
+        child: LinearProgressIndicator(
+          value: state.progressValue,
+          backgroundColor: Colors.grey[200],
+          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
         ),
       ),
+    );
+  }
+
+  Widget _buildNavigationButtons(CookingModeState state) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
       child: Row(
         children: [
           // Previous button
           Expanded(
-            child: SizedBox(
-              height: 64.h, // 64pt minimum for cooking mode
-              child: OutlinedButton.icon(
-                onPressed: _isFirstStep ? null : _previousStep,
-                icon: const Icon(Icons.arrow_back),
-                label: Text('common.back'.tr()),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: BorderSide(
-                    color: _isFirstStep
-                        ? Colors.white.withValues(alpha: 0.3)
-                        : Colors.white,
-                    width: 2,
-                  ),
-                  disabledForegroundColor: Colors.white.withValues(alpha: 0.3),
-                  textStyle: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
+            child: OutlinedButton.icon(
+              onPressed: state.hasPreviousStep ? _goToPreviousStep : null,
+              icon: const Icon(Icons.arrow_back),
+              label: Text('cooking.previous'.tr()),
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
             ),
           ),
+
           SizedBox(width: 16.w),
+
           // Next button
           Expanded(
-            flex: 2,
-            child: SizedBox(
-              height: 64.h, // 64pt minimum for cooking mode
-              child: FilledButton.icon(
-                onPressed: _nextStep,
-                icon: Icon(_isLastStep ? Icons.check : Icons.arrow_forward),
-                label: Text(
-                  _isLastStep
-                      ? 'recipe.cooking.done'.tr()
-                      : 'common.next'.tr(),
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  textStyle: TextStyle(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
+            child: FilledButton.icon(
+              onPressed: _goToNextStep,
+              icon: Text(
+                state.hasNextStep
+                    ? 'cooking.next'.tr()
+                    : 'cooking.finish'.tr(),
+              ),
+              label: Icon(
+                state.hasNextStep ? Icons.arrow_forward : Icons.check,
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: state.hasNextStep
+                    ? AppColors.primary
+                    : AppColors.growth,
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
             ),
