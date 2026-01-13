@@ -15,6 +15,7 @@ class IngredientSection extends ConsumerStatefulWidget {
   final Function(String) onAddIngredient;
   final Function(int) onRemoveIngredient;
   final Function(int) onRestoreIngredient;
+  final VoidCallback onStateChanged;
 
   const IngredientSection({
     super.key,
@@ -22,6 +23,7 @@ class IngredientSection extends ConsumerStatefulWidget {
     required this.onAddIngredient,
     required this.onRemoveIngredient,
     required this.onRestoreIngredient,
+    required this.onStateChanged,
   });
 
   @override
@@ -127,8 +129,10 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
                   (list) => list,
                 );
               },
-              onSelected: (selection) =>
-                  setState(() => ingredient["name"] = selection.name),
+              onSelected: (selection) {
+                setState(() => ingredient["name"] = selection.name);
+                widget.onStateChanged();
+              },
               fieldViewBuilder:
                   (context, controller, focusNode, onFieldSubmitted) {
                     if (controller.text != ingredient["name"]) {
@@ -136,7 +140,10 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
                     }
                     return _smallField(
                       'recipe.ingredient.name'.tr(),
-                      (v) => ingredient["name"] = v,
+                      (v) {
+                        ingredient["name"] = v;
+                        widget.onStateChanged();
+                      },
                       controller,
                       focusNode,
                       enabled: !isOriginal, // 💡 기존 재료는 텍스트 필드 비활성화
