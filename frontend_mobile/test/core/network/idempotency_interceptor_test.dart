@@ -97,6 +97,58 @@ void main() {
         verify(() => mockRequestHandler.next(options)).called(1);
       });
 
+      test('does NOT add header to POST requests with FormData', () {
+        final formData = FormData.fromMap({'file': 'test'});
+        final options = RequestOptions(
+          path: '/api/v1/images/upload',
+          method: 'POST',
+          data: formData,
+        );
+
+        interceptor.onRequest(options, mockRequestHandler);
+
+        expect(options.headers['Idempotency-Key'], isNull);
+        verify(() => mockRequestHandler.next(options)).called(1);
+      });
+
+      test('does NOT add header to PATCH requests with FormData', () {
+        final formData = FormData.fromMap({'file': 'test'});
+        final options = RequestOptions(
+          path: '/api/v1/images/123',
+          method: 'PATCH',
+          data: formData,
+        );
+
+        interceptor.onRequest(options, mockRequestHandler);
+
+        expect(options.headers['Idempotency-Key'], isNull);
+        verify(() => mockRequestHandler.next(options)).called(1);
+      });
+
+      test('different FormData POST requests are passed through independently', () {
+        final formData1 = FormData.fromMap({'file': 'image1.jpg'});
+        final formData2 = FormData.fromMap({'file': 'image2.jpg'});
+
+        final options1 = RequestOptions(
+          path: '/api/v1/images/upload',
+          method: 'POST',
+          data: formData1,
+        );
+        final options2 = RequestOptions(
+          path: '/api/v1/images/upload',
+          method: 'POST',
+          data: formData2,
+        );
+
+        interceptor.onRequest(options1, mockRequestHandler);
+        interceptor.onRequest(options2, mockRequestHandler);
+
+        // Both should pass through without idempotency keys
+        expect(options1.headers['Idempotency-Key'], isNull);
+        expect(options2.headers['Idempotency-Key'], isNull);
+        verify(() => mockRequestHandler.next(any())).called(2);
+      });
+
       test('reuses same key for identical requests within TTL', () {
         final options1 = RequestOptions(
           path: '/api/v1/logs',
