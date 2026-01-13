@@ -10,7 +10,7 @@ class ImageConfig {
   });
 
   // Predefined configurations for different upload types
-  static const thumbnail = ImageConfig(
+  static const cover = ImageConfig(
     maxWidth: 800,
     maxHeight: 800,
     quality: 80,
@@ -30,7 +30,7 @@ class ImageConfig {
 
   // Map upload type strings to configurations
   static const Map<String, ImageConfig> typeConfigs = {
-    'THUMBNAIL': thumbnail,
+    'COVER': cover,
     'LOG_POST': logPost,
     'STEP': step,
   };

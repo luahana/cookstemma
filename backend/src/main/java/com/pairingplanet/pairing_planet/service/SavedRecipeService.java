@@ -74,7 +74,7 @@ public class SavedRecipeService {
         String foodName = getFoodName(recipe);
 
         String thumbnail = recipe.getImages().stream()
-                .filter(img -> img.getType() == com.pairingplanet.pairing_planet.domain.enums.ImageType.THUMBNAIL)
+                .filter(img -> img.getType() == com.pairingplanet.pairing_planet.domain.enums.ImageType.COVER)
                 .findFirst()
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);

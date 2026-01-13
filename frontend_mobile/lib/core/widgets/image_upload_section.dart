@@ -11,7 +11,7 @@ import 'package:pairing_planet2_frontend/shared/data/model/upload_item_model.dar
 class ImageUploadSection extends ConsumerStatefulWidget {
   final List<UploadItem> images;
   final int maxImages;
-  final String uploadType; // "THUMBNAIL" or "LOG_POST"
+  final String uploadType; // "COVER", "STEP", or "LOG_POST"
   final bool setServerUrl; // true for recipes, false for log posts
   final VoidCallback? onStateChanged;
   final ValueChanged<List<UploadItem>> onImagesChanged;
