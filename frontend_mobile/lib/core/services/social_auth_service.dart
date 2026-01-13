@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -48,25 +50,40 @@ class SocialAuthService {
   }
 
   /// 2. 애플 로그인 및 Firebase 인증
+  /// iOS: 네이티브 Apple Sign-In 사용 (sign_in_with_apple 패키지)
+  /// Android: Firebase signInWithProvider 사용 (세션 상태 문제 방지)
   Future<String?> signInWithApple() async {
     try {
-      talker.info("Apple 로그인 시작...");
+      talker.info("Apple 로그인 시작... Platform: ${Platform.operatingSystem}");
 
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
+      final UserCredential userCredential;
 
-      final OAuthCredential credential = OAuthProvider('apple.com').credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-      );
+      if (Platform.isAndroid) {
+        // Android: Firebase의 signInWithProvider 사용
+        // sign_in_with_apple 패키지의 웹 플로우는 세션 상태 문제가 있음
+        final provider = OAuthProvider('apple.com');
+        provider.addScope('email');
+        provider.addScope('name');
 
-      final UserCredential userCredential = await _auth.signInWithCredential(
-        credential,
-      );
+        talker.info("Android Apple Sign-In - Using Firebase signInWithProvider");
+        userCredential = await _auth.signInWithProvider(provider);
+      } else {
+        // iOS: 네이티브 플로우 (sign_in_with_apple 패키지)
+        final appleCredential = await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+        );
+
+        final OAuthCredential credential = OAuthProvider('apple.com').credential(
+          idToken: appleCredential.identityToken,
+          accessToken: appleCredential.authorizationCode,
+        );
+
+        userCredential = await _auth.signInWithCredential(credential);
+      }
+
       final String? idToken = await userCredential.user?.getIdToken();
 
       talker.info("Apple 로그인 성공 및 Firebase 토큰 발급 완료");
