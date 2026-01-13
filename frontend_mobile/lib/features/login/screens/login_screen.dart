@@ -35,7 +35,7 @@ class LoginScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pairing Planet ${'login.title'.tr()}'),
+        title: const Text('Pairing Planet'),
         centerTitle: true,
       ),
       body: Center(
