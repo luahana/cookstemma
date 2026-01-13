@@ -667,26 +667,31 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
         if (!mounted) return;
 
         final state = ref.read(recipeCreationProvider);
-        state.when(
-          data: (newId) {
-            if (newId != null) {
-              if (!isVariantMode) {
-                // Stop auto-save first to prevent race condition where
-                // debounced save fires after clearDraft
-                ref.read(recipeDraftProvider.notifier).stopAutoSave();
-                ref.read(recipeDraftProvider.notifier).clearDraft();
-              }
-              ref.invalidate(myRecipesProvider);
-              ref.invalidate(myProfileProvider);
-              if (isVariantMode && request.rootPublicId != null) {
-                ref.invalidate(recipeDetailWithTrackingProvider(request.rootPublicId!));
-              }
-              context.pushReplacement(RouteConstants.recipeDetailPath(newId));
-            }
-          },
+
+        // Handle success case
+        final newId = state.valueOrNull;
+        if (newId != null) {
+          if (!isVariantMode) {
+            // Stop auto-save first to prevent race condition where
+            // debounced save fires after clearDraft
+            ref.read(recipeDraftProvider.notifier).stopAutoSave();
+            await ref.read(recipeDraftProvider.notifier).clearDraft();
+          }
+          ref.invalidate(myRecipesProvider);
+          ref.invalidate(myProfileProvider);
+          if (isVariantMode && request.rootPublicId != null) {
+            ref.invalidate(recipeDetailWithTrackingProvider(request.rootPublicId!));
+          }
+          if (mounted) {
+            context.pushReplacement(RouteConstants.recipeDetailPath(newId));
+          }
+          return;
+        }
+
+        // Handle error case
+        state.whenOrNull(
           error: (error, _) => ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text('recipe.submitFailed'.tr(namedArgs: {'error': error.toString()})))),
-          loading: () {},
         );
       } finally {
         if (mounted) setState(() => _isLoading = false);
