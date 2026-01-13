@@ -249,7 +249,10 @@ class _StepSectionState extends ConsumerState<StepSection> {
       ),
       child: TextField(
         readOnly: isOriginal, // 💡 기존 단계 텍스트 수정 불가
-        onChanged: (v) => step["description"] = v,
+        onChanged: (v) {
+          step["description"] = v;
+          widget.onStateChanged();
+        },
         controller: TextEditingController(text: step["description"])
           ..selection = TextSelection.collapsed(
             offset: step["description"]?.length ?? 0,
