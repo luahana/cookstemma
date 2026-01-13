@@ -49,18 +49,18 @@ class ImageSoftDeleteTest extends BaseIntegrationTest {
 
         // Create test images for the user
         testImage1 = Image.builder()
-                .storedFilename("thumbnail/test1.jpg")
+                .storedFilename("cover/test1.jpg")
                 .originalFilename("test1.jpg")
-                .type(ImageType.THUMBNAIL)
+                .type(ImageType.COVER)
                 .status(ImageStatus.ACTIVE)
                 .uploaderId(testUser.getId())
                 .build();
         imageRepository.save(testImage1);
 
         testImage2 = Image.builder()
-                .storedFilename("thumbnail/test2.jpg")
+                .storedFilename("cover/test2.jpg")
                 .originalFilename("test2.jpg")
-                .type(ImageType.THUMBNAIL)
+                .type(ImageType.COVER)
                 .status(ImageStatus.ACTIVE)
                 .uploaderId(testUser.getId())
                 .build();
