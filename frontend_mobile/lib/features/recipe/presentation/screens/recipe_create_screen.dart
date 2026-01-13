@@ -671,6 +671,9 @@ class _RecipeCreateScreenState extends ConsumerState<RecipeCreateScreen>
           data: (newId) {
             if (newId != null) {
               if (!isVariantMode) {
+                // Stop auto-save first to prevent race condition where
+                // debounced save fires after clearDraft
+                ref.read(recipeDraftProvider.notifier).stopAutoSave();
                 ref.read(recipeDraftProvider.notifier).clearDraft();
               }
               ref.invalidate(myRecipesProvider);
