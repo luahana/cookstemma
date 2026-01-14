@@ -13,6 +13,7 @@ import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_
 import 'package:pairing_planet2_frontend/core/widgets/skeletons/skeleton_loader.dart';
 import 'package:pairing_planet2_frontend/core/widgets/unified_recipe_card.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/hero_search_icon.dart';
+import 'package:pairing_planet2_frontend/core/widgets/app_logo.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_list_provider.dart';
 
@@ -48,12 +49,13 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
     }
   }
 
-  Widget _buildFilterTabs() {
+  Widget _buildFilterRow() {
     final filterState = ref.watch(browseFilterProvider);
     final typeFilter = filterState.typeFilter;
 
-    return Padding(
-      padding: EdgeInsets.only(left: 16.w),
+    return Container(
+      color: AppColors.surface,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Row(
         children: [
           _FilterTab(
@@ -85,6 +87,8 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
               ref.read(browseFilterProvider.notifier).setTypeFilter(RecipeTypeFilter.variants);
             },
           ),
+          const Spacer(),
+          _buildSortButton(),
         ],
       ),
     );
@@ -169,23 +173,24 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         child: NestedScrollViewPlus(
           controller: _scrollController,
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            // SliverAppBar with filter tabs
+            // SliverAppBar with logo and search
             SliverAppBar(
               pinned: true,
               floating: false,
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.surface,
               foregroundColor: Colors.black,
               elevation: innerBoxIsScrolled ? 1 : 0,
-              titleSpacing: 0,
-              title: _buildFilterTabs(),
+              centerTitle: false,
+              title: const AppLogo(),
               actions: [
-                _buildSortButton(),
                 HeroSearchIcon(
                   onTap: () => context.push(RouteConstants.search),
                   heroTag: 'search-hero',
                 ),
               ],
             ),
+            // Filter row below AppBar
+            SliverToBoxAdapter(child: _buildFilterRow()),
           ],
           body: NotificationListener<ScrollNotification>(
           onNotification: (notification) {
