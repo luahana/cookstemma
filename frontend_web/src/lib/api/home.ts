@@ -1,0 +1,11 @@
+import { apiFetch } from './client';
+import type { HomeFeedResponse } from '@/lib/types';
+
+/**
+ * Get home feed data (recent activity, recipes, trending trees)
+ */
+export async function getHomeFeed(): Promise<HomeFeedResponse> {
+  return apiFetch<HomeFeedResponse>('/home', {
+    next: { revalidate: 60 }, // Cache for 1 minute
+  });
+}
