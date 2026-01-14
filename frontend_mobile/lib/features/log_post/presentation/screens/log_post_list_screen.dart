@@ -47,52 +47,57 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
   }
 
   Widget _buildFilterRow() {
-    final filterState = ref.watch(logFilterProvider);
-    final selectedOutcomes = filterState.selectedOutcomes;
+    // Use Consumer to isolate rebuilds and prevent setState during build errors
+    return Consumer(
+      builder: (context, ref, _) {
+        final filterState = ref.watch(logFilterProvider);
+        final selectedOutcomes = filterState.selectedOutcomes;
 
-    // Determine which tab is selected
-    final isAllSelected = selectedOutcomes.isEmpty;
-    final isWinsSelected = selectedOutcomes.length == 1 &&
-        selectedOutcomes.contains(LogOutcome.success);
-    final isLearningSelected = selectedOutcomes.containsAll({LogOutcome.partial, LogOutcome.failed}) &&
-        selectedOutcomes.length == 2;
+        // Determine which tab is selected
+        final isAllSelected = selectedOutcomes.isEmpty;
+        final isWinsSelected = selectedOutcomes.length == 1 &&
+            selectedOutcomes.contains(LogOutcome.success);
+        final isLearningSelected = selectedOutcomes.containsAll({LogOutcome.partial, LogOutcome.failed}) &&
+            selectedOutcomes.length == 2;
 
-    return Container(
-      color: AppColors.surface,
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      child: Row(
-        children: [
-          _FilterTab(
-            label: 'logPost.filter.all'.tr(),
-            isSelected: isAllSelected,
-            onTap: () {
-              if (isAllSelected) return;
-              HapticFeedback.selectionClick();
-              ref.read(logFilterProvider.notifier).clearOutcomeFilters();
-            },
+        return Container(
+          color: AppColors.surface,
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+          child: Row(
+            children: [
+              _FilterTab(
+                label: 'logPost.filter.all'.tr(),
+                isSelected: isAllSelected,
+                onTap: () {
+                  if (isAllSelected) return;
+                  HapticFeedback.selectionClick();
+                  ref.read(logFilterProvider.notifier).clearOutcomeFilters();
+                },
+              ),
+              SizedBox(width: 24.w),
+              _FilterTab(
+                label: 'logPost.filter.wins'.tr(),
+                isSelected: isWinsSelected,
+                onTap: () {
+                  if (isWinsSelected) return;
+                  HapticFeedback.selectionClick();
+                  ref.read(logFilterProvider.notifier).setOutcome(LogOutcome.success);
+                },
+              ),
+              SizedBox(width: 24.w),
+              _FilterTab(
+                label: 'logPost.filter.learning'.tr(),
+                isSelected: isLearningSelected,
+                onTap: () {
+                  if (isLearningSelected) return;
+                  HapticFeedback.selectionClick();
+                  ref.read(logFilterProvider.notifier).setLearningFilter();
+                },
+              ),
+            ],
           ),
-          SizedBox(width: 24.w),
-          _FilterTab(
-            label: 'logPost.filter.wins'.tr(),
-            isSelected: isWinsSelected,
-            onTap: () {
-              if (isWinsSelected) return;
-              HapticFeedback.selectionClick();
-              ref.read(logFilterProvider.notifier).setOutcome(LogOutcome.success);
-            },
-          ),
-          SizedBox(width: 24.w),
-          _FilterTab(
-            label: 'logPost.filter.learning'.tr(),
-            isSelected: isLearningSelected,
-            onTap: () {
-              if (isLearningSelected) return;
-              HapticFeedback.selectionClick();
-              ref.read(logFilterProvider.notifier).setLearningFilter();
-            },
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

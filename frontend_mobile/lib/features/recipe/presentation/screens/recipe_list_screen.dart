@@ -50,51 +50,56 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
   }
 
   Widget _buildFilterRow() {
-    final filterState = ref.watch(browseFilterProvider);
-    final typeFilter = filterState.typeFilter;
+    // Use Consumer to isolate rebuilds and prevent setState during build errors
+    return Consumer(
+      builder: (context, ref, _) {
+        final filterState = ref.watch(browseFilterProvider);
+        final typeFilter = filterState.typeFilter;
 
-    return Container(
-      color: AppColors.surface,
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      child: Row(
-        children: [
-          _FilterTab(
-            label: 'filter.all'.tr(),
-            isSelected: typeFilter == RecipeTypeFilter.all,
-            onTap: () {
-              if (typeFilter == RecipeTypeFilter.all) return;
-              HapticFeedback.selectionClick();
-              ref.read(browseFilterProvider.notifier).setTypeFilter(RecipeTypeFilter.all);
-            },
+        return Container(
+          color: AppColors.surface,
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+          child: Row(
+            children: [
+              _FilterTab(
+                label: 'filter.all'.tr(),
+                isSelected: typeFilter == RecipeTypeFilter.all,
+                onTap: () {
+                  if (typeFilter == RecipeTypeFilter.all) return;
+                  HapticFeedback.selectionClick();
+                  ref.read(browseFilterProvider.notifier).setTypeFilter(RecipeTypeFilter.all);
+                },
+              ),
+              SizedBox(width: 20.w),
+              _FilterTab(
+                label: 'filter.originals'.tr(),
+                isSelected: typeFilter == RecipeTypeFilter.originals,
+                onTap: () {
+                  if (typeFilter == RecipeTypeFilter.originals) return;
+                  HapticFeedback.selectionClick();
+                  ref.read(browseFilterProvider.notifier).setTypeFilter(RecipeTypeFilter.originals);
+                },
+              ),
+              SizedBox(width: 20.w),
+              _FilterTab(
+                label: 'filter.variants'.tr(),
+                isSelected: typeFilter == RecipeTypeFilter.variants,
+                onTap: () {
+                  if (typeFilter == RecipeTypeFilter.variants) return;
+                  HapticFeedback.selectionClick();
+                  ref.read(browseFilterProvider.notifier).setTypeFilter(RecipeTypeFilter.variants);
+                },
+              ),
+              const Spacer(),
+              _buildSortButton(ref),
+            ],
           ),
-          SizedBox(width: 20.w),
-          _FilterTab(
-            label: 'filter.originals'.tr(),
-            isSelected: typeFilter == RecipeTypeFilter.originals,
-            onTap: () {
-              if (typeFilter == RecipeTypeFilter.originals) return;
-              HapticFeedback.selectionClick();
-              ref.read(browseFilterProvider.notifier).setTypeFilter(RecipeTypeFilter.originals);
-            },
-          ),
-          SizedBox(width: 20.w),
-          _FilterTab(
-            label: 'filter.variants'.tr(),
-            isSelected: typeFilter == RecipeTypeFilter.variants,
-            onTap: () {
-              if (typeFilter == RecipeTypeFilter.variants) return;
-              HapticFeedback.selectionClick();
-              ref.read(browseFilterProvider.notifier).setTypeFilter(RecipeTypeFilter.variants);
-            },
-          ),
-          const Spacer(),
-          _buildSortButton(),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildSortButton() {
+  Widget _buildSortButton(WidgetRef ref) {
     final filterState = ref.watch(browseFilterProvider);
     final currentSort = filterState.sortOption;
     final isActive = currentSort != RecipeSortOption.recent;
