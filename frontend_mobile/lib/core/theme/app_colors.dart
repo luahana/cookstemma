@@ -14,6 +14,7 @@ class AppColors {
   static const Color surface = Colors.white;
   static const Color textPrimary = Color(0xFF2D3436);
   static const Color textSecondary = Color(0xFF636E72);
+  static const Color textLogo = Color(0xFF494F57);
   static const Color error = Color(0xFFD63031);
 
   // 💡 기타 (별점, 로그 구분 등)

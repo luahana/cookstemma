@@ -99,6 +99,9 @@ dependencies:
   fl_chart: ^0.69.0
   nested_scroll_view_plus: ^3.0.0
 
+  # SVG rendering
+  flutter_svg: ^2.0.10+1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -137,6 +140,7 @@ flutter:
   assets:
     - .env
     - assets/translations/
+    - assets/images/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { siteConfig } from '@/config/site';
 import { useAuth } from '@/contexts/AuthContext';
@@ -64,8 +65,14 @@ export function Header() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
-              <span className="text-2xl">🍳</span>
-              <span className="font-bold text-xl text-[var(--primary)]">
+              <Image
+                src="/logo-icon.svg"
+                alt={siteConfig.name}
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className="font-bold text-xl text-[var(--text-logo)]">
                 {siteConfig.name}
               </span>
             </Link>
