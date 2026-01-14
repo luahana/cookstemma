@@ -43,8 +43,13 @@ class HookSection extends ConsumerStatefulWidget {
 }
 
 class _HookSectionState extends ConsumerState<HookSection> {
+  static const int _maxPhotos = 3;
+
   // 💡 이미지 선택 및 업로드 프로세스 시작
   Future<void> _pickImage(ImageSource source) async {
+    // Guard: don't add if already at max
+    if (widget.finishedImages.length >= _maxPhotos) return;
+
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(
       source: source,
@@ -109,7 +114,7 @@ class _HookSectionState extends ConsumerState<HookSection> {
         SizedBox(height: 12.h),
         ReorderableImagePicker(
           images: widget.finishedImages,
-          maxImages: 3,
+          maxImages: _maxPhotos,
           onReorder: widget.onReorder,
           onRemove: _removeImage,
           onRetry: _handleImageUpload,
@@ -118,7 +123,15 @@ class _HookSectionState extends ConsumerState<HookSection> {
             onSourceSelected: _pickImage,
           ),
         ),
-        SizedBox(height: 24.h),
+        SizedBox(height: 4.h),
+        Text(
+          'recipe.photos.maxInfo'.tr(),
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: Colors.grey[500],
+          ),
+        ),
+        SizedBox(height: 20.h),
 
         _buildTextField(
           controller: widget.titleController,
