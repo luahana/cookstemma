@@ -73,7 +73,7 @@ public class SecurityConfig {
                         .requestMatchers("/share/**").permitAll()
 
                         // Protected user-specific endpoints (must come before wildcard rules)
-                        .requestMatchers("/api/v1/users/me").authenticated()
+                        .requestMatchers("/api/v1/users/me", "/api/v1/users/me/**").authenticated()
                         .requestMatchers("/api/v1/recipes/my").authenticated()
                         .requestMatchers("/api/v1/recipes/saved").authenticated()
 
