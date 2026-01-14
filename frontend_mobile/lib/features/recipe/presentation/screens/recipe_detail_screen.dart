@@ -28,6 +28,7 @@ import '../widgets/action_hub_bar.dart';
 import '../widgets/recipe_action_menu.dart';
 import 'cooking_mode_screen.dart';
 import 'package:pairing_planet2_frontend/core/widgets/recipe_type_label.dart';
+import 'package:pairing_planet2_frontend/features/profile/widgets/user_action_menu.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final String recipeId;
@@ -125,6 +126,21 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               icon: Icon(Icons.bookmark_border, color: Colors.grey[400]),
               onPressed: null,
             ),
+          ),
+          // User action menu (block/report) - only shown for non-owner
+          recipeAsync.maybeWhen(
+            data: (recipe) {
+              if (recipe.creatorPublicId == null) return const SizedBox.shrink();
+              final authStatus = ref.watch(authStateProvider).status;
+              if (authStatus != AuthStatus.authenticated) return const SizedBox.shrink();
+              final isOwner = ref.watch(myProfileProvider).maybeWhen(
+                data: (profile) => profile.user.id == recipe.creatorPublicId,
+                orElse: () => false,
+              );
+              if (isOwner) return const SizedBox.shrink();
+              return UserActionMenu(userId: recipe.creatorPublicId!);
+            },
+            orElse: () => const SizedBox.shrink(),
           ),
           // Recipe action menu (edit/delete) - only shown for owner
           RecipeActionMenu(recipePublicId: widget.recipeId),

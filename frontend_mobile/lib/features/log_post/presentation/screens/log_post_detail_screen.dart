@@ -20,6 +20,7 @@ import '../widgets/log_recipe_lineage.dart';
 import '../widgets/log_edit_sheet.dart';
 import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 import 'package:pairing_planet2_frontend/core/widgets/recipe_type_label.dart';
+import 'package:pairing_planet2_frontend/features/profile/widgets/user_action_menu.dart';
 
 class LogPostDetailScreen extends ConsumerStatefulWidget {
   final String logId;
@@ -224,6 +225,17 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
               icon: Icon(Icons.bookmark_border, color: Colors.grey[400]),
               onPressed: null,
             ),
+          ),
+          // User action menu (block/report) - only shown for non-creator
+          logAsync.maybeWhen(
+            data: (log) {
+              if (log.creatorPublicId == null) return const SizedBox.shrink();
+              final authStatus = ref.watch(authStateProvider).status;
+              if (authStatus != AuthStatus.authenticated) return const SizedBox.shrink();
+              if (_isCreator(log)) return const SizedBox.shrink();
+              return UserActionMenu(userId: log.creatorPublicId!);
+            },
+            orElse: () => const SizedBox.shrink(),
           ),
           // Edit/Delete menu (only for creator)
           logAsync.maybeWhen(
