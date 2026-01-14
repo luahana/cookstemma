@@ -49,7 +49,7 @@
     "mostEvolved": "Most Evolved",
     "hotRightNow": "Hot Right Now",
     "freshUploads": "Fresh Uploads",
-    "seeAll": "See All",
+    "viewMore": "View More",
     "offlineData": "Viewing offline data",
     "recentSearches": "Recent searches",
     "clearHistory": "Clear",
@@ -312,7 +312,7 @@
       "createVariationButton": "Make Variation"
     },
     "variants": {
-      "viewAll": "View All"
+      "viewMore": "View More"
     },
     "noVariations": "No variations yet",
     "action": {
@@ -372,14 +372,14 @@
     "recentLogs": {
       "title": "See How Others Made It",
       "subtitle": "Get inspired by the community",
-      "viewAll": "View All",
+      "viewMore": "View More",
       "emptyTitle": "No cooking logs yet",
       "emptyCta": "Be the first to share your cooking experience!",
       "emptyButton": "Record Log"
     },
     "variantsGallery": {
       "title": "Variations of this Recipe",
-      "viewAll": "View All"
+      "viewMore": "View More"
     },
     "shareSheet": {
       "title": "Share",
@@ -743,7 +743,7 @@
     "variants": "variants",
     "logs": "logs",
     "featured": "Featured Stars",
-    "viewAll": "View all"
+    "viewMore": "View More"
   },
   "star": {
     "title": "Recipe Family",

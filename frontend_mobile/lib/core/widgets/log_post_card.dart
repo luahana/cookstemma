@@ -50,7 +50,7 @@ class LogPostCard extends StatelessWidget {
           child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Photo with outcome badge overlay
+            // Photo
             Expanded(
               child: Stack(
                 children: [
@@ -59,28 +59,6 @@ class LogPostCard extends StatelessWidget {
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(12.r)),
                     child: _buildThumbnail(context),
-                  ),
-                  // Outcome emoji badge (bottom-right)
-                  Positioned(
-                    right: 8.w,
-                    bottom: 8.h,
-                    child: Container(
-                      padding: EdgeInsets.all(6.r),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        LogOutcome.getEmoji(log.outcome),
-                        style: TextStyle(fontSize: 18.sp),
-                      ),
-                    ),
                   ),
                   // Sync status indicator for pending items (top-right)
                   if (log.isPending)
@@ -101,15 +79,26 @@ class LogPostCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Dish name (foodName) with type badge or fallback to title
-                    RecipeTypeLabel(
-                      foodName: (log.foodName != null && log.foodName!.isNotEmpty)
-                          ? log.foodName!
-                          : log.title,
-                      isVariant: log.isVariant ?? false,
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                    // Dish name (foodName) with outcome emoji
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RecipeTypeLabel(
+                            foodName: (log.foodName != null && log.foodName!.isNotEmpty)
+                                ? log.foodName!
+                                : log.title,
+                            isVariant: log.isVariant ?? false,
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        SizedBox(width: 4.w),
+                        Text(
+                          LogOutcome.getEmoji(log.outcome),
+                          style: TextStyle(fontSize: 14.sp),
+                        ),
+                      ],
                     ),
                     // Username (or sync status if pending)
                     if (log.isPending)

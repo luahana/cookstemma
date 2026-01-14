@@ -47,7 +47,7 @@ class VariantsGallery extends StatelessWidget {
                     // Navigate to full variants list (future feature)
                   },
                   child: Text(
-                    'recipe.variantsGallery.viewAll'.tr(),
+                    'recipe.variantsGallery.viewMore'.tr(),
                     style: TextStyle(
                       color: AppColors.primary,
                       fontSize: 13.sp,

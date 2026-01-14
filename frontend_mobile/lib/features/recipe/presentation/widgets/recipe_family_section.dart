@@ -78,7 +78,7 @@ class RecipeFamilySection extends StatelessWidget {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
-                      'recipe.variants.viewAll'.tr(),
+                      'recipe.variants.viewMore'.tr(),
                       style: TextStyle(
                         color: AppColors.primary,
                         fontSize: 13.sp,

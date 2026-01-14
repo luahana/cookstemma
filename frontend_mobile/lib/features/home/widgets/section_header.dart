@@ -40,7 +40,7 @@ class SectionHeader extends StatelessWidget {
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               child: Text(
-                'home.seeAll'.tr(),
+                'home.viewMore'.tr(),
                 style: TextStyle(
                   fontSize: 13.sp,
                   color: AppColors.primary,

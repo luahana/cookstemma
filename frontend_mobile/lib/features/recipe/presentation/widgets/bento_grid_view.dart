@@ -293,7 +293,7 @@ class FeaturedStarsCarousel extends StatelessWidget {
                   onPressed: () {
                     // TODO: Navigate to full featured list
                   },
-                  child: Text('grid.viewAll'.tr()),
+                  child: Text('grid.viewMore'.tr()),
                 ),
               ],
             ),

@@ -61,7 +61,7 @@ class RecentLogsGallery extends StatelessWidget {
                         context.push('${RouteConstants.logPosts}?recipeId=$recipeId');
                       },
                       child: Text(
-                        'recipe.recentLogs.viewAll'.tr(),
+                        'recipe.recentLogs.viewMore'.tr(),
                         style: TextStyle(
                           color: AppColors.primary,
                           fontSize: 13.sp,

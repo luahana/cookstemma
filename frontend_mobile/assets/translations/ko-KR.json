@@ -49,7 +49,7 @@
     "mostEvolved": "가장 많이 진화한 레시피",
     "hotRightNow": "지금 핫한",
     "freshUploads": "새로 올라온",
-    "seeAll": "전체보기",
+    "viewMore": "더 보기",
     "offlineData": "오프라인 데이터 보는 중",
     "recentSearches": "최근 검색",
     "clearHistory": "삭제",
@@ -312,7 +312,7 @@
       "createVariationButton": "변형 만들기"
     },
     "variants": {
-      "viewAll": "모두 보기"
+      "viewMore": "더 보기"
     },
     "noVariations": "아직 변형이 없어요",
     "action": {
@@ -368,14 +368,14 @@
     "recentLogs": {
       "title": "요리 기록",
       "subtitle": "커뮤니티에서 영감을 얻으세요",
-      "viewAll": "모두 보기",
+      "viewMore": "더 보기",
       "emptyTitle": "아직 요리 기록이 없어요",
       "emptyCta": "첫 번째로 요리 경험을 공유해보세요!",
       "emptyButton": "로그 기록하기"
     },
     "variantsGallery": {
       "title": "이 레시피의 변형",
-      "viewAll": "모두 보기"
+      "viewMore": "더 보기"
     },
     "shareSheet": {
       "title": "공유하기",
@@ -739,7 +739,7 @@
     "variants": "변형",
     "logs": "로그",
     "featured": "주목받는 스타",
-    "viewAll": "전체 보기"
+    "viewMore": "더 보기"
   },
   "star": {
     "title": "레시피 패밀리",
