@@ -104,23 +104,30 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
     final currentSort = filterState.sortOption;
     final isActive = currentSort != RecipeSortOption.recent;
 
-    return PopupMenuButton<RecipeSortOption>(
-      icon: Icon(
-        Icons.sort,
-        color: isActive ? AppColors.primary : Colors.black,
-      ),
-      tooltip: 'filter.sort'.tr(),
-      onSelected: (option) {
-        HapticFeedback.selectionClick();
-        ref.read(browseFilterProvider.notifier).setSortOption(option);
-      },
-      offset: Offset(0, 40.h),
+    return SizedBox(
+      height: 24.h,
+      width: 24.w,
+      child: PopupMenuButton<RecipeSortOption>(
+        padding: EdgeInsets.zero,
+        iconSize: 20.sp,
+        icon: Icon(
+          Icons.sort,
+          size: 20.sp,
+          color: isActive ? AppColors.primary : Colors.black,
+        ),
+        tooltip: 'filter.sort'.tr(),
+        onSelected: (option) {
+          HapticFeedback.selectionClick();
+          ref.read(browseFilterProvider.notifier).setSortOption(option);
+        },
+        offset: Offset(0, 30.h),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
       itemBuilder: (context) => [
         _buildSortMenuItem(RecipeSortOption.recent, 'filter.sortRecent'.tr(), Icons.access_time, currentSort),
         _buildSortMenuItem(RecipeSortOption.trending, 'filter.sortTrending'.tr(), Icons.trending_up, currentSort),
         _buildSortMenuItem(RecipeSortOption.mostForked, 'filter.sortMostForked'.tr(), Icons.call_split, currentSort),
       ],
+      ),
     );
   }
 
@@ -184,7 +191,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
               floating: false,
               backgroundColor: AppColors.surface,
               foregroundColor: Colors.black,
-              elevation: innerBoxIsScrolled ? 1 : 0,
+              scrolledUnderElevation: innerBoxIsScrolled ? 1 : 0,
               centerTitle: false,
               title: const AppLogo(),
               actions: [
@@ -403,23 +410,24 @@ class _FilterTab extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             label,
             style: TextStyle(
               fontSize: 15.sp,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              color: isSelected ? AppColors.primary : Colors.grey[600],
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? AppColors.primary : Colors.grey[500],
             ),
           ),
-          SizedBox(height: 4.h),
+          SizedBox(height: 6.h),
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            height: 2.h,
+            height: 3.h,
             width: isSelected ? 24.w : 0,
             decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(1.r),
+              color: isSelected ? AppColors.primary : Colors.transparent,
+              borderRadius: BorderRadius.circular(1.5.r),
             ),
           ),
         ],
