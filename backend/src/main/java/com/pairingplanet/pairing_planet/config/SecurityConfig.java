@@ -1,6 +1,8 @@
 package com.pairingplanet.pairing_planet.config;
 
 import com.pairingplanet.pairing_planet.filter.IdempotencyFilter;
+import com.pairingplanet.pairing_planet.filter.RateLimitFilter;
+import com.pairingplanet.pairing_planet.security.CsrfTokenFilter;
 import com.pairingplanet.pairing_planet.security.JwtAuthenticationEntryPoint;
 import com.pairingplanet.pairing_planet.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,8 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final IdempotencyFilter idempotencyFilter;
+    private final RateLimitFilter rateLimitFilter;
+    private final CsrfTokenFilter csrfTokenFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
@@ -94,8 +98,15 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 )
+                // Filter chain order:
+                // 1. RateLimitFilter - Rate limiting (before auth to prevent brute force)
+                // 2. JwtAuthenticationFilter - JWT token validation
+                // 3. CsrfTokenFilter - CSRF validation for cookie-based auth
+                // 4. IdempotencyFilter - Idempotency key handling
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(idempotencyFilter, JwtAuthenticationFilter.class);
+                .addFilterAfter(csrfTokenFilter, JwtAuthenticationFilter.class)
+                .addFilterAfter(idempotencyFilter, CsrfTokenFilter.class);
 
         return http.build();
     }

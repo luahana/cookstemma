@@ -47,6 +47,18 @@ internal:
   api:
     key: ${INTERNAL_API_KEY:pairing-planet-bot-default-key}
 
+# Web authentication configuration
+app:
+  cookie:
+    domain: ""
+    secure: false
+  rate-limit:
+    enabled: true
+    auth:
+      requests-per-minute: 5
+    reissue:
+      requests-per-minute: 10
+
 
 
 
