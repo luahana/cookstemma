@@ -26,6 +26,7 @@ class QuickLogDraft {
   final List<String> hashtags;
   final String? errorMessage;
   final DateTime createdAt;
+  final String? createdLogLocalId; // Local ID of the created log for navigation
 
   const QuickLogDraft({
     this.step = QuickLogStep.idle,
@@ -38,6 +39,7 @@ class QuickLogDraft {
     this.hashtags = const [],
     this.errorMessage,
     DateTime? createdAt,
+    this.createdLogLocalId,
   }) : createdAt = createdAt ?? const _DefaultDateTime();
 
   QuickLogDraft copyWith({
@@ -50,6 +52,7 @@ class QuickLogDraft {
     String? notes,
     List<String>? hashtags,
     String? errorMessage,
+    String? createdLogLocalId,
   }) {
     return QuickLogDraft(
       step: step ?? this.step,
@@ -62,6 +65,7 @@ class QuickLogDraft {
       hashtags: hashtags ?? this.hashtags,
       errorMessage: errorMessage ?? this.errorMessage,
       createdAt: createdAt,
+      createdLogLocalId: createdLogLocalId ?? this.createdLogLocalId,
     );
   }
 
@@ -199,9 +203,12 @@ class QuickLogDraftNotifier extends Notifier<QuickLogDraft> {
     state = state.copyWith(step: QuickLogStep.submitting);
   }
 
-  /// Mark as successfully submitted
-  void markSuccess() {
-    state = state.copyWith(step: QuickLogStep.success);
+  /// Mark as successfully submitted with the created log's local ID
+  void markSuccess(String localId) {
+    state = state.copyWith(
+      step: QuickLogStep.success,
+      createdLogLocalId: localId,
+    );
   }
 
   /// Mark as error with message

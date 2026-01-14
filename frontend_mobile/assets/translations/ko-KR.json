@@ -518,6 +518,7 @@
       "syncingBackground": "백그라운드에서 동기화 중...",
       "logAnother": "다른 로그 작성",
       "viewLogs": "로그 보기",
+      "viewLog": "로그 보기",
       "error": "문제가 발생했습니다",
       "discardTitle": "로그를 버리시겠어요?",
       "discardMessage": "작성 중인 내용이 사라집니다.",

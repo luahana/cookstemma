@@ -115,7 +115,7 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
     try {
       // Queue the log post for offline-first sync
       final syncQueue = ref.read(syncQueueRepositoryProvider);
-      await syncQueue.queueLogPost(
+      final queueItem = await syncQueue.queueLogPost(
         outcome: draft.outcome!.value,
         localPhotoPaths: draft.photoPaths,
         recipePublicId: draft.recipePublicId,
@@ -127,9 +127,10 @@ class _QuickLogSheetState extends ConsumerState<QuickLogSheet> {
       // Trigger immediate sync attempt
       ref.read(logSyncEngineProvider).triggerSync();
 
-      // Mark as success
+      // Mark as success with the created log's local ID
       if (mounted) {
-        ref.read(quickLogDraftProvider.notifier).markSuccess();
+        final localId = queueItem.localId ?? queueItem.id;
+        ref.read(quickLogDraftProvider.notifier).markSuccess(localId);
       }
     } catch (e) {
       if (mounted) {

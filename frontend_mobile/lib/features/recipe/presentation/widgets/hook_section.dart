@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pairing_planet2_frontend/core/providers/autocomplete_providers.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
+import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
 import 'package:pairing_planet2_frontend/core/widgets/reorderable_image_picker.dart';
 import 'package:pairing_planet2_frontend/domain/entities/autocomplete/autocomplete_result.dart';
@@ -226,16 +227,23 @@ class _HookSectionState extends ConsumerState<HookSection> {
         ],
 
         // Food style dropdown (always editable, even in variant mode)
-        FoodStyleDropdown(
-          value: widget.localeController.text.isNotEmpty
-              ? widget.localeController.text
-              : null,
-          enabled: true,
-          onChanged: (value) {
-            if (value != null) {
-              widget.localeController.text = value;
-              widget.onStateChanged();
-            }
+        Builder(
+          builder: (context) {
+            final profileAsync = ref.watch(myProfileProvider);
+            final preferredStyle = profileAsync.valueOrNull?.user.defaultFoodStyle;
+            return FoodStyleDropdown(
+              value: widget.localeController.text.isNotEmpty
+                  ? widget.localeController.text
+                  : null,
+              preferredStyle: preferredStyle,
+              enabled: true,
+              onChanged: (value) {
+                if (value != null) {
+                  widget.localeController.text = value;
+                  widget.onStateChanged();
+                }
+              },
+            );
           },
         ),
       ],

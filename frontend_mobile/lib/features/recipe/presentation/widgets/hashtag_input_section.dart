@@ -203,9 +203,9 @@ class _HashtagInputSectionState extends State<HashtagInputSection> {
     return Container(
       padding: EdgeInsets.only(left: 12.w, right: 4.w, top: 6.h, bottom: 6.h),
       decoration: BoxDecoration(
-        color: AppColors.editableBackground,
+        color: AppColors.hashtag.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColors.editableBorder),
+        border: Border.all(color: AppColors.hashtag.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -214,7 +214,7 @@ class _HashtagInputSectionState extends State<HashtagInputSection> {
             '#$hashtag',
             style: TextStyle(
               fontSize: 13.sp,
-              color: Colors.black87,
+              color: AppColors.hashtag,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -224,7 +224,7 @@ class _HashtagInputSectionState extends State<HashtagInputSection> {
             child: Icon(
               Icons.close,
               size: 16.sp,
-              color: Colors.grey[600],
+              color: AppColors.hashtag.withValues(alpha: 0.7),
             ),
           ),
         ],

@@ -9,12 +9,14 @@ import 'package:pairing_planet2_frontend/core/theme/app_input_styles.dart';
 /// Displays as "🇰🇷 Style" format
 class FoodStyleDropdown extends StatelessWidget {
   final String? value; // ISO country code (e.g., "KR", "US") or "other"
+  final String? preferredStyle; // User's preferred cooking style from settings
   final ValueChanged<String?> onChanged;
   final bool enabled;
 
   const FoodStyleDropdown({
     super.key,
     this.value,
+    this.preferredStyle,
     required this.onChanged,
     this.enabled = true,
   });
@@ -136,42 +138,19 @@ class FoodStyleDropdown extends StatelessWidget {
           ),
         ),
         SizedBox(height: 8.h),
-        // "Other/International" option button
-        GestureDetector(
-          onTap: enabled ? () => onChanged('other') : null,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-            decoration: BoxDecoration(
-              color: normalizedValue == 'other'
-                  ? AppColors.editableBackground
-                  : Colors.grey[50],
-              borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(
-                color: normalizedValue == 'other'
-                    ? AppColors.editableBorder
-                    : Colors.grey[200]!,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('🌍', style: TextStyle(fontSize: 16.sp)),
-                SizedBox(width: 6.w),
-                Text(
-                  'foodStyle.other'.tr(),
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: normalizedValue == 'other'
-                        ? AppColors.primary
-                        : Colors.grey[600],
-                    fontWeight: normalizedValue == 'other'
-                        ? FontWeight.w600
-                        : FontWeight.normal,
-                  ),
-                ),
-              ],
-            ),
-          ),
+        // Quick select buttons row
+        Row(
+          children: [
+            // Preferred country button (if set and not "other")
+            if (preferredStyle != null &&
+                preferredStyle!.isNotEmpty &&
+                preferredStyle != 'other') ...[
+              _buildPreferredStyleButton(normalizedValue),
+              SizedBox(width: 8.w),
+            ],
+            // "Other/International" option button
+            _buildOtherButton(normalizedValue),
+          ],
         ),
         SizedBox(height: 4.h),
         Text(
@@ -179,6 +158,77 @@ class FoodStyleDropdown extends StatelessWidget {
           style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
         ),
       ],
+    );
+  }
+
+  /// Build preferred country quick-select button
+  Widget _buildPreferredStyleButton(String? normalizedValue) {
+    final preferredCountry = _getCountry(preferredStyle);
+    if (preferredCountry == null) return const SizedBox.shrink();
+
+    final isSelected = normalizedValue == preferredStyle;
+
+    return GestureDetector(
+      onTap: enabled ? () => onChanged(preferredStyle) : null,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.editableBackground : Colors.grey[50],
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: isSelected ? AppColors.editableBorder : Colors.grey[200]!,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(preferredCountry.flagEmoji, style: TextStyle(fontSize: 16.sp)),
+            SizedBox(width: 6.w),
+            Text(
+              preferredCountry.name,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: isSelected ? AppColors.primary : Colors.grey[600],
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build "Other/International" quick-select button
+  Widget _buildOtherButton(String? normalizedValue) {
+    final isSelected = normalizedValue == 'other';
+
+    return GestureDetector(
+      onTap: enabled ? () => onChanged('other') : null,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.editableBackground : Colors.grey[50],
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: isSelected ? AppColors.editableBorder : Colors.grey[200]!,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('🌍', style: TextStyle(fontSize: 16.sp)),
+            SizedBox(width: 6.w),
+            Text(
+              'foodStyle.other'.tr(),
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: isSelected ? AppColors.primary : Colors.grey[600],
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

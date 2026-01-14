@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
+import 'package:pairing_planet2_frontend/data/datasources/sync/log_sync_engine.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/quick_log_draft_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart';
@@ -39,11 +40,41 @@ class SubmittingState extends StatelessWidget {
 }
 
 /// Success state with preview card and navigation options
-class SuccessState extends ConsumerWidget {
+class SuccessState extends ConsumerStatefulWidget {
   const SuccessState({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SuccessState> createState() => _SuccessStateState();
+}
+
+class _SuccessStateState extends ConsumerState<SuccessState> {
+  bool _isNavigating = false;
+
+  Future<void> _handleViewLog() async {
+    if (_isNavigating) return;
+    setState(() => _isNavigating = true);
+
+    HapticFeedback.mediumImpact();
+    final draft = ref.read(quickLogDraftProvider);
+
+    // Wait for sync to complete
+    await ref.read(logSyncEngineProvider).triggerSync();
+
+    if (!mounted) return;
+
+    ref.read(quickLogDraftProvider.notifier).reset();
+    Navigator.of(context).pop(true);
+    ref.invalidate(myProfileProvider);
+    if (draft.recipePublicId != null) {
+      ref.invalidate(recipeDetailWithTrackingProvider(draft.recipePublicId!));
+    }
+
+    // Navigate to My Logs tab where the synced log will appear
+    context.go('${RouteConstants.profile}?tab=1');
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final draft = ref.watch(quickLogDraftProvider);
 
     return Padding(
@@ -106,19 +137,18 @@ class SuccessState extends ConsumerWidget {
               ),
               SizedBox(width: 16.w),
               FilledButton.icon(
-                onPressed: () {
-                  HapticFeedback.mediumImpact();
-                  final draft = ref.read(quickLogDraftProvider);
-                  ref.read(quickLogDraftProvider.notifier).reset();
-                  Navigator.of(context).pop(true);
-                  ref.invalidate(myProfileProvider);
-                  if (draft.recipePublicId != null) {
-                    ref.invalidate(recipeDetailWithTrackingProvider(draft.recipePublicId!));
-                  }
-                  context.go('${RouteConstants.profile}?tab=1');
-                },
-                icon: const Icon(Icons.visibility),
-                label: Text('logPost.quickLog.viewLogs'.tr()),
+                onPressed: _isNavigating ? null : _handleViewLog,
+                icon: _isNavigating
+                    ? SizedBox(
+                        width: 16.w,
+                        height: 16.w,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.visibility),
+                label: Text('logPost.quickLog.viewLog'.tr()),
               ),
             ],
           ),
