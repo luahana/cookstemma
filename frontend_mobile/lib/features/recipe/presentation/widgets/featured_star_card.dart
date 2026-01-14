@@ -83,7 +83,7 @@ class FeaturedStarCard extends StatelessWidget {
                     // Creator info
                     ClickableUsername(
                       username: recipe.creatorName,
-                      creatorPublicId: recipe.creatorPublicId,
+                      userPublicId: recipe.creatorPublicId,
                       fontSize: 12.sp,
                       showPersonIcon: true,
                     ),
@@ -398,7 +398,7 @@ class FeaturedStarCardHorizontal extends StatelessWidget {
                   // Creator
                   ClickableUsername(
                     username: recipe.creatorName,
-                    creatorPublicId: recipe.creatorPublicId,
+                    userPublicId: recipe.creatorPublicId,
                     fontSize: 12.sp,
                     color: Colors.white,
                     showPersonIcon: true,

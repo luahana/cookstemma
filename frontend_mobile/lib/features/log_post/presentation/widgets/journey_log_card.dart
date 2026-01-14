@@ -274,7 +274,7 @@ class JourneyLogCard extends StatelessWidget {
         if (logData.creatorName != null)
           ClickableUsername(
             username: logData.creatorName!,
-            creatorPublicId: logData.creatorPublicId,
+            userPublicId: logData.creatorPublicId,
             fontSize: 12.sp,
             showPersonIcon: true,
           ),

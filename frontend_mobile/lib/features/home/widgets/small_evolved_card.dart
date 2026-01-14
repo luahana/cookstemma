@@ -77,9 +77,9 @@ class SmallEvolvedCard extends StatelessWidget {
                     if (tree.creatorName != null)
                       ClickableUsername(
                         username: tree.creatorName!,
-                        creatorPublicId: tree.creatorPublicId,
+                        userPublicId: tree.creatorPublicId,
                         fontSize: 10.sp,
-                        color: AppColors.primary,
+                        color: AppColors.secondary,
                         showPersonIcon: true,
                       ),
                   ],

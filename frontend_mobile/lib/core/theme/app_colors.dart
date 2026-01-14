@@ -4,6 +4,7 @@ class AppColors {
   // 💡 브랜드 주색상 (오렌지)
   static const Color primary = Color(0xFFE67E22);
   static const Color primaryLight = Color(0xFFFFE0B2);
+  static const Color secondary = Color(0xFF5D4037);
 
   // 💡 포인트/성장 색상 (초록 - '살아있는' 느낌 강조)
   static const Color growth = Color(0xFF27AE60);

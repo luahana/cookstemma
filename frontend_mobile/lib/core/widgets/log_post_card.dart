@@ -127,7 +127,7 @@ class LogPostCard extends StatelessWidget {
                         log.creatorName!.isNotEmpty)
                       ClickableUsername(
                         username: log.creatorName!,
-                        creatorPublicId: log.creatorPublicId,
+                        userPublicId: log.creatorPublicId,
                         fontSize: 11.sp,
                         showPersonIcon: true,
                       ),

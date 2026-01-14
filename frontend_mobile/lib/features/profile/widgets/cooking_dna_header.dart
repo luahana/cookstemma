@@ -40,10 +40,10 @@ class CookingDnaHeader extends StatelessWidget {
           SizedBox(height: 12.h),
           // Row 2: Username
           Text(
-            profile.user.username,
+            '@${profile.user.username}',
             style: TextStyle(
               fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
+              color: AppColors.secondary,
             ),
           ),
           // Row 3-4: Bio and social links

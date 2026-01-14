@@ -110,6 +110,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
                 foregroundColor: Colors.black,
                 elevation: innerBoxIsScrolled ? 1 : 0,
                 centerTitle: false,
+                titleSpacing: 0,
+                automaticallyImplyLeading: false,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back),
                   onPressed: () => context.pop(),

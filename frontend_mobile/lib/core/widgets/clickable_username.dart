@@ -8,7 +8,7 @@ import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 /// Reusable clickable username widget that navigates to user profile
 class ClickableUsername extends StatelessWidget {
   final String username;
-  final String? creatorPublicId;
+  final String? userPublicId;
   final double? fontSize;
   final Color? color;
   final FontWeight? fontWeight;
@@ -19,7 +19,7 @@ class ClickableUsername extends StatelessWidget {
   const ClickableUsername({
     super.key,
     required this.username,
-    this.creatorPublicId,
+    this.userPublicId,
     this.fontSize,
     this.color,
     this.fontWeight,
@@ -30,18 +30,18 @@ class ClickableUsername extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasCreatorId = creatorPublicId != null;
+    final hasUserId = userPublicId != null;
     // Show @ prefix if either showAtPrefix or showPersonIcon is true
     final shouldShowAt = showAtPrefix || showPersonIcon;
     final displayText = shouldShowAt ? '@$username' : username;
-    final effectiveColor = color ?? AppColors.primary;
+    final effectiveColor = color ?? AppColors.secondary;
     final effectiveFontSize = fontSize ?? 12.sp;
 
     return GestureDetector(
-      onTap: hasCreatorId
+      onTap: hasUserId
           ? () {
               HapticFeedback.selectionClick();
-              context.push(RouteConstants.userProfilePath(creatorPublicId!));
+              context.push(RouteConstants.userProfilePath(userPublicId!));
             }
           : null,
       child: Text(

@@ -74,9 +74,9 @@ class FeaturedEvolvedCard extends StatelessWidget {
                     if (tree.creatorName != null)
                       ClickableUsername(
                         username: tree.creatorName!,
-                        creatorPublicId: tree.creatorPublicId,
+                        userPublicId: tree.creatorPublicId,
                         fontSize: 13.sp,
-                        color: AppColors.primary,
+                        color: AppColors.secondary,
                         showPersonIcon: true,
                       ),
                   ],

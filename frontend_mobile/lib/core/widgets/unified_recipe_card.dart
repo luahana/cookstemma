@@ -163,7 +163,7 @@ class UnifiedRecipeCard extends ConsumerWidget {
                       if (showUsername && recipe.creatorName.isNotEmpty) ...[
                         ClickableUsername(
                           username: recipe.creatorName,
-                          creatorPublicId: recipe.creatorPublicId,
+                          userPublicId: recipe.creatorPublicId,
                           fontSize: 13.sp,
                           showPersonIcon: true,
                         ),
@@ -284,7 +284,7 @@ class UnifiedRecipeCard extends ConsumerWidget {
               if (showUsername && recipe.creatorName.isNotEmpty) ...[
                 ClickableUsername(
                   username: recipe.creatorName,
-                  creatorPublicId: recipe.creatorPublicId,
+                  userPublicId: recipe.creatorPublicId,
                   fontSize: 12.sp,
                   showPersonIcon: true,
                 ),
