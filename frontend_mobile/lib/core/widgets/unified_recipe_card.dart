@@ -81,9 +81,10 @@ class UnifiedRecipeCard extends ConsumerWidget {
   Widget _buildHorizontalLayout(bool showCookStyleFlag) {
     return Padding(
       padding: EdgeInsets.all(12.r),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           // Left section - square image
           Expanded(
             child: AspectRatio(
@@ -205,6 +206,7 @@ class UnifiedRecipeCard extends ConsumerWidget {
             ),
           ],
         ),
+      ),
     );
   }
 
@@ -306,7 +308,7 @@ class UnifiedRecipeCard extends ConsumerWidget {
               ],
 
               // 5. Hashtags (show first 3)
-              if (recipe.hashtags != null && recipe.hashtags!.isNotEmpty) ...[
+              if (recipe.hashtags != null && recipe.hashtags!.isNotEmpty)
                 Text(
                   recipe.hashtags!.take(3).map((h) => '#$h').join(' '),
                   style: TextStyle(
@@ -316,11 +318,12 @@ class UnifiedRecipeCard extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 4.h),
-              ],
 
-              // 6. Metrics row (variants and logs)
-              if (showMetrics) _buildMetricsRow(),
+              // 6. Metrics row (variants and logs) - always at bottom
+              if (showMetrics) ...[
+                SizedBox(height: 8.h),
+                _buildMetricsRow(),
+              ],
             ],
           ),
         ),

@@ -210,15 +210,7 @@ class _CookingModeScreenState extends ConsumerState<CookingModeScreen> {
                 return CookingIngredientsSheet(
                   ingredients: widget.ingredients,
                   scrollController: scrollController,
-                  onHeaderTap: () {
-                    final currentSize = _sheetController.size;
-                    final targetSize = currentSize > 0.15 ? 0.12 : 0.4;
-                    _sheetController.animateTo(
-                      targetSize,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
-                    );
-                  },
+                  sheetController: _sheetController,
                 );
               },
             ),

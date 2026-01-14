@@ -121,7 +121,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
         child: NestedScrollViewPlus(
           controller: _scrollController,
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            // SliverAppBar with logo and search
+            // SliverAppBar with logo, search, and pinned filter row
             SliverAppBar(
               pinned: true,
               floating: false,
@@ -136,9 +136,11 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                   heroTag: 'search-hero',
                 ),
               ],
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(32.h),
+                child: _buildFilterRow(),
+              ),
             ),
-            // Filter row below AppBar
-            SliverToBoxAdapter(child: _buildFilterRow()),
           ],
           body: NotificationListener<ScrollNotification>(
           onNotification: (notification) {

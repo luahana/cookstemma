@@ -89,6 +89,8 @@ class CookingTimerWidget extends StatelessWidget {
                     progress: state.progress,
                     isCompleted: isCompleted,
                     isRunning: isRunning,
+                    strokeWidth: 8.r,
+                    padding: 8.r,
                   ),
                 ),
                 // Time display
@@ -179,18 +181,21 @@ class _TimerPainter extends CustomPainter {
   final double progress;
   final bool isCompleted;
   final bool isRunning;
+  final double strokeWidth;
+  final double padding;
 
   _TimerPainter({
     required this.progress,
     required this.isCompleted,
     required this.isRunning,
+    required this.strokeWidth,
+    required this.padding,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 8;
-    final strokeWidth = 8.0;
+    final radius = size.width / 2 - padding;
 
     // Background circle
     final bgPaint = Paint()
@@ -332,7 +337,7 @@ class _TimerDurationPickerState extends State<TimerDurationPicker> {
     return Column(
       children: [
         Container(
-          width: 80.w,
+          width: 96.w,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey[300]!),
             borderRadius: BorderRadius.circular(8.r),
@@ -375,7 +380,7 @@ class _TimerDurationPickerState extends State<TimerDurationPicker> {
 
   Widget _buildPresetChip(int minutes) {
     return ActionChip(
-      label: Text('${minutes}min'),
+      label: Text('cooking.minutePreset'.tr(namedArgs: {'count': minutes.toString()})),
       onPressed: () {
         setState(() {
           _minutes = minutes;

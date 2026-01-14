@@ -29,6 +29,7 @@ public class RecipeController {
      * - GET /api/v1/recipes?locale=ko-KR : 한국 레시피만 조회
      * - GET /api/v1/recipes?typeFilter=original|variant : 타입 필터
      * - GET /api/v1/recipes?q=검색어 : 제목/설명/재료 검색
+     * - GET /api/v1/recipes?sort=recent|mostForked|trending : 정렬 옵션
      * - GET /api/v1/recipes?cursor=xxx : 커서 기반 다음 페이지 (mobile)
      * - GET /api/v1/recipes?page=0 : 오프셋 기반 페이지 (web)
      */
@@ -38,6 +39,7 @@ public class RecipeController {
             @RequestParam(name = "onlyRoot", defaultValue = "false") boolean onlyRoot,
             @RequestParam(name = "typeFilter", required = false) String typeFilter,
             @RequestParam(name = "q", required = false) String searchKeyword,
+            @RequestParam(name = "sort", required = false) String sort,
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
@@ -47,7 +49,7 @@ public class RecipeController {
         }
         // typeFilter takes precedence over onlyRoot
         String effectiveTypeFilter = (typeFilter != null) ? typeFilter : (onlyRoot ? "original" : null);
-        return ResponseEntity.ok(recipeService.findRecipesUnified(locale, effectiveTypeFilter, cursor, page, size));
+        return ResponseEntity.ok(recipeService.findRecipesUnified(locale, effectiveTypeFilter, sort, cursor, page, size));
     }
 
     /**

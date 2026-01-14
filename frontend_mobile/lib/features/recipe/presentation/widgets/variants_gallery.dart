@@ -44,7 +44,7 @@ class VariantsGallery extends StatelessWidget {
               if (variants.length > 3)
                 TextButton(
                   onPressed: () {
-                    // Navigate to full variants list (future feature)
+                    context.push(RouteConstants.recipeVariationsPath(recipeId));
                   },
                   child: Text(
                     'recipe.variantsGallery.viewMore'.tr(),

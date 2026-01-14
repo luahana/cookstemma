@@ -181,9 +181,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteConstants.search,
         name: 'search',
         builder: (context, state) {
-          // Support ?q=query for hashtag searches
+          // Support query params for searches and View More navigation
           final initialQuery = state.uri.queryParameters['q'];
-          return RecipeSearchScreen(initialQuery: initialQuery);
+          final sort = state.uri.queryParameters['sort'];
+          final contentType = state.uri.queryParameters['type'];
+          final recipeId = state.uri.queryParameters['recipeId'];
+          return RecipeSearchScreen(
+            initialQuery: initialQuery,
+            sort: sort,
+            contentType: contentType,
+            recipeId: recipeId,
+          );
         },
       ),
       GoRoute(

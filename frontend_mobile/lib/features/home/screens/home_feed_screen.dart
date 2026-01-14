@@ -201,7 +201,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
       SliverToBoxAdapter(
         child: SectionHeader(
           title: 'home.mostEvolved'.tr(),
-          padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
+          padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 12.h),
           onSeeAll: sortedTrending.isNotEmpty
               ? () {
                   ref.read(browseFilterProvider.notifier).setSortOption(RecipeSortOption.mostForked);
@@ -224,7 +224,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         child: SectionHeader(
           title: 'home.hotRightNow'.tr(),
           onSeeAll: feed.recentActivity.isNotEmpty
-              ? () => context.push(RouteConstants.logPosts)
+              ? () => context.push(RouteConstants.searchPath(contentType: 'logPosts'))
               : null,
         ),
       ),
@@ -357,7 +357,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
       flexibleSpace: FlexibleSpaceBar(
         background: SafeArea(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
+            padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 4.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,

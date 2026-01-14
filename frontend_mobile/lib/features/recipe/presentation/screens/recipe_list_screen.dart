@@ -117,7 +117,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         child: NestedScrollViewPlus(
           controller: _scrollController,
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            // SliverAppBar with logo and search
+            // SliverAppBar with logo, search, and pinned filter row
             SliverAppBar(
               pinned: true,
               floating: false,
@@ -132,9 +132,11 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
                   heroTag: 'search-hero',
                 ),
               ],
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(32.h),
+                child: _buildFilterRow(),
+              ),
             ),
-            // Filter row below AppBar
-            SliverToBoxAdapter(child: _buildFilterRow()),
           ],
           body: NotificationListener<ScrollNotification>(
           onNotification: (notification) {
@@ -187,7 +189,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
 
         // Single column list view
         SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 0),
           sliver: SliverList.builder(
             itemCount: recipes.length,
             itemBuilder: (context, index) => Padding(

@@ -1,7 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_step.dart';
 import '../../providers/cooking_mode_provider.dart';
 import 'cooking_timer_widget.dart';
@@ -69,32 +69,11 @@ class CookingStepView extends ConsumerWidget {
   }
 
   Widget _buildStepImage() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16.r),
-      child: CachedNetworkImage(
-        imageUrl: step.imageUrl!,
-        height: 200.h,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => Container(
-          height: 200.h,
-          color: Colors.grey[200],
-          child: Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2.w,
-            ),
-          ),
-        ),
-        errorWidget: (context, url, error) => Container(
-          height: 200.h,
-          color: Colors.grey[200],
-          child: Icon(
-            Icons.broken_image_outlined,
-            size: 48.sp,
-            color: Colors.grey[400],
-          ),
-        ),
-      ),
+    return AppCachedImage(
+      imageUrl: step.imageUrl!,
+      height: 200.h,
+      width: double.infinity,
+      borderRadius: 16.r,
     );
   }
 

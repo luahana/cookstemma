@@ -595,7 +595,11 @@
     "clearHistory": "Clear history",
     "trendingThisWeek": "Trending This Week",
     "browseByCuisine": "Browse by Cuisine",
-    "startTyping": "Start typing to search recipes"
+    "startTyping": "Start typing to search recipes",
+    "results": "Search Results",
+    "mostEvolved": "Most Evolved",
+    "freshUploads": "Fresh Uploads",
+    "cookingLogs": "Cooking Logs"
   },
   "speedDial": {
     "newRecipe": "New Recipe",
@@ -812,6 +816,7 @@
     "completeMessage": "Great job! You've completed all the steps.",
     "exitTitle": "Exit Cooking Mode?",
     "exitMessage": "Your progress won't be saved.",
-    "exit": "Exit"
+    "exit": "Exit",
+    "minutePreset": "{count}min"
   }
 }

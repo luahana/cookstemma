@@ -95,6 +95,35 @@ class RouteConstants {
 
   static String userProfilePath(String userId) => '/users/$userId';
   static String followersPath(String userId) => '/users/$userId/followers';
+
+  /// Build search path with optional query parameters.
+  /// Used by View More buttons to navigate to filtered search results.
+  /// [query] - search text query
+  /// [sort] - 'recent', 'mostForked', 'trending'
+  /// [contentType] - 'recipes', 'logPosts', 'all'
+  /// [recipeId] - filter log posts by specific recipe
+  static String searchPath({
+    String? query,
+    String? sort,
+    String? contentType,
+    String? recipeId,
+  }) {
+    final params = <String, String>{};
+    if (query != null && query.isNotEmpty) params['q'] = query;
+    if (sort != null && sort.isNotEmpty) params['sort'] = sort;
+    if (contentType != null && contentType.isNotEmpty) {
+      params['type'] = contentType;
+    }
+    if (recipeId != null && recipeId.isNotEmpty) {
+      params['recipeId'] = recipeId;
+    }
+
+    if (params.isEmpty) return search;
+    final queryString = params.entries
+        .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+    return '$search?$queryString';
+  }
 }
 
 class HttpStatus {

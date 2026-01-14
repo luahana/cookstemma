@@ -286,4 +286,60 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
         """,
         nativeQuery = true)
     org.springframework.data.domain.Page<Recipe> searchRecipesPage(@Param("keyword") String keyword, Pageable pageable);
+
+    // ================================================================
+    // Sorted queries for View More navigation
+    // ================================================================
+
+    /**
+     * Find recipes ordered by variant count (most forked/evolved).
+     * Only returns root recipes (originals) that have the most variants.
+     */
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        LEFT JOIN (
+            SELECT root_recipe_id, COUNT(*) as variant_count
+            FROM recipes
+            WHERE root_recipe_id IS NOT NULL AND is_deleted = false
+            GROUP BY root_recipe_id
+        ) vc ON r.id = vc.root_recipe_id
+        WHERE r.is_deleted = false AND r.is_private = false AND r.parent_recipe_id IS NULL
+        ORDER BY COALESCE(vc.variant_count, 0) DESC, r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        WHERE r.is_deleted = false AND r.is_private = false AND r.parent_recipe_id IS NULL
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findRecipesOrderByVariantCount(Pageable pageable);
+
+    /**
+     * Find recipes ordered by recent activity (trending).
+     * Activity = variants + logs created in last 7 days.
+     */
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        LEFT JOIN (
+            SELECT root_recipe_id, COUNT(*) as recent_variants
+            FROM recipes
+            WHERE root_recipe_id IS NOT NULL
+            AND is_deleted = false
+            AND created_at > NOW() - INTERVAL '7 days'
+            GROUP BY root_recipe_id
+        ) rv ON r.id = rv.root_recipe_id
+        LEFT JOIN (
+            SELECT recipe_id, COUNT(*) as recent_logs
+            FROM recipe_logs
+            WHERE created_at > NOW() - INTERVAL '7 days'
+            GROUP BY recipe_id
+        ) rl ON r.id = rl.recipe_id
+        WHERE r.is_deleted = false AND r.is_private = false AND r.parent_recipe_id IS NULL
+        ORDER BY (COALESCE(rv.recent_variants, 0) + COALESCE(rl.recent_logs, 0)) DESC, r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        WHERE r.is_deleted = false AND r.is_private = false AND r.parent_recipe_id IS NULL
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findRecipesOrderByTrending(Pageable pageable);
 }

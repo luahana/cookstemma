@@ -858,12 +858,26 @@ public class RecipeService {
      * - If cursor is provided → cursor-based pagination (mobile)
      * - If page is provided → offset-based pagination (web)
      * - Default → cursor-based initial page
+     *
+     * Sort options:
+     * - recent (default): order by createdAt DESC
+     * - mostForked: order by variant count DESC
+     * - trending: order by recent activity (variants + logs in last 7 days)
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<RecipeSummaryDto> findRecipesUnified(
-            String locale, String typeFilter, String cursor, Integer page, int size) {
+            String locale, String typeFilter, String sort, String cursor, Integer page, int size) {
 
-        // Strategy selection
+        // For mostForked and trending, use offset pagination (complex sorting)
+        boolean isComplexSort = "mostForked".equalsIgnoreCase(sort) || "trending".equalsIgnoreCase(sort);
+
+        if (isComplexSort) {
+            // Use offset pagination for complex sorts
+            int pageNum = (page != null) ? page : 0;
+            return findRecipesWithOffsetSorted(locale, typeFilter, sort, pageNum, size);
+        }
+
+        // Strategy selection for recent sort (default)
         if (cursor != null && !cursor.isEmpty()) {
             return findRecipesWithCursorUnified(locale, typeFilter, cursor, size);
         } else if (page != null) {
@@ -905,6 +919,33 @@ public class RecipeService {
             } else {
                 recipes = recipeRepository.findPublicRecipesByLocalePage(locale, pageable);
             }
+        }
+
+        Page<RecipeSummaryDto> mappedPage = recipes.map(this::convertToSummary);
+        return UnifiedPageResponse.fromPage(mappedPage, size);
+    }
+
+    /**
+     * Offset-based pagination with complex sorting (mostForked, trending).
+     * Uses native queries with subqueries for counting variants/activity.
+     */
+    private UnifiedPageResponse<RecipeSummaryDto> findRecipesWithOffsetSorted(
+            String locale, String typeFilter, String sort, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Recipe> recipes;
+
+        if ("mostForked".equalsIgnoreCase(sort)) {
+            // Order by variant count (most evolved)
+            recipes = recipeRepository.findRecipesOrderByVariantCount(pageable);
+        } else if ("trending".equalsIgnoreCase(sort)) {
+            // Order by recent activity (variants + logs in last 7 days)
+            recipes = recipeRepository.findRecipesOrderByTrending(pageable);
+        } else {
+            // Fallback to recent
+            Sort sortBy = Sort.by(Sort.Direction.DESC, "createdAt");
+            pageable = PageRequest.of(page, size, sortBy);
+            recipes = recipeRepository.findPublicRecipesPage(pageable);
         }
 
         Page<RecipeSummaryDto> mappedPage = recipes.map(this::convertToSummary);

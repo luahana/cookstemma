@@ -19,6 +19,7 @@ abstract class RecipeRepository {
     String? query,
     String? cuisineFilter,
     String? typeFilter,
+    String? sort,
   });
 
   // P1: 레시피 저장/저장취소

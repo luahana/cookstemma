@@ -591,7 +591,11 @@
     "clearHistory": "기록 삭제",
     "trendingThisWeek": "이번 주 인기",
     "browseByCuisine": "요리 스타일로 찾기",
-    "startTyping": "검색어를 입력하세요"
+    "startTyping": "검색어를 입력하세요",
+    "results": "검색 결과",
+    "mostEvolved": "가장 많이 변형된",
+    "freshUploads": "최신 레시피",
+    "cookingLogs": "요리 기록"
   },
   "speedDial": {
     "newRecipe": "새 레시피",
@@ -808,6 +812,7 @@
     "completeMessage": "수고하셨습니다! 모든 단계를 완료했습니다.",
     "exitTitle": "요리 모드를 종료하시겠어요?",
     "exitMessage": "진행 상황이 저장되지 않습니다.",
-    "exit": "종료"
+    "exit": "종료",
+    "minutePreset": "{count}분"
   }
 }

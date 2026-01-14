@@ -72,6 +72,7 @@ class RecipeRemoteDataSource {
     String? query,
     String? cuisineFilter,
     String? typeFilter, // 'original', 'variant', or null for all
+    String? sort, // 'recent', 'mostForked', 'trending'
   }) async {
     try {
       final queryParams = <String, dynamic>{
@@ -91,6 +92,9 @@ class RecipeRemoteDataSource {
         queryParams['onlyRoot'] = true;
       } else if (typeFilter == 'variant') {
         queryParams['typeFilter'] = 'variant';
+      }
+      if (sort != null && sort.isNotEmpty) {
+        queryParams['sort'] = sort;
       }
 
       final response = await _dio.get(

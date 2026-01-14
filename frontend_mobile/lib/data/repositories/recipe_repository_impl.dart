@@ -94,11 +94,13 @@ class RecipeRepositoryImpl implements RecipeRepository {
     String? query,
     String? cuisineFilter,
     String? typeFilter,
+    String? sort,
   }) async {
     // Check if any filters are active
     final hasFilters = (query != null && query.isNotEmpty) ||
         cuisineFilter != null ||
-        typeFilter != null;
+        typeFilter != null ||
+        sort != null;
 
     // Filter/search mode: always fetch from network, no caching
     if (hasFilters) {
@@ -109,6 +111,7 @@ class RecipeRepositoryImpl implements RecipeRepository {
           query: query,
           cuisineFilter: cuisineFilter,
           typeFilter: typeFilter,
+          sort: sort,
         );
         return Right(responseDto.toEntity((dto) => dto.toEntity()));
       } on DioException catch (e) {

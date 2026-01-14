@@ -10,14 +10,54 @@ import '../../providers/cooking_mode_provider.dart';
 class CookingIngredientsSheet extends ConsumerWidget {
   final List<Ingredient> ingredients;
   final ScrollController scrollController;
-  final VoidCallback? onHeaderTap;
+  final DraggableScrollableController sheetController;
 
   const CookingIngredientsSheet({
     super.key,
     required this.ingredients,
     required this.scrollController,
-    this.onHeaderTap,
+    required this.sheetController,
   });
+
+  void _toggleSheet() {
+    final currentSize = sheetController.size;
+    final targetSize = currentSize > 0.15 ? 0.12 : 0.4;
+    sheetController.animateTo(
+      targetSize,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void _onDragUpdate(DragUpdateDetails details, BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final delta = -details.delta.dy / screenHeight;
+    final newSize = (sheetController.size + delta).clamp(0.12, 0.6);
+    sheetController.jumpTo(newSize);
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    final velocity = details.velocity.pixelsPerSecond.dy;
+    double targetSize;
+
+    if (velocity < -500) {
+      targetSize = 0.6;
+    } else if (velocity > 500) {
+      targetSize = 0.12;
+    } else {
+      final snapSizes = [0.12, 0.4, 0.6];
+      targetSize = snapSizes.reduce((a, b) =>
+          (a - sheetController.size).abs() < (b - sheetController.size).abs()
+              ? a
+              : b);
+    }
+
+    sheetController.animateTo(
+      targetSize,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,17 +70,19 @@ class CookingIngredientsSheet extends ConsumerWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+            blurRadius: 10.r,
+            offset: Offset(0, -2.h),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Tappable header area
+          // Swipeable header area
           GestureDetector(
-            onTap: onHeaderTap,
+            onTap: _toggleSheet,
+            onVerticalDragUpdate: (details) => _onDragUpdate(details, context),
+            onVerticalDragEnd: _onDragEnd,
             behavior: HitTestBehavior.opaque,
             child: Column(
               children: [
