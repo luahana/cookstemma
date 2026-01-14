@@ -6,9 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
 import 'package:pairing_planet2_frontend/core/providers/measurement_preference_provider.dart';
+import 'package:pairing_planet2_frontend/core/network/dio_provider.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/ingredient_dto.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -72,6 +74,35 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.logout,
             title: 'settings.logout'.tr(),
             onTap: () => _showLogoutDialog(context, ref),
+          ),
+
+          SizedBox(height: 24.h),
+
+          // Legal Section
+          _buildSectionHeader('settings.legal'.tr()),
+          _buildSettingsTile(
+            context,
+            icon: Icons.description_outlined,
+            title: 'legal.termsOfService'.tr(),
+            onTap: () => _launchUrl('https://pairingplanet.com/terms'),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.privacy_tip_outlined,
+            title: 'legal.privacyPolicy'.tr(),
+            onTap: () => _launchUrl('https://pairingplanet.com/privacy'),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.code,
+            title: 'legal.licenses'.tr(),
+            onTap: () => _showLicensePage(context),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.campaign_outlined,
+            title: 'legal.marketingPreferences'.tr(),
+            onTap: () => _showMarketingPreferencesDialog(context, ref),
           ),
 
           SizedBox(height: 40.h),
@@ -279,6 +310,109 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  void _showLicensePage(BuildContext context) {
+    showLicensePage(
+      context: context,
+      applicationName: 'Pairing Planet',
+      applicationVersion: '1.0.0',
+      applicationIcon: Padding(
+        padding: EdgeInsets.all(8.r),
+        child: Icon(Icons.restaurant_menu, size: 48.sp, color: AppColors.primary),
+      ),
+    );
+  }
+
+  void _showMarketingPreferencesDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => _MarketingPreferencesDialog(ref: ref),
+    );
+  }
+}
+
+class _MarketingPreferencesDialog extends ConsumerStatefulWidget {
+  final WidgetRef ref;
+
+  const _MarketingPreferencesDialog({required this.ref});
+
+  @override
+  ConsumerState<_MarketingPreferencesDialog> createState() =>
+      _MarketingPreferencesDialogState();
+}
+
+class _MarketingPreferencesDialogState
+    extends ConsumerState<_MarketingPreferencesDialog> {
+  bool _marketingAgreed = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMarketingPreference();
+  }
+
+  Future<void> _loadMarketingPreference() async {
+    final storageService = widget.ref.read(storageServiceProvider);
+    final agreed = await storageService.getMarketingAgreed();
+    if (mounted) {
+      setState(() {
+        _marketingAgreed = agreed;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveMarketingPreference(bool value) async {
+    setState(() => _marketingAgreed = value);
+    final storageService = widget.ref.read(storageServiceProvider);
+    await storageService.saveLegalAcceptance(marketingAgreed: value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('legal.marketingPreferences'.tr()),
+      content: _isLoading
+          ? SizedBox(
+              height: 50.h,
+              child: const Center(child: CircularProgressIndicator()),
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SwitchListTile(
+                  title: Text(
+                    'legal.agreeToMarketing'.tr(),
+                    style: TextStyle(fontSize: 14.sp),
+                  ),
+                  value: _marketingAgreed,
+                  onChanged: _saveMarketingPreference,
+                  activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+                  thumbColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return AppColors.primary;
+                    }
+                    return null;
+                  }),
+                ),
+              ],
+            ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('common.done'.tr()),
+        ),
+      ],
     );
   }
 }

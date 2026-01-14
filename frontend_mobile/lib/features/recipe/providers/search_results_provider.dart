@@ -1,8 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
+import 'package:pairing_planet2_frontend/features/hashtag/providers/hashtag_providers.dart';
 import 'package:pairing_planet2_frontend/features/log_post/providers/log_post_providers.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart';
+
+/// Filter mode for search results.
+enum SearchFilterMode {
+  /// Show both recipes and logs matching the query.
+  all,
+
+  /// Show only recipes matching the query.
+  recipes,
+
+  /// Show only log posts matching the query.
+  logs,
+
+  /// Treat query as hashtag and show content tagged with it.
+  hashtags,
+}
 
 /// Sealed class for unified search results (recipes or log posts).
 sealed class SearchItem {
@@ -26,6 +42,7 @@ class SearchResultsState {
   final String? query;
   final String? sort;
   final String? contentType;
+  final SearchFilterMode filterMode;
 
   SearchResultsState({
     required this.items,
@@ -33,6 +50,7 @@ class SearchResultsState {
     this.query,
     this.sort,
     this.contentType,
+    this.filterMode = SearchFilterMode.recipes,
   });
 
   SearchResultsState copyWith({
@@ -41,6 +59,7 @@ class SearchResultsState {
     String? query,
     String? sort,
     String? contentType,
+    SearchFilterMode? filterMode,
     bool clearQuery = false,
   }) {
     return SearchResultsState(
@@ -49,6 +68,7 @@ class SearchResultsState {
       query: clearQuery ? null : (query ?? this.query),
       sort: sort ?? this.sort,
       contentType: contentType ?? this.contentType,
+      filterMode: filterMode ?? this.filterMode,
     );
   }
 }
@@ -58,8 +78,14 @@ class SearchParams {
   final String? sort;
   final String? contentType;
   final String? recipeId;
+  final String? initialFilterMode;
 
-  const SearchParams({this.sort, this.contentType, this.recipeId});
+  const SearchParams({
+    this.sort,
+    this.contentType,
+    this.recipeId,
+    this.initialFilterMode,
+  });
 
   @override
   bool operator ==(Object other) =>
@@ -68,13 +94,18 @@ class SearchParams {
           runtimeType == other.runtimeType &&
           sort == other.sort &&
           contentType == other.contentType &&
-          recipeId == other.recipeId;
+          recipeId == other.recipeId &&
+          initialFilterMode == other.initialFilterMode;
 
   @override
-  int get hashCode => sort.hashCode ^ contentType.hashCode ^ recipeId.hashCode;
+  int get hashCode =>
+      sort.hashCode ^
+      contentType.hashCode ^
+      recipeId.hashCode ^
+      initialFilterMode.hashCode;
 }
 
-/// Provider for search results with sort and content type support.
+/// Provider for search results with sort, content type, and filter mode support.
 /// Used by SearchScreen for View More and text search functionality.
 class SearchResultsNotifier
     extends FamilyAsyncNotifier<SearchResultsState, SearchParams> {
@@ -86,6 +117,7 @@ class SearchResultsNotifier
   String? _currentSort;
   String? _contentType;
   String? _recipeId;
+  SearchFilterMode _filterMode = SearchFilterMode.recipes;
 
   bool get _isLogPostMode => _contentType == 'logPosts';
 
@@ -99,6 +131,7 @@ class SearchResultsNotifier
     _currentSort = arg.sort;
     _contentType = arg.contentType;
     _recipeId = arg.recipeId;
+    _filterMode = _parseFilterMode(arg.initialFilterMode);
 
     // View More mode: fetch immediately if sort or contentType provided
     if (_shouldFetchInitially(arg)) {
@@ -108,6 +141,7 @@ class SearchResultsNotifier
         hasNext: _hasNext,
         sort: arg.sort,
         contentType: arg.contentType,
+        filterMode: _filterMode,
       );
     }
 
@@ -117,7 +151,17 @@ class SearchResultsNotifier
       hasNext: false,
       sort: arg.sort,
       contentType: arg.contentType,
+      filterMode: _filterMode,
     );
+  }
+
+  SearchFilterMode _parseFilterMode(String? mode) {
+    if (mode == null) return SearchFilterMode.recipes;
+    return switch (mode.toLowerCase()) {
+      'logs' => SearchFilterMode.logs,
+      'hashtags' => SearchFilterMode.hashtags,
+      _ => SearchFilterMode.recipes,
+    };
   }
 
   bool _shouldFetchInitially(SearchParams arg) {
@@ -125,6 +169,11 @@ class SearchResultsNotifier
     if (arg.sort != null && arg.sort!.isNotEmpty) return true;
     // Fetch if contentType is logPosts (log post View More)
     if (arg.contentType == 'logPosts') return true;
+    // Auto-fetch for recipes/logs filter mode (browse mode)
+    // Skip hashtags - requires query which is handled by screen's initState
+    if (arg.initialFilterMode != null && arg.initialFilterMode != 'hashtags') {
+      return true;
+    }
     return false;
   }
 
@@ -133,10 +182,21 @@ class SearchResultsNotifier
     int? page,
     String? query,
   }) async {
-    if (_isLogPostMode) {
-      return _fetchLogPosts(cursor: cursor, page: page, query: query);
+    // Handle filter modes
+    switch (_filterMode) {
+      case SearchFilterMode.recipes:
+        return _fetchRecipes(cursor: cursor, query: query);
+      case SearchFilterMode.logs:
+        return _fetchLogPosts(cursor: cursor, page: page, query: query);
+      case SearchFilterMode.hashtags:
+        return _fetchByHashtag(cursor: cursor, query: query);
+      case SearchFilterMode.all:
+        // Default behavior based on contentType
+        if (_isLogPostMode) {
+          return _fetchLogPosts(cursor: cursor, page: page, query: query);
+        }
+        return _fetchRecipes(cursor: cursor, query: query);
     }
-    return _fetchRecipes(cursor: cursor, query: query);
   }
 
   Future<List<SearchItem>> _fetchRecipes({
@@ -194,6 +254,96 @@ class SearchResultsNotifier
     });
   }
 
+  /// Fetch content by hashtag (recipes first, then logs).
+  Future<List<SearchItem>> _fetchByHashtag({
+    String? cursor,
+    String? query,
+  }) async {
+    if (query == null || query.isEmpty) return [];
+
+    // Normalize hashtag (remove # prefix if present)
+    final hashtagName = query.replaceFirst('#', '').toLowerCase().trim();
+    if (hashtagName.isEmpty) return [];
+
+    final hashtagRepository = ref.read(hashtagRepositoryProvider);
+    final items = <SearchItem>[];
+
+    // Fetch recipes with hashtag
+    final recipesResult = await hashtagRepository.getRecipesByHashtag(
+      hashtagName: hashtagName,
+      cursor: cursor,
+      size: 20,
+    );
+
+    recipesResult.fold(
+      (failure) => throw failure,
+      (response) {
+        _hasNext = response.hasNext;
+        _nextCursor = response.nextCursor;
+        items.addAll(response.content.map((r) => RecipeSearchItem(r)));
+      },
+    );
+
+    // On first page, also fetch log posts with hashtag
+    if (cursor == null) {
+      final logsResult = await hashtagRepository.getLogPostsByHashtag(
+        hashtagName: hashtagName,
+        cursor: null,
+        size: 20,
+      );
+
+      logsResult.fold(
+        (failure) {}, // Don't throw, just skip logs if they fail
+        (response) {
+          items.addAll(response.content.map((l) => LogPostSearchItem(l)));
+        },
+      );
+    }
+
+    return items;
+  }
+
+  /// Change the filter mode and re-fetch results.
+  Future<void> setFilterMode(SearchFilterMode mode) async {
+    if (_filterMode == mode) return;
+
+    _filterMode = mode;
+    _nextCursor = null;
+    _currentPage = 0;
+    _hasNext = true;
+
+    // Re-fetch with current query if exists
+    if (_currentQuery != null && _currentQuery!.isNotEmpty) {
+      state = const AsyncValue.loading();
+      try {
+        final items = await _fetchItems(
+          cursor: null,
+          page: 0,
+          query: _currentQuery,
+        );
+        state = AsyncValue.data(SearchResultsState(
+          items: items,
+          hasNext: _hasNext,
+          query: _currentQuery,
+          sort: _currentSort,
+          contentType: _contentType,
+          filterMode: _filterMode,
+        ));
+      } catch (e, st) {
+        state = AsyncValue.error(e, st);
+      }
+    } else {
+      // No query, show empty state with new filter mode
+      state = AsyncValue.data(SearchResultsState(
+        items: [],
+        hasNext: false,
+        sort: _currentSort,
+        contentType: _contentType,
+        filterMode: _filterMode,
+      ));
+    }
+  }
+
   /// Execute search with query text.
   Future<void> search(String query) async {
     final trimmedQuery = query.trim();
@@ -221,6 +371,7 @@ class SearchResultsNotifier
         query: _currentQuery,
         sort: _currentSort,
         contentType: _contentType,
+        filterMode: _filterMode,
       ));
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -248,6 +399,7 @@ class SearchResultsNotifier
           hasNext: _hasNext,
           sort: _currentSort,
           contentType: _contentType,
+          filterMode: _filterMode,
         ));
       } catch (e, st) {
         state = AsyncValue.error(e, st);
@@ -258,6 +410,7 @@ class SearchResultsNotifier
         items: [],
         hasNext: false,
         contentType: _contentType,
+        filterMode: _filterMode,
       ));
     }
   }
@@ -287,6 +440,7 @@ class SearchResultsNotifier
           query: _currentQuery,
           sort: _currentSort,
           contentType: _contentType,
+          filterMode: _filterMode,
         ),
       );
     } catch (e) {

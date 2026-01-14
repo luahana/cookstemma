@@ -22,6 +22,13 @@ class UserDto {
   final String? youtubeUrl;  // YouTube channel URL
   final String? instagramHandle;  // Instagram handle (without @)
 
+  // Legal acceptance fields
+  final String? termsAcceptedAt;
+  final String? termsVersion;
+  final String? privacyAcceptedAt;
+  final String? privacyVersion;
+  final bool? marketingAgreed;
+
   UserDto({
     required this.id,
     required this.username,
@@ -40,6 +47,11 @@ class UserDto {
     this.bio,
     this.youtubeUrl,
     this.instagramHandle,
+    this.termsAcceptedAt,
+    this.termsVersion,
+    this.privacyAcceptedAt,
+    this.privacyVersion,
+    this.marketingAgreed,
   });
 
   factory UserDto.fromJson(Map<String, dynamic> json) => _$UserDtoFromJson(json);

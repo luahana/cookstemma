@@ -281,7 +281,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                         child: HashtagChips(
                           hashtags: recipe.hashtags,
                           onHashtagTap: (tag) {
-                            context.push('${RouteConstants.search}?q=%23$tag');
+                            context.push(RouteConstants.searchPath(
+                              query: '#$tag',
+                              filterMode: 'hashtags',
+                            ));
                           },
                         ),
                       ),

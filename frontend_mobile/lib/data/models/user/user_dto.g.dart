@@ -24,6 +24,11 @@ UserDto _$UserDtoFromJson(Map<String, dynamic> json) => UserDto(
       bio: json['bio'] as String?,
       youtubeUrl: json['youtubeUrl'] as String?,
       instagramHandle: json['instagramHandle'] as String?,
+      termsAcceptedAt: json['termsAcceptedAt'] as String?,
+      termsVersion: json['termsVersion'] as String?,
+      privacyAcceptedAt: json['privacyAcceptedAt'] as String?,
+      privacyVersion: json['privacyVersion'] as String?,
+      marketingAgreed: json['marketingAgreed'] as bool?,
     );
 
 Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
@@ -44,4 +49,9 @@ Map<String, dynamic> _$UserDtoToJson(UserDto instance) => <String, dynamic>{
       'bio': instance.bio,
       'youtubeUrl': instance.youtubeUrl,
       'instagramHandle': instance.instagramHandle,
+      'termsAcceptedAt': instance.termsAcceptedAt,
+      'termsVersion': instance.termsVersion,
+      'privacyAcceptedAt': instance.privacyAcceptedAt,
+      'privacyVersion': instance.privacyVersion,
+      'marketingAgreed': instance.marketingAgreed,
     };

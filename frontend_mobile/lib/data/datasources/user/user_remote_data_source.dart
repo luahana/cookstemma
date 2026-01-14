@@ -5,6 +5,7 @@ import 'package:pairing_planet2_frontend/data/models/common/cursor_page_response
 import 'package:pairing_planet2_frontend/data/models/common/slice_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/user/accept_legal_terms_request_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/cooking_dna_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/my_profile_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/update_profile_request_dto.dart';
@@ -22,6 +23,24 @@ class UserRemoteDataSource {
 
       if (response.statusCode == HttpStatus.ok) {
         return MyProfileResponseDto.fromJson(response.data);
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  /// 법적 동의 저장 (이용약관 및 개인정보처리방침)
+  Future<UserDto> acceptLegalTerms(AcceptLegalTermsRequestDto request) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.myLegalAcceptance,
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == HttpStatus.ok) {
+        return UserDto.fromJson(response.data);
       } else {
         throw ServerException();
       }

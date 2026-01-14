@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/network/dio_provider.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
 import 'package:pairing_planet2_frontend/core/services/social_auth_service.dart';
+import 'package:pairing_planet2_frontend/core/services/storage_service.dart';
+import 'package:pairing_planet2_frontend/data/datasources/user/user_remote_data_source.dart';
+import 'package:pairing_planet2_frontend/data/models/user/accept_legal_terms_request_dto.dart';
 import 'package:pairing_planet2_frontend/domain/usecases/auth/login_usecase.dart';
 import 'package:pairing_planet2_frontend/domain/usecases/auth/logout_usecase.dart';
 import 'package:pairing_planet2_frontend/data/datasources/auth/auth_local_data_source.dart';
@@ -13,7 +16,7 @@ import 'package:pairing_planet2_frontend/data/repositories/auth_repository_impl.
 import 'package:pairing_planet2_frontend/domain/repositories/auth_repository.dart';
 
 // --- State 정의 ---
-enum AuthStatus { authenticated, unauthenticated, guest, initial }
+enum AuthStatus { authenticated, unauthenticated, guest, initial, needsLegalAcceptance }
 
 class AuthState extends Equatable {
   // 💡 Equatable 상속
@@ -31,6 +34,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final LoginUseCase _loginUseCase;
   final LogoutUseCase _logoutUseCase;
   final AuthRepository _repository;
+  final StorageService _storageService;
+  final UserRemoteDataSource _userRemoteDataSource;
 
   // Pending action to execute after login (for guest -> authenticated flow)
   VoidCallback? _pendingAction;
@@ -39,9 +44,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required LoginUseCase loginUseCase,
     required LogoutUseCase logoutUseCase,
     required AuthRepository repository,
+    required StorageService storageService,
+    required UserRemoteDataSource userRemoteDataSource,
   }) : _loginUseCase = loginUseCase,
        _logoutUseCase = logoutUseCase,
        _repository = repository,
+       _storageService = storageService,
+       _userRemoteDataSource = userRemoteDataSource,
        super(AuthState(status: AuthStatus.initial)) {
     checkAuthStatus();
   }
@@ -51,12 +60,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     if (!mounted) return;
 
-    result.fold(
-      (failure) => state = AuthState(
+    await result.fold(
+      (failure) async => state = AuthState(
         status: AuthStatus.unauthenticated,
         errorMessage: failure.toString(),
       ),
-      (_) => state = AuthState(status: AuthStatus.authenticated),
+      (_) async => await _checkLegalAcceptanceAndSetState(),
     );
   }
 
@@ -65,13 +74,73 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     if (!mounted) return;
 
-    result.fold(
-      (failure) => state = AuthState(
+    await result.fold(
+      (failure) async => state = AuthState(
         status: AuthStatus.unauthenticated,
         errorMessage: failure.toString(),
       ),
-      (_) => state = AuthState(status: AuthStatus.authenticated),
+      (_) async => await _checkLegalAcceptanceAndSetState(),
     );
+  }
+
+  /// Check if user has accepted legal terms from backend and set appropriate state
+  Future<void> _checkLegalAcceptanceAndSetState() async {
+    try {
+      final profile = await _userRemoteDataSource.getMyProfile();
+      if (!mounted) return;
+
+      final user = profile.user;
+      final currentTermsVersion = StorageService.currentTermsVersion;
+      final currentPrivacyVersion = StorageService.currentPrivacyVersion;
+
+      // Check if user has accepted the current versions
+      final hasAcceptedTerms = user.termsVersion == currentTermsVersion;
+      final hasAcceptedPrivacy = user.privacyVersion == currentPrivacyVersion;
+
+      if (hasAcceptedTerms && hasAcceptedPrivacy) {
+        // Sync to local storage for offline reference
+        await _storageService.saveLegalAcceptance(
+          marketingAgreed: user.marketingAgreed ?? false,
+        );
+        state = AuthState(status: AuthStatus.authenticated);
+      } else {
+        state = AuthState(status: AuthStatus.needsLegalAcceptance);
+      }
+    } catch (e) {
+      // Fallback to local storage check if backend fails
+      final hasAccepted = await _storageService.hasAcceptedLegalTerms();
+      if (!mounted) return;
+
+      if (hasAccepted) {
+        state = AuthState(status: AuthStatus.authenticated);
+      } else {
+        state = AuthState(status: AuthStatus.needsLegalAcceptance);
+      }
+    }
+  }
+
+  /// Called after user accepts legal terms - syncs to backend and local storage
+  Future<void> acceptLegalTerms({required bool marketingAgreed}) async {
+    try {
+      // Send to backend first
+      final request = AcceptLegalTermsRequestDto(
+        termsVersion: StorageService.currentTermsVersion,
+        privacyVersion: StorageService.currentPrivacyVersion,
+        marketingAgreed: marketingAgreed,
+      );
+      await _userRemoteDataSource.acceptLegalTerms(request);
+
+      // Also save locally for offline reference
+      await _storageService.saveLegalAcceptance(marketingAgreed: marketingAgreed);
+
+      if (!mounted) return;
+      state = AuthState(status: AuthStatus.authenticated);
+    } catch (e) {
+      // Still save locally even if backend fails - will sync on next login
+      await _storageService.saveLegalAcceptance(marketingAgreed: marketingAgreed);
+      if (!mounted) return;
+      state = AuthState(status: AuthStatus.authenticated);
+    }
   }
 
   Future<void> logout() async {
@@ -117,9 +186,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     if (!mounted) return;
 
-    result.fold(
-      (_) => state = AuthState(status: AuthStatus.unauthenticated),
-      (_) => state = AuthState(status: AuthStatus.authenticated),
+    await result.fold(
+      (_) async => state = AuthState(status: AuthStatus.unauthenticated),
+      (_) async => await _checkLegalAcceptanceAndSetState(),
     );
   }
 }
@@ -169,12 +238,19 @@ final logoutUseCaseProvider = Provider((ref) {
   return LogoutUseCase(repository);
 });
 
-// 4. StateNotifier
+// 4. UserRemoteDataSource (for legal acceptance check)
+final userRemoteDataSourceForAuthProvider = Provider<UserRemoteDataSource>((ref) {
+  return UserRemoteDataSource(ref.read(dioProvider));
+});
+
+// 5. StateNotifier
 final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   // 💡 Notifier 자체는 한 번만 생성되어야 하므로 read 사용
   return AuthNotifier(
     loginUseCase: ref.read(loginUseCaseProvider),
     logoutUseCase: ref.read(logoutUseCaseProvider),
     repository: ref.read(authRepositoryProvider),
+    storageService: ref.read(storageServiceProvider),
+    userRemoteDataSource: ref.read(userRemoteDataSourceForAuthProvider),
   );
 });

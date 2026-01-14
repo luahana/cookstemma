@@ -2,29 +2,92 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pairing_planet2_frontend/core/error/failures.dart';
+import 'package:pairing_planet2_frontend/core/services/storage_service.dart';
+import 'package:pairing_planet2_frontend/data/models/user/accept_legal_terms_request_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/user/my_profile_response_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/user/user_dto.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 
 import '../../../helpers/mock_providers.dart';
+
+// Fake classes for registerFallbackValue
+class FakeAcceptLegalTermsRequestDto extends Fake
+    implements AcceptLegalTermsRequestDto {}
 
 void main() {
   late AuthNotifier authNotifier;
   late MockLoginUseCase mockLoginUseCase;
   late MockLogoutUseCase mockLogoutUseCase;
   late MockAuthRepository mockAuthRepository;
+  late MockStorageService mockStorageService;
+  late MockUserRemoteDataSource mockUserRemoteDataSource;
+
+  // Test data
+  final testUserDtoWithAcceptedTerms = UserDto(
+    id: 'test-user-id',
+    username: 'testuser',
+    termsVersion: StorageService.currentTermsVersion,
+    privacyVersion: StorageService.currentPrivacyVersion,
+    marketingAgreed: false,
+  );
+
+  final testUserDtoWithoutAcceptedTerms = UserDto(
+    id: 'test-user-id',
+    username: 'testuser',
+    termsVersion: null,
+    privacyVersion: null,
+    marketingAgreed: null,
+  );
+
+  final testProfileWithAcceptedTerms = MyProfileResponseDto(
+    user: testUserDtoWithAcceptedTerms,
+    recipeCount: 0,
+    logCount: 0,
+    savedCount: 0,
+  );
+
+  final testProfileWithoutAcceptedTerms = MyProfileResponseDto(
+    user: testUserDtoWithoutAcceptedTerms,
+    recipeCount: 0,
+    logCount: 0,
+    savedCount: 0,
+  );
+
+  setUpAll(() {
+    registerFallbackValue(FakeAcceptLegalTermsRequestDto());
+  });
 
   setUp(() {
     mockLoginUseCase = MockLoginUseCase();
     mockLogoutUseCase = MockLogoutUseCase();
     mockAuthRepository = MockAuthRepository();
+    mockStorageService = MockStorageService();
+    mockUserRemoteDataSource = MockUserRemoteDataSource();
 
     // Default: reissueToken fails (unauthenticated state)
     when(() => mockAuthRepository.reissueToken())
         .thenAnswer((_) async => Left(ServerFailure('No token')));
 
+    // Default: backend returns user with accepted terms
+    when(() => mockUserRemoteDataSource.getMyProfile())
+        .thenAnswer((_) async => testProfileWithAcceptedTerms);
+
+    // Default: legal acceptance succeeds
+    when(() => mockUserRemoteDataSource.acceptLegalTerms(any()))
+        .thenAnswer((_) async => testUserDtoWithAcceptedTerms);
+
+    // Default: local storage operations succeed
+    when(() => mockStorageService.hasAcceptedLegalTerms())
+        .thenAnswer((_) async => true);
+    when(() => mockStorageService.saveLegalAcceptance(marketingAgreed: any(named: 'marketingAgreed')))
+        .thenAnswer((_) async {});
+
     authNotifier = AuthNotifier(
       loginUseCase: mockLoginUseCase,
       logoutUseCase: mockLogoutUseCase,
       repository: mockAuthRepository,
+      storageService: mockStorageService,
+      userRemoteDataSource: mockUserRemoteDataSource,
     );
   });
 
@@ -38,7 +101,7 @@ void main() {
         expect(authNotifier.state.status, AuthStatus.unauthenticated);
       });
 
-      test('should transition to authenticated when reissueToken succeeds', () async {
+      test('should transition to authenticated when reissueToken succeeds and terms accepted', () async {
         // Arrange - set up a new notifier with successful token reissue
         when(() => mockAuthRepository.reissueToken())
             .thenAnswer((_) async => const Right(unit));
@@ -47,12 +110,35 @@ void main() {
           loginUseCase: mockLoginUseCase,
           logoutUseCase: mockLogoutUseCase,
           repository: mockAuthRepository,
+          storageService: mockStorageService,
+          userRemoteDataSource: mockUserRemoteDataSource,
         );
 
         // Wait for the async checkAuthStatus to complete
         await Future.delayed(const Duration(milliseconds: 50));
 
         expect(authenticatedNotifier.state.status, AuthStatus.authenticated);
+      });
+
+      test('should transition to needsLegalAcceptance when terms not accepted', () async {
+        // Arrange - set up a new notifier with successful token reissue but no terms accepted
+        when(() => mockAuthRepository.reissueToken())
+            .thenAnswer((_) async => const Right(unit));
+        when(() => mockUserRemoteDataSource.getMyProfile())
+            .thenAnswer((_) async => testProfileWithoutAcceptedTerms);
+
+        final authenticatedNotifier = AuthNotifier(
+          loginUseCase: mockLoginUseCase,
+          logoutUseCase: mockLogoutUseCase,
+          repository: mockAuthRepository,
+          storageService: mockStorageService,
+          userRemoteDataSource: mockUserRemoteDataSource,
+        );
+
+        // Wait for the async checkAuthStatus to complete
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        expect(authenticatedNotifier.state.status, AuthStatus.needsLegalAcceptance);
       });
     });
 

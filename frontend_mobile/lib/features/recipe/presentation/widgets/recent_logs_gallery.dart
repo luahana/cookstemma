@@ -57,10 +57,9 @@ class RecentLogsGallery extends StatelessWidget {
                   if (hasMore)
                     TextButton(
                       onPressed: () {
-                        // Navigate to recipe-filtered log list via unified search
+                        // Navigate to search with logs filter pre-selected
                         context.push(RouteConstants.searchPath(
-                          recipeId: recipeId,
-                          contentType: 'logPosts',
+                          filterMode: 'logs',
                         ));
                       },
                       child: Text(

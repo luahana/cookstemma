@@ -18,6 +18,7 @@ class ApiEndpoints {
 
   // User 관련
   static const String myProfile = '/users/me';
+  static const String myLegalAcceptance = '/users/me/legal-acceptance';
   static const String myCookingDna = '/users/me/cooking-dna';
   static const String myRecipes = '/recipes/my';
   static const String myLogs = '/log_posts/my';
@@ -51,12 +52,16 @@ class ApiEndpoints {
   // Hashtags 관련
   static const String hashtags = '/hashtags';
   static const String hashtagSearch = '/hashtags/search';
+  static String hashtagRecipes(String name) => '/hashtags/$name/recipes';
+  static String hashtagLogPosts(String name) => '/hashtags/$name/log_posts';
+  static String hashtagCounts(String name) => '/hashtags/$name/counts';
 }
 
 class RouteConstants {
   static const String splash = '/splash';
   static const String home = '/';
   static const String login = '/login';
+  static const String legalAgreement = '/legal-agreement';
   static const String recipeCreate = '/recipe/create';
   static const String recipeEdit = '/recipe/edit/:id'; // Recipe edit screen
   static const String recipes = '/recipes';
@@ -102,11 +107,13 @@ class RouteConstants {
   /// [sort] - 'recent', 'mostForked', 'trending'
   /// [contentType] - 'recipes', 'logPosts', 'all'
   /// [recipeId] - filter log posts by specific recipe
+  /// [filterMode] - 'recipes', 'logs', 'hashtags' (initial filter selection)
   static String searchPath({
     String? query,
     String? sort,
     String? contentType,
     String? recipeId,
+    String? filterMode,
   }) {
     final params = <String, String>{};
     if (query != null && query.isNotEmpty) params['q'] = query;
@@ -116,6 +123,9 @@ class RouteConstants {
     }
     if (recipeId != null && recipeId.isNotEmpty) {
       params['recipeId'] = recipeId;
+    }
+    if (filterMode != null && filterMode.isNotEmpty) {
+      params['filter'] = filterMode;
     }
 
     if (params.isEmpty) return search;

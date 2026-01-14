@@ -116,6 +116,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     final targetRoute = switch (authStatus) {
       AuthStatus.authenticated => RouteConstants.home,
+      AuthStatus.needsLegalAcceptance => RouteConstants.legalAgreement,
       AuthStatus.guest => RouteConstants.home,
       AuthStatus.unauthenticated => RouteConstants.login,
       AuthStatus.initial => RouteConstants.login, // Fallback

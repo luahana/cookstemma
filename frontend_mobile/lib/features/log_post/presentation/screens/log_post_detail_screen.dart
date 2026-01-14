@@ -314,7 +314,10 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
                       HashtagChips(
                         hashtags: log.hashtags,
                         onHashtagTap: (tag) {
-                          context.push('${RouteConstants.search}?q=%23$tag');
+                          context.push(RouteConstants.searchPath(
+                            query: '#$tag',
+                            filterMode: 'hashtags',
+                          ));
                         },
                       ),
                     ],

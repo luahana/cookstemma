@@ -20,15 +20,23 @@ class LoginScreen extends ConsumerWidget {
         );
       }
 
-      // On successful login, execute pending action and navigate home
-      if (next.status == AuthStatus.authenticated &&
-          previous?.status != AuthStatus.authenticated) {
-        // Execute pending action if any (e.g., save recipe, follow user)
-        ref.read(authStateProvider.notifier).executePendingAction();
+      // On successful login (needs legal or authenticated), let router handle navigation
+      if ((next.status == AuthStatus.authenticated ||
+              next.status == AuthStatus.needsLegalAcceptance) &&
+          previous?.status != AuthStatus.authenticated &&
+          previous?.status != AuthStatus.needsLegalAcceptance) {
+        // Execute pending action if any (will be executed after legal acceptance)
+        if (next.status == AuthStatus.authenticated) {
+          ref.read(authStateProvider.notifier).executePendingAction();
+        }
 
-        // Navigate to home
+        // Let router handle navigation to legal agreement or home
         if (context.mounted) {
-          context.go(RouteConstants.home);
+          if (next.status == AuthStatus.needsLegalAcceptance) {
+            context.go(RouteConstants.legalAgreement);
+          } else {
+            context.go(RouteConstants.home);
+          }
         }
       }
     });

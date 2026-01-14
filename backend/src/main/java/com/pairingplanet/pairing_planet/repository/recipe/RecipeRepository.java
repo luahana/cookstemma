@@ -342,4 +342,33 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
         """,
         nativeQuery = true)
     org.springframework.data.domain.Page<Recipe> findRecipesOrderByTrending(Pageable pageable);
+
+    // ==================== HASHTAG-BASED QUERIES ====================
+
+    // [Cursor] Recipes by hashtag - initial page
+    @Query("SELECT r FROM Recipe r JOIN r.hashtags h " +
+           "WHERE h.name = :hashtagName AND r.isDeleted = false AND r.isPrivate = false " +
+           "ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findByHashtagWithCursorInitial(@Param("hashtagName") String hashtagName, Pageable pageable);
+
+    // [Cursor] Recipes by hashtag - with cursor
+    @Query("SELECT r FROM Recipe r JOIN r.hashtags h " +
+           "WHERE h.name = :hashtagName AND r.isDeleted = false AND r.isPrivate = false " +
+           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
+           "ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findByHashtagWithCursor(
+            @Param("hashtagName") String hashtagName,
+            @Param("cursorTime") Instant cursorTime,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable);
+
+    // [Offset] Recipes by hashtag - page
+    @Query("SELECT r FROM Recipe r JOIN r.hashtags h " +
+           "WHERE h.name = :hashtagName AND r.isDeleted = false AND r.isPrivate = false")
+    org.springframework.data.domain.Page<Recipe> findByHashtagPage(@Param("hashtagName") String hashtagName, Pageable pageable);
+
+    // Count recipes by hashtag
+    @Query("SELECT COUNT(r) FROM Recipe r JOIN r.hashtags h " +
+           "WHERE h.name = :hashtagName AND r.isDeleted = false AND r.isPrivate = false")
+    long countByHashtag(@Param("hashtagName") String hashtagName);
 }

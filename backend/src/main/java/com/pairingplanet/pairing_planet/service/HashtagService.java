@@ -1,15 +1,33 @@
 package com.pairingplanet.pairing_planet.service;
 
 import com.pairingplanet.pairing_planet.domain.entity.hashtag.Hashtag;
+import com.pairingplanet.pairing_planet.domain.entity.log_post.LogPost;
+import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
+import com.pairingplanet.pairing_planet.dto.common.UnifiedPageResponse;
 import com.pairingplanet.pairing_planet.dto.hashtag.HashtagDto;
+import com.pairingplanet.pairing_planet.dto.log_post.LogPostSummaryDto;
+import com.pairingplanet.pairing_planet.dto.recipe.RecipeSummaryDto;
+import com.pairingplanet.pairing_planet.domain.entity.user.User;
+import com.pairingplanet.pairing_planet.domain.enums.ImageType;
 import com.pairingplanet.pairing_planet.repository.hashtag.HashtagRepository;
+import com.pairingplanet.pairing_planet.repository.log_post.LogPostRepository;
+import com.pairingplanet.pairing_planet.repository.recipe.RecipeLogRepository;
+import com.pairingplanet.pairing_planet.repository.recipe.RecipeRepository;
+import com.pairingplanet.pairing_planet.repository.user.UserRepository;
+import com.pairingplanet.pairing_planet.util.CursorUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,6 +35,13 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class HashtagService {
     private final HashtagRepository hashtagRepository;
+    private final RecipeRepository recipeRepository;
+    private final LogPostRepository logPostRepository;
+    private final UserRepository userRepository;
+    private final RecipeLogRepository recipeLogRepository;
+
+    @Value("${file.upload.url-prefix}")
+    private String urlPrefix;
 
     /**
      * Get all hashtags
@@ -95,5 +120,221 @@ public class HashtagService {
             trimmed = trimmed.substring(1);
         }
         return trimmed.toLowerCase();
+    }
+
+    // ==================== CONTENT BY HASHTAG ====================
+
+    /**
+     * Get recipes tagged with a specific hashtag (unified pagination)
+     */
+    public UnifiedPageResponse<RecipeSummaryDto> getRecipesByHashtag(
+            String hashtagName, String cursor, Integer page, int size) {
+
+        String normalizedName = normalizeHashtagName(hashtagName);
+        if (normalizedName.isBlank()) {
+            return UnifiedPageResponse.emptyCursor(size);
+        }
+
+        // Check if hashtag exists
+        if (hashtagRepository.findByName(normalizedName).isEmpty()) {
+            return UnifiedPageResponse.emptyCursor(size);
+        }
+
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        Slice<Recipe> recipes;
+        if (cursorData == null) {
+            recipes = recipeRepository.findByHashtagWithCursorInitial(normalizedName, pageable);
+        } else {
+            recipes = recipeRepository.findByHashtagWithCursor(
+                    normalizedName, cursorData.createdAt(), cursorData.id(), pageable);
+        }
+
+        List<RecipeSummaryDto> content = recipes.getContent().stream()
+                .map(this::convertToRecipeSummary)
+                .toList();
+
+        String nextCursor = null;
+        if (recipes.hasNext() && !recipes.getContent().isEmpty()) {
+            Recipe lastItem = recipes.getContent().get(recipes.getContent().size() - 1);
+            nextCursor = CursorUtil.encode(lastItem.getCreatedAt(), lastItem.getId());
+        }
+
+        return UnifiedPageResponse.fromCursor(content, nextCursor, size);
+    }
+
+    /**
+     * Get log posts tagged with a specific hashtag (unified pagination)
+     */
+    public UnifiedPageResponse<LogPostSummaryDto> getLogPostsByHashtag(
+            String hashtagName, String cursor, Integer page, int size) {
+
+        String normalizedName = normalizeHashtagName(hashtagName);
+        if (normalizedName.isBlank()) {
+            return UnifiedPageResponse.emptyCursor(size);
+        }
+
+        // Check if hashtag exists
+        if (hashtagRepository.findByName(normalizedName).isEmpty()) {
+            return UnifiedPageResponse.emptyCursor(size);
+        }
+
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        Slice<LogPost> logPosts;
+        if (cursorData == null) {
+            logPosts = logPostRepository.findByHashtagWithCursorInitial(normalizedName, pageable);
+        } else {
+            logPosts = logPostRepository.findByHashtagWithCursor(
+                    normalizedName, cursorData.createdAt(), cursorData.id(), pageable);
+        }
+
+        List<LogPostSummaryDto> content = logPosts.getContent().stream()
+                .map(this::convertToLogPostSummary)
+                .toList();
+
+        String nextCursor = null;
+        if (logPosts.hasNext() && !logPosts.getContent().isEmpty()) {
+            LogPost lastItem = logPosts.getContent().get(logPosts.getContent().size() - 1);
+            nextCursor = CursorUtil.encode(lastItem.getCreatedAt(), lastItem.getId());
+        }
+
+        return UnifiedPageResponse.fromCursor(content, nextCursor, size);
+    }
+
+    /**
+     * Get counts for a specific hashtag
+     */
+    public HashtagCountsDto getHashtagCounts(String hashtagName) {
+        String normalizedName = normalizeHashtagName(hashtagName);
+        if (normalizedName.isBlank() || hashtagRepository.findByName(normalizedName).isEmpty()) {
+            return new HashtagCountsDto(false, normalizedName, 0, 0);
+        }
+
+        long recipeCount = recipeRepository.countByHashtag(normalizedName);
+        long logPostCount = logPostRepository.countByHashtag(normalizedName);
+
+        return new HashtagCountsDto(true, normalizedName, recipeCount, logPostCount);
+    }
+
+    /**
+     * DTO for hashtag counts
+     */
+    public record HashtagCountsDto(
+            boolean exists,
+            String normalizedName,
+            long recipeCount,
+            long logPostCount
+    ) {}
+
+    // ==================== PRIVATE HELPER METHODS ====================
+
+    private RecipeSummaryDto convertToRecipeSummary(Recipe recipe) {
+        // 1. Creator info
+        User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
+        UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
+        String creatorName = creator != null ? creator.getUsername() : "Unknown";
+
+        // 2. Food name from JSONB map
+        String foodName = getFoodName(recipe);
+
+        // 3. Thumbnail URL (first cover image)
+        String thumbnail = recipe.getImages().stream()
+                .filter(img -> img.getType() == ImageType.COVER)
+                .findFirst()
+                .map(img -> urlPrefix + "/" + img.getStoredFilename())
+                .orElse(null);
+
+        // 4. Variant count
+        int variantCount = (int) recipeRepository.countByRootRecipeIdAndIsDeletedFalse(recipe.getId());
+
+        // 5. Log count
+        int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
+
+        // 6. Root recipe title
+        String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
+
+        // 7. Hashtags (first 3)
+        List<String> hashtags = recipe.getHashtags().stream()
+                .map(Hashtag::getName)
+                .limit(3)
+                .toList();
+
+        return new RecipeSummaryDto(
+                recipe.getPublicId(),
+                foodName,
+                recipe.getFoodMaster().getPublicId(),
+                recipe.getTitle(),
+                recipe.getDescription(),
+                recipe.getCulinaryLocale(),
+                creatorPublicId,
+                creatorName,
+                thumbnail,
+                variantCount,
+                logCount,
+                recipe.getParentRecipe() != null ? recipe.getParentRecipe().getPublicId() : null,
+                recipe.getRootRecipe() != null ? recipe.getRootRecipe().getPublicId() : null,
+                rootTitle,
+                recipe.getServings() != null ? recipe.getServings() : 2,
+                recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
+                hashtags
+        );
+    }
+
+    private String getFoodName(Recipe recipe) {
+        Map<String, String> nameMap = recipe.getFoodMaster().getName();
+        String locale = recipe.getCulinaryLocale();
+
+        if (locale != null && nameMap.containsKey(locale)) {
+            return nameMap.get(locale);
+        }
+        if (nameMap.containsKey("ko-KR")) {
+            return nameMap.get("ko-KR");
+        }
+        return nameMap.values().stream().findFirst().orElse("Unknown Food");
+    }
+
+    private LogPostSummaryDto convertToLogPostSummary(LogPost logPost) {
+        // 1. Creator info
+        User creator = userRepository.findById(logPost.getCreatorId()).orElse(null);
+        UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
+        String creatorName = creator != null ? creator.getUsername() : null;
+
+        // 2. Thumbnail URL (first image)
+        String thumbnailUrl = logPost.getImages().stream()
+                .findFirst()
+                .map(img -> urlPrefix + "/" + img.getStoredFilename())
+                .orElse(null);
+
+        // 3. Outcome and food name from recipe log
+        String outcome = logPost.getRecipeLog() != null ? logPost.getRecipeLog().getOutcome() : null;
+        String foodName = null;
+        boolean isVariant = false;
+
+        if (logPost.getRecipeLog() != null && logPost.getRecipeLog().getRecipe() != null) {
+            Recipe linkedRecipe = logPost.getRecipeLog().getRecipe();
+            foodName = getFoodName(linkedRecipe);
+            isVariant = linkedRecipe.getParentRecipe() != null;
+        }
+
+        // 4. Hashtags (first 3)
+        List<String> hashtags = logPost.getHashtags().stream()
+                .map(Hashtag::getName)
+                .limit(3)
+                .toList();
+
+        return new LogPostSummaryDto(
+                logPost.getPublicId(),
+                logPost.getTitle(),
+                outcome,
+                thumbnailUrl,
+                creatorPublicId,
+                creatorName,
+                foodName,
+                hashtags,
+                isVariant
+        );
     }
 }

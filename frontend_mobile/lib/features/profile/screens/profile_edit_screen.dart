@@ -262,12 +262,17 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     final initialDate = _selectedBirthDate ?? DateTime(now.year - 25);
     final currentLocale = context.locale;
 
+    // Set last date to 13 years ago to enforce age restriction (COPPA compliance)
+    final minimumAge = 13;
+    final lastAllowedDate = DateTime(now.year - minimumAge, now.month, now.day);
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: initialDate,
+      initialDate: initialDate.isAfter(lastAllowedDate) ? lastAllowedDate : initialDate,
       firstDate: DateTime(1900),
-      lastDate: now,
+      lastDate: lastAllowedDate,
       locale: currentLocale,
+      helpText: 'legal.ageRestrictionHint'.tr(),
     );
 
     if (picked != null && picked != _selectedBirthDate) {

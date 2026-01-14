@@ -70,7 +70,7 @@ class RecipeFamilySection extends StatelessWidget {
                   TextButton(
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      context.push(RouteConstants.recipeVariationsPath(currentRecipeId));
+                      context.push(RouteConstants.searchPath(filterMode: 'recipes'));
                     },
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.symmetric(horizontal: 8.w),

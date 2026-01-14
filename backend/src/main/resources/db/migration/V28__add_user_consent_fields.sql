@@ -1,0 +1,6 @@
+-- Add consent tracking fields to users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS marketing_agreed BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_version VARCHAR(20);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_accepted_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_version VARCHAR(20);

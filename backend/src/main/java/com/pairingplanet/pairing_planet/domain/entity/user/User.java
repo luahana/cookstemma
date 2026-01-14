@@ -54,6 +54,19 @@ public class User extends BaseEntity {
     @Column(name = "marketing_agreed")
     private boolean marketingAgreed;
 
+    // Legal acceptance tracking
+    @Column(name = "terms_accepted_at")
+    private Instant termsAcceptedAt;
+
+    @Column(name = "terms_version", length = 20)
+    private String termsVersion;
+
+    @Column(name = "privacy_accepted_at")
+    private Instant privacyAcceptedAt;
+
+    @Column(name = "privacy_version", length = 20)
+    private String privacyVersion;
+
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
