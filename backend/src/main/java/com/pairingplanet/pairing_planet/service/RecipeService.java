@@ -217,7 +217,17 @@ public class RecipeService {
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String creatorName = creator != null ? creator.getUsername() : "Unknown";
 
-        return RecipeDetailResponseDto.from(recipe, variants, logs, this.urlPrefix, isSavedByCurrentUser, creatorPublicId, creatorName);
+        // 루트 레시피 작성자 정보 조회
+        Recipe rootRecipe = recipe.getRootRecipe();
+        UUID rootCreatorPublicId = null;
+        String rootCreatorName = null;
+        if (rootRecipe != null) {
+            User rootCreator = userRepository.findById(rootRecipe.getCreatorId()).orElse(null);
+            rootCreatorPublicId = rootCreator != null ? rootCreator.getPublicId() : null;
+            rootCreatorName = rootCreator != null ? rootCreator.getUsername() : "Unknown";
+        }
+
+        return RecipeDetailResponseDto.from(recipe, variants, logs, this.urlPrefix, isSavedByCurrentUser, creatorPublicId, creatorName, rootCreatorPublicId, rootCreatorName);
     }
 
     @Transactional(readOnly = true)

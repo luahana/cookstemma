@@ -9,6 +9,7 @@ import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/unified_recipe_card.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
+import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/locale_badge.dart';
 
 /// Recipe Family Section - Shows lineage context
 /// - For variants: Shows "Based on" with root recipe
@@ -257,21 +258,35 @@ class _RootRecipeCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    rootInfo.title,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          rootInfo.title,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (rootInfo.culinaryLocale.isNotEmpty) ...[
+                        SizedBox(width: 8.w),
+                        LocaleBadge(
+                          localeCode: rootInfo.culinaryLocale,
+                          showLabel: false,
+                          fontSize: 12.sp,
+                        ),
+                      ],
+                    ],
                   ),
                   SizedBox(height: 2.h),
                   Text(
                     '@${rootInfo.creatorName}',
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: AppColors.textSecondary,
+                      color: AppColors.primary,
                     ),
                   ),
                 ],

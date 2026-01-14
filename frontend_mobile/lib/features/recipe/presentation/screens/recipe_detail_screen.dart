@@ -146,11 +146,6 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Only show variant tag for variants (not for originals)
-                          if (recipe.isVariant) ...[
-                            _buildLineageTag(recipe),
-                            SizedBox(height: 12.h),
-                          ],
                           // Recipe title with cooking style badge
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -493,25 +488,6 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
           steps: recipe.steps,
           ingredients: recipe.ingredients,
           recipeName: recipe.title,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLineageTag(RecipeDetail recipe) {
-    final isVariant = recipe.parentInfo != null || recipe.rootInfo != null;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: isVariant ? Colors.orange[50] : AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Text(
-        isVariant ? 'recipe.variantRecipe'.tr() : 'recipe.originalRecipe'.tr(),
-        style: TextStyle(
-          color: isVariant ? Colors.orange[800] : AppColors.primary,
-          fontSize: 12.sp,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );

@@ -37,7 +37,7 @@ public record RecipeDetailResponseDto(
         Integer servings,                    // Number of servings (default: 2)
         String cookingTimeRange              // Cooking time range enum (e.g., "MIN_30_TO_60")
 ) {
-    public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix, Boolean isSavedByCurrentUser, UUID creatorPublicId, String creatorName) {
+    public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix, Boolean isSavedByCurrentUser, UUID creatorPublicId, String creatorName, UUID rootCreatorPublicId, String rootCreatorName) {
         Recipe root = recipe.getRootRecipe();
         Recipe parent = recipe.getParentRecipe();
 
@@ -48,6 +48,13 @@ public record RecipeDetailResponseDto(
         UUID currentFoodMasterPublicId = recipe.getFoodMaster().getPublicId();
 
         // 2. 루트 레시피 정보 생성 (17개 필드 생성자 대응)
+        // Get root recipe thumbnail
+        String rootThumbnail = (root != null) ? root.getImages().stream()
+                .filter(img -> img.getType() == com.pairingplanet.pairing_planet.domain.enums.ImageType.COVER)
+                .findFirst()
+                .map(img -> urlPrefix + "/" + img.getStoredFilename())
+                .orElse(null) : null;
+
         RecipeSummaryDto rootInfo = (root != null) ? new RecipeSummaryDto(
                 root.getPublicId(), // 1. publicId (UUID)
                 // 2. foodName (String): 현재 로케일 -> 한국어 -> 첫 번째 이름 순으로 시도
@@ -58,9 +65,9 @@ public record RecipeDetailResponseDto(
                 root.getTitle(),       // 4. title
                 root.getDescription(), // 5. description
                 root.getCulinaryLocale(), // 6. culinaryLocale
-                null, // 7. creatorPublicId (상세 카드 내 생략)
-                null, // 8. creatorName (상세 카드 내 생략)
-                null, // 9. thumbnail (상세 카드 내 생략)
+                rootCreatorPublicId, // 7. creatorPublicId
+                rootCreatorName, // 8. creatorName
+                rootThumbnail, // 9. thumbnail
                 0,    // 10. variantCount (상세 카드 내 생략)
                 0,    // 11. logCount (상세 카드 내 생략)
                 null, // 12. parentPublicId
