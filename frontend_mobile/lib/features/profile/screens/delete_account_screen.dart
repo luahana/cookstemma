@@ -186,7 +186,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
             TextField(
               controller: _confirmController,
               decoration: InputDecoration(
-                hintText: 'DELETE',
+                hintText: 'settings.deleteConfirmHint'.tr(),
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(

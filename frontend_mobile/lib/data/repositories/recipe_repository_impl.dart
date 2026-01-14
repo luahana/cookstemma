@@ -49,7 +49,7 @@ class RecipeRepositoryImpl implements RecipeRepository {
       }
     } else {
       // 5. 오프라인 상태 에러 반환
-      return Left(ConnectionFailure('네트워크 연결이 없어 레시피를 등록할 수 없습니다.'));
+      return Left(ConnectionFailure('error.offlineCannotCreateRecipe'));
     }
   }
 
@@ -82,7 +82,7 @@ class RecipeRepositoryImpl implements RecipeRepository {
         return Right(localData.toEntity());
       } else {
         // 캐시도 없고 오프라인인 경우 에러 반환
-        return Left(ConnectionFailure('오프라인 상태이며 저장된 데이터가 없습니다.'));
+        return Left(ConnectionFailure('error.offlineNoData'));
       }
     }
   }
@@ -193,7 +193,7 @@ class RecipeRepositoryImpl implements RecipeRepository {
           cachedAt: cached.cachedAt,
         ));
       }
-      return Left(ConnectionFailure('오프라인 상태이며 저장된 데이터가 없습니다.'));
+      return Left(ConnectionFailure('error.offlineNoData'));
     }
   }
 
@@ -210,7 +210,7 @@ class RecipeRepositoryImpl implements RecipeRepository {
         return Left(UnknownFailure(e.toString()));
       }
     } else {
-      return Left(ConnectionFailure('네트워크 연결이 없습니다.'));
+      return Left(ConnectionFailure('error.noNetwork'));
     }
   }
 
@@ -227,7 +227,7 @@ class RecipeRepositoryImpl implements RecipeRepository {
         return Left(UnknownFailure(e.toString()));
       }
     } else {
-      return Left(ConnectionFailure('네트워크 연결이 없습니다.'));
+      return Left(ConnectionFailure('error.noNetwork'));
     }
   }
 
@@ -247,7 +247,7 @@ class RecipeRepositoryImpl implements RecipeRepository {
       }
     } else {
       return Left(
-        ConnectionFailure('네트워크 연결이 없어 수정 가능 여부를 확인할 수 없습니다.'),
+        ConnectionFailure('error.offlineCannotCheck'),
       );
     }
   }
@@ -273,7 +273,7 @@ class RecipeRepositoryImpl implements RecipeRepository {
         return Left(UnknownFailure(e.toString()));
       }
     } else {
-      return Left(ConnectionFailure('네트워크 연결이 없어 레시피를 수정할 수 없습니다.'));
+      return Left(ConnectionFailure('error.offlineCannotEditRecipe'));
     }
   }
 
@@ -294,7 +294,7 @@ class RecipeRepositoryImpl implements RecipeRepository {
         return Left(UnknownFailure(e.toString()));
       }
     } else {
-      return Left(ConnectionFailure('네트워크 연결이 없어 레시피를 삭제할 수 없습니다.'));
+      return Left(ConnectionFailure('error.offlineCannotDeleteRecipe'));
     }
   }
 
@@ -311,7 +311,7 @@ class RecipeRepositoryImpl implements RecipeRepository {
         if (statusCode == HttpStatus.notFound) return NotFoundFailure();
         if (statusCode == HttpStatus.unauthorized) return UnauthorizedFailure();
         if (statusCode == HttpStatus.serverError) return ServerFailure();
-        return ServerFailure('에러 코드: $statusCode');
+        return ServerFailure('Error code: $statusCode');
 
       default:
         return UnknownFailure();

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -60,7 +61,7 @@ class SearchEmptyState extends StatelessWidget {
 
                 // No results message
                 Text(
-                  '검색 결과가 없습니다',
+                  'search.noResults'.tr(),
                   style: TextStyle(
                     fontSize: 16.sp,
                     color: Colors.grey[600],
@@ -78,11 +79,11 @@ class SearchEmptyState extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      _buildTip('다른 키워드로 검색해보세요'),
+                      _buildTip('search.tipTryDifferent'.tr()),
                       SizedBox(height: 8.h),
-                      _buildTip('검색어의 철자를 확인해주세요'),
+                      _buildTip('search.tipCheckSpelling'.tr()),
                       SizedBox(height: 8.h),
-                      _buildTip('더 일반적인 검색어를 사용해보세요'),
+                      _buildTip('search.tipUseBroader'.tr()),
                     ],
                   ),
                 ),
@@ -93,7 +94,7 @@ class SearchEmptyState extends StatelessWidget {
                   TextButton.icon(
                     onPressed: onClearSearch,
                     icon: Icon(Icons.refresh, size: 18.sp),
-                    label: const Text('검색 초기화'),
+                    label: Text('search.clearSearch'.tr()),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
                     ),

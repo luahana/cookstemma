@@ -15,7 +15,7 @@ class LoginUseCase {
     final String? firebaseIdToken = await _socialAuthService.signInWithGoogle();
 
     if (firebaseIdToken == null) {
-      return Left(ServerFailure("구글 로그인에 실패했습니다."));
+      return Left(ServerFailure('error.googleLoginFailed'));
     }
 
     // 2. 백엔드 서버에 인증 요청 및 토큰 저장
@@ -28,7 +28,7 @@ class LoginUseCase {
     final String? firebaseIdToken = await _socialAuthService.signInWithApple();
 
     if (firebaseIdToken == null) {
-      return Left(ServerFailure("Apple 로그인에 실패했습니다."));
+      return Left(ServerFailure('error.appleLoginFailed'));
     }
 
     // 2. 백엔드 서버에 인증 요청 및 토큰 저장

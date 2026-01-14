@@ -14,10 +14,10 @@ class CreateLogPostUseCase {
   ) async {
     // Validation
     if (!['SUCCESS', 'PARTIAL', 'FAILED'].contains(request.outcome)) {
-      return Left(ValidationFailure('유효하지 않은 요리 결과입니다.'));
+      return Left(ValidationFailure('error.invalidCookingResult'));
     }
     if (request.content.trim().isEmpty) {
-      return Left(ValidationFailure('내용을 입력해주세요.'));
+      return Left(ValidationFailure('error.contentRequired'));
     }
 
     return await _repository.createLog(request);

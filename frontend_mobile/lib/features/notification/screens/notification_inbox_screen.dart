@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -48,13 +49,13 @@ class _NotificationInboxScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('알림'),
+        title: Text('notification.title'.tr()),
         actions: [
           TextButton(
             onPressed: () {
               ref.read(notificationListProvider.notifier).markAllAsRead();
             },
-            child: const Text('모두 읽음'),
+            child: Text('notification.markAllRead'.tr()),
           ),
         ],
       ),
@@ -98,7 +99,7 @@ class _NotificationInboxScreenState
           Icon(Icons.notifications_none, size: 64.sp, color: Colors.grey),
           SizedBox(height: 16.h),
           Text(
-            '알림이 없습니다',
+            'notification.empty'.tr(),
             style: TextStyle(fontSize: 16.sp, color: Colors.grey),
           ),
         ],
@@ -178,11 +179,11 @@ class _NotificationTile extends StatelessWidget {
     final diff = now.difference(dateTime);
 
     if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}분 전';
+      return 'common.minutesAgo'.tr(namedArgs: {'count': diff.inMinutes.toString()});
     } else if (diff.inHours < 24) {
-      return '${diff.inHours}시간 전';
+      return 'common.hoursAgo'.tr(namedArgs: {'count': diff.inHours.toString()});
     } else if (diff.inDays < 7) {
-      return '${diff.inDays}일 전';
+      return '${diff.inDays}d';
     } else {
       return '${dateTime.month}/${dateTime.day}';
     }

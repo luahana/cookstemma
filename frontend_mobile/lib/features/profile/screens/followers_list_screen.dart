@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -70,12 +71,12 @@ class _FollowersListScreenState extends ConsumerState<FollowersListScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('팔로워 / 팔로잉'),
+        title: Text('profile.followersTitle'.tr()),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: '팔로워'),
-            Tab(text: '팔로잉'),
+          tabs: [
+            Tab(text: 'profile.followers'.tr()),
+            Tab(text: 'profile.following'.tr()),
           ],
         ),
       ),
@@ -122,11 +123,11 @@ class _FollowersTab extends ConsumerWidget {
             Center(
               child: Column(
                 children: [
-                  Text('오류가 발생했습니다', style: TextStyle(fontSize: 16.sp)),
+                  Text('common.error'.tr(), style: TextStyle(fontSize: 16.sp)),
                   SizedBox(height: 8.h),
                   ElevatedButton(
                     onPressed: () => notifier.refresh(),
-                    child: const Text('다시 시도'),
+                    child: Text('common.retry'.tr()),
                   ),
                 ],
               ),
@@ -149,7 +150,7 @@ class _FollowersTab extends ConsumerWidget {
                   Icon(Icons.people_outline, size: 64.sp, color: Colors.grey[400]),
                   SizedBox(height: 16.h),
                   Text(
-                    '아직 팔로워가 없습니다',
+                    'profile.noFollowers'.tr(),
                     style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
                   ),
                 ],
@@ -222,11 +223,11 @@ class _FollowingTab extends ConsumerWidget {
             Center(
               child: Column(
                 children: [
-                  Text('오류가 발생했습니다', style: TextStyle(fontSize: 16.sp)),
+                  Text('common.error'.tr(), style: TextStyle(fontSize: 16.sp)),
                   SizedBox(height: 8.h),
                   ElevatedButton(
                     onPressed: () => notifier.refresh(),
-                    child: const Text('다시 시도'),
+                    child: Text('common.retry'.tr()),
                   ),
                 ],
               ),
@@ -249,7 +250,7 @@ class _FollowingTab extends ConsumerWidget {
                   Icon(Icons.person_add_outlined, size: 64.sp, color: Colors.grey[400]),
                   SizedBox(height: 16.h),
                   Text(
-                    '아직 팔로잉하는 유저가 없습니다',
+                    'profile.noFollowing'.tr(),
                     style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
                   ),
                 ],

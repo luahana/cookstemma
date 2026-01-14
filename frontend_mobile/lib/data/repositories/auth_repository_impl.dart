@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:pairing_planet2_frontend/core/error/failures.dart';
+import 'package:pairing_planet2_frontend/core/services/fcm_service.dart';
 import 'package:pairing_planet2_frontend/core/services/social_auth_service.dart';
 import 'package:pairing_planet2_frontend/data/datasources/auth/auth_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/auth/auth_remote_data_source.dart';
@@ -12,12 +13,14 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final AuthLocalDataSource localDataSource; // 💡 이전에 만든 로컬 소스
   final SocialAuthService _socialAuthService; // 💡 소셜 로그아웃을 위해 추가
+  final FcmService _fcmService; // 💡 FCM 토큰 삭제를 위해 추가
   final String Function() getCurrentLocale;
 
   AuthRepositoryImpl(
     this.remoteDataSource,
     this.localDataSource,
     this._socialAuthService,
+    this._fcmService,
     this.getCurrentLocale,
   );
 
@@ -55,7 +58,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // 💡 1. 저장소에서 현재 리프레시 토큰을 가져옵니다.
       final refreshToken = await localDataSource.getRefreshToken();
       if (refreshToken == null || refreshToken.isEmpty) {
-        return Left(ServerFailure("저장된 리프레시 토큰이 없습니다."));
+        return Left(ServerFailure('error.noRefreshToken'));
       }
 
       // 2. TokenReissueRequestDto 객체 생성
@@ -86,7 +89,10 @@ class AuthRepositoryImpl implements AuthRepository {
       // 1. 로컬 저장소의 모든 토큰 삭제
       await localDataSource.clearAll();
 
-      // 2. 소셜 로그인(Firebase/Google) 세션 종료
+      // 2. FCM 토큰 삭제 (푸시 알림 중지)
+      await _fcmService.deleteToken();
+
+      // 3. 소셜 로그인(Firebase/Google) 세션 종료
       await _socialAuthService.signOut();
 
       return const Right(unit);

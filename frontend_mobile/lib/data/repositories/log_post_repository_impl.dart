@@ -61,7 +61,7 @@ class LogPostRepositoryImpl implements LogPostRepository {
     } else {
       // 4. 오프라인일 때 로컬 데이터 반환
       if (localData != null) return Right(localData.toEntity());
-      return Left(ConnectionFailure('오프라인 상태이며 저장된 데이터가 없습니다.'));
+      return Left(ConnectionFailure('error.offlineNoData'));
     }
   }
 
