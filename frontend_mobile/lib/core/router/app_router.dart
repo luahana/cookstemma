@@ -10,6 +10,7 @@ import 'package:pairing_planet2_frontend/features/log_post/presentation/screens/
 import 'package:pairing_planet2_frontend/features/log_post/presentation/screens/recipe_logs_screen.dart';
 import 'package:pairing_planet2_frontend/features/home/screens/home_feed_screen.dart';
 import 'package:pairing_planet2_frontend/features/login/screens/login_screen.dart';
+import 'package:pairing_planet2_frontend/features/login/screens/legal_agreement_screen.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/screens/recipe_create_screen.dart';
 import 'package:pairing_planet2_frontend/features/recipe/presentation/screens/recipe_list_screen.dart';
 import 'package:pairing_planet2_frontend/features/profile/screens/profile_screen.dart';
@@ -57,6 +58,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final location = state.matchedLocation;
       final isLoggingIn = location == RouteConstants.login;
       final isSplash = location == RouteConstants.splash;
+      final isLegalAgreement = location == RouteConstants.legalAgreement;
 
       // Skip redirect for splash screen - it handles its own navigation
       if (isSplash) return null;
@@ -64,8 +66,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Wait for auth check to complete
       if (status == AuthStatus.initial) return null;
 
-      // Authenticated user on login page -> go home
-      if (status == AuthStatus.authenticated && isLoggingIn) {
+      // User needs to accept legal terms -> redirect to legal agreement screen
+      if (status == AuthStatus.needsLegalAcceptance) {
+        if (!isLegalAgreement) {
+          return RouteConstants.legalAgreement;
+        }
+        return null;
+      }
+
+      // Authenticated user on login or legal page -> go home
+      if (status == AuthStatus.authenticated && (isLoggingIn || isLegalAgreement)) {
         return RouteConstants.home;
       }
 
@@ -110,6 +120,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteConstants.login,
         name: 'login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: RouteConstants.legalAgreement,
+        name: 'legal_agreement',
+        builder: (context, state) => const LegalAgreementScreen(),
       ),
       GoRoute(
         path: RouteConstants.recipeCreate,
@@ -186,11 +201,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           final sort = state.uri.queryParameters['sort'];
           final contentType = state.uri.queryParameters['type'];
           final recipeId = state.uri.queryParameters['recipeId'];
+          final filterMode = state.uri.queryParameters['filter'];
           return RecipeSearchScreen(
             initialQuery: initialQuery,
             sort: sort,
             contentType: contentType,
             recipeId: recipeId,
+            initialFilterMode: filterMode,
           );
         },
       ),

@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info.dart';
 import 'package:pairing_planet2_frontend/core/services/media_service.dart';
 import 'package:pairing_planet2_frontend/core/services/social_auth_service.dart';
+import 'package:pairing_planet2_frontend/core/services/storage_service.dart';
 import 'package:pairing_planet2_frontend/core/providers/image_providers.dart';
 import 'package:pairing_planet2_frontend/data/datasources/auth/auth_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/auth/auth_remote_data_source.dart';
@@ -15,6 +16,7 @@ import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_remo
 import 'package:pairing_planet2_frontend/data/datasources/sync/sync_queue_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/follow/follow_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/block/block_remote_data_source.dart';
+import 'package:pairing_planet2_frontend/data/datasources/user/user_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/domain/repositories/auth_repository.dart';
 import 'package:pairing_planet2_frontend/domain/repositories/recipe_repository.dart';
 import 'package:pairing_planet2_frontend/domain/repositories/log_post_repository.dart';
@@ -61,6 +63,9 @@ class MockFollowRemoteDataSource extends Mock
 // Block
 class MockBlockRemoteDataSource extends Mock implements BlockRemoteDataSource {}
 
+// User
+class MockUserRemoteDataSource extends Mock implements UserRemoteDataSource {}
+
 // ============================================================
 // Service Mocks
 // ============================================================
@@ -68,6 +73,8 @@ class MockBlockRemoteDataSource extends Mock implements BlockRemoteDataSource {}
 class MockNetworkInfo extends Mock implements NetworkInfo {}
 
 class MockSocialAuthService extends Mock implements SocialAuthService {}
+
+class MockStorageService extends Mock implements StorageService {}
 
 // ============================================================
 // UseCase Mocks

@@ -9,6 +9,7 @@ import com.pairingplanet.pairing_planet.domain.enums.AccountStatus;
 import com.pairingplanet.pairing_planet.domain.enums.ImageType;
 import com.pairingplanet.pairing_planet.dto.log_post.LogPostSummaryDto;
 import com.pairingplanet.pairing_planet.dto.recipe.RecipeSummaryDto;
+import com.pairingplanet.pairing_planet.dto.user.AcceptLegalTermsRequestDto;
 import com.pairingplanet.pairing_planet.dto.user.MyProfileResponseDto;
 import com.pairingplanet.pairing_planet.dto.user.UpdateProfileRequestDto;
 import com.pairingplanet.pairing_planet.dto.user.UserDto;
@@ -154,6 +155,33 @@ public class UserService {
         // 9. Instagram handle update with normalization
         if (request.instagramHandle() != null) {
             user.setInstagramHandle(normalizeInstagramHandle(request.instagramHandle()));
+        }
+
+        return UserDto.from(user, urlPrefix);
+    }
+
+    /**
+     * Accept legal terms (Terms of Service and Privacy Policy)
+     * Records the acceptance timestamp and version for compliance tracking.
+     */
+    @Transactional
+    public UserDto acceptLegalTerms(UserPrincipal principal, AcceptLegalTermsRequestDto request) {
+        User user = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Instant now = Instant.now();
+
+        // Record terms acceptance
+        user.setTermsAcceptedAt(now);
+        user.setTermsVersion(request.termsVersion());
+
+        // Record privacy policy acceptance
+        user.setPrivacyAcceptedAt(now);
+        user.setPrivacyVersion(request.privacyVersion());
+
+        // Record marketing preference
+        if (request.marketingAgreed() != null) {
+            user.setMarketingAgreed(request.marketingAgreed());
         }
 
         return UserDto.from(user, urlPrefix);

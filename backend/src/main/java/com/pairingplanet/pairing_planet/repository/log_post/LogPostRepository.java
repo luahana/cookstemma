@@ -223,4 +223,33 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         """,
         nativeQuery = true)
     Page<LogPost> searchLogPostsPage(@Param("keyword") String keyword, Pageable pageable);
+
+    // ==================== HASHTAG-BASED QUERIES ====================
+
+    // [Cursor] LogPosts by hashtag - initial page
+    @Query("SELECT l FROM LogPost l JOIN l.hashtags h " +
+           "WHERE h.name = :hashtagName AND l.isDeleted = false AND l.isPrivate = false " +
+           "ORDER BY l.createdAt DESC, l.id DESC")
+    Slice<LogPost> findByHashtagWithCursorInitial(@Param("hashtagName") String hashtagName, Pageable pageable);
+
+    // [Cursor] LogPosts by hashtag - with cursor
+    @Query("SELECT l FROM LogPost l JOIN l.hashtags h " +
+           "WHERE h.name = :hashtagName AND l.isDeleted = false AND l.isPrivate = false " +
+           "AND (l.createdAt < :cursorTime OR (l.createdAt = :cursorTime AND l.id < :cursorId)) " +
+           "ORDER BY l.createdAt DESC, l.id DESC")
+    Slice<LogPost> findByHashtagWithCursor(
+            @Param("hashtagName") String hashtagName,
+            @Param("cursorTime") Instant cursorTime,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable);
+
+    // [Offset] LogPosts by hashtag - page
+    @Query("SELECT l FROM LogPost l JOIN l.hashtags h " +
+           "WHERE h.name = :hashtagName AND l.isDeleted = false AND l.isPrivate = false")
+    Page<LogPost> findByHashtagPage(@Param("hashtagName") String hashtagName, Pageable pageable);
+
+    // Count log posts by hashtag
+    @Query("SELECT COUNT(l) FROM LogPost l JOIN l.hashtags h " +
+           "WHERE h.name = :hashtagName AND l.isDeleted = false AND l.isPrivate = false")
+    long countByHashtag(@Param("hashtagName") String hashtagName);
 }

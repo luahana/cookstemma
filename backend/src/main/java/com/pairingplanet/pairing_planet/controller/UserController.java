@@ -3,9 +3,11 @@ package com.pairingplanet.pairing_planet.controller;
 import com.pairingplanet.pairing_planet.dto.log_post.LogPostSummaryDto;
 import com.pairingplanet.pairing_planet.dto.recipe.RecipeSummaryDto;
 import com.pairingplanet.pairing_planet.dto.user.CookingDnaDto;
+import com.pairingplanet.pairing_planet.dto.user.AcceptLegalTermsRequestDto;
 import com.pairingplanet.pairing_planet.dto.user.UpdateProfileRequestDto;
 import com.pairingplanet.pairing_planet.dto.user.UserDto;
 import com.pairingplanet.pairing_planet.dto.user.MyProfileResponseDto;
+import jakarta.validation.Valid;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import com.pairingplanet.pairing_planet.service.CookingDnaService;
 import com.pairingplanet.pairing_planet.service.UserService;
@@ -57,6 +59,18 @@ public class UserController {
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody UpdateProfileRequestDto request) {
         UserDto response = userService.updateProfile(principal, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Accept legal terms (Terms of Service and Privacy Policy)
+     * Called when user agrees to terms during signup or when terms are updated.
+     */
+    @PostMapping("/me/legal-acceptance")
+    public ResponseEntity<UserDto> acceptLegalTerms(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody AcceptLegalTermsRequestDto request) {
+        UserDto response = userService.acceptLegalTerms(principal, request);
         return ResponseEntity.ok(response);
     }
 

@@ -11,7 +11,6 @@ import 'package:pairing_planet2_frontend/data/models/home/home_feed_response_dto
 import 'package:pairing_planet2_frontend/data/models/recipe/trending_tree_dto.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
-import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_logo.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/hero_search_bar.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/hero_search_icon.dart';
@@ -203,10 +202,10 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
           title: 'home.mostEvolved'.tr(),
           padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 12.h),
           onSeeAll: sortedTrending.isNotEmpty
-              ? () {
-                  ref.read(browseFilterProvider.notifier).setSortOption(RecipeSortOption.mostForked);
-                  context.push(RouteConstants.recipes);
-                }
+              ? () => context.push(RouteConstants.searchPath(
+                    sort: 'mostForked',
+                    filterMode: 'recipes',
+                  ))
               : null,
         ),
       ),
@@ -224,7 +223,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         child: SectionHeader(
           title: 'home.hotRightNow'.tr(),
           onSeeAll: feed.recentActivity.isNotEmpty
-              ? () => context.push(RouteConstants.searchPath(contentType: 'logPosts'))
+              ? () => context.push(RouteConstants.searchPath(filterMode: 'logs'))
               : null,
         ),
       ),
@@ -242,7 +241,10 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         child: SectionHeader(
           title: 'home.freshUploads'.tr(),
           onSeeAll: feed.recentRecipes.isNotEmpty
-              ? () => context.push(RouteConstants.recipes)
+              ? () => context.push(RouteConstants.searchPath(
+                    sort: 'recent',
+                    filterMode: 'recipes',
+                  ))
               : null,
         ),
       ),

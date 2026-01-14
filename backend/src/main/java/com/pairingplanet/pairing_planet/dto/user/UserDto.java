@@ -6,6 +6,7 @@ import lombok.Builder;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -27,7 +28,13 @@ public record UserDto(
         String levelName,        // Level title (beginner, homeCook, etc.)
         String bio,              // User bio/description (max 150 chars)
         String youtubeUrl,       // YouTube channel URL
-        String instagramHandle   // Instagram handle (without @)
+        String instagramHandle,  // Instagram handle (without @)
+        // Legal acceptance fields
+        Instant termsAcceptedAt,
+        String termsVersion,
+        Instant privacyAcceptedAt,
+        String privacyVersion,
+        Boolean marketingAgreed
 ) {
     public static UserDto from(User user, String urlPrefix) {
         return from(user, urlPrefix, 0, 0, 1, "beginner");
@@ -71,6 +78,11 @@ public record UserDto(
                 .bio(user.getBio())
                 .youtubeUrl(user.getYoutubeUrl())
                 .instagramHandle(user.getInstagramHandle())
+                .termsAcceptedAt(user.getTermsAcceptedAt())
+                .termsVersion(user.getTermsVersion())
+                .privacyAcceptedAt(user.getPrivacyAcceptedAt())
+                .privacyVersion(user.getPrivacyVersion())
+                .marketingAgreed(user.isMarketingAgreed())
                 .build();
     }
 }
