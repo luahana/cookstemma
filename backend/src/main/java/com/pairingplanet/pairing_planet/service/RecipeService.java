@@ -456,11 +456,11 @@ public class RecipeService {
                             .map(img -> urlPrefix + "/" + img.getStoredFilename())
                             .orElse(null);
 
-                    // Get creator name (handle null creatorId)
-                    String creatorName = Optional.ofNullable(root.getCreatorId())
-                            .flatMap(userRepository::findById)
-                            .map(user -> user.getUsername())
-                            .orElse("Unknown");
+                    // Get creator info (handle null creatorId)
+                    var creatorOpt = Optional.ofNullable(root.getCreatorId())
+                            .flatMap(userRepository::findById);
+                    String creatorName = creatorOpt.map(user -> user.getUsername()).orElse("Unknown");
+                    UUID creatorPublicId = creatorOpt.map(user -> user.getPublicId()).orElse(null);
 
                     return TrendingTreeDto.builder()
                             .rootRecipeId(root.getPublicId())
@@ -472,6 +472,7 @@ public class RecipeService {
                             .logCount(logs)
                             .latestChangeSummary(root.getDescription())
                             .creatorName(creatorName)
+                            .creatorPublicId(creatorPublicId)
                             .build();
                 }).toList();
 

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/constants/app_spacing.dart';
+import 'package:pairing_planet2_frontend/core/widgets/clickable_username.dart';
 import 'package:pairing_planet2_frontend/core/widgets/recipe_type_label.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -154,14 +155,10 @@ class UnifiedRecipeCard extends ConsumerWidget {
 
                       // 3. Username (hidden on profile page my recipes)
                       if (showUsername && recipe.creatorName.isNotEmpty) ...[
-                        Text(
-                          recipe.creatorName,
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            color: AppColors.primary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        ClickableUsername(
+                          username: recipe.creatorName,
+                          creatorPublicId: recipe.creatorPublicId,
+                          fontSize: 13.sp,
                         ),
                         SizedBox(height: 4.h),
                       ],
@@ -278,14 +275,10 @@ class UnifiedRecipeCard extends ConsumerWidget {
 
               // 3. Username (hidden on profile page my recipes)
               if (showUsername && recipe.creatorName.isNotEmpty) ...[
-                Text(
-                  recipe.creatorName,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: AppColors.primary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                ClickableUsername(
+                  username: recipe.creatorName,
+                  creatorPublicId: recipe.creatorPublicId,
+                  fontSize: 12.sp,
                 ),
                 SizedBox(height: 4.h),
               ],

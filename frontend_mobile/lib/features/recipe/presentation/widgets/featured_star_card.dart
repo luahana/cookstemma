@@ -5,6 +5,7 @@ import 'package:pairing_planet2_frontend/core/constants/app_emojis.dart';
 import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
+import 'package:pairing_planet2_frontend/core/widgets/clickable_username.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 
 /// Large featured card for recipes with many variants (Star recipes)
@@ -82,14 +83,13 @@ class FeaturedStarCard extends StatelessWidget {
                     // Creator info
                     Row(
                       children: [
-                        Icon(Icons.person_outline, size: 14.sp, color: Colors.grey[500]),
+                        Icon(Icons.person_outline, size: 14.sp, color: AppColors.primary),
                         SizedBox(width: 4.w),
                         Expanded(
-                          child: Text(
-                            recipe.creatorName,
-                            style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          child: ClickableUsername(
+                            username: recipe.creatorName,
+                            creatorPublicId: recipe.creatorPublicId,
+                            fontSize: 12.sp,
                           ),
                         ),
                       ],
@@ -403,12 +403,11 @@ class FeaturedStarCardHorizontal extends StatelessWidget {
                   ),
                   SizedBox(height: 4.h),
                   // Creator
-                  Text(
-                    'by ${recipe.creatorName}',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 12.sp,
-                    ),
+                  ClickableUsername(
+                    username: recipe.creatorName,
+                    creatorPublicId: recipe.creatorPublicId,
+                    fontSize: 12.sp,
+                    color: Colors.white,
                   ),
                 ],
               ),

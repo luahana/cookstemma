@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/models/log_outcome.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
+import 'package:pairing_planet2_frontend/core/widgets/clickable_username.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
 import 'package:pairing_planet2_frontend/data/models/sync/sync_queue_item.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
@@ -127,14 +128,10 @@ class LogPostCard extends StatelessWidget {
                     else if (showUsername &&
                         log.creatorName != null &&
                         log.creatorName!.isNotEmpty)
-                      Text(
-                        log.creatorName!,
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          color: Colors.grey[600],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      ClickableUsername(
+                        username: log.creatorName!,
+                        creatorPublicId: log.creatorPublicId,
+                        fontSize: 11.sp,
                       ),
                     // Hashtags on separate line
                     if (!log.isPending &&

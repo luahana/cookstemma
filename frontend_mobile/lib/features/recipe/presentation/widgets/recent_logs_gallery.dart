@@ -6,6 +6,7 @@ import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
+import 'package:pairing_planet2_frontend/core/widgets/clickable_username.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 
@@ -166,14 +167,11 @@ class RecentLogsGallery extends StatelessWidget {
             SizedBox(height: 6.h),
             // Creator name
             if (log.creatorName != null)
-              Text(
-                "@${log.creatorName}",
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  color: Colors.grey[600],
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              ClickableUsername(
+                username: log.creatorName!,
+                creatorPublicId: log.creatorPublicId,
+                fontSize: 11.sp,
+                showAtPrefix: true,
               ),
           ],
           ),

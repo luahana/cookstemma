@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/app_radius.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
+import 'package:pairing_planet2_frontend/core/widgets/clickable_username.dart';
 import 'package:pairing_planet2_frontend/core/widgets/recipe_type_label.dart';
 import 'package:pairing_planet2_frontend/core/widgets/recipe_thumbnail.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/trending_tree_dto.dart';
@@ -70,16 +71,13 @@ class FeaturedEvolvedCard extends StatelessWidget {
                       color: Colors.white,
                     ),
                     SizedBox(height: 4.h),
-                    Text(
-                      tree.creatorName ?? 'Unknown',
-                      style: TextStyle(
+                    if (tree.creatorName != null)
+                      ClickableUsername(
+                        username: tree.creatorName!,
+                        creatorPublicId: tree.creatorPublicId,
                         fontSize: 13.sp,
                         color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
                   ],
                 ),
               ),

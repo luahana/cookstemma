@@ -13,6 +13,7 @@ class TrendingTreeDto {
   final int logCount;
   final String? latestChangeSummary;
   final String? creatorName;
+  final String? creatorPublicId;
 
   TrendingTreeDto({
     required this.rootRecipeId,
@@ -24,6 +25,7 @@ class TrendingTreeDto {
     required this.logCount,
     this.latestChangeSummary,
     this.creatorName,
+    this.creatorPublicId,
   });
 
   factory TrendingTreeDto.fromJson(Map<String, dynamic> json) =>

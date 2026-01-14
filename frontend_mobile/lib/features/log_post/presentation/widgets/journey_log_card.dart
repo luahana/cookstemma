@@ -2,8 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/utils/relative_time_formatter.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
+import 'package:pairing_planet2_frontend/core/widgets/clickable_username.dart';
 import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/recipe_lineage_breadcrumb.dart';
 
@@ -15,6 +17,7 @@ class JourneyLogData {
   final String? outcome;
   final String? thumbnailUrl;
   final String? creatorName;
+  final String? creatorPublicId;
   final DateTime? createdAt;
   final String? recipeTitle;
   final String? recipePublicId;
@@ -30,6 +33,7 @@ class JourneyLogData {
     this.outcome,
     this.thumbnailUrl,
     this.creatorName,
+    this.creatorPublicId,
     this.createdAt,
     this.recipeTitle,
     this.recipePublicId,
@@ -272,15 +276,13 @@ class JourneyLogCard extends StatelessWidget {
           Icon(
             Icons.person_outline,
             size: 14.sp,
-            color: Colors.grey[400],
+            color: AppColors.primary,
           ),
           SizedBox(width: 4.w),
-          Text(
-            logData.creatorName!,
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: Colors.grey[600],
-            ),
+          ClickableUsername(
+            username: logData.creatorName!,
+            creatorPublicId: logData.creatorPublicId,
+            fontSize: 12.sp,
           ),
         ],
         const Spacer(),
