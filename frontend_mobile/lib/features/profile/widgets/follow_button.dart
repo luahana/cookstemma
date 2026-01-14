@@ -5,6 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/widgets/login_prompt_sheet.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/follow_provider.dart';
+import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
+import 'package:pairing_planet2_frontend/features/profile/providers/user_profile_provider.dart';
 
 class FollowButton extends ConsumerWidget {
   final String userId;
@@ -43,12 +45,16 @@ class FollowButton extends ConsumerWidget {
                     actionKey: 'guest.signInToFollow',
                     pendingAction: () async {
                       await notifier.toggleFollow();
+                      ref.invalidate(userProfileProvider(userId));
+                      ref.invalidate(myProfileProvider);
                       onFollowChanged?.call();
                     },
                   );
                   return;
                 }
                 await notifier.toggleFollow();
+                ref.invalidate(userProfileProvider(userId));
+                ref.invalidate(myProfileProvider);
                 onFollowChanged?.call();
               },
         style: ElevatedButton.styleFrom(
@@ -123,12 +129,16 @@ class FollowButtonCompact extends ConsumerWidget {
                     actionKey: 'guest.signInToFollow',
                     pendingAction: () async {
                       await notifier.toggleFollow();
+                      ref.invalidate(userProfileProvider(userId));
+                      ref.invalidate(myProfileProvider);
                       onFollowChanged?.call();
                     },
                   );
                   return;
                 }
                 await notifier.toggleFollow();
+                ref.invalidate(userProfileProvider(userId));
+                ref.invalidate(myProfileProvider);
                 onFollowChanged?.call();
               },
         style: OutlinedButton.styleFrom(
