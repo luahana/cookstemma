@@ -58,19 +58,6 @@ class ActionHubBar extends StatelessWidget {
             ),
             SizedBox(width: 8.w),
           ],
-          // Log button (outlined/secondary)
-          Expanded(
-            child: _ActionButton(
-              icon: AppIcons.logPost,
-              title: 'recipe.action.logRecord'.tr(),
-              onPressed: isLoading ? null : () {
-                HapticFeedback.lightImpact();
-                onLogPressed();
-              },
-              isPrimary: false,
-            ),
-          ),
-          SizedBox(width: 8.w),
           // Variation button (filled/primary)
           Expanded(
             child: _ActionButton(
@@ -81,6 +68,19 @@ class ActionHubBar extends StatelessWidget {
                 onVariationPressed();
               },
               isPrimary: true,
+            ),
+          ),
+          SizedBox(width: 8.w),
+          // Log button (outlined/secondary)
+          Expanded(
+            child: _ActionButton(
+              icon: AppIcons.logPost,
+              title: 'recipe.action.logRecord'.tr(),
+              onPressed: isLoading ? null : () {
+                HapticFeedback.lightImpact();
+                onLogPressed();
+              },
+              isPrimary: false,
             ),
           ),
         ],
