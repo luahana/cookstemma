@@ -178,10 +178,10 @@ class _FollowersTab extends ConsumerWidget {
           itemCount: state.items.length + (state.isLoading ? 1 : 0),
           itemBuilder: (context, index) {
             if (index >= state.items.length) {
-              return const Center(
+              return Center(
                 child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
+                  padding: EdgeInsets.all(16.r),
+                  child: const CircularProgressIndicator(),
                 ),
               );
             }
@@ -278,10 +278,10 @@ class _FollowingTab extends ConsumerWidget {
           itemCount: state.items.length + (state.isLoading ? 1 : 0),
           itemBuilder: (context, index) {
             if (index >= state.items.length) {
-              return const Center(
+              return Center(
                 child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
+                  padding: EdgeInsets.all(16.r),
+                  child: const CircularProgressIndicator(),
                 ),
               );
             }

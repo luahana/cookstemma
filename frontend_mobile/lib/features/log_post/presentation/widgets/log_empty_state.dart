@@ -19,13 +19,15 @@ class LogEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: EdgeInsets.all(32.r),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Illustration
-            _buildIllustration(),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(32.r),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Illustration
+              _buildIllustration(),
             SizedBox(height: 32.h),
             // Title
             Text(
@@ -59,7 +61,8 @@ class LogEmptyState extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildIllustration() {

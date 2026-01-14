@@ -86,7 +86,7 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
       builder: (context) => AlertDialog(
         title: Text('logPost.delete'.tr()),
         content: Text('logPost.deleteConfirm'.tr()),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -226,13 +226,13 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
                   if (value == 'delete') _showDeleteConfirmation(log);
                 },
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 icon: _isDeleting
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                    ? SizedBox(
+                        width: 24.w,
+                        height: 24.w,
+                        child: const CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.more_vert),
                 enabled: !_isDeleting,
@@ -241,8 +241,8 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
                     value: 'edit',
                     child: Row(
                       children: [
-                        Icon(Icons.edit_outlined, size: 20, color: Colors.grey[700]),
-                        const SizedBox(width: 12),
+                        Icon(Icons.edit_outlined, size: 20.sp, color: Colors.grey[700]),
+                        SizedBox(width: 12.w),
                         Text('logPost.edit'.tr()),
                       ],
                     ),
@@ -251,8 +251,8 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
                     value: 'delete',
                     child: Row(
                       children: [
-                        const Icon(Icons.delete_outline, size: 20, color: Colors.red),
-                        const SizedBox(width: 12),
+                        Icon(Icons.delete_outline, size: 20.sp, color: Colors.red),
+                        SizedBox(width: 12.w),
                         Text('logPost.delete'.tr(), style: const TextStyle(color: Colors.red)),
                       ],
                     ),

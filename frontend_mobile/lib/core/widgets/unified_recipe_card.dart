@@ -147,7 +147,7 @@ class UnifiedRecipeCard extends ConsumerWidget {
                             LocaleBadge(
                               localeCode: recipe.culinaryLocale,
                               showLabel: false,
-                              fontSize: 12,
+                              fontSize: 12.sp,
                             ),
                           ],
                         ],
@@ -276,7 +276,7 @@ class UnifiedRecipeCard extends ConsumerWidget {
                     LocaleBadge(
                       localeCode: recipe.culinaryLocale,
                       showLabel: false,
-                      fontSize: 11,
+                      fontSize: 11.sp,
                     ),
                   ],
                 ],

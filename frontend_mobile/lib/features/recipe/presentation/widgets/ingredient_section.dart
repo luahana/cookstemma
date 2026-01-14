@@ -31,6 +31,55 @@ class IngredientSection extends ConsumerStatefulWidget {
 }
 
 class _IngredientSectionState extends ConsumerState<IngredientSection> {
+  static const int _maxMain = 5;
+  static const int _maxSecondary = 8;
+  static const int _maxSeasoning = 10;
+
+  final Map<int, TextEditingController> _quantityControllers = {};
+
+  @override
+  void dispose() {
+    for (final controller in _quantityControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  TextEditingController _getQuantityController(int index, dynamic quantity) {
+    if (!_quantityControllers.containsKey(index)) {
+      _quantityControllers[index] = TextEditingController(
+        text: quantity != null ? _formatQuantity(quantity) : '',
+      );
+    }
+    return _quantityControllers[index]!;
+  }
+
+  int _getMaxForType(String type) {
+    switch (type) {
+      case 'MAIN':
+        return _maxMain;
+      case 'SECONDARY':
+        return _maxSecondary;
+      case 'SEASONING':
+        return _maxSeasoning;
+      default:
+        return 10;
+    }
+  }
+
+  String _getMaxInfoKey(String type) {
+    switch (type) {
+      case 'MAIN':
+        return 'recipe.ingredients.maxMain';
+      case 'SECONDARY':
+        return 'recipe.ingredients.maxSecondary';
+      case 'SEASONING':
+        return 'recipe.ingredients.maxSeasoning';
+      default:
+        return 'recipe.ingredients.maxMain';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -76,25 +125,44 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
         .where((e) => e.value["type"] == type && e.value["isDeleted"] == true)
         .toList();
 
+    final maxForType = _getMaxForType(type);
+    final isAtMax = activeItems.length >= maxForType;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         MinimalHeader(icon: icon, title: title, isRequired: isRequired),
         SizedBox(height: 12.h),
         ...activeItems.map((e) => _buildIngredientRow(e.key)),
-        TextButton.icon(
-          onPressed: () => widget.onAddIngredient(type),
-          icon: Icon(Icons.add, size: 18.sp),
-          label: Text(
-            'recipe.ingredient.add'.tr(namedArgs: {'type': title}),
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            padding: EdgeInsets.symmetric(horizontal: 12.w),
+        GestureDetector(
+          onTap: isAtMax ? null : () => widget.onAddIngredient(type),
+          child: Opacity(
+            opacity: isAtMax ? 0.5 : 1.0,
+            child: Row(
+              children: [
+                Icon(Icons.add, size: 18.sp, color: AppColors.primary),
+                SizedBox(width: 4.w),
+                Text(
+                  'recipe.ingredient.add'.tr(namedArgs: {'type': title}),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                    fontSize: 14.sp,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        if (deletedItems.isNotEmpty) _buildDeletedSection(deletedItems),
+        SizedBox(height: 4.h),
+        Text(
+          _getMaxInfoKey(type).tr(),
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: Colors.grey[500],
+          ),
+        ),
+        if (deletedItems.isNotEmpty) _buildDeletedSection(deletedItems, isAtMax: isAtMax),
       ],
     );
   }
@@ -164,6 +232,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
           SizedBox(
             width: 60.w,
             child: _quantityField(
+              index,
               ingredient,
               enabled: !isOriginal,
             ),
@@ -195,11 +264,14 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     );
   }
 
-  Widget _quantityField(Map<String, dynamic> ingredient, {bool enabled = true}) {
+  Widget _quantityField(int index, Map<String, dynamic> ingredient, {bool enabled = true}) {
     final quantity = ingredient['quantity'];
-    final controller = TextEditingController(
-      text: quantity != null ? _formatQuantity(quantity) : '',
-    );
+    final controller = _getQuantityController(index, quantity);
+    // Sync text if quantity changed externally
+    final expectedText = quantity != null ? _formatQuantity(quantity) : '';
+    if (controller.text != expectedText && !controller.text.endsWith('.')) {
+      controller.text = expectedText;
+    }
 
     return Focus(
       onFocusChange: (hasFocus) {
@@ -277,16 +349,16 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               'units.selectUnit'.tr(),
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(fontSize: 11.sp, color: Colors.grey),
             ),
           ),
           icon: Icon(
             Icons.arrow_drop_down,
             color: enabled ? Colors.grey[600] : Colors.grey[400],
-            size: 18,
+            size: 18.sp,
           ),
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 12.sp,
             color: enabled ? Colors.black : Colors.grey[600],
           ),
           onChanged: enabled
@@ -334,7 +406,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Text(
             'units.${unit.name}'.tr(),
-            style: const TextStyle(fontSize: 12),
+            style: TextStyle(fontSize: 12.sp),
           ),
         ),
       );
@@ -403,7 +475,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
     );
   }
 
-  Widget _buildDeletedSection(List<MapEntry<int, Map<String, dynamic>>> items) {
+  Widget _buildDeletedSection(List<MapEntry<int, Map<String, dynamic>>> items, {required bool isAtMax}) {
     return Container(
       margin: EdgeInsets.only(top: 8.h),
       padding: EdgeInsets.all(12.r),
@@ -423,13 +495,13 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
             ),
           ),
           SizedBox(height: 8.h),
-          ...items.map((e) => _buildDeletedRow(e.key, e.value)),
+          ...items.take(5).map((e) => _buildDeletedRow(e.key, e.value, isAtMax: isAtMax)),
         ],
       ),
     );
   }
 
-  Widget _buildDeletedRow(int index, Map<String, dynamic> ingredient) {
+  Widget _buildDeletedRow(int index, Map<String, dynamic> ingredient, {required bool isAtMax}) {
     // Build display text: prefer quantity + unit, fallback to amount
     final name = ingredient['name'] ?? '';
     final quantity = ingredient['quantity'];
@@ -457,15 +529,18 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
               ),
             ),
           ),
-          TextButton.icon(
-            onPressed: () => widget.onRestoreIngredient(index),
-            icon: Icon(Icons.undo, size: 16.sp),
-            label: Text('recipe.ingredient.restore'.tr(), style: TextStyle(fontSize: 12.sp)),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              padding: EdgeInsets.symmetric(horizontal: 8.w),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          Opacity(
+            opacity: isAtMax ? 0.5 : 1.0,
+            child: TextButton.icon(
+              onPressed: isAtMax ? null : () => widget.onRestoreIngredient(index),
+              icon: Icon(Icons.undo, size: 16.sp),
+              label: Text('recipe.ingredient.restore'.tr(), style: TextStyle(fontSize: 12.sp)),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
           ),
         ],

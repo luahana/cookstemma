@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pairing_planet2_frontend/core/config/platform_url_resolver.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_input_styles.dart';
 import 'package:pairing_planet2_frontend/core/widgets/image_source_sheet.dart';
@@ -37,6 +39,7 @@ class StepSection extends ConsumerStatefulWidget {
 
 class _StepSectionState extends ConsumerState<StepSection> {
   static const int _maxBatchImages = 10;
+  static const int _maxSteps = 12;
 
   @override
   void didUpdateWidget(StepSection oldWidget) {
@@ -185,54 +188,77 @@ class _StepSectionState extends ConsumerState<StepSection> {
           },
         ),
         _buildActionButtons(),
-        if (deletedSteps.isNotEmpty) _buildDeletedSection(deletedSteps),
+        if (deletedSteps.isNotEmpty) _buildDeletedSection(deletedSteps, isAtMax: activeSteps.length >= _maxSteps),
       ],
     );
   }
 
   Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    final activeStepCount = widget.steps
+        .where((s) => s['isDeleted'] != true)
+        .length;
+    final isAtMax = activeStepCount >= _maxSteps;
+
+    return Column(
       children: [
-        _buildActionButton(
-          onPressed: widget.onAddStep,
-          icon: Icons.add,
-          label: 'steps.addStep'.tr(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildActionButton(
+              onPressed: isAtMax ? null : widget.onAddStep,
+              icon: Icons.add,
+              label: 'steps.addStep'.tr(),
+              isDisabled: isAtMax,
+            ),
+            SizedBox(width: 12.w),
+            _buildActionButton(
+              onPressed: isAtMax ? null : _pickMultipleStepImages,
+              icon: Icons.photo_library,
+              label: 'steps.addMultiple'.tr(),
+              isDisabled: isAtMax,
+            ),
+          ],
         ),
-        SizedBox(width: 12.w),
-        _buildActionButton(
-          onPressed: _pickMultipleStepImages,
-          icon: Icons.photo_library,
-          label: 'steps.addMultiple'.tr(),
+        SizedBox(height: 8.h),
+        Text(
+          'recipe.stepsMaxInfo'.tr(),
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: Colors.grey[500],
+          ),
         ),
       ],
     );
   }
 
   Widget _buildActionButton({
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
     required IconData icon,
     required String label,
+    bool isDisabled = false,
   }) {
     return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-        decoration: AppInputStyles.addButtonDecoration,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18.sp, color: AppColors.inheritedInteractive),
-            SizedBox(width: 6.w),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w500,
+      onTap: isDisabled ? null : onPressed,
+      child: Opacity(
+        opacity: isDisabled ? 0.5 : 1.0,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+          decoration: AppInputStyles.addButtonDecoration,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18.sp, color: AppColors.inheritedInteractive),
+              SizedBox(width: 6.w),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -277,6 +303,15 @@ class _StepSectionState extends ConsumerState<StepSection> {
     final bool isOriginal = step['isOriginal'] ?? false;
     final bool hasImage = item?.file != null || (remoteUrl != null && remoteUrl.isNotEmpty);
 
+    // For remote URLs, use CachedNetworkImageProvider with platform URL resolution
+    ImageProvider? imageProvider;
+    if (item?.file != null) {
+      imageProvider = FileImage(item!.file!);
+    } else if (remoteUrl != null && remoteUrl.isNotEmpty) {
+      final adjustedUrl = PlatformUrlResolver.adjustUrlForPlatform(remoteUrl);
+      imageProvider = CachedNetworkImageProvider(adjustedUrl);
+    }
+
     return GestureDetector(
       onTap: () => ImageSourceSheet.show(
         context: context,
@@ -289,13 +324,8 @@ class _StepSectionState extends ConsumerState<StepSection> {
           color: hasImage ? null : (isOriginal ? Colors.grey[100] : AppColors.editableBackground),
           borderRadius: BorderRadius.circular(8.r),
           border: Border.all(color: isOriginal ? Colors.grey[300]! : AppColors.editableBorder),
-          image: (item?.file != null)
-              ? DecorationImage(image: FileImage(item!.file!), fit: BoxFit.cover)
-              : (remoteUrl != null && remoteUrl.isNotEmpty)
-              ? DecorationImage(
-                  image: NetworkImage(remoteUrl),
-                  fit: BoxFit.cover,
-                )
+          image: imageProvider != null
+              ? DecorationImage(image: imageProvider, fit: BoxFit.cover)
               : null,
         ),
         child: (item == null && (remoteUrl == null || remoteUrl.isEmpty))
@@ -310,7 +340,7 @@ class _StepSectionState extends ConsumerState<StepSection> {
     style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
   );
 
-  Widget _buildDeletedSection(List<MapEntry<int, Map<String, dynamic>>> items) {
+  Widget _buildDeletedSection(List<MapEntry<int, Map<String, dynamic>>> items, {required bool isAtMax}) {
     return Container(
       margin: EdgeInsets.only(top: 8.h),
       padding: EdgeInsets.all(12.r),
@@ -330,13 +360,13 @@ class _StepSectionState extends ConsumerState<StepSection> {
             ),
           ),
           SizedBox(height: 8.h),
-          ...items.map((e) => _buildDeletedRow(e.key, e.value)),
+          ...items.take(5).map((e) => _buildDeletedRow(e.key, e.value, isAtMax: isAtMax)),
         ],
       ),
     );
   }
 
-  Widget _buildDeletedRow(int index, Map<String, dynamic> step) {
+  Widget _buildDeletedRow(int index, Map<String, dynamic> step, {required bool isAtMax}) {
     final description = step['description'] ?? '';
     final displayText = description.length > 30
         ? '${description.substring(0, 30)}...'
@@ -358,15 +388,18 @@ class _StepSectionState extends ConsumerState<StepSection> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          TextButton.icon(
-            onPressed: () => widget.onRestoreStep(index),
-            icon: Icon(Icons.undo, size: 16.sp),
-            label: Text('recipe.step.restore'.tr(), style: TextStyle(fontSize: 12.sp)),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              padding: EdgeInsets.symmetric(horizontal: 8.w),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          Opacity(
+            opacity: isAtMax ? 0.5 : 1.0,
+            child: TextButton.icon(
+              onPressed: isAtMax ? null : () => widget.onRestoreStep(index),
+              icon: Icon(Icons.undo, size: 16.sp),
+              label: Text('recipe.step.restore'.tr(), style: TextStyle(fontSize: 12.sp)),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
           ),
         ],
