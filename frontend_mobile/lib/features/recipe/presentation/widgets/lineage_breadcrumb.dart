@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 
@@ -48,7 +49,7 @@ class LineageBreadcrumb extends StatelessWidget {
           if (rootInfo != null)
             _buildLineageRow(
               context,
-              icon: Icons.pin_drop_outlined,
+              icon: AppIcons.originalRecipe,
               label: 'recipe.lineage.original'.tr(),
               recipeName: rootInfo!.title,
               creatorName: rootInfo!.creatorName,

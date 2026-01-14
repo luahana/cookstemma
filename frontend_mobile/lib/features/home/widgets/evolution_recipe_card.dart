@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/widgets/recipe_type_label.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
@@ -77,14 +79,12 @@ class EvolutionRecipeCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Food name
-                Text(
-                  recipe.foodName,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
+                // Food name with type icon
+                RecipeTypeLabel(
+                  foodName: recipe.foodName,
+                  isVariant: recipe.rootPublicId != null,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w500,
                 ),
                 SizedBox(height: 4.h),
                 // Recipe title
@@ -116,30 +116,26 @@ class EvolutionRecipeCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Thumbnail with gradient overlay
-        Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
-              child: recipe.thumbnail != null
-                  ? AppCachedImage(
-                      imageUrl: recipe.thumbnail!,
-                      width: double.infinity,
-                      height: 100.h,
-                      borderRadius: 0,
-                    )
-                  : Container(
-                      width: double.infinity,
-                      height: 100.h,
-                      color: Colors.orange[100],
-                      child: Icon(
-                        Icons.restaurant_menu,
-                        size: 40.sp,
-                        color: Colors.orange[300],
-                      ),
-                    ),
-            ),
-          ],
+        // Thumbnail
+        ClipRRect(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
+          child: recipe.thumbnail != null
+              ? AppCachedImage(
+                  imageUrl: recipe.thumbnail!,
+                  width: double.infinity,
+                  height: 100.h,
+                  borderRadius: 0,
+                )
+              : Container(
+                  width: double.infinity,
+                  height: 100.h,
+                  color: Colors.orange[100],
+                  child: Icon(
+                    Icons.restaurant_menu,
+                    size: 40.sp,
+                    color: Colors.orange[300],
+                  ),
+                ),
         ),
         // Content
         Padding(
@@ -147,16 +143,12 @@ class EvolutionRecipeCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Food name
-              Text(
-                recipe.foodName,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              // Food name with type icon
+              RecipeTypeLabel(
+                foodName: recipe.foodName,
+                isVariant: recipe.rootPublicId != null,
+                fontSize: 14.sp,
+                color: AppColors.textPrimary,
               ),
               SizedBox(height: 2.h),
               // Recipe title
@@ -187,7 +179,7 @@ class EvolutionRecipeCard extends StatelessWidget {
     return Row(
       children: [
         _buildMetricBadge(
-          icon: Icons.fork_right,
+          icon: AppIcons.variantCreate,
           count: variantCount,
           label: 'home.variants'.tr(namedArgs: {'count': variantCount.toString()}),
           small: small,
@@ -312,20 +304,12 @@ class FeaturedEvolutionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Food name
-                    Text(
-                      recipe.foodName,
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 4,
-                            color: Colors.black26,
-                          ),
-                        ],
-                      ),
+                    // Food name with type icon
+                    RecipeTypeLabel(
+                      foodName: recipe.foodName,
+                      isVariant: recipe.rootPublicId != null,
+                      fontSize: 18.sp,
+                      color: Colors.white,
                     ),
                     SizedBox(height: 4.h),
                     // Recipe title
@@ -357,7 +341,7 @@ class FeaturedEvolutionCard extends StatelessWidget {
 
     return Row(
       children: [
-        _buildWhiteMetricBadge(Icons.fork_right, variantCount),
+        _buildWhiteMetricBadge(AppIcons.variantCreate, variantCount),
         SizedBox(width: 8.w),
         _buildWhiteMetricBadge(Icons.edit_note, logCount),
       ],

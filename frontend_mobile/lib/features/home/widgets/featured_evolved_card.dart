@@ -5,14 +5,15 @@ import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/app_radius.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
+import 'package:pairing_planet2_frontend/core/widgets/recipe_type_label.dart';
 import 'package:pairing_planet2_frontend/core/widgets/recipe_thumbnail.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/trending_tree_dto.dart';
 
-/// Featured card for TrendingTreeDto - full bleed image with food name & username
-class FeaturedTrendingCard extends StatelessWidget {
+/// Featured card for evolved recipes - full bleed image with food name & username
+class FeaturedEvolvedCard extends StatelessWidget {
   final TrendingTreeDto tree;
 
-  const FeaturedTrendingCard({super.key, required this.tree});
+  const FeaturedEvolvedCard({super.key, required this.tree});
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +54,7 @@ class FeaturedTrendingCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // Content - only food name and username
+              // Content - food name with type icon and username
               Positioned(
                 left: 12.w,
                 right: 12.w,
@@ -62,15 +63,11 @@ class FeaturedTrendingCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      tree.foodName ?? tree.title,
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    RecipeTypeLabel(
+                      foodName: tree.foodName ?? tree.title,
+                      isVariant: false, // Evolved trees are always root/original recipes
+                      fontSize: 18.sp,
+                      color: Colors.white,
                     ),
                     SizedBox(height: 4.h),
                     Text(

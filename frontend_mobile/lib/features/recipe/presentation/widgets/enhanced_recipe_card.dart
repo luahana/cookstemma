@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/app_emojis.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
@@ -241,7 +242,7 @@ class EnhancedRecipeCard extends StatelessWidget {
       children: [
         // Variant count
         StatBadge(
-          icon: Icons.call_split,
+          icon: AppIcons.variantCreate,
           count: recipe.variantCount,
           label: 'grid.variants'.tr(),
         ),

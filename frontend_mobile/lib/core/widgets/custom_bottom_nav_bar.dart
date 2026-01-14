@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'nav_progress_ring.dart';
 
 /// Custom bottom navigation bar with pill-style active indicators
@@ -60,8 +61,8 @@ class CustomBottomNavBar extends StatelessWidget {
               _buildFabButton(),
               _buildNavItem(
                 index: 2,
-                icon: Icons.book_outlined,
-                activeIcon: Icons.book,
+                icon: AppIcons.logPostOutlined,
+                activeIcon: AppIcons.logPost,
                 semanticLabel: 'Logs',
               ),
               _buildProfileNavItem(),
