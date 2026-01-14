@@ -10,7 +10,6 @@ import 'package:pairing_planet2_frontend/core/network/dio_provider.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
 import 'package:pairing_planet2_frontend/core/services/toast_service.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
-import 'package:pairing_planet2_frontend/core/theme/app_input_styles.dart';
 import 'package:pairing_planet2_frontend/data/datasources/user/user_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/user/update_profile_request_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/user/user_dto.dart';
@@ -343,7 +342,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
   Widget _buildFoodStylePicker() {
     Country? country;
-    if (_selectedFoodStyle != null && _selectedFoodStyle != 'other') {
+    if (_selectedFoodStyle != null && _selectedFoodStyle != 'international') {
       try {
         country = CountryParser.parseCountryCode(_selectedFoodStyle!);
       } catch (_) {
@@ -359,7 +358,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           child: Container(
             width: double.infinity,
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-            decoration: AppInputStyles.editableBoxDecoration,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
             child: Row(
               children: [
                 if (country != null) ...[
@@ -369,11 +372,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     'foodStyle.style'.tr(),
                     style: TextStyle(fontSize: 16.sp),
                   ),
-                ] else if (_selectedFoodStyle == 'other') ...[
+                ] else if (_selectedFoodStyle == 'international') ...[
                   Text('🌍', style: TextStyle(fontSize: 20.sp)),
                   SizedBox(width: 8.w),
                   Text(
-                    'foodStyle.other'.tr(),
+                    'foodStyle.international'.tr(),
                     style: TextStyle(fontSize: 16.sp),
                   ),
                 ] else ...[
@@ -393,19 +396,19 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         GestureDetector(
           onTap: () {
             setState(() {
-              _selectedFoodStyle = 'other';
+              _selectedFoodStyle = 'international';
               _hasChanges = true;
             });
           },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
             decoration: BoxDecoration(
-              color: _selectedFoodStyle == 'other'
+              color: _selectedFoodStyle == 'international'
                   ? AppColors.editableBackground
                   : Colors.grey[50],
               borderRadius: BorderRadius.circular(8.r),
               border: Border.all(
-                color: _selectedFoodStyle == 'other'
+                color: _selectedFoodStyle == 'international'
                     ? AppColors.editableBorder
                     : Colors.grey[200]!,
               ),
@@ -416,13 +419,13 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 Text('🌍', style: TextStyle(fontSize: 16.sp)),
                 SizedBox(width: 6.w),
                 Text(
-                  'foodStyle.other'.tr(),
+                  'foodStyle.international'.tr(),
                   style: TextStyle(
                     fontSize: 13.sp,
-                    color: _selectedFoodStyle == 'other'
+                    color: _selectedFoodStyle == 'international'
                         ? AppColors.primary
                         : Colors.grey[600],
-                    fontWeight: _selectedFoodStyle == 'other'
+                    fontWeight: _selectedFoodStyle == 'international'
                         ? FontWeight.w600
                         : FontWeight.normal,
                   ),

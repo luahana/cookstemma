@@ -634,7 +634,7 @@
     "thai": "태국식",
     "indian": "인도식",
     "french": "프랑스식",
-    "other": "기타/퓨전",
+    "international": "인터내셔널",
     "all": "전체",
     "selectLocale": "요리 스타일",
     "helperText": "어떤 스타일로 요리했나요?"
@@ -645,7 +645,7 @@
     "style": "스타일",
     "searchHint": "국가 검색",
     "helperText": "이 레시피의 요리 스타일은?",
-    "other": "기타",
+    "international": "인터내셔널",
     "preference": "기본 요리 스타일",
     "preferenceHelper": "새 레시피 작성 시 자동 선택됩니다"
   },

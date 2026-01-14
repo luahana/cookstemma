@@ -638,7 +638,7 @@
     "thai": "Thai-style",
     "indian": "Indian-style",
     "french": "French-style",
-    "other": "Fusion/Other",
+    "international": "International",
     "all": "All",
     "selectLocale": "Cooking Style",
     "helperText": "How is this dish prepared?"
@@ -649,7 +649,7 @@
     "style": "Style",
     "searchHint": "Search country",
     "helperText": "What cuisine style is this recipe?",
-    "other": "Other",
+    "international": "International",
     "preference": "Default Cooking Style",
     "preferenceHelper": "Auto-selected when creating new recipes"
   },

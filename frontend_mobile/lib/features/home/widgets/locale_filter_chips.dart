@@ -12,7 +12,7 @@ class _FilterStyleOption {
   const _FilterStyleOption(this.countryCode, this.labelKey);
 
   String get flagEmoji {
-    if (countryCode == 'other') return '🌍';
+    if (countryCode == 'international') return '🌍';
     try {
       return CountryParser.parseCountryCode(countryCode).flagEmoji;
     } catch (_) {
@@ -32,7 +32,7 @@ const _filterOptions = [
   _FilterStyleOption('TH', 'locale.thai'),
   _FilterStyleOption('IN', 'locale.indian'),
   _FilterStyleOption('FR', 'locale.french'),
-  _FilterStyleOption('other', 'locale.other'),
+  _FilterStyleOption('international', 'locale.international'),
 ];
 
 /// Horizontal scrollable filter chips for culinary locale selection

@@ -23,7 +23,7 @@ class FoodStyleDropdown extends StatelessWidget {
 
   /// Get country by ISO code
   Country? _getCountry(String? code) {
-    if (code == null || code.isEmpty || code == 'other') return null;
+    if (code == null || code.isEmpty || code == 'international') return null;
     try {
       return CountryParser.parseCountryCode(code);
     } catch (_) {
@@ -112,11 +112,11 @@ class FoodStyleDropdown extends StatelessWidget {
                       color: enabled ? Colors.black : Colors.grey[600],
                     ),
                   ),
-                ] else if (normalizedValue == 'other') ...[
+                ] else if (normalizedValue == 'international') ...[
                   Text('🌍', style: TextStyle(fontSize: 20.sp)),
                   SizedBox(width: 8.w),
                   Text(
-                    'foodStyle.other'.tr(),
+                    'foodStyle.international'.tr(),
                     style: TextStyle(
                       fontSize: 14.sp,
                       color: enabled ? Colors.black : Colors.grey[600],
@@ -144,7 +144,7 @@ class FoodStyleDropdown extends StatelessWidget {
             // Preferred country button (if set and not "other")
             if (preferredStyle != null &&
                 preferredStyle!.isNotEmpty &&
-                preferredStyle != 'other') ...[
+                preferredStyle != 'international') ...[
               _buildPreferredStyleButton(normalizedValue),
               SizedBox(width: 8.w),
             ],
@@ -200,10 +200,10 @@ class FoodStyleDropdown extends StatelessWidget {
 
   /// Build "Other/International" quick-select button
   Widget _buildOtherButton(String? normalizedValue) {
-    final isSelected = normalizedValue == 'other';
+    final isSelected = normalizedValue == 'international';
 
     return GestureDetector(
-      onTap: enabled ? () => onChanged('other') : null,
+      onTap: enabled ? () => onChanged('international') : null,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
         decoration: BoxDecoration(
@@ -219,7 +219,7 @@ class FoodStyleDropdown extends StatelessWidget {
             Text('🌍', style: TextStyle(fontSize: 16.sp)),
             SizedBox(width: 6.w),
             Text(
-              'foodStyle.other'.tr(),
+              'foodStyle.international'.tr(),
               style: TextStyle(
                 fontSize: 13.sp,
                 color: isSelected ? AppColors.primary : Colors.grey[600],
@@ -236,7 +236,7 @@ class FoodStyleDropdown extends StatelessWidget {
   /// Returns "🇰🇷 Style" format
   static String getDisplayText(String? code, BuildContext context) {
     if (code == null || code.isEmpty) return '';
-    if (code == 'other') return '🌍 ${'foodStyle.other'.tr()}';
+    if (code == 'international') return '🌍 ${'foodStyle.international'.tr()}';
 
     // Handle legacy codes
     final legacyMap = {

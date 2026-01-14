@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Helper to get country from code with legacy support
 Country? _getCountry(String? code) {
-  if (code == null || code.isEmpty || code == 'other') return null;
+  if (code == null || code.isEmpty || code == 'international') return null;
 
   // Handle legacy codes
   final legacyMap = {
@@ -48,7 +48,7 @@ class LocaleBadge extends StatelessWidget {
     }
 
     // Handle "other" case
-    if (localeCode == 'other') {
+    if (localeCode == 'international') {
       return Container(
         padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
         decoration: BoxDecoration(
@@ -125,7 +125,7 @@ class LocaleBadgeLarge extends StatelessWidget {
     }
 
     // Handle "other" case
-    if (localeCode == 'other') {
+    if (localeCode == 'international') {
       return Container(
         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
         decoration: BoxDecoration(
@@ -203,7 +203,7 @@ class _LocaleBadgeStyledState extends State<LocaleBadgeStyled> {
     }
 
     // Handle "other" case
-    if (widget.localeCode == 'other') {
+    if (widget.localeCode == 'international') {
       return GestureDetector(
         onTap: () => setState(() => _showCountryName = !_showCountryName),
         child: Container(

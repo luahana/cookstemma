@@ -12,7 +12,7 @@ class _CookingStyleOption {
   const _CookingStyleOption(this.countryCode, this.labelKey);
 
   String get flagEmoji {
-    if (countryCode == 'other') return '🌍';
+    if (countryCode == 'international') return '🌍';
     try {
       return CountryParser.parseCountryCode(countryCode).flagEmoji;
     } catch (_) {
@@ -32,7 +32,7 @@ const _popularStyles = [
   _CookingStyleOption('TH', 'locale.thai'),
   _CookingStyleOption('IN', 'locale.indian'),
   _CookingStyleOption('FR', 'locale.french'),
-  _CookingStyleOption('other', 'locale.other'),
+  _CookingStyleOption('international', 'locale.international'),
 ];
 
 /// Horizontal scrollable chips for browsing by cooking style/cuisine.
