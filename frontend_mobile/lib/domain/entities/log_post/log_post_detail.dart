@@ -15,6 +15,8 @@ class LinkedRecipeInfo {
   final String foodName;
   final String title;
   final String creatorName;
+  final String? thumbnailUrl;
+  final String? culinaryLocale;
   final String? rootPublicId;
   final String? rootTitle;
   final String? rootCreatorName;
@@ -24,6 +26,8 @@ class LinkedRecipeInfo {
     required this.foodName,
     required this.title,
     required this.creatorName,
+    this.thumbnailUrl,
+    this.culinaryLocale,
     this.rootPublicId,
     this.rootTitle,
     this.rootCreatorName,
@@ -37,9 +41,10 @@ class LinkedRecipeInfo {
       foodName: summary.foodName,
       title: summary.title,
       creatorName: summary.creatorName,
+      thumbnailUrl: summary.thumbnailUrl,
+      culinaryLocale: summary.culinaryLocale,
       rootPublicId: summary.rootPublicId,
-      // Note: rootTitle and rootCreatorName need to come from backend
-      rootTitle: null,
+      rootTitle: summary.rootTitle,
       rootCreatorName: null,
     );
   }
