@@ -52,7 +52,13 @@
     "seeAll": "See All",
     "offlineData": "Viewing offline data",
     "recentSearches": "Recent searches",
-    "clearHistory": "Clear"
+    "clearHistory": "Clear",
+    "empty": {
+      "noTrending": "No trending recipes yet",
+      "noActivity": "No recent cooking activity",
+      "noRecipes": "No recipes uploaded yet",
+      "beFirst": "Be the first to share a recipe!"
+    }
   },
   "profile": {
     "myPage": "My Page",

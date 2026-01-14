@@ -191,45 +191,62 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         return bScore.compareTo(aScore);
       });
 
+    // Check if all sections are empty
+    final allEmpty = sortedTrending.isEmpty &&
+        feed.recentActivity.isEmpty &&
+        feed.recentRecipes.isEmpty;
+
     return [
       // Section 1: Most Evolved (Bento Grid)
-      if (sortedTrending.isNotEmpty) ...[
-        SliverToBoxAdapter(
-          child: SectionHeader(
-            title: 'home.mostEvolved'.tr(),
-            padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
-            onSeeAll: () {
-              ref.read(browseFilterProvider.notifier).setSortOption(RecipeSortOption.mostForked);
-              context.push(RouteConstants.recipes);
-            },
-          ),
+      SliverToBoxAdapter(
+        child: SectionHeader(
+          title: 'home.mostEvolved'.tr(),
+          padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
+          onSeeAll: sortedTrending.isNotEmpty
+              ? () {
+                  ref.read(browseFilterProvider.notifier).setSortOption(RecipeSortOption.mostForked);
+                  context.push(RouteConstants.recipes);
+                }
+              : null,
         ),
-        SliverToBoxAdapter(
-          child: BentoGridFromTrending(trendingTrees: sortedTrending.take(3).toList()),
-        ),
-      ],
+      ),
+      SliverToBoxAdapter(
+        child: sortedTrending.isNotEmpty
+            ? BentoGridFromTrending(trendingTrees: sortedTrending.take(3).toList())
+            : _buildSectionEmptyState(
+                Icons.trending_up_outlined,
+                'home.empty.noTrending'.tr(),
+              ),
+      ),
 
       // Section 2: Hot Right Now (Horizontal Activity)
-      if (feed.recentActivity.isNotEmpty) ...[
-        SliverToBoxAdapter(
-          child: SectionHeader(
-            title: 'home.hotRightNow'.tr(),
-            onSeeAll: () => context.push(RouteConstants.logPosts),
-          ),
+      SliverToBoxAdapter(
+        child: SectionHeader(
+          title: 'home.hotRightNow'.tr(),
+          onSeeAll: feed.recentActivity.isNotEmpty
+              ? () => context.push(RouteConstants.logPosts)
+              : null,
         ),
-        SliverToBoxAdapter(
-          child: HorizontalActivityScroll(activities: feed.recentActivity),
-        ),
-      ],
+      ),
+      SliverToBoxAdapter(
+        child: feed.recentActivity.isNotEmpty
+            ? HorizontalActivityScroll(activities: feed.recentActivity)
+            : _buildSectionEmptyState(
+                Icons.local_fire_department_outlined,
+                'home.empty.noActivity'.tr(),
+              ),
+      ),
 
       // Section 3: Fresh Uploads (Horizontal Recipe List)
-      if (feed.recentRecipes.isNotEmpty) ...[
-        SliverToBoxAdapter(
-          child: SectionHeader(
-            title: 'home.freshUploads'.tr(),
-            onSeeAll: () => context.push(RouteConstants.recipes),
-          ),
+      SliverToBoxAdapter(
+        child: SectionHeader(
+          title: 'home.freshUploads'.tr(),
+          onSeeAll: feed.recentRecipes.isNotEmpty
+              ? () => context.push(RouteConstants.recipes)
+              : null,
         ),
+      ),
+      if (feed.recentRecipes.isNotEmpty)
         SliverPadding(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           sliver: SliverList.builder(
@@ -245,14 +262,61 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
               );
             },
           ),
+        )
+      else
+        SliverToBoxAdapter(
+          child: _buildSectionEmptyState(
+            Icons.restaurant_menu_outlined,
+            'home.empty.noRecipes'.tr(),
+            subtitle: allEmpty ? 'home.empty.beFirst'.tr() : null,
+          ),
         ),
-      ],
 
       // Bottom padding
       SliverToBoxAdapter(
         child: SizedBox(height: 32.h),
       ),
     ];
+  }
+
+  /// Build a compact empty state widget for a section
+  Widget _buildSectionEmptyState(IconData icon, String message, {String? subtitle}) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Container(
+        padding: EdgeInsets.all(24.r),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 32.sp, color: Colors.grey[400]),
+            SizedBox(height: 8.h),
+            Text(
+              message,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (subtitle != null) ...[
+              SizedBox(height: 4.h),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey[500],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   /// Error content for use inside SliverFillRemaining
