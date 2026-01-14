@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 
 /// Displays variant count and log count metrics in a row.
 ///
@@ -35,14 +36,14 @@ class RecipeMetricsRow extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.fork_right, size: effectiveIconSize, color: effectiveIconColor),
+        Icon(AppIcons.variantCreate, size: effectiveIconSize, color: effectiveIconColor),
         SizedBox(width: 2.w),
         Text(
           '$variantCount',
           style: TextStyle(fontSize: effectiveFontSize, color: effectiveIconColor),
         ),
         SizedBox(width: effectiveSpacing),
-        Icon(Icons.edit_note, size: effectiveIconSize, color: effectiveIconColor),
+        Icon(AppIcons.logPost, size: effectiveIconSize, color: effectiveIconColor),
         SizedBox(width: 2.w),
         Text(
           '$logCount',
@@ -124,14 +125,14 @@ class RecipeMetricsBadgeRow extends StatelessWidget {
     return Row(
       children: [
         RecipeMetricsBadge(
-          icon: Icons.fork_right,
+          icon: AppIcons.variantCreate,
           count: variantCount,
           backgroundColor: backgroundColor,
           foregroundColor: foregroundColor,
         ),
         SizedBox(width: 8.w),
         RecipeMetricsBadge(
-          icon: Icons.edit_note,
+          icon: AppIcons.logPost,
           count: logCount,
           backgroundColor: backgroundColor,
           foregroundColor: foregroundColor,

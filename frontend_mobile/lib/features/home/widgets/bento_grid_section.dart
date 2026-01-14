@@ -4,13 +4,13 @@ import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.d
 import 'package:pairing_planet2_frontend/data/models/recipe/trending_tree_dto.dart';
 
 // Re-export card widgets for convenience
-export 'featured_trending_card.dart';
-export 'small_trending_card.dart';
+export 'featured_evolved_card.dart';
+export 'small_evolved_card.dart';
 export 'small_bento_card.dart';
 
 import 'evolution_recipe_card.dart';
-import 'featured_trending_card.dart';
-import 'small_trending_card.dart';
+import 'featured_evolved_card.dart';
+import 'small_evolved_card.dart';
 import 'small_bento_card.dart';
 
 /// Bento Box grid layout - 1 large featured card + 2 smaller cards
@@ -122,7 +122,7 @@ class BentoGridFromTrending extends StatelessWidget {
                 if (featured != null)
                   Expanded(
                     flex: 6,
-                    child: FeaturedTrendingCard(tree: featured),
+                    child: FeaturedEvolvedCard(tree: featured),
                   ),
                 SizedBox(width: spacing),
                 // Two small cards stacked (right)
@@ -133,13 +133,13 @@ class BentoGridFromTrending extends StatelessWidget {
                       if (small1 != null)
                         SizedBox(
                           height: smallHeight,
-                          child: SmallTrendingCard(tree: small1),
+                          child: SmallEvolvedCard(tree: small1),
                         ),
                       SizedBox(height: spacing),
                       if (small2 != null)
                         SizedBox(
                           height: smallHeight,
-                          child: SmallTrendingCard(tree: small2),
+                          child: SmallEvolvedCard(tree: small2),
                         )
                       else
                         SizedBox(height: smallHeight),

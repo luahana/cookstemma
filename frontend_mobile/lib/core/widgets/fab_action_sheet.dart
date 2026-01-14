@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Bottom sheet that shows action options when FAB is tapped
@@ -67,7 +68,7 @@ class FabActionSheet extends StatelessWidget {
               SizedBox(height: 8.h),
               // Quick Log option
               _ActionTile(
-                icon: Icons.camera_alt,
+                icon: AppIcons.logPost,
                 title: 'speedDial.quickLog'.tr(),
                 subtitle: 'fabAction.quickLogSubtitle'.tr(),
                 onTap: () {

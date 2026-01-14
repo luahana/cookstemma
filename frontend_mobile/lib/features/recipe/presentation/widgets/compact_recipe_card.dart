@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/constants/app_emojis.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
@@ -140,7 +141,7 @@ class CompactRecipeCard extends StatelessWidget {
     return Row(
       children: [
         if (hasVariants) ...[
-          Icon(Icons.call_split, size: 12.sp, color: Colors.grey[500]),
+          Icon(AppIcons.variantCreate, size: 12.sp, color: Colors.grey[500]),
           SizedBox(width: 2.w),
           Text(
             recipe.variantCount.toString(),
@@ -296,7 +297,7 @@ class CompactRecipeCardFixed extends StatelessWidget {
     return Row(
       children: [
         if (hasVariants) ...[
-          Icon(Icons.call_split, size: 12.sp, color: Colors.grey[500]),
+          Icon(AppIcons.variantCreate, size: 12.sp, color: Colors.grey[500]),
           SizedBox(width: 2.w),
           Text(
             recipe.variantCount.toString(),

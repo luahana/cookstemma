@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/constants/app_emojis.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
@@ -206,9 +207,9 @@ class FeaturedStarCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildMetricItem(Icons.call_split, recipe.variantCount, 'grid.variants'.tr()),
+          _buildMetricItem(AppIcons.variantCreate, recipe.variantCount, 'grid.variants'.tr()),
           SizedBox(width: 16.w),
-          _buildMetricItem(Icons.edit_note, recipe.logCount, 'grid.logs'.tr()),
+          _buildMetricItem(AppIcons.logPost, recipe.logCount, 'grid.logs'.tr()),
         ],
       ),
     );
@@ -245,14 +246,14 @@ class FeaturedStarCard extends StatelessWidget {
       children: [
         // Variant count
         _buildStatBadge(
-          icon: Icons.call_split,
+          icon: AppIcons.variantCreate,
           count: recipe.variantCount,
           label: 'recipe.variantsLabel'.tr(),
         ),
         SizedBox(width: 12.w),
         // Log count
         _buildStatBadge(
-          icon: Icons.edit_note,
+          icon: AppIcons.logPost,
           count: recipe.logCount,
           label: 'recipe.logs'.tr(),
         ),

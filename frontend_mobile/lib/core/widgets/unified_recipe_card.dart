@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/constants/app_spacing.dart';
+import 'package:pairing_planet2_frontend/core/widgets/recipe_type_label.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
@@ -112,17 +114,12 @@ class UnifiedRecipeCard extends ConsumerWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 1. Food name (dish name) - always show if available
+                      // 1. Food name (dish name) with type icon
                       if (recipe.foodName.isNotEmpty) ...[
-                        Text(
-                          recipe.foodName,
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        RecipeTypeLabel(
+                          foodName: recipe.foodName,
+                          isVariant: recipe.isVariant,
+                          fontSize: 12.sp,
                         ),
                         SizedBox(height: 2.h),
                       ],
@@ -241,17 +238,12 @@ class UnifiedRecipeCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Food name (dish name) - always show if available
+              // 1. Food name (dish name) with type icon
               if (recipe.foodName.isNotEmpty) ...[
-                Text(
-                  recipe.foodName,
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                RecipeTypeLabel(
+                  foodName: recipe.foodName,
+                  isVariant: recipe.isVariant,
+                  fontSize: 11.sp,
                 ),
                 SizedBox(height: 2.h),
               ],
@@ -347,7 +339,7 @@ class UnifiedRecipeCard extends ConsumerWidget {
       children: [
         if (hasVariants) ...[
           Icon(
-            Icons.fork_right,
+            AppIcons.variantCreate,
             size: 14.sp,
             color: Colors.grey[500],
           ),
@@ -363,7 +355,7 @@ class UnifiedRecipeCard extends ConsumerWidget {
         ],
         if (hasLogs) ...[
           Icon(
-            Icons.edit_note,
+            AppIcons.logPost,
             size: 14.sp,
             color: Colors.grey[500],
           ),

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
@@ -222,7 +223,7 @@ class RecentLogsGallery extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(Icons.restaurant_menu, size: 48.sp, color: Colors.grey[300]),
+              Icon(AppIcons.logPost, size: 48.sp, color: Colors.grey[300]),
               SizedBox(height: 12.h),
               Text(
                 'recipe.recentLogs.emptyTitle'.tr(),

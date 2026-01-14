@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 
 /// Action Hub Bar - Compact bottom action bar
@@ -60,7 +61,7 @@ class ActionHubBar extends StatelessWidget {
           // Log button (outlined/secondary)
           Expanded(
             child: _ActionButton(
-              icon: Icons.history_edu,
+              icon: AppIcons.logPost,
               title: 'recipe.action.logRecord'.tr(),
               onPressed: isLoading ? null : () {
                 HapticFeedback.lightImpact();
@@ -73,7 +74,7 @@ class ActionHubBar extends StatelessWidget {
           // Variation button (filled/primary)
           Expanded(
             child: _ActionButton(
-              icon: Icons.fork_right,
+              icon: AppIcons.variantCreate,
               title: 'recipe.action.createVariation'.tr(),
               onPressed: isLoading ? null : () {
                 HapticFeedback.lightImpact();

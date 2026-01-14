@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_icons.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
@@ -54,7 +55,7 @@ class RecipeFamilySection extends StatelessWidget {
             padding: EdgeInsets.all(12.r),
             child: Row(
               children: [
-                Icon(Icons.fork_right, size: 20.sp, color: AppColors.primary),
+                Icon(AppIcons.variantCreate, size: 20.sp, color: AppColors.primary),
                 SizedBox(width: 8.w),
                 Text(
                   'recipe.family.variations'.tr(),
@@ -164,7 +165,7 @@ class RecipeFamilySection extends StatelessWidget {
             padding: EdgeInsets.all(12.r),
             child: Row(
               children: [
-                Icon(Icons.pin_drop_outlined, size: 20.sp, color: AppColors.primary),
+                Icon(AppIcons.originalRecipe, size: 20.sp, color: AppColors.primary),
                 SizedBox(width: 8.w),
                 Text(
                   'recipe.family.basedOn'.tr(),
