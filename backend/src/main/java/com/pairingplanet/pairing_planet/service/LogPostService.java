@@ -248,6 +248,12 @@ public class LogPostService {
         // 6. 루트 레시피 제목 추출 (for lineage display in variants)
         String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
 
+        // 7. 해시태그 추출 (first 3)
+        List<String> hashtags = recipe.getHashtags().stream()
+                .map(Hashtag::getName)
+                .limit(3)
+                .toList();
+
         return new RecipeSummaryDto(
                 recipe.getPublicId(),
                 foodName,
@@ -264,7 +270,8 @@ public class LogPostService {
                 recipe.getRootRecipe() != null ? recipe.getRootRecipe().getPublicId() : null,
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
-                recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60"
+                recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
+                hashtags
         );
     }
 

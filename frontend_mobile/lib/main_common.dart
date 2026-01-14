@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
 
 import 'package:pairing_planet2_frontend/config/app_config.dart';
+import 'package:pairing_planet2_frontend/core/data/recipe_seed_data.dart';
 import 'package:pairing_planet2_frontend/core/providers/isar_provider.dart';
 import 'package:pairing_planet2_frontend/core/providers/locale_provider.dart';
 import 'package:pairing_planet2_frontend/core/router/app_router.dart';
@@ -22,6 +23,8 @@ import 'package:pairing_planet2_frontend/core/services/toast_service.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_theme.dart';
 import 'package:pairing_planet2_frontend/core/utils/logger.dart';
 import 'package:pairing_planet2_frontend/core/workers/event_sync_manager.dart';
+import 'package:pairing_planet2_frontend/features/home/providers/home_feed_provider.dart';
+import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart';
 
 Future<void> mainCommon(AppConfig config, FirebaseOptions firebaseOptions) async {
   // Store config for global access
@@ -158,6 +161,28 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     // Initialize event sync manager
     EventSyncManager.initialize(ref);
     EventSyncManager.startPeriodicSync();
+
+    // Seed local database with sample recipes (dev mode only)
+    if (kDebugMode) {
+      _seedRecipesOnce();
+    }
+  }
+
+  Future<void> _seedRecipesOnce() async {
+    // FORCE clear and reseed every time in debug mode
+    final isar = ref.read(isarProvider);
+    final recipeLocalDataSource = ref.read(recipeLocalDataSourceProvider);
+    final homeLocalDataSource = ref.read(homeLocalDataSourceProvider);
+
+    talker.info('Clearing all local data and seeding fresh...');
+
+    await seedAllData(
+      isar: isar,
+      recipeLocalDataSource: recipeLocalDataSource,
+      homeLocalDataSource: homeLocalDataSource,
+    );
+
+    talker.info('Seeded 10 root recipes, 20 variants, 20 log posts to local database');
   }
 
   @override

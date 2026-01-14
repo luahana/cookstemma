@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_spacing.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
@@ -161,8 +162,12 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
           data: (log) => Text(
             log.linkedRecipe?.foodName ?? 'logPost.detail'.tr(),
             overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          orElse: () => Text('logPost.detail'.tr()),
+          orElse: () => const SizedBox.shrink(),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -334,19 +339,22 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
 
     _pageController ??= PageController();
 
-    // Single image - full width, edge-to-edge
+    // Single image - full width with 4:3 aspect ratio
     if (validUrls.length == 1) {
-      return AppCachedImage(
-        imageUrl: validUrls[0],
-        width: double.infinity,
-        height: 300.h,
-        borderRadius: 0,
+      return AspectRatio(
+        aspectRatio: AppSpacing.recipeImageAspectRatio,
+        child: AppCachedImage(
+          imageUrl: validUrls[0],
+          width: double.infinity,
+          height: double.infinity,
+          borderRadius: 0,
+        ),
       );
     }
 
     // Multiple images - PageView with dots indicator
-    return SizedBox(
-      height: 300.h,
+    return AspectRatio(
+      aspectRatio: AppSpacing.recipeImageAspectRatio,
       child: Stack(
         children: [
           PageView.builder(
@@ -359,7 +367,7 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
               return AppCachedImage(
                 imageUrl: validUrls[index],
                 width: double.infinity,
-                height: 300.h,
+                height: double.infinity,
                 borderRadius: 0,
               );
             },

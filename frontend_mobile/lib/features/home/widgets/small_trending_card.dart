@@ -3,13 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/app_radius.dart';
-import 'package:pairing_planet2_frontend/core/constants/app_spacing.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
-import 'package:pairing_planet2_frontend/core/widgets/recipe_metrics_row.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/recipe_thumbnail.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/trending_tree_dto.dart';
 
-/// Small card for TrendingTreeDto
+/// Small card for TrendingTreeDto - full bleed image with food name & username
 class SmallTrendingCard extends StatelessWidget {
   final TrendingTreeDto tree;
 
@@ -24,11 +23,10 @@ class SmallTrendingCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: AppRadius.md,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: Offset(0, 2.h),
             ),
@@ -36,39 +34,59 @@ class SmallTrendingCard extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: AppRadius.md,
-          child: Row(
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              // Thumbnail - fixed width to prevent overflow
-              SizedBox(
-                width: 70.w,
-                child: RecipeThumbnail(
-                  imageUrl: tree.thumbnail,
-                  height: double.infinity,
+              // Background image - full bleed
+              RecipeThumbnail(
+                imageUrl: tree.thumbnail,
+                height: double.infinity,
+              ),
+              // Gradient overlay
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.7),
+                    ],
+                    stops: const [0.4, 1.0],
+                  ),
                 ),
               ),
-              // Content
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        tree.foodName ?? tree.title,
-                        style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+              // Content - only food name and username
+              Positioned(
+                left: 8.w,
+                right: 8.w,
+                bottom: 8.h,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      tree.foodName ?? tree.title,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                      AppSpacing.verticalXs,
-                      RecipeMetricsRow(
-                        variantCount: tree.variantCount,
-                        logCount: tree.logCount,
-                        fontSize: 9.sp,
-                        spacing: 4.w,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      tree.creatorName ?? 'Unknown',
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ],

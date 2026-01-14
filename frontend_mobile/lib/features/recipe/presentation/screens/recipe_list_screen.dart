@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
@@ -12,10 +11,7 @@ import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/illustrated_empty_state.dart';
 import 'package:pairing_planet2_frontend/core/widgets/empty_states/search_empty_state.dart';
 import 'package:pairing_planet2_frontend/core/widgets/skeletons/skeleton_loader.dart';
-import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/compact_recipe_card.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/enhanced_recipe_card.dart';
-import 'package:pairing_planet2_frontend/features/recipe/presentation/widgets/view_mode_toggle.dart';
+import 'package:pairing_planet2_frontend/core/widgets/unified_recipe_card.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/hero_search_icon.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_list_provider.dart';
@@ -163,7 +159,6 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
     });
     // 💡 이제 recipesAsync의 데이터는 RecipeListState 객체입니다.
     final recipesAsync = ref.watch(recipeListProvider);
-    final viewMode = ref.watch(browseViewModeProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -185,7 +180,6 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
               title: _buildFilterTabs(),
               actions: [
                 _buildSortButton(),
-                const CompactViewModeToggle(),
                 HeroSearchIcon(
                   onTap: () => context.push(RouteConstants.search),
                   heroTag: 'search-hero',
@@ -207,8 +201,8 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
             builder: (context) {
               // Match LogPostListScreen pattern - return different widget types
               return recipesAsync.when(
-                data: (state) => _buildContentBody(state, viewMode),
-                loading: () => _buildSkeletonLoading(viewMode),
+                data: (state) => _buildContentBody(state),
+                loading: () => const RecipeListSkeleton(),
                 error: (error, stack) => _buildErrorBody(error),
               );
             },
@@ -221,7 +215,7 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
 
   /// Build content body - matches LogPostListScreen pattern
   /// Returns Column for empty states, CustomScrollView for content
-  Widget _buildContentBody(RecipeListState state, BrowseViewMode viewMode) {
+  Widget _buildContentBody(RecipeListState state) {
     final recipes = state.items;
 
     // Empty state - return Column (non-scrollable)
@@ -242,26 +236,20 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         if (state.isFromCache && state.cachedAt != null)
           SliverToBoxAdapter(child: _buildCacheIndicator(state)),
 
-        // Content based on view mode - using direct slivers
-        if (viewMode == BrowseViewMode.list)
-          SliverPadding(
-            padding: EdgeInsets.all(16.r),
-            sliver: SliverList.builder(
-              itemCount: recipes.length,
-              itemBuilder: (context, index) => _buildRecipeCard(context, recipes[index], state.searchQuery),
-            ),
-          )
-        else
-          SliverPadding(
-            padding: EdgeInsets.all(16.r),
-            sliver: SliverMasonryGrid.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 12.h,
-              crossAxisSpacing: 12.w,
-              childCount: recipes.length,
-              itemBuilder: (context, index) => _buildGridTile(recipes[index]),
+        // Single column list view
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          sliver: SliverList.builder(
+            itemCount: recipes.length,
+            itemBuilder: (context, index) => Padding(
+              padding: EdgeInsets.only(bottom: 12.h),
+              child: UnifiedRecipeCard(
+                recipe: recipes[index],
+                isVertical: true,
+              ),
             ),
           ),
+        ),
 
         // Loading indicator or end message
         if (state.hasNext)
@@ -340,28 +328,6 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
     );
   }
 
-  Widget _buildSkeletonLoading(BrowseViewMode viewMode) {
-    switch (viewMode) {
-      case BrowseViewMode.grid:
-        return const RecipeGridSkeleton();
-      case BrowseViewMode.list:
-        return const RecipeListSkeleton();
-    }
-  }
-
-  /// Build a grid tile for the masonry grid
-  Widget _buildGridTile(RecipeSummary recipe) {
-    // Alternate heights for visual interest
-    final isShort = recipe.publicId.hashCode % 3 == 0;
-    final height = isShort ? 200.h : 240.h;
-
-    return CompactRecipeCardFixed(
-      recipe: recipe,
-      height: height,
-      onTap: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
-    );
-  }
-
   Widget _buildFilterEmptyState() {
     return IllustratedEmptyState(
       icon: Icons.filter_alt_off_outlined,
@@ -372,18 +338,6 @@ class _RecipeListScreenState extends ConsumerState<RecipeListScreen> {
         ref.read(browseFilterProvider.notifier).clearAllFilters();
       },
       iconColor: Colors.blue[300],
-    );
-  }
-
-  Widget _buildRecipeCard(BuildContext context, RecipeSummary recipe, String? searchQuery) {
-    return EnhancedRecipeCard(
-      recipe: recipe,
-      searchQuery: searchQuery,
-      // TODO: Add ingredientPreviews when backend provides this data
-      ingredientPreviews: null,
-      // TODO: Add diffSummary when backend provides this data
-      diffSummary: null,
-      onTap: () => context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
     );
   }
 

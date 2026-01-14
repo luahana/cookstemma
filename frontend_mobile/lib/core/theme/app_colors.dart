@@ -19,6 +19,9 @@ class AppColors {
   static const Color rating = Color(0xFFF1C40F);
   static const Color border = Color(0xFFDFE6E9);
 
+  // 💡 해시태그 색상
+  static const Color hashtag = Color(0xFF4CAF50);
+
   // 💡 검색 하이라이트
   static const Color highlightBackground = Color(0xFFFFF3E0);
 

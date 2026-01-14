@@ -256,6 +256,10 @@ public class UserService {
         int variantCount = (int) recipeRepository.countByRootRecipeIdAndIsDeletedFalse(recipe.getId());
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
         String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
+        List<String> hashtags = recipe.getHashtags().stream()
+                .map(Hashtag::getName)
+                .limit(3)
+                .toList();
 
         return new RecipeSummaryDto(
                 recipe.getPublicId(),
@@ -273,7 +277,8 @@ public class UserService {
                 recipe.getRootRecipe() != null ? recipe.getRootRecipe().getPublicId() : null,
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
-                recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60"
+                recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
+                hashtags
         );
     }
 

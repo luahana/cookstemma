@@ -1,5 +1,6 @@
 package com.pairingplanet.pairing_planet.dto.recipe;
 
+import java.util.List;
 import java.util.UUID;
 
 public record RecipeSummaryDto(
@@ -18,5 +19,6 @@ public record RecipeSummaryDto(
         UUID rootPublicId,
         String rootTitle,      // Root recipe title for variants (lineage display)
         Integer servings,      // Number of servings
-        String cookingTimeRange // Cooking time range enum
+        String cookingTimeRange, // Cooking time range enum
+        List<String> hashtags  // Hashtag names (first 3)
 ) {}

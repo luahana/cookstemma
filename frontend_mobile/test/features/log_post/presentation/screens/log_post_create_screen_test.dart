@@ -248,14 +248,9 @@ void main() {
     });
 
     test('canSubmit is false when loading', () {
-      final images = <UploadItem>[
-        TestImageData.createUploadItem(status: UploadStatus.success, publicId: 'img-1'),
-      ];
       final isLoading = true;
-      final hasUploading = images.any((img) => img.status == UploadStatus.uploading);
-      final hasErrors = images.any((img) => img.status == UploadStatus.error);
-
-      final canSubmit = !isLoading && !hasUploading && !hasErrors;
+      // When isLoading is true, canSubmit should be false regardless of other conditions
+      final canSubmit = !isLoading;
       expect(canSubmit, isFalse);
     });
 

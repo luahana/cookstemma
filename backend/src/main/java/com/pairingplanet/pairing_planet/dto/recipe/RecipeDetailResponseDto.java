@@ -47,7 +47,7 @@ public record RecipeDetailResponseDto(
                         nameMap.values().stream().findFirst().orElse("Unknown Food")));
         UUID currentFoodMasterPublicId = recipe.getFoodMaster().getPublicId();
 
-        // 2. 루트 레시피 정보 생성 (16개 필드 생성자 대응)
+        // 2. 루트 레시피 정보 생성 (17개 필드 생성자 대응)
         RecipeSummaryDto rootInfo = (root != null) ? new RecipeSummaryDto(
                 root.getPublicId(), // 1. publicId (UUID)
                 // 2. foodName (String): 현재 로케일 -> 한국어 -> 첫 번째 이름 순으로 시도
@@ -67,10 +67,11 @@ public record RecipeDetailResponseDto(
                 null, // 13. rootPublicId
                 null, // 14. rootTitle (root itself has no root)
                 root.getServings() != null ? root.getServings() : 2, // 15. servings
-                root.getCookingTimeRange() != null ? root.getCookingTimeRange().name() : "MIN_30_TO_60" // 16. cookingTimeRange
+                root.getCookingTimeRange() != null ? root.getCookingTimeRange().name() : "MIN_30_TO_60", // 16. cookingTimeRange
+                List.of() // 17. hashtags (상세 카드 내 생략)
         ) : null;
 
-        // 3. 부모 레시피 정보 생성 (16개 필드 생성자 대응)
+        // 3. 부모 레시피 정보 생성 (17개 필드 생성자 대응)
         RecipeSummaryDto parentInfo = (parent != null) ? new RecipeSummaryDto(
                 parent.getPublicId(),
                 parent.getFoodMaster().getName().getOrDefault(parent.getCulinaryLocale(), "Unknown Food"),
@@ -87,7 +88,8 @@ public record RecipeDetailResponseDto(
                 null, // rootPublicId
                 null, // rootTitle
                 parent.getServings() != null ? parent.getServings() : 2, // servings
-                parent.getCookingTimeRange() != null ? parent.getCookingTimeRange().name() : "MIN_30_TO_60" // cookingTimeRange
+                parent.getCookingTimeRange() != null ? parent.getCookingTimeRange().name() : "MIN_30_TO_60", // cookingTimeRange
+                List.of() // hashtags (상세 카드 내 생략)
         ) : null;
 
         // 4. 이미지 리스트 변환 (COVER 타입만 반환, STEP 이미지는 steps[].imageUrl로 반환됨)

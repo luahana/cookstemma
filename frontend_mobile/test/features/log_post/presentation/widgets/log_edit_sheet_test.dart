@@ -285,14 +285,9 @@ void main() {
     });
 
     test('button disabled when loading', () {
-      final images = <UploadItem>[
-        TestImageData.createUploadItem(status: UploadStatus.success, publicId: 'img-1'),
-      ];
       final isLoading = true;
-      final hasUploading = images.any((img) => img.status == UploadStatus.uploading);
-      final hasErrors = images.any((img) => img.status == UploadStatus.error);
-
-      final canSave = !isLoading && !hasUploading && !hasErrors;
+      // When isLoading is true, canSave should be false regardless of other conditions
+      final canSave = !isLoading;
       expect(canSave, isFalse);
     });
 

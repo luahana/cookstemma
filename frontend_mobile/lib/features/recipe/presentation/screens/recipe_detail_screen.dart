@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pairing_planet2_frontend/core/constants/app_spacing.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/constants/cooking_time_range.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
@@ -59,8 +60,15 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: recipeAsync.maybeWhen(
-          data: (recipe) => Text(recipe.foodName, overflow: TextOverflow.ellipsis),
-          orElse: () => Text('recipe.detail'.tr()),
+          data: (recipe) => Text(
+            recipe.foodName,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          orElse: () => const SizedBox.shrink(),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -544,38 +552,39 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
 
   Widget _buildImageHeader(RecipeDetail recipe) {
     if (recipe.imageUrls.isEmpty) {
-      return AppCachedImage(
-        imageUrl: 'https://via.placeholder.com/400x250',
-        width: double.infinity,
-        height: 300.h,
-        borderRadius: 0,
+      return AspectRatio(
+        aspectRatio: AppSpacing.recipeImageAspectRatio,
+        child: AppCachedImage(
+          imageUrl: 'https://via.placeholder.com/400x300',
+          width: double.infinity,
+          height: double.infinity,
+          borderRadius: 0,
+        ),
       );
     }
 
     if (recipe.imageUrls.length == 1) {
-      return AppCachedImage(
-        imageUrl: recipe.imageUrls.first,
-        width: double.infinity,
-        height: 300.h,
-        borderRadius: 0,
+      return AspectRatio(
+        aspectRatio: AppSpacing.recipeImageAspectRatio,
+        child: AppCachedImage(
+          imageUrl: recipe.imageUrls.first,
+          width: double.infinity,
+          height: double.infinity,
+          borderRadius: 0,
+        ),
       );
     }
 
     // Multiple images - show carousel
-    return _ImageCarousel(
-      imageUrls: recipe.imageUrls,
-      height: 300.h,
-    );
+    return _ImageCarousel(imageUrls: recipe.imageUrls);
   }
 }
 
 class _ImageCarousel extends StatefulWidget {
   final List<String> imageUrls;
-  final double height;
 
   const _ImageCarousel({
     required this.imageUrls,
-    required this.height,
   });
 
   @override
@@ -600,8 +609,8 @@ class _ImageCarouselState extends State<_ImageCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: widget.height,
+    return AspectRatio(
+      aspectRatio: AppSpacing.recipeImageAspectRatio,
       child: Stack(
         children: [
           PageView.builder(
@@ -614,7 +623,7 @@ class _ImageCarouselState extends State<_ImageCarousel> {
               return AppCachedImage(
                 imageUrl: widget.imageUrls[index],
                 width: double.infinity,
-                height: widget.height,
+                height: double.infinity,
                 borderRadius: 0,
               );
             },

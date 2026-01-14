@@ -19,9 +19,9 @@ class AppEmojis {
 
   // Recipe metadata emojis
   static const recipeOriginal = '\u{1F4CC}'; // 📌
-  static const recipeVariant = '\u{1F500}'; // 🔀
+  static const recipeVariant = '\u{1F504}'; // 🔄
   static const recipeFeatured = '\u{2B50}'; // ⭐
-  static const recipeLog = '\u{1F4DD}'; // 📝
+  static const recipeLog = '\u{1F4F7}'; // 📷
   static const recipeBasedOn = '\u{1F4CD}'; // 📍
 
   // Ingredient category emojis

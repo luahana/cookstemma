@@ -20,7 +20,7 @@ import '../widgets/cache_status_banner.dart';
 import '../widgets/section_header.dart';
 import '../widgets/bento_grid_section.dart';
 import '../widgets/horizontal_recipe_scroll.dart';
-import '../widgets/evolution_recipe_card.dart';
+import 'package:pairing_planet2_frontend/core/widgets/unified_recipe_card.dart';
 import '../widgets/skeletons/home_feed_skeleton.dart';
 
 class HomeFeedScreen extends ConsumerStatefulWidget {
@@ -222,7 +222,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         ),
       ],
 
-      // Section 3: Fresh Uploads (Vertical Recipe List)
+      // Section 3: Fresh Uploads (Horizontal Recipe List)
       if (feed.recentRecipes.isNotEmpty) ...[
         SliverToBoxAdapter(
           child: SectionHeader(
@@ -230,13 +230,20 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
             onSeeAll: () => context.push(RouteConstants.recipes),
           ),
         ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          sliver: SliverList.builder(
+            itemCount: feed.recentRecipes.length,
+            itemBuilder: (context, index) {
               final recipe = feed.recentRecipes[index];
-              return EvolutionRecipeCard(recipe: recipe);
+              return Padding(
+                padding: EdgeInsets.only(bottom: 12.h),
+                child: UnifiedRecipeCard(
+                  recipe: recipe.toEntity(),
+                  isVertical: false,
+                ),
+              );
             },
-            childCount: feed.recentRecipes.length,
           ),
         ),
       ],

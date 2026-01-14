@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -381,6 +382,12 @@ public class RecipeService {
         // 6. 루트 레시피 제목 추출 (for lineage display in variants)
         String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
 
+        // 7. 해시태그 추출 (first 3)
+        List<String> hashtags = recipe.getHashtags().stream()
+                .map(Hashtag::getName)
+                .limit(3)
+                .toList();
+
         return new RecipeSummaryDto(
                 recipe.getPublicId(),
                 foodName,
@@ -397,7 +404,8 @@ public class RecipeService {
                 recipe.getRootRecipe() != null ? recipe.getRootRecipe().getPublicId() : null,
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
-                recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60"
+                recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
+                hashtags
         );
     }
 
@@ -447,6 +455,12 @@ public class RecipeService {
                             .map(img -> urlPrefix + "/" + img.getStoredFilename())
                             .orElse(null);
 
+                    // Get creator name (handle null creatorId)
+                    String creatorName = Optional.ofNullable(root.getCreatorId())
+                            .flatMap(userRepository::findById)
+                            .map(user -> user.getUsername())
+                            .orElse("Unknown");
+
                     return TrendingTreeDto.builder()
                             .rootRecipeId(root.getPublicId())
                             .title(root.getTitle())
@@ -456,6 +470,7 @@ public class RecipeService {
                             .variantCount(variants)
                             .logCount(logs)
                             .latestChangeSummary(root.getDescription())
+                            .creatorName(creatorName)
                             .build();
                 }).toList();
 
