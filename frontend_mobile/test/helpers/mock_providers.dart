@@ -14,6 +14,7 @@ import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_loca
 import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/sync/sync_queue_local_data_source.dart';
 import 'package:pairing_planet2_frontend/data/datasources/follow/follow_remote_data_source.dart';
+import 'package:pairing_planet2_frontend/data/datasources/block/block_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/domain/repositories/auth_repository.dart';
 import 'package:pairing_planet2_frontend/domain/repositories/recipe_repository.dart';
 import 'package:pairing_planet2_frontend/domain/repositories/log_post_repository.dart';
@@ -56,6 +57,9 @@ class MockSyncQueueLocalDataSource extends Mock
 // Follow
 class MockFollowRemoteDataSource extends Mock
     implements FollowRemoteDataSource {}
+
+// Block
+class MockBlockRemoteDataSource extends Mock implements BlockRemoteDataSource {}
 
 // ============================================================
 // Service Mocks

@@ -170,6 +170,9 @@ class UserActionMenu extends ConsumerWidget {
         // Invalidate related providers
         ref.invalidate(blockStatusProvider(userId));
 
+        // Refresh blocked users list so it shows the newly blocked user
+        ref.invalidate(blockedUsersListProvider);
+
         // If blocked, navigate back
         if (!isCurrentlyBlocked) {
           onBlocked?.call();
