@@ -138,15 +138,21 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
                     if (controller.text != ingredient["name"]) {
                       controller.text = ingredient["name"] ?? "";
                     }
-                    return _smallField(
-                      'recipe.ingredient.name'.tr(),
-                      (v) {
-                        ingredient["name"] = v;
-                        widget.onStateChanged();
+                    return Focus(
+                      onFocusChange: (hasFocus) {
+                        if (!hasFocus) {
+                          widget.onStateChanged(); // Only notify parent on focus lost
+                        }
                       },
-                      controller,
-                      focusNode,
-                      enabled: !isOriginal, // 💡 기존 재료는 텍스트 필드 비활성화
+                      child: _smallField(
+                        'recipe.ingredient.name'.tr(),
+                        (v) {
+                          ingredient["name"] = v; // Update immediately for autocomplete
+                        },
+                        controller,
+                        focusNode,
+                        enabled: !isOriginal,
+                      ),
                     );
                   },
               optionsViewBuilder: (context, onSelected, options) =>
@@ -156,7 +162,7 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
           SizedBox(width: 4.w),
           // Quantity field (number input)
           SizedBox(
-            width: 45.w,
+            width: 60.w,
             child: _quantityField(
               ingredient,
               enabled: !isOriginal,
@@ -195,39 +201,45 @@ class _IngredientSectionState extends ConsumerState<IngredientSection> {
       text: quantity != null ? _formatQuantity(quantity) : '',
     );
 
-    return Container(
-      height: 44.h,
-      decoration: BoxDecoration(
-        // Orange background for editable fields, grey for inherited
-        color: enabled ? AppColors.editableBackground : Colors.grey[200],
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: enabled ? AppColors.editableBorder : Colors.grey[300]!),
-      ),
-      child: TextField(
-        controller: controller,
-        enabled: enabled,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-        ],
-        onChanged: (v) {
+    return Focus(
+      onFocusChange: (hasFocus) {
+        if (!hasFocus) {
+          // Save when focus is lost
+          final v = controller.text;
           if (v.isEmpty) {
             ingredient['quantity'] = null;
           } else {
             ingredient['quantity'] = double.tryParse(v);
           }
           widget.onStateChanged();
-        },
-        style: TextStyle(
-          fontSize: 13,
-          color: enabled ? Colors.black : Colors.grey[600],
+        }
+      },
+      child: Container(
+        height: 44.h,
+        decoration: BoxDecoration(
+          color: enabled ? AppColors.editableBackground : Colors.grey[200],
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: enabled ? AppColors.editableBorder : Colors.grey[300]!),
         ),
-        textAlign: TextAlign.center,
-        decoration: InputDecoration(
-          hintText: 'units.quantity'.tr(),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-          hintStyle: const TextStyle(fontSize: 11, color: Colors.grey),
+        child: TextField(
+          controller: controller,
+          enabled: enabled,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+            LengthLimitingTextInputFormatter(4),
+          ],
+          style: TextStyle(
+            fontSize: 13.sp,
+            color: enabled ? Colors.black : Colors.grey[600],
+          ),
+          textAlign: TextAlign.center,
+          decoration: InputDecoration(
+            hintText: 'units.quantity'.tr(),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(horizontal: 6.w),
+            hintStyle: TextStyle(fontSize: 11.sp, color: Colors.grey),
+          ),
         ),
       ),
     );

@@ -25,34 +25,44 @@ class PhotoStep extends ConsumerWidget {
       padding: EdgeInsets.symmetric(vertical: 24.h),
       child: Column(
         children: [
-          // Selected outcome badge
-          if (draft.outcome != null)
-            Padding(
-              padding: EdgeInsets.only(bottom: 16.h),
-              child: OutcomeBadge(
-                outcome: draft.outcome!,
-                variant: OutcomeBadgeVariant.full,
-              ),
+          // Preview summary (styled container matching other steps)
+          Container(
+            margin: EdgeInsets.only(bottom: 16.h),
+            padding: EdgeInsets.all(12.r),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: Colors.grey[200]!),
             ),
-          // Header
-          Text(
-            'logPost.quickLog.captureEvidence'.tr(),
-            style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Title at top (centered)
+                if (draft.recipeTitle != null)
+                  Text(
+                    draft.recipeTitle!,
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                SizedBox(height: 10.h),
+                // Emoji at far left
+                Row(
+                  children: [
+                    if (draft.outcome != null)
+                      OutcomeBadge(
+                        outcome: draft.outcome!,
+                        variant: OutcomeBadgeVariant.compact,
+                      ),
+                  ],
+                ),
+              ],
             ),
-            textAlign: TextAlign.center,
           ),
-          SizedBox(height: 8.h),
-          Text(
-            'logPost.photosMax'.tr(),
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.grey[600],
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 24.h),
           // Reorderable photo grid
           ReorderableImagePicker(
             images: _photoPathsToUploadItems(draft.photoPaths),

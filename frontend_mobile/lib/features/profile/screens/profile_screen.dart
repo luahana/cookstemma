@@ -49,12 +49,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   void _scrollToTop() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+    try {
+      if (_scrollController.hasClients &&
+          _scrollController.positions.isNotEmpty &&
+          _scrollController.position.hasPixels) {
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    } catch (_) {
+      // Ignore scroll errors when position is not ready
     }
   }
 

@@ -26,21 +26,26 @@ class OutcomeStep extends ConsumerWidget {
             padding: EdgeInsets.only(top: 24.h),
             child: Column(
               children: [
+                if (draft.recipeTitle != null) ...[
+                  Text(
+                    draft.recipeTitle!,
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[600],
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 8.h),
+                ],
                 Text(
                   'logPost.quickLog.howDidItGo'.tr(),
                   style: TextStyle(
                     fontSize: 22.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'logPost.quickLog.tapToSelect'.tr(),
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,
                 ),

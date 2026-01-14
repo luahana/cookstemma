@@ -3,6 +3,7 @@ import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/config/app_config.dart';
+import 'package:pairing_planet2_frontend/core/config/platform_url_resolver.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/network/auth_interceptor.dart';
 import 'package:pairing_planet2_frontend/core/network/idempotency_interceptor.dart';
@@ -20,9 +21,14 @@ final storageServiceProvider = Provider<StorageService>(
 final dioProvider = Provider<Dio>((ref) {
   final storageService = ref.read(storageServiceProvider);
 
+  // Use PlatformUrlResolver for dev (reads from .env), AppConfig for stg/prod
+  final baseUrl = AppConfig.current.isDev
+      ? PlatformUrlResolver.baseUrl
+      : AppConfig.current.baseUrl;
+
   final dio = Dio(
     BaseOptions(
-      baseUrl: AppConfig.current.baseUrl,
+      baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 5),
       receiveTimeout: const Duration(seconds: 10),
       contentType: 'application/json',

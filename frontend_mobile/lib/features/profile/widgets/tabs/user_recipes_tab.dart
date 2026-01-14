@@ -2,10 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
-import 'package:pairing_planet2_frontend/core/constants/constants.dart';
-import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
-import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
+import 'package:pairing_planet2_frontend/core/widgets/unified_recipe_card.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/user_profile_provider.dart';
 import 'package:pairing_planet2_frontend/features/profile/widgets/profile_shared.dart';
 import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter_provider.dart'
@@ -87,21 +84,26 @@ class UserRecipesTab extends ConsumerWidget {
           else ...[
             SliverPadding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    if (index >= state.items.length) {
-                      return Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.r),
-                          child: const CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-                    return _buildRecipeCard(context, state.items[index]);
-                  },
-                  childCount: state.items.length + (state.hasNext ? 1 : 0),
-                ),
+              sliver: SliverList.builder(
+                itemCount: state.items.length + (state.hasNext ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index >= state.items.length) {
+                    return Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.r),
+                        child: const CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: 12.h),
+                    child: UnifiedRecipeCard(
+                      recipe: state.items[index].toEntity(),
+                      showUsername: false,
+                      isVertical: false,
+                    ),
+                  );
+                },
               ),
             ),
             SliverToBoxAdapter(child: SizedBox(height: 16.h)),
@@ -111,72 +113,4 @@ class UserRecipesTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecipeCard(BuildContext context, RecipeSummaryDto recipe) {
-    return GestureDetector(
-      onTap: () =>
-          context.push(RouteConstants.recipeDetailPath(recipe.publicId)),
-      child: Container(
-        margin: EdgeInsets.only(bottom: 12.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius:
-                  BorderRadius.horizontal(left: Radius.circular(12.r)),
-              child: recipe.thumbnail != null
-                  ? AppCachedImage(
-                      imageUrl: recipe.thumbnail!,
-                      width: 100.w,
-                      height: 100.h,
-                      borderRadius: 0,
-                    )
-                  : Container(
-                      width: 100.w,
-                      height: 100.h,
-                      color: Colors.grey[200],
-                      child: Icon(Icons.restaurant, color: Colors.grey[400]),
-                    ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(12.r),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      recipe.title,
-                      style: TextStyle(
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      recipe.foodName,
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

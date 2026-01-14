@@ -15,6 +15,7 @@ class RecipeSummary {
   final String? rootTitle; // For displaying root recipe link in variants
   final int servings;
   final String cookingTimeRange;
+  final List<String>? hashtags; // Hashtag names (first 3)
 
   RecipeSummary({
     required this.publicId,
@@ -33,6 +34,7 @@ class RecipeSummary {
     this.rootTitle,
     this.servings = 2,
     this.cookingTimeRange = 'MIN_30_TO_60',
+    this.hashtags,
   });
 
   bool get isVariant => rootPublicId != null;

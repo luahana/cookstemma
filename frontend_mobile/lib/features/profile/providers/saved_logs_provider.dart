@@ -125,6 +125,3 @@ final savedLogsProvider =
     networkInfo: ref.read(networkInfoProvider),
   );
 });
-
-/// Saved tab filter
-enum SavedTypeFilter { all, recipes, logs }

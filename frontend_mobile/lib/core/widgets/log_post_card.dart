@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pairing_planet2_frontend/core/models/log_outcome.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
 import 'package:pairing_planet2_frontend/data/models/sync/sync_queue_item.dart';
@@ -143,7 +144,7 @@ class LogPostCard extends StatelessWidget {
                         log.hashtags!.take(3).map((h) => '#$h').join(' '),
                         style: TextStyle(
                           fontSize: 10.sp,
-                          color: Colors.grey[500],
+                          color: AppColors.hashtag,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

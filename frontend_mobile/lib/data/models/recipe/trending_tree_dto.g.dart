@@ -16,6 +16,7 @@ TrendingTreeDto _$TrendingTreeDtoFromJson(Map<String, dynamic> json) =>
       variantCount: (json['variantCount'] as num).toInt(),
       logCount: (json['logCount'] as num).toInt(),
       latestChangeSummary: json['latestChangeSummary'] as String?,
+      creatorName: json['creatorName'] as String?,
     );
 
 Map<String, dynamic> _$TrendingTreeDtoToJson(TrendingTreeDto instance) =>
@@ -28,4 +29,5 @@ Map<String, dynamic> _$TrendingTreeDtoToJson(TrendingTreeDto instance) =>
       'variantCount': instance.variantCount,
       'logCount': instance.logCount,
       'latestChangeSummary': instance.latestChangeSummary,
+      'creatorName': instance.creatorName,
     };

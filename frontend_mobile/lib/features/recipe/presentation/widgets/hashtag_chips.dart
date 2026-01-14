@@ -43,7 +43,7 @@ class HashtagChips extends StatelessWidget {
         '#${hashtag.name}',
         style: TextStyle(
           fontSize: 14.sp,
-          color: AppColors.primary,
+          color: AppColors.hashtag,
           fontWeight: FontWeight.w400,
         ),
       ),

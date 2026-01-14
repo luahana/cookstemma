@@ -31,4 +31,13 @@ class AppSpacing {
   static EdgeInsets get screenVertical => EdgeInsets.symmetric(vertical: 16.h);
   static EdgeInsets get cardPadding =>
       EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h);
+
+  // Image aspect ratios (width:height)
+  /// Standard recipe image aspect ratio (4:3)
+  /// Used for: recipe detail main photo, log post detail photos
+  static const double recipeImageAspectRatio = 4 / 3;
+
+  /// Square aspect ratio (1:1)
+  /// Used for: recipe card thumbnails
+  static const double squareAspectRatio = 1.0;
 }

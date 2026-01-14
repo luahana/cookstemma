@@ -1,5 +1,6 @@
 package com.pairingplanet.pairing_planet.service;
 
+import com.pairingplanet.pairing_planet.domain.entity.hashtag.Hashtag;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.SavedRecipe;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -82,6 +84,10 @@ public class SavedRecipeService {
         int variantCount = (int) recipeRepository.countByRootRecipeIdAndIsDeletedFalse(recipe.getId());
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
         String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
+        List<String> hashtags = recipe.getHashtags().stream()
+                .map(Hashtag::getName)
+                .limit(3)
+                .toList();
 
         return new RecipeSummaryDto(
                 recipe.getPublicId(),
@@ -99,7 +105,8 @@ public class SavedRecipeService {
                 recipe.getRootRecipe() != null ? recipe.getRootRecipe().getPublicId() : null,
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
-                recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60"
+                recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
+                hashtags
         );
     }
 
