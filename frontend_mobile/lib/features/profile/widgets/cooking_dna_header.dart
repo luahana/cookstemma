@@ -79,7 +79,7 @@ class CookingDnaHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '@${profile.user.username}',
+                profile.user.username,
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,

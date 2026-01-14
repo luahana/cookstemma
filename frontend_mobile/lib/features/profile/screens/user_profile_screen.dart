@@ -108,16 +108,17 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
                 elevation: innerBoxIsScrolled ? 1 : 0,
+                centerTitle: false,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back),
                   onPressed: () => context.pop(),
                 ),
                 title: Text(
-                  '@${user.username}',
+                  user.username,
                   style: TextStyle(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: Colors.black,
                   ),
                 ),
                 actions: _buildAppBarActions(user),

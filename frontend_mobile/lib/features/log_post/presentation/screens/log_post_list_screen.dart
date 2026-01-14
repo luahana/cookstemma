@@ -16,6 +16,7 @@ import 'package:pairing_planet2_frontend/features/log_post/providers/log_filter_
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 import 'package:pairing_planet2_frontend/core/widgets/search/hero_search_icon.dart';
+import 'package:pairing_planet2_frontend/core/widgets/app_logo.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/log_empty_state.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/sync_status_indicator.dart';
 
@@ -45,7 +46,7 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
     }
   }
 
-  Widget _buildFilterTabs() {
+  Widget _buildFilterRow() {
     final filterState = ref.watch(logFilterProvider);
     final selectedOutcomes = filterState.selectedOutcomes;
 
@@ -56,8 +57,9 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
     final isLearningSelected = selectedOutcomes.containsAll({LogOutcome.partial, LogOutcome.failed}) &&
         selectedOutcomes.length == 2;
 
-    return Padding(
-      padding: EdgeInsets.only(left: 16.w),
+    return Container(
+      color: AppColors.surface,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Row(
         children: [
           _FilterTab(
@@ -114,15 +116,15 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
         child: NestedScrollViewPlus(
           controller: _scrollController,
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            // SliverAppBar with filter tabs and search button
+            // SliverAppBar with logo and search
             SliverAppBar(
               pinned: true,
               floating: false,
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.surface,
               foregroundColor: Colors.black,
               scrolledUnderElevation: innerBoxIsScrolled ? 1 : 0,
-              titleSpacing: 0,
-              title: _buildFilterTabs(),
+              centerTitle: false,
+              title: const AppLogo(),
               actions: [
                 HeroSearchIcon(
                   onTap: () => context.push(RouteConstants.search),
@@ -130,6 +132,8 @@ class _LogPostListScreenState extends ConsumerState<LogPostListScreen> {
                 ),
               ],
             ),
+            // Filter row below AppBar
+            SliverToBoxAdapter(child: _buildFilterRow()),
           ],
           body: NotificationListener<ScrollNotification>(
           onNotification: (notification) {
