@@ -13,6 +13,7 @@ class ClickableUsername extends StatelessWidget {
   final Color? color;
   final FontWeight? fontWeight;
   final bool showAtPrefix;
+  final bool showPersonIcon;
   final int maxLines;
 
   const ClickableUsername({
@@ -23,13 +24,18 @@ class ClickableUsername extends StatelessWidget {
     this.color,
     this.fontWeight,
     this.showAtPrefix = false,
+    this.showPersonIcon = false,
     this.maxLines = 1,
   });
 
   @override
   Widget build(BuildContext context) {
     final hasCreatorId = creatorPublicId != null;
-    final displayText = showAtPrefix ? '@$username' : username;
+    // Show @ prefix if either showAtPrefix or showPersonIcon is true
+    final shouldShowAt = showAtPrefix || showPersonIcon;
+    final displayText = shouldShowAt ? '@$username' : username;
+    final effectiveColor = color ?? AppColors.primary;
+    final effectiveFontSize = fontSize ?? 12.sp;
 
     return GestureDetector(
       onTap: hasCreatorId
@@ -41,8 +47,8 @@ class ClickableUsername extends StatelessWidget {
       child: Text(
         displayText,
         style: TextStyle(
-          fontSize: fontSize ?? 12.sp,
-          color: color ?? AppColors.primary,
+          fontSize: effectiveFontSize,
+          color: effectiveColor,
           fontWeight: fontWeight ?? FontWeight.w500,
         ),
         maxLines: maxLines,

@@ -19,6 +19,7 @@ import 'package:share_plus/share_plus.dart';
 import '../widgets/log_recipe_lineage.dart';
 import '../widgets/log_edit_sheet.dart';
 import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
+import 'package:pairing_planet2_frontend/core/widgets/recipe_type_label.dart';
 
 class LogPostDetailScreen extends ConsumerStatefulWidget {
   final String logId;
@@ -159,14 +160,22 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: logAsync.maybeWhen(
-          data: (log) => Text(
-            log.linkedRecipe?.foodName ?? 'logPost.detail'.tr(),
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          data: (log) => log.linkedRecipe != null
+              ? RecipeTypeLabel(
+                  foodName: log.linkedRecipe!.foodName,
+                  isVariant: log.linkedRecipe!.isVariant,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                )
+              : Text(
+                  'logPost.detail'.tr(),
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
           orElse: () => const SizedBox.shrink(),
         ),
         backgroundColor: Colors.white,
@@ -437,23 +446,13 @@ class _LogPostDetailScreenState extends ConsumerState<LogPostDetailScreen> {
               }
             }
           : null,
-      child: Row(
-        children: [
-          Icon(
-            Icons.person_outline,
-            size: 16.sp,
-            color: Colors.grey[400],
-          ),
-          SizedBox(width: 4.w),
-          Text(
-            log.creatorName ?? 'Unknown',
-            style: TextStyle(
-              color: hasCreatorId ? AppColors.primary : Colors.grey[600],
-              fontSize: 13.sp,
-              fontWeight: hasCreatorId ? FontWeight.w500 : FontWeight.normal,
-            ),
-          ),
-        ],
+      child: Text(
+        '@${log.creatorName ?? 'Unknown'}',
+        style: TextStyle(
+          color: hasCreatorId ? AppColors.primary : Colors.grey[600],
+          fontSize: 13.sp,
+          fontWeight: hasCreatorId ? FontWeight.w500 : FontWeight.normal,
+        ),
       ),
     );
   }

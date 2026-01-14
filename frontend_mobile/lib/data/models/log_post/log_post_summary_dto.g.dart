@@ -18,6 +18,7 @@ LogPostSummaryDto _$LogPostSummaryDtoFromJson(Map<String, dynamic> json) =>
       hashtags: (json['hashtags'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      isVariant: json['isVariant'] as bool?,
     );
 
 Map<String, dynamic> _$LogPostSummaryDtoToJson(LogPostSummaryDto instance) =>
@@ -30,4 +31,5 @@ Map<String, dynamic> _$LogPostSummaryDtoToJson(LogPostSummaryDto instance) =>
       'creatorName': instance.creatorName,
       'foodName': instance.foodName,
       'hashtags': instance.hashtags,
+      'isVariant': instance.isVariant,
     };

@@ -11,5 +11,6 @@ public record LogPostSummaryDto(
         UUID creatorPublicId,  // Creator's publicId for profile navigation
         String creatorName,
         String foodName,       // Dish name from linked recipe
-        List<String> hashtags  // Hashtag names
+        List<String> hashtags,  // Hashtag names
+        Boolean isVariant      // Whether the linked recipe is a variant
 ) {}

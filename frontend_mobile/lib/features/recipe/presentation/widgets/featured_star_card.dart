@@ -81,18 +81,11 @@ class FeaturedStarCard extends StatelessWidget {
                     ),
                     SizedBox(height: 8.h),
                     // Creator info
-                    Row(
-                      children: [
-                        Icon(Icons.person_outline, size: 14.sp, color: AppColors.primary),
-                        SizedBox(width: 4.w),
-                        Expanded(
-                          child: ClickableUsername(
-                            username: recipe.creatorName,
-                            creatorPublicId: recipe.creatorPublicId,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                      ],
+                    ClickableUsername(
+                      username: recipe.creatorName,
+                      creatorPublicId: recipe.creatorPublicId,
+                      fontSize: 12.sp,
+                      showPersonIcon: true,
                     ),
                     SizedBox(height: 10.h),
                     // Stats row
@@ -408,6 +401,7 @@ class FeaturedStarCardHorizontal extends StatelessWidget {
                     creatorPublicId: recipe.creatorPublicId,
                     fontSize: 12.sp,
                     color: Colors.white,
+                    showPersonIcon: true,
                   ),
                 ],
               ),

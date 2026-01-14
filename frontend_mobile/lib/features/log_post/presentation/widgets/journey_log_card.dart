@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/utils/relative_time_formatter.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/clickable_username.dart';
@@ -272,19 +271,13 @@ class JourneyLogCard extends StatelessWidget {
     return Row(
       children: [
         // Creator
-        if (logData.creatorName != null) ...[
-          Icon(
-            Icons.person_outline,
-            size: 14.sp,
-            color: AppColors.primary,
-          ),
-          SizedBox(width: 4.w),
+        if (logData.creatorName != null)
           ClickableUsername(
             username: logData.creatorName!,
             creatorPublicId: logData.creatorPublicId,
             fontSize: 12.sp,
+            showPersonIcon: true,
           ),
-        ],
         const Spacer(),
         // View more indicator
         Icon(

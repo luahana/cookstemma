@@ -77,6 +77,7 @@ class FeaturedEvolvedCard extends StatelessWidget {
                         creatorPublicId: tree.creatorPublicId,
                         fontSize: 13.sp,
                         color: AppColors.primary,
+                        showPersonIcon: true,
                       ),
                   ],
                 ),

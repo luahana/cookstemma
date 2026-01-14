@@ -27,6 +27,7 @@ import '../widgets/recipe_family_section.dart';
 import '../widgets/action_hub_bar.dart';
 import '../widgets/recipe_action_menu.dart';
 import 'cooking_mode_screen.dart';
+import 'package:pairing_planet2_frontend/core/widgets/recipe_type_label.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final String recipeId;
@@ -60,13 +61,12 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: recipeAsync.maybeWhen(
-          data: (recipe) => Text(
-            recipe.foodName,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
-            ),
+          data: (recipe) => RecipeTypeLabel(
+            foodName: recipe.foodName,
+            isVariant: recipe.isVariant,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
           ),
           orElse: () => const SizedBox.shrink(),
         ),
@@ -183,7 +183,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                                   }
                                 : null,
                             child: Text(
-                              'recipe.by'.tr(args: [recipe.creatorName]),
+                              '@${recipe.creatorName}',
                               style: TextStyle(
                                 fontSize: 14.sp,
                                 color: recipe.creatorPublicId != null ? AppColors.primary : Colors.grey[600],

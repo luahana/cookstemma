@@ -14,6 +14,7 @@ class LogPostSummaryDto {
   final String? creatorName;
   final String? foodName; // Dish name from linked recipe
   final List<String>? hashtags; // Hashtag names
+  final bool? isVariant; // Whether the linked recipe is a variant
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   final bool isPending;
@@ -27,6 +28,7 @@ class LogPostSummaryDto {
     this.creatorName,
     this.foodName,
     this.hashtags,
+    this.isVariant,
     this.isPending = false,
   });
 
@@ -68,6 +70,7 @@ class LogPostSummaryDto {
     creatorName: creatorName,
     foodName: foodName,
     hashtags: hashtags,
+    isVariant: isVariant,
     isPending: isPending,
   );
 }

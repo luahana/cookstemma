@@ -239,7 +239,7 @@ class _RootRecipeCard extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    'by ${rootInfo.creatorName}',
+                    '@${rootInfo.creatorName}',
                     style: TextStyle(
                       fontSize: 12.sp,
                       color: AppColors.textSecondary,

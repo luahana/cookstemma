@@ -80,6 +80,7 @@ class SmallEvolvedCard extends StatelessWidget {
                         creatorPublicId: tree.creatorPublicId,
                         fontSize: 10.sp,
                         color: AppColors.primary,
+                        showPersonIcon: true,
                       ),
                   ],
                 ),

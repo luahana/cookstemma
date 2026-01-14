@@ -199,12 +199,14 @@ public class LogPostService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        // Get food name from linked recipe
+        // Get food name and variant status from linked recipe
         RecipeLog recipeLog = log.getRecipeLog();
         String foodName = null;
+        Boolean isVariant = null;
         if (recipeLog != null && recipeLog.getRecipe() != null) {
             Recipe recipe = recipeLog.getRecipe();
             foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCulinaryLocale());
+            isVariant = recipe.getRootRecipe() != null;
         }
 
         // Get hashtag names
@@ -220,7 +222,8 @@ public class LogPostService {
                 creatorPublicId,
                 creatorName,
                 foodName,
-                hashtags
+                hashtags,
+                isVariant
         );
     }
 

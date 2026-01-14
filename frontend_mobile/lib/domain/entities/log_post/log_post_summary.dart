@@ -9,6 +9,7 @@ class LogPostSummary {
   final String? creatorName;
   final String? foodName; // Dish name from linked recipe
   final List<String>? hashtags; // Hashtag names
+  final bool? isVariant; // Whether the linked recipe is a variant
   final DateTime? createdAt;
   final bool isPending; // For optimistic UI - true if not yet synced to server
 
@@ -21,6 +22,7 @@ class LogPostSummary {
     this.creatorName,
     this.foodName,
     this.hashtags,
+    this.isVariant,
     this.createdAt,
     this.isPending = false,
   });

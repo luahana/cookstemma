@@ -127,7 +127,7 @@ class LineageBreadcrumb extends StatelessWidget {
             ),
             SizedBox(width: 4.w),
             Text(
-              "(by $creatorName)",
+              '@$creatorName',
               style: TextStyle(
                 fontSize: 12.sp,
                 color: Colors.grey[600],

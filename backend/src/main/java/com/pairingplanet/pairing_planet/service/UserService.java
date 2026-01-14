@@ -292,11 +292,13 @@ public class UserService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        // Get food name from linked recipe
+        // Get food name and variant status from linked recipe
         String foodName = null;
+        Boolean isVariant = null;
         if (log.getRecipeLog() != null && log.getRecipeLog().getRecipe() != null) {
             Recipe recipe = log.getRecipeLog().getRecipe();
             foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCulinaryLocale());
+            isVariant = recipe.getRootRecipe() != null;
         }
 
         // Get hashtag names
@@ -312,7 +314,8 @@ public class UserService {
                 creatorPublicId,
                 creatorName,
                 foodName,
-                hashtags
+                hashtags,
+                isVariant
         );
     }
 

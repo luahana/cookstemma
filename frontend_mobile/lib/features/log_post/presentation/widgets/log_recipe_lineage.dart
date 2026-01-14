@@ -100,7 +100,7 @@ class _RecipeCard extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    'by ${linkedRecipe.creatorName}',
+                    '@${linkedRecipe.creatorName}',
                     style: TextStyle(
                       fontSize: 12.sp,
                       color: AppColors.textSecondary,

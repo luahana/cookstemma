@@ -185,8 +185,9 @@ public class RecipeService {
                     User logCreator = userRepository.findById(logPost.getCreatorId()).orElse(null);
                     UUID logCreatorPublicId = logCreator != null ? logCreator.getPublicId() : null;
                     String logCreatorName = logCreator != null ? logCreator.getUsername() : null;
-                    // Get food name from linked recipe
+                    // Get food name and variant status from linked recipe
                     String foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCulinaryLocale());
+                    Boolean isVariant = recipe.getRootRecipe() != null;
 
                     // Get hashtag names
                     List<String> logHashtags = logPost.getHashtags().stream()
@@ -201,7 +202,8 @@ public class RecipeService {
                             logCreatorPublicId,
                             logCreatorName,
                             foodName,
-                            logHashtags
+                            logHashtags,
+                            isVariant
                     );
                 }).toList();
 

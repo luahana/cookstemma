@@ -7,7 +7,7 @@ import 'package:pairing_planet2_frontend/core/models/log_outcome.dart';
 import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/app_cached_image.dart';
 import 'package:pairing_planet2_frontend/core/widgets/clickable_username.dart';
-import 'package:pairing_planet2_frontend/core/widgets/search/highlighted_text.dart';
+import 'package:pairing_planet2_frontend/core/widgets/recipe_type_label.dart';
 import 'package:pairing_planet2_frontend/data/models/sync/sync_queue_item.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
 import 'package:pairing_planet2_frontend/features/log_post/presentation/widgets/sync_status_indicator.dart';
@@ -101,18 +101,15 @@ class LogPostCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Dish name (foodName) or fallback to title
-                    HighlightedText(
-                      text: (log.foodName != null && log.foodName!.isNotEmpty)
+                    // Dish name (foodName) with type badge or fallback to title
+                    RecipeTypeLabel(
+                      foodName: (log.foodName != null && log.foodName!.isNotEmpty)
                           ? log.foodName!
                           : log.title,
-                      query: searchQuery,
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      isVariant: log.isVariant ?? false,
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
                     ),
                     // Username (or sync status if pending)
                     if (log.isPending)
@@ -132,6 +129,7 @@ class LogPostCard extends StatelessWidget {
                         username: log.creatorName!,
                         creatorPublicId: log.creatorPublicId,
                         fontSize: 11.sp,
+                        showPersonIcon: true,
                       ),
                     // Hashtags on separate line
                     if (!log.isPending &&

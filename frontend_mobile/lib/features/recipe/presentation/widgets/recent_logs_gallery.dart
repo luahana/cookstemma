@@ -172,6 +172,7 @@ class RecentLogsGallery extends StatelessWidget {
                 creatorPublicId: log.creatorPublicId,
                 fontSize: 11.sp,
                 showAtPrefix: true,
+                showPersonIcon: true,
               ),
           ],
           ),
