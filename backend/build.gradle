@@ -70,6 +70,10 @@ dependencies {
 
     // Image processing for variant generation
     implementation 'net.coobird:thumbnailator:0.4.20'
+
+    // Rate limiting with Bucket4j
+    implementation 'com.bucket4j:bucket4j_jdk17-core:8.14.0'
+    implementation 'com.bucket4j:bucket4j_jdk17-redis:8.14.0'
 }
 
 tasks.named('test') {
