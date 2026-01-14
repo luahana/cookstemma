@@ -195,7 +195,10 @@
     "hookHint": "이 레시피의 특별한 포인트를 입력하세요",
     "hashtags": "해시태그",
     "addHashtag": "해시태그 추가",
-    "photos": "사진",
+    "photos": {
+      "title": "사진",
+      "maxInfo": "최대 3장"
+    },
     "addPhoto": "사진 추가",
     "createSuccess": "레시피가 등록되었습니다",
     "createFailed": "레시피 등록에 실패했습니다",
@@ -242,8 +245,12 @@
       "title": "재료",
       "main": "주재료",
       "secondary": "부재료",
-      "seasoning": "양념류"
+      "seasoning": "양념류",
+      "maxMain": "최대 5개",
+      "maxSecondary": "최대 8개",
+      "maxSeasoning": "최대 10개"
     },
+    "stepsMaxInfo": "최대 12단계",
     "diff": {
       "whatChanged": "변경 내용",
       "show": "차이 보기",

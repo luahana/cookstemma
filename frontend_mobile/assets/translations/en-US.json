@@ -195,7 +195,10 @@
     "hookHint": "Enter a special point about this recipe",
     "hashtags": "Hashtags",
     "addHashtag": "Add hashtag",
-    "photos": "Photos",
+    "photos": {
+      "title": "Photos",
+      "maxInfo": "Max 3 photos"
+    },
     "addPhoto": "Add photo",
     "createSuccess": "Recipe created",
     "createFailed": "Failed to create recipe",
@@ -242,8 +245,12 @@
       "title": "Ingredients",
       "main": "Main",
       "secondary": "Secondary",
-      "seasoning": "Seasoning"
+      "seasoning": "Seasoning",
+      "maxMain": "Max 5",
+      "maxSecondary": "Max 8",
+      "maxSeasoning": "Max 10"
     },
+    "stepsMaxInfo": "Max 12 steps",
     "diff": {
       "whatChanged": "What Changed",
       "show": "Show Diff",

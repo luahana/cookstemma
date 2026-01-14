@@ -29,6 +29,8 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     clean-disabled: true # (핵심 ⭐) 실수로 flyway clean 명령어가 실행되어 DB가 싹 날아가는 것을 원천 봉쇄
+    locations: 
+      - classpath:db/migration
 
 internal:
   api:

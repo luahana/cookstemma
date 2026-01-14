@@ -369,6 +369,7 @@ public class RecipeService {
 
         // 3. 썸네일 URL 추출 (첫 번째 커버 이미지 사용, displayOrder로 정렬됨)
         String thumbnail = recipe.getImages().stream()
+                .filter(img -> img.getType() == com.pairingplanet.pairing_planet.domain.enums.ImageType.COVER)
                 .findFirst()
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
