@@ -4,15 +4,21 @@ import com.pairingplanet.pairing_planet.domain.entity.hashtag.Hashtag;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.SavedRecipe;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
+import com.pairingplanet.pairing_planet.dto.common.CursorPageResponse;
+import com.pairingplanet.pairing_planet.dto.common.UnifiedPageResponse;
 import com.pairingplanet.pairing_planet.dto.recipe.RecipeSummaryDto;
 import com.pairingplanet.pairing_planet.repository.recipe.RecipeLogRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.RecipeRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.SavedRecipeRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
+import com.pairingplanet.pairing_planet.util.CursorUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -123,5 +129,79 @@ public class SavedRecipeService {
         }
 
         return nameMap.values().stream().findFirst().orElse("Unknown Food");
+    }
+
+    /**
+     * Get saved recipes with cursor-based pagination
+     */
+    public CursorPageResponse<RecipeSummaryDto> getSavedRecipesWithCursor(Long userId, String cursor, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        Slice<SavedRecipe> savedRecipes;
+        if (cursorData == null) {
+            savedRecipes = savedRecipeRepository.findSavedRecipesWithCursorInitial(userId, pageable);
+        } else {
+            savedRecipes = savedRecipeRepository.findSavedRecipesWithCursor(userId, cursorData.createdAt(), cursorData.id(), pageable);
+        }
+
+        List<RecipeSummaryDto> content = savedRecipes.getContent().stream()
+                .map(sr -> convertToSummary(sr.getRecipe()))
+                .toList();
+
+        String nextCursor = null;
+        if (savedRecipes.hasNext() && !savedRecipes.getContent().isEmpty()) {
+            SavedRecipe lastItem = savedRecipes.getContent().get(savedRecipes.getContent().size() - 1);
+            nextCursor = CursorUtil.encode(lastItem.getCreatedAt(), lastItem.getRecipeId());
+        }
+
+        return CursorPageResponse.of(content, nextCursor, size);
+    }
+
+    // ================================================================
+    // Unified Dual Pagination Methods (Strategy Pattern)
+    // ================================================================
+
+    /**
+     * Unified saved recipes with strategy-based pagination.
+     * - If cursor is provided → cursor-based pagination (mobile)
+     * - If page is provided → offset-based pagination (web)
+     * - Default → cursor-based initial page
+     */
+    @Transactional(readOnly = true)
+    public UnifiedPageResponse<RecipeSummaryDto> getSavedRecipesUnified(Long userId, String cursor, Integer page, int size) {
+        if (cursor != null && !cursor.isEmpty()) {
+            return getSavedRecipesWithCursorUnified(userId, cursor, size);
+        } else if (page != null) {
+            return getSavedRecipesWithOffset(userId, page, size);
+        } else {
+            return getSavedRecipesWithCursorUnified(userId, null, size);
+        }
+    }
+
+    /**
+     * Offset-based saved recipes for web clients.
+     */
+    private UnifiedPageResponse<RecipeSummaryDto> getSavedRecipesWithOffset(Long userId, int page, int size) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<SavedRecipe> savedRecipes = savedRecipeRepository.findSavedRecipesPage(userId, pageable);
+        Page<RecipeSummaryDto> mappedPage = savedRecipes.map(sr -> convertToSummary(sr.getRecipe()));
+
+        return UnifiedPageResponse.fromPage(mappedPage, size);
+    }
+
+    /**
+     * Cursor-based saved recipes wrapped in UnifiedPageResponse.
+     */
+    private UnifiedPageResponse<RecipeSummaryDto> getSavedRecipesWithCursorUnified(Long userId, String cursor, int size) {
+        CursorPageResponse<RecipeSummaryDto> cursorResponse = getSavedRecipesWithCursor(userId, cursor, size);
+
+        return UnifiedPageResponse.fromCursor(
+                cursorResponse.content(),
+                cursorResponse.nextCursor(),
+                size
+        );
     }
 }

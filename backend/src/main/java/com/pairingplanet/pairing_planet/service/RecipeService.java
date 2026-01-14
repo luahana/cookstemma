@@ -9,9 +9,14 @@ import com.pairingplanet.pairing_planet.domain.entity.recipe.RecipeStep;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import com.pairingplanet.pairing_planet.domain.enums.CookingTimeRange;
 import com.pairingplanet.pairing_planet.domain.enums.SuggestionStatus;
+import com.pairingplanet.pairing_planet.dto.common.CursorPageResponse;
+import com.pairingplanet.pairing_planet.dto.common.UnifiedPageResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import com.pairingplanet.pairing_planet.dto.log_post.LogPostSummaryDto;
 import com.pairingplanet.pairing_planet.dto.log_post.RecentActivityDto;
 import com.pairingplanet.pairing_planet.dto.recipe.*;
+import com.pairingplanet.pairing_planet.util.CursorUtil;
 import com.pairingplanet.pairing_planet.repository.food.FoodMasterRepository;
 import com.pairingplanet.pairing_planet.repository.log_post.LogPostRepository;
 import com.pairingplanet.pairing_planet.repository.food.UserSuggestedFoodRepository;
@@ -706,4 +711,323 @@ public class RecipeService {
         recipeRepository.save(recipe);
     }
 
+    // ================================================================
+    // Cursor-Based Pagination Methods
+    // ================================================================
+
+    /**
+     * Find recipes with cursor-based pagination
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponse<RecipeSummaryDto> findRecipesWithCursor(String locale, boolean onlyRoot, String typeFilter, String cursor, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        boolean isOriginalFilter = "original".equalsIgnoreCase(typeFilter) || onlyRoot;
+        boolean isVariantFilter = "variant".equalsIgnoreCase(typeFilter);
+
+        Slice<Recipe> recipes;
+
+        if (cursorData == null) {
+            // Initial page (no cursor)
+            if (locale == null || locale.isBlank()) {
+                if (isVariantFilter) {
+                    recipes = recipeRepository.findVariantRecipesWithCursorInitial(pageable);
+                } else if (isOriginalFilter) {
+                    recipes = recipeRepository.findOriginalRecipesWithCursorInitial(pageable);
+                } else {
+                    recipes = recipeRepository.findPublicRecipesWithCursorInitial(pageable);
+                }
+            } else {
+                if (isVariantFilter) {
+                    recipes = recipeRepository.findVariantRecipesByLocaleWithCursorInitial(locale, pageable);
+                } else if (isOriginalFilter) {
+                    recipes = recipeRepository.findOriginalRecipesByLocaleWithCursorInitial(locale, pageable);
+                } else {
+                    recipes = recipeRepository.findPublicRecipesByLocaleWithCursorInitial(locale, pageable);
+                }
+            }
+        } else {
+            // With cursor
+            if (locale == null || locale.isBlank()) {
+                if (isVariantFilter) {
+                    recipes = recipeRepository.findVariantRecipesWithCursor(cursorData.createdAt(), cursorData.id(), pageable);
+                } else if (isOriginalFilter) {
+                    recipes = recipeRepository.findOriginalRecipesWithCursor(cursorData.createdAt(), cursorData.id(), pageable);
+                } else {
+                    recipes = recipeRepository.findPublicRecipesWithCursor(cursorData.createdAt(), cursorData.id(), pageable);
+                }
+            } else {
+                if (isVariantFilter) {
+                    recipes = recipeRepository.findVariantRecipesByLocaleWithCursor(locale, cursorData.createdAt(), cursorData.id(), pageable);
+                } else if (isOriginalFilter) {
+                    recipes = recipeRepository.findOriginalRecipesByLocaleWithCursor(locale, cursorData.createdAt(), cursorData.id(), pageable);
+                } else {
+                    recipes = recipeRepository.findPublicRecipesByLocaleWithCursor(locale, cursorData.createdAt(), cursorData.id(), pageable);
+                }
+            }
+        }
+
+        return buildCursorResponse(recipes, size);
+    }
+
+    /**
+     * Search recipes with cursor-based pagination
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponse<RecipeSummaryDto> searchRecipesWithCursor(String keyword, String cursor, int size) {
+        if (keyword == null || keyword.trim().length() < 2) {
+            return CursorPageResponse.empty(size);
+        }
+
+        // Note: Search uses relevance ordering, so we fall back to simple offset pagination
+        // decoded from cursor as page number for simplicity
+        int page = 0;
+        if (cursor != null && !cursor.isBlank()) {
+            try {
+                page = Integer.parseInt(cursor);
+            } catch (NumberFormatException ignored) {}
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Slice<Recipe> recipes = recipeRepository.searchRecipes(keyword.trim(), pageable);
+        List<RecipeSummaryDto> content = recipes.getContent().stream()
+                .map(this::convertToSummary)
+                .toList();
+
+        String nextCursor = recipes.hasNext() ? String.valueOf(page + 1) : null;
+        return new CursorPageResponse<>(content, nextCursor, recipes.hasNext(), size);
+    }
+
+    /**
+     * Get my recipes with cursor-based pagination
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponse<RecipeSummaryDto> getMyRecipesWithCursor(Long userId, String typeFilter, String cursor, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        Slice<Recipe> recipes;
+
+        if (cursorData == null) {
+            // Initial page
+            if ("original".equalsIgnoreCase(typeFilter)) {
+                recipes = recipeRepository.findMyOriginalRecipesWithCursorInitial(userId, pageable);
+            } else if ("variants".equalsIgnoreCase(typeFilter)) {
+                recipes = recipeRepository.findMyVariantRecipesWithCursorInitial(userId, pageable);
+            } else {
+                recipes = recipeRepository.findMyRecipesWithCursorInitial(userId, pageable);
+            }
+        } else {
+            // With cursor
+            if ("original".equalsIgnoreCase(typeFilter)) {
+                recipes = recipeRepository.findMyOriginalRecipesWithCursor(userId, cursorData.createdAt(), cursorData.id(), pageable);
+            } else if ("variants".equalsIgnoreCase(typeFilter)) {
+                recipes = recipeRepository.findMyVariantRecipesWithCursor(userId, cursorData.createdAt(), cursorData.id(), pageable);
+            } else {
+                recipes = recipeRepository.findMyRecipesWithCursor(userId, cursorData.createdAt(), cursorData.id(), pageable);
+            }
+        }
+
+        return buildCursorResponse(recipes, size);
+    }
+
+    /**
+     * Helper to build cursor response from Slice
+     */
+    private CursorPageResponse<RecipeSummaryDto> buildCursorResponse(Slice<Recipe> recipes, int size) {
+        List<RecipeSummaryDto> content = recipes.getContent().stream()
+                .map(this::convertToSummary)
+                .toList();
+
+        String nextCursor = null;
+        if (recipes.hasNext() && !recipes.getContent().isEmpty()) {
+            Recipe lastItem = recipes.getContent().get(recipes.getContent().size() - 1);
+            nextCursor = CursorUtil.encode(lastItem.getCreatedAt(), lastItem.getId());
+        }
+
+        return CursorPageResponse.of(content, nextCursor, size);
+    }
+
+    // ================================================================
+    // Unified Dual Pagination Methods (Strategy Pattern)
+    // ================================================================
+
+    /**
+     * Unified recipe list with strategy-based pagination.
+     * - If cursor is provided → cursor-based pagination (mobile)
+     * - If page is provided → offset-based pagination (web)
+     * - Default → cursor-based initial page
+     */
+    @Transactional(readOnly = true)
+    public UnifiedPageResponse<RecipeSummaryDto> findRecipesUnified(
+            String locale, String typeFilter, String cursor, Integer page, int size) {
+
+        // Strategy selection
+        if (cursor != null && !cursor.isEmpty()) {
+            return findRecipesWithCursorUnified(locale, typeFilter, cursor, size);
+        } else if (page != null) {
+            return findRecipesWithOffset(locale, typeFilter, page, size);
+        } else {
+            // Default: initial cursor-based (first page)
+            return findRecipesWithCursorUnified(locale, typeFilter, null, size);
+        }
+    }
+
+    /**
+     * Offset-based pagination for web clients.
+     * Returns Page with totalElements, totalPages, currentPage.
+     */
+    private UnifiedPageResponse<RecipeSummaryDto> findRecipesWithOffset(
+            String locale, String typeFilter, int page, int size) {
+
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        boolean isOriginalFilter = "original".equalsIgnoreCase(typeFilter);
+        boolean isVariantFilter = "variant".equalsIgnoreCase(typeFilter);
+
+        Page<Recipe> recipes;
+
+        if (locale == null || locale.isBlank()) {
+            if (isVariantFilter) {
+                recipes = recipeRepository.findVariantRecipesPage(pageable);
+            } else if (isOriginalFilter) {
+                recipes = recipeRepository.findOriginalRecipesPage(pageable);
+            } else {
+                recipes = recipeRepository.findPublicRecipesPage(pageable);
+            }
+        } else {
+            if (isVariantFilter) {
+                recipes = recipeRepository.findVariantRecipesByLocalePage(locale, pageable);
+            } else if (isOriginalFilter) {
+                recipes = recipeRepository.findOriginalRecipesByLocalePage(locale, pageable);
+            } else {
+                recipes = recipeRepository.findPublicRecipesByLocalePage(locale, pageable);
+            }
+        }
+
+        Page<RecipeSummaryDto> mappedPage = recipes.map(this::convertToSummary);
+        return UnifiedPageResponse.fromPage(mappedPage, size);
+    }
+
+    /**
+     * Cursor-based pagination wrapped in UnifiedPageResponse for mobile clients.
+     */
+    private UnifiedPageResponse<RecipeSummaryDto> findRecipesWithCursorUnified(
+            String locale, String typeFilter, String cursor, int size) {
+
+        CursorPageResponse<RecipeSummaryDto> cursorResponse =
+                findRecipesWithCursor(locale, false, typeFilter, cursor, size);
+
+        return UnifiedPageResponse.fromCursor(
+                cursorResponse.content(),
+                cursorResponse.nextCursor(),
+                size
+        );
+    }
+
+    /**
+     * Unified my recipes with strategy-based pagination.
+     */
+    @Transactional(readOnly = true)
+    public UnifiedPageResponse<RecipeSummaryDto> getMyRecipesUnified(
+            Long userId, String typeFilter, String cursor, Integer page, int size) {
+
+        if (cursor != null && !cursor.isEmpty()) {
+            return getMyRecipesWithCursorUnified(userId, typeFilter, cursor, size);
+        } else if (page != null) {
+            return getMyRecipesWithOffset(userId, typeFilter, page, size);
+        } else {
+            return getMyRecipesWithCursorUnified(userId, typeFilter, null, size);
+        }
+    }
+
+    /**
+     * Offset-based my recipes for web clients.
+     */
+    private UnifiedPageResponse<RecipeSummaryDto> getMyRecipesWithOffset(
+            Long userId, String typeFilter, int page, int size) {
+
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Recipe> recipes;
+
+        if ("original".equalsIgnoreCase(typeFilter)) {
+            recipes = recipeRepository.findMyOriginalRecipesPage(userId, pageable);
+        } else if ("variants".equalsIgnoreCase(typeFilter)) {
+            recipes = recipeRepository.findMyVariantRecipesPage(userId, pageable);
+        } else {
+            recipes = recipeRepository.findMyRecipesPage(userId, pageable);
+        }
+
+        Page<RecipeSummaryDto> mappedPage = recipes.map(this::convertToSummary);
+        return UnifiedPageResponse.fromPage(mappedPage, size);
+    }
+
+    /**
+     * Cursor-based my recipes wrapped in UnifiedPageResponse.
+     */
+    private UnifiedPageResponse<RecipeSummaryDto> getMyRecipesWithCursorUnified(
+            Long userId, String typeFilter, String cursor, int size) {
+
+        CursorPageResponse<RecipeSummaryDto> cursorResponse =
+                getMyRecipesWithCursor(userId, typeFilter, cursor, size);
+
+        return UnifiedPageResponse.fromCursor(
+                cursorResponse.content(),
+                cursorResponse.nextCursor(),
+                size
+        );
+    }
+
+    /**
+     * Unified search with strategy-based pagination.
+     */
+    @Transactional(readOnly = true)
+    public UnifiedPageResponse<RecipeSummaryDto> searchRecipesUnified(
+            String keyword, String cursor, Integer page, int size) {
+
+        if (keyword == null || keyword.trim().length() < 2) {
+            return UnifiedPageResponse.emptyCursor(size);
+        }
+
+        if (cursor != null && !cursor.isEmpty()) {
+            return searchRecipesWithCursorUnified(keyword, cursor, size);
+        } else if (page != null) {
+            return searchRecipesWithOffset(keyword, page, size);
+        } else {
+            return searchRecipesWithCursorUnified(keyword, null, size);
+        }
+    }
+
+    /**
+     * Offset-based search for web clients.
+     */
+    private UnifiedPageResponse<RecipeSummaryDto> searchRecipesWithOffset(
+            String keyword, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword.trim(), pageable);
+
+        Page<RecipeSummaryDto> mappedPage = recipes.map(this::convertToSummary);
+        return UnifiedPageResponse.fromPage(mappedPage, size);
+    }
+
+    /**
+     * Cursor-based search wrapped in UnifiedPageResponse.
+     */
+    private UnifiedPageResponse<RecipeSummaryDto> searchRecipesWithCursorUnified(
+            String keyword, String cursor, int size) {
+
+        CursorPageResponse<RecipeSummaryDto> cursorResponse =
+                searchRecipesWithCursor(keyword, cursor, size);
+
+        return UnifiedPageResponse.fromCursor(
+                cursorResponse.content(),
+                cursorResponse.nextCursor(),
+                size
+        );
+    }
 }

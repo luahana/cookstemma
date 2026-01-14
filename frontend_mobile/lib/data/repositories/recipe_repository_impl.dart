@@ -4,14 +4,14 @@ import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/error/failures.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/create_recipe_request_dtos.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/update_recipe_request_dto.dart';
-import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
+import 'package:pairing_planet2_frontend/domain/entities/common/cursor_page_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/create_recipe_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_modifiable.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/update_recipe_request.dart';
-import '../../core/network/network_info.dart'; // 네트워크 상태 확인용 (추가 필요)
-import '../datasources/recipe/recipe_local_data_source.dart'; // 로컬 데이터 소스 (추가 필요)
+import '../../core/network/network_info.dart';
+import '../datasources/recipe/recipe_local_data_source.dart';
 import '../../domain/repositories/recipe_repository.dart';
 import '../datasources/recipe/recipe_remote_data_source.dart';
 
@@ -88,32 +88,29 @@ class RecipeRepositoryImpl implements RecipeRepository {
   }
 
   @override
-  Future<Either<Failure, SliceResponse<RecipeSummary>>> getRecipes({
-    required int page,
-    int size = 10,
+  Future<Either<Failure, CursorPageResponse<RecipeSummary>>> getRecipes({
+    String? cursor,
+    int size = 20,
     String? query,
     String? cuisineFilter,
     String? typeFilter,
-    String? sortBy,
   }) async {
     // Check if any filters are active
     final hasFilters = (query != null && query.isNotEmpty) ||
         cuisineFilter != null ||
-        typeFilter != null ||
-        (sortBy != null && sortBy != 'recent');
+        typeFilter != null;
 
     // Filter/search mode: always fetch from network, no caching
     if (hasFilters) {
       try {
-        final sliceDto = await remoteDataSource.getRecipes(
-          page: page,
+        final responseDto = await remoteDataSource.getRecipes(
+          cursor: cursor,
           size: size,
           query: query,
           cuisineFilter: cuisineFilter,
           typeFilter: typeFilter,
-          sortBy: sortBy,
         );
-        return Right(sliceDto.toEntity((dto) => dto.toEntity()));
+        return Right(responseDto.toEntity((dto) => dto.toEntity()));
       } on DioException catch (e) {
         return Left(_mapDioExceptionToFailure(e));
       } catch (e) {
@@ -121,15 +118,15 @@ class RecipeRepositoryImpl implements RecipeRepository {
       }
     }
 
-    // Only cache first page (page 0) when not searching/filtering
-    if (page == 0) {
+    // Only cache initial page (cursor == null) when not searching/filtering
+    if (cursor == null) {
       return _getRecipesWithCache(size: size);
     }
 
-    // Pages > 0: network-only (no caching for pagination)
+    // Subsequent pages: network-only (no caching for pagination)
     try {
-      final sliceDto = await remoteDataSource.getRecipes(page: page, size: size);
-      return Right(sliceDto.toEntity((dto) => dto.toEntity()));
+      final responseDto = await remoteDataSource.getRecipes(cursor: cursor, size: size);
+      return Right(responseDto.toEntity((dto) => dto.toEntity()));
     } on DioException catch (e) {
       return Left(_mapDioExceptionToFailure(e));
     } catch (e) {
@@ -137,9 +134,9 @@ class RecipeRepositoryImpl implements RecipeRepository {
     }
   }
 
-  /// Cache-first strategy for the first page of recipes.
-  Future<Either<Failure, SliceResponse<RecipeSummary>>> _getRecipesWithCache({
-    int size = 10,
+  /// Cache-first strategy for the initial page of recipes.
+  Future<Either<Failure, CursorPageResponse<RecipeSummary>>> _getRecipesWithCache({
+    int size = 20,
   }) async {
     // 1. Check for cached data
     final cached = await localDataSource.getCachedRecipeList();
@@ -148,23 +145,21 @@ class RecipeRepositoryImpl implements RecipeRepository {
     if (await networkInfo.isConnected) {
       try {
         // 3. Fetch fresh data from server
-        final sliceDto = await remoteDataSource.getRecipes(page: 0, size: size);
+        final responseDto = await remoteDataSource.getRecipes(cursor: null, size: size);
 
         // 4. Cache the first page on success
-        await localDataSource.cacheRecipeList(sliceDto.content);
+        await localDataSource.cacheRecipeList(responseDto.content);
 
         // 5. Return fresh data
-        return Right(sliceDto.toEntity((dto) => dto.toEntity()));
+        return Right(responseDto.toEntity((dto) => dto.toEntity()));
       } on DioException catch (e) {
         // Network error: fallback to cache if available
         if (cached != null) {
-          return Right(SliceResponse(
+          return Right(CursorPageResponse(
             content: cached.data.map((d) => d.toEntity()).toList(),
-            number: 0,
-            size: cached.data.length,
-            first: true,
-            last: false,
+            nextCursor: null,
             hasNext: true, // Assume there's more (can't verify offline)
+            size: cached.data.length,
             isFromCache: true,
             cachedAt: cached.cachedAt,
           ));
@@ -172,13 +167,11 @@ class RecipeRepositoryImpl implements RecipeRepository {
         return Left(_mapDioExceptionToFailure(e));
       } catch (e) {
         if (cached != null) {
-          return Right(SliceResponse(
+          return Right(CursorPageResponse(
             content: cached.data.map((d) => d.toEntity()).toList(),
-            number: 0,
-            size: cached.data.length,
-            first: true,
-            last: false,
+            nextCursor: null,
             hasNext: true,
+            size: cached.data.length,
             isFromCache: true,
             cachedAt: cached.cachedAt,
           ));
@@ -188,13 +181,11 @@ class RecipeRepositoryImpl implements RecipeRepository {
     } else {
       // Offline: use cached data
       if (cached != null) {
-        return Right(SliceResponse(
+        return Right(CursorPageResponse(
           content: cached.data.map((d) => d.toEntity()).toList(),
-          number: 0,
-          size: cached.data.length,
-          first: true,
-          last: false,
+          nextCursor: null,
           hasNext: false, // Can't paginate offline
+          size: cached.data.length,
           isFromCache: true,
           cachedAt: cached.cachedAt,
         ));

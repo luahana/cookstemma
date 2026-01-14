@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info.dart';
 import 'package:pairing_planet2_frontend/core/network/network_info_impl.dart';
 import 'package:pairing_planet2_frontend/core/providers/isar_provider.dart';
-import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
+import 'package:pairing_planet2_frontend/domain/entities/common/cursor_page_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_detail.dart';
 import 'package:pairing_planet2_frontend/domain/entities/recipe/recipe_summary.dart';
 import 'package:pairing_planet2_frontend/domain/usecases/recipe/create_recipe_usecase.dart';
@@ -83,15 +83,17 @@ final recipeDetailProvider = FutureProvider.family<RecipeDetail, String>((
   return result.fold((failure) => throw failure.message, (recipe) => recipe);
 });
 
+/// Get recipes with cursor-based pagination
+/// Pass null for first page, then use nextCursor from response for subsequent pages
 final recipesProvider =
-    FutureProvider.family<SliceResponse<RecipeSummary>, int>((
+    FutureProvider.family<CursorPageResponse<RecipeSummary>, String?>((
   ref,
-  page,
+  cursor,
 ) async {
   final repository = ref.watch(recipeRepositoryProvider);
-  final result = await repository.getRecipes(page: page, size: 10);
+  final result = await repository.getRecipes(cursor: cursor, size: 10);
   return result.fold(
     (failure) => throw failure,
-    (sliceResponse) => sliceResponse,
+    (response) => response,
   );
 });

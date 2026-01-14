@@ -21,7 +21,7 @@ class LogPostListState {
 }
 
 class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
-  int _currentPage = 0;
+  String? _nextCursor;
   bool _hasNext = true;
   bool _isFetchingNext = false;
   String? _searchQuery;
@@ -31,12 +31,12 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
     // Watch filter state to rebuild when filters change
     final filterState = ref.watch(logFilterProvider);
 
-    _currentPage = 0;
+    _nextCursor = null;
     _hasNext = true;
     _searchQuery = null;
 
     // Fetch server items
-    final serverItems = await _fetchPage(0, filterState);
+    final serverItems = await _fetchItems(null, filterState);
 
     // Fetch pending items for optimistic display (no search query = show pending)
     final pendingItems = await _fetchPendingItems();
@@ -68,7 +68,7 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
     }
   }
 
-  Future<List<LogPostSummary>> _fetchPage(int page, [LogFilterState? filterState]) async {
+  Future<List<LogPostSummary>> _fetchItems(String? cursor, [LogFilterState? filterState]) async {
     final useCase = ref.read(getLogPostListUseCaseProvider);
 
     // Get outcomes filter
@@ -78,7 +78,7 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
     }
 
     final result = await useCase(
-      page: page,
+      cursor: cursor,
       size: 20,
       query: _searchQuery,
       outcomes: outcomes,
@@ -86,10 +86,11 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
 
     return result.fold(
       (failure) => throw failure,
-      (sliceResponse) {
-        _hasNext = sliceResponse.hasNext;
+      (response) {
+        _hasNext = response.hasNext;
+        _nextCursor = response.nextCursor;
         // Apply client-side filtering for time and photos (if API doesn't support)
-        var items = sliceResponse.content;
+        var items = response.content;
         if (filterState != null) {
           items = _applyClientSideFilters(items, filterState);
         }
@@ -120,7 +121,7 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
     }
 
     _searchQuery = trimmedQuery;
-    _currentPage = 0;
+    _nextCursor = null;
     _hasNext = true;
 
     state = const AsyncValue.loading();
@@ -128,7 +129,7 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
     try {
       final filterState = ref.read(logFilterProvider);
       // Only fetch server items during search (no pending items)
-      final items = await _fetchPage(0, filterState);
+      final items = await _fetchItems(null, filterState);
       state = AsyncValue.data(LogPostListState(
         items: items,
         hasNext: _hasNext,
@@ -145,7 +146,7 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
     if (_searchQuery == null) return;
 
     _searchQuery = null;
-    _currentPage = 0;
+    _nextCursor = null;
     _hasNext = true;
 
     ref.invalidateSelf();
@@ -160,8 +161,7 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
       if (currentState == null) return;
 
       final filterState = ref.read(logFilterProvider);
-      _currentPage++;
-      final newItems = await _fetchPage(_currentPage, filterState);
+      final newItems = await _fetchItems(_nextCursor, filterState);
 
       final allItems = [...currentState.items, ...newItems];
       final uniqueItems = <String, LogPostSummary>{};
@@ -181,14 +181,14 @@ class LogPostListNotifier extends AsyncNotifier<LogPostListState> {
   }
 
   Future<void> refresh() async {
-    _currentPage = 0;
+    _nextCursor = null;
     _hasNext = true;
     ref.invalidateSelf();
   }
 
   /// Refresh when filters change
   void onFiltersChanged() {
-    _currentPage = 0;
+    _nextCursor = null;
     _hasNext = true;
     ref.invalidateSelf();
   }
@@ -219,10 +219,10 @@ class RecipeLogsNotifier extends AutoDisposeFamilyAsyncNotifier<LogPostListState
 
   Future<List<LogPostSummary>> _fetchPage(int page, String recipeId) async {
     final useCase = ref.read(getLogPostListUseCaseProvider);
-    final result = await useCase(
+    final result = await useCase.getByRecipe(
+      recipeId: recipeId,
       page: page,
       size: 20,
-      recipeId: recipeId,
     );
 
     return result.fold(

@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:pairing_planet2_frontend/domain/entities/common/cursor_page_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/create_log_post_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_detail.dart';
@@ -12,15 +13,16 @@ abstract class LogPostRepository {
   );
   // 로그 상세 조회
   Future<Either<Failure, LogPostDetail>> getLogDetail(String publicId);
-  // 로그 리스트 조회
-  Future<Either<Failure, SliceResponse<LogPostSummary>>> getLogPosts({
-    int page = 0,
+
+  /// 로그 리스트 조회 (cursor-based pagination)
+  Future<Either<Failure, CursorPageResponse<LogPostSummary>>> getLogPosts({
+    String? cursor,
     int size = 20,
     String? query,
     List<String>? outcomes,
   });
 
-  // 특정 레시피의 로그 리스트 조회
+  /// 특정 레시피의 로그 리스트 조회 (keeps page-based for now)
   Future<Either<Failure, SliceResponse<LogPostSummary>>> getLogsByRecipe({
     required String recipeId,
     int page = 0,
@@ -46,9 +48,9 @@ abstract class LogPostRepository {
   // 로그 저장 취소
   Future<Either<Failure, void>> unsaveLog(String publicId);
 
-  // 저장한 로그 목록 조회
-  Future<Either<Failure, SliceResponse<LogPostSummary>>> getSavedLogs({
-    int page = 0,
+  /// 저장한 로그 목록 조회 (cursor-based pagination)
+  Future<Either<Failure, CursorPageResponse<LogPostSummary>>> getSavedLogs({
+    String? cursor,
     int size = 20,
   });
 }

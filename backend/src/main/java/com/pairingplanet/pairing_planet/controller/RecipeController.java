@@ -1,5 +1,7 @@
 package com.pairingplanet.pairing_planet.controller;
 
+import com.pairingplanet.pairing_planet.dto.common.CursorPageResponse;
+import com.pairingplanet.pairing_planet.dto.common.UnifiedPageResponse;
 import com.pairingplanet.pairing_planet.dto.recipe.*;
 import com.pairingplanet.pairing_planet.dto.log_post.*;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
@@ -7,8 +9,6 @@ import com.pairingplanet.pairing_planet.service.RecipeService;
 import com.pairingplanet.pairing_planet.service.SavedRecipeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,24 +24,30 @@ public class RecipeController {
 
     // --- [TAB 2: RECIPES] ---
     /**
-     * 레시피 탐색 통합 엔드포인트
+     * 레시피 탐색 통합 엔드포인트 (Dual pagination: cursor + offset)
      * - GET /api/v1/recipes : 로케일 상관없이 모든 레시피 조회 (Default)
      * - GET /api/v1/recipes?locale=ko-KR : 한국 레시피만 조회
-     * - GET /api/v1/recipes?onlyRoot=true : 오리지널 레시피만 조회
+     * - GET /api/v1/recipes?typeFilter=original|variant : 타입 필터
      * - GET /api/v1/recipes?q=검색어 : 제목/설명/재료 검색
+     * - GET /api/v1/recipes?cursor=xxx : 커서 기반 다음 페이지 (mobile)
+     * - GET /api/v1/recipes?page=0 : 오프셋 기반 페이지 (web)
      */
     @GetMapping
-    public ResponseEntity<Slice<RecipeSummaryDto>> getRecipes(
+    public ResponseEntity<UnifiedPageResponse<RecipeSummaryDto>> getRecipes(
             @RequestParam(name = "locale", required = false) String locale,
             @RequestParam(name = "onlyRoot", defaultValue = "false") boolean onlyRoot,
             @RequestParam(name = "typeFilter", required = false) String typeFilter,
             @RequestParam(name = "q", required = false) String searchKeyword,
-            Pageable pageable) {
+            @RequestParam(name = "cursor", required = false) String cursor,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
         // 검색어가 있으면 검색 모드
         if (searchKeyword != null && !searchKeyword.isBlank()) {
-            return ResponseEntity.ok(recipeService.searchRecipes(searchKeyword, pageable));
+            return ResponseEntity.ok(recipeService.searchRecipesUnified(searchKeyword, cursor, page, size));
         }
-        return ResponseEntity.ok(recipeService.findRecipes(locale, onlyRoot, typeFilter, pageable));
+        // typeFilter takes precedence over onlyRoot
+        String effectiveTypeFilter = (typeFilter != null) ? typeFilter : (onlyRoot ? "original" : null);
+        return ResponseEntity.ok(recipeService.findRecipesUnified(locale, effectiveTypeFilter, cursor, page, size));
     }
 
     /**
@@ -69,26 +75,33 @@ public class RecipeController {
 
     // --- [MY RECIPES] ---
     /**
-     * 내가 만든 레시피 목록
-     * GET /api/v1/recipes/my?typeFilter=original|variants
+     * 내가 만든 레시피 목록 (Dual pagination: cursor + offset)
+     * GET /api/v1/recipes/my?typeFilter=original|variants&cursor=xxx&size=20 (mobile)
+     * GET /api/v1/recipes/my?typeFilter=original|variants&page=0&size=20 (web)
      */
     @GetMapping("/my")
-    public ResponseEntity<Slice<RecipeSummaryDto>> getMyRecipes(
+    public ResponseEntity<UnifiedPageResponse<RecipeSummaryDto>> getMyRecipes(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(name = "typeFilter", required = false) String typeFilter,
-            Pageable pageable) {
-        return ResponseEntity.ok(recipeService.getMyRecipes(principal.getId(), typeFilter, pageable));
+            @RequestParam(name = "cursor", required = false) String cursor,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+        return ResponseEntity.ok(recipeService.getMyRecipesUnified(principal.getId(), typeFilter, cursor, page, size));
     }
 
     // --- [SAVED RECIPES] ---
     /**
-     * 저장한 레시피 목록
+     * 저장한 레시피 목록 (Dual pagination: cursor + offset)
+     * GET /api/v1/recipes/saved?cursor=xxx&size=20 (mobile)
+     * GET /api/v1/recipes/saved?page=0&size=20 (web)
      */
     @GetMapping("/saved")
-    public ResponseEntity<Slice<RecipeSummaryDto>> getSavedRecipes(
+    public ResponseEntity<UnifiedPageResponse<RecipeSummaryDto>> getSavedRecipes(
             @AuthenticationPrincipal UserPrincipal principal,
-            Pageable pageable) {
-        return ResponseEntity.ok(savedRecipeService.getSavedRecipes(principal.getId(), pageable));
+            @RequestParam(name = "cursor", required = false) String cursor,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+        return ResponseEntity.ok(savedRecipeService.getSavedRecipesUnified(principal.getId(), cursor, page, size));
     }
 
     // --- [SAVE/BOOKMARK] ---

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -117,4 +118,172 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
         """,
         nativeQuery = true)
     Slice<Recipe> searchRecipes(@Param("keyword") String keyword, Pageable pageable);
+
+    // ==================== CURSOR-BASED PAGINATION ====================
+
+    // [Cursor] All public recipes - initial page (no cursor)
+    @Query("SELECT r FROM Recipe r WHERE r.isDeleted = false AND r.isPrivate = false ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findPublicRecipesWithCursorInitial(Pageable pageable);
+
+    // [Cursor] All public recipes - with cursor
+    @Query("SELECT r FROM Recipe r WHERE r.isDeleted = false AND r.isPrivate = false " +
+           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
+           "ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findPublicRecipesWithCursor(@Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+
+    // [Cursor] Public recipes by locale - initial page
+    @Query("SELECT r FROM Recipe r WHERE r.culinaryLocale = :locale AND r.isDeleted = false AND r.isPrivate = false ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findPublicRecipesByLocaleWithCursorInitial(@Param("locale") String locale, Pageable pageable);
+
+    // [Cursor] Public recipes by locale - with cursor
+    @Query("SELECT r FROM Recipe r WHERE r.culinaryLocale = :locale AND r.isDeleted = false AND r.isPrivate = false " +
+           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
+           "ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findPublicRecipesByLocaleWithCursor(@Param("locale") String locale, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+
+    // [Cursor] Only original recipes - initial page
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.isDeleted = false AND r.isPrivate = false ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findOriginalRecipesWithCursorInitial(Pageable pageable);
+
+    // [Cursor] Only original recipes - with cursor
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.isDeleted = false AND r.isPrivate = false " +
+           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
+           "ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findOriginalRecipesWithCursor(@Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+
+    // [Cursor] Only original recipes by locale - initial page
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.culinaryLocale = :locale AND r.isDeleted = false AND r.isPrivate = false ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findOriginalRecipesByLocaleWithCursorInitial(@Param("locale") String locale, Pageable pageable);
+
+    // [Cursor] Only original recipes by locale - with cursor
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.culinaryLocale = :locale AND r.isDeleted = false AND r.isPrivate = false " +
+           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
+           "ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findOriginalRecipesByLocaleWithCursor(@Param("locale") String locale, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+
+    // [Cursor] Only variant recipes - initial page
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NOT NULL AND r.isDeleted = false AND r.isPrivate = false ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findVariantRecipesWithCursorInitial(Pageable pageable);
+
+    // [Cursor] Only variant recipes - with cursor
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NOT NULL AND r.isDeleted = false AND r.isPrivate = false " +
+           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
+           "ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findVariantRecipesWithCursor(@Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+
+    // [Cursor] Only variant recipes by locale - initial page
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NOT NULL AND r.culinaryLocale = :locale AND r.isDeleted = false AND r.isPrivate = false ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findVariantRecipesByLocaleWithCursorInitial(@Param("locale") String locale, Pageable pageable);
+
+    // [Cursor] Only variant recipes by locale - with cursor
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NOT NULL AND r.culinaryLocale = :locale AND r.isDeleted = false AND r.isPrivate = false " +
+           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
+           "ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findVariantRecipesByLocaleWithCursor(@Param("locale") String locale, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+
+    // [Cursor] My recipes - initial page
+    @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.isDeleted = false ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findMyRecipesWithCursorInitial(@Param("creatorId") Long creatorId, Pageable pageable);
+
+    // [Cursor] My recipes - with cursor
+    @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.isDeleted = false " +
+           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
+           "ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findMyRecipesWithCursor(@Param("creatorId") Long creatorId, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+
+    // [Cursor] My original recipes - initial page
+    @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.isDeleted = false AND r.parentRecipe IS NULL ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findMyOriginalRecipesWithCursorInitial(@Param("creatorId") Long creatorId, Pageable pageable);
+
+    // [Cursor] My original recipes - with cursor
+    @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.isDeleted = false AND r.parentRecipe IS NULL " +
+           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
+           "ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findMyOriginalRecipesWithCursor(@Param("creatorId") Long creatorId, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+
+    // [Cursor] My variant recipes - initial page
+    @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.isDeleted = false AND r.parentRecipe IS NOT NULL ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findMyVariantRecipesWithCursorInitial(@Param("creatorId") Long creatorId, Pageable pageable);
+
+    // [Cursor] My variant recipes - with cursor
+    @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.isDeleted = false AND r.parentRecipe IS NOT NULL " +
+           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
+           "ORDER BY r.createdAt DESC, r.id DESC")
+    Slice<Recipe> findMyVariantRecipesWithCursor(@Param("creatorId") Long creatorId, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+
+    // ==================== OFFSET-BASED PAGINATION (for Web) ====================
+
+    // [Offset] All public recipes with Page (includes total count)
+    @Query("SELECT r FROM Recipe r WHERE r.isDeleted = false AND r.isPrivate = false")
+    org.springframework.data.domain.Page<Recipe> findPublicRecipesPage(Pageable pageable);
+
+    // [Offset] Public recipes by locale with Page
+    @Query("SELECT r FROM Recipe r WHERE r.culinaryLocale = :locale AND r.isDeleted = false AND r.isPrivate = false")
+    org.springframework.data.domain.Page<Recipe> findPublicRecipesByLocalePage(@Param("locale") String locale, Pageable pageable);
+
+    // [Offset] Only original recipes with Page
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.isDeleted = false AND r.isPrivate = false")
+    org.springframework.data.domain.Page<Recipe> findOriginalRecipesPage(Pageable pageable);
+
+    // [Offset] Only original recipes by locale with Page
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.culinaryLocale = :locale AND r.isDeleted = false AND r.isPrivate = false")
+    org.springframework.data.domain.Page<Recipe> findOriginalRecipesByLocalePage(@Param("locale") String locale, Pageable pageable);
+
+    // [Offset] Only variant recipes with Page
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NOT NULL AND r.isDeleted = false AND r.isPrivate = false")
+    org.springframework.data.domain.Page<Recipe> findVariantRecipesPage(Pageable pageable);
+
+    // [Offset] Only variant recipes by locale with Page
+    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NOT NULL AND r.culinaryLocale = :locale AND r.isDeleted = false AND r.isPrivate = false")
+    org.springframework.data.domain.Page<Recipe> findVariantRecipesByLocalePage(@Param("locale") String locale, Pageable pageable);
+
+    // [Offset] My recipes with Page
+    @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.isDeleted = false")
+    org.springframework.data.domain.Page<Recipe> findMyRecipesPage(@Param("creatorId") Long creatorId, Pageable pageable);
+
+    // [Offset] My original recipes with Page
+    @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.isDeleted = false AND r.parentRecipe IS NULL")
+    org.springframework.data.domain.Page<Recipe> findMyOriginalRecipesPage(@Param("creatorId") Long creatorId, Pageable pageable);
+
+    // [Offset] My variant recipes with Page
+    @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.isDeleted = false AND r.parentRecipe IS NOT NULL")
+    org.springframework.data.domain.Page<Recipe> findMyVariantRecipesPage(@Param("creatorId") Long creatorId, Pageable pageable);
+
+    // [Offset] Search recipes with Page (includes total count for pagination UI)
+    @Query(value = """
+        SELECT r.* FROM (
+            SELECT DISTINCT ON (r2.id) r2.*,
+                GREATEST(
+                    COALESCE(SIMILARITY(r2.title, :keyword), 0),
+                    COALESCE(SIMILARITY(r2.description, :keyword), 0)
+                ) AS relevance_score
+            FROM recipes r2
+            LEFT JOIN recipe_ingredients ri ON ri.recipe_id = r2.id
+            WHERE r2.is_deleted = false AND r2.is_private = false
+            AND (
+                r2.title % :keyword
+                OR r2.description % :keyword
+                OR ri.name % :keyword
+                OR r2.title ILIKE '%' || :keyword || '%'
+                OR r2.description ILIKE '%' || :keyword || '%'
+                OR ri.name ILIKE '%' || :keyword || '%'
+            )
+        ) r
+        ORDER BY r.relevance_score DESC, r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(DISTINCT r.id) FROM recipes r
+        LEFT JOIN recipe_ingredients ri ON ri.recipe_id = r.id
+        WHERE r.is_deleted = false AND r.is_private = false
+        AND (
+            r.title % :keyword
+            OR r.description % :keyword
+            OR ri.name % :keyword
+            OR r.title ILIKE '%' || :keyword || '%'
+            OR r.description ILIKE '%' || :keyword || '%'
+            OR ri.name ILIKE '%' || :keyword || '%'
+        )
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> searchRecipesPage(@Param("keyword") String keyword, Pageable pageable);
 }

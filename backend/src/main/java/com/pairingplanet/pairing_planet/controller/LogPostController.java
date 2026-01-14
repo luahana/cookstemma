@@ -1,5 +1,7 @@
 package com.pairingplanet.pairing_planet.controller;
 
+import com.pairingplanet.pairing_planet.dto.common.CursorPageResponse;
+import com.pairingplanet.pairing_planet.dto.common.UnifiedPageResponse;
 import com.pairingplanet.pairing_planet.dto.log_post.*;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import com.pairingplanet.pairing_planet.service.LogPostService;
@@ -32,38 +34,44 @@ public class LogPostController {
         return ResponseEntity.ok(logPostService.createLog(req, principal));
     }
     /**
-     * 모든 로그 탐색 (무한 스크롤용 커서 기반 조회)
-     * GET /api/v1/log_posts?page=0&size=10
+     * 모든 로그 탐색 (Dual pagination: cursor + offset)
+     * GET /api/v1/log_posts?cursor=xxx&size=10 (mobile)
+     * GET /api/v1/log_posts?page=0&size=10 (web)
      * GET /api/v1/log_posts?q=검색어 : 제목/내용/레시피명 검색
      * GET /api/v1/log_posts?outcomes=PARTIAL,FAILED : outcome 필터링
      */
     @GetMapping
-    public ResponseEntity<Slice<LogPostSummaryDto>> getAllLogs(
+    public ResponseEntity<UnifiedPageResponse<LogPostSummaryDto>> getAllLogs(
             @RequestParam(name = "q", required = false) String searchKeyword,
             @RequestParam(name = "outcomes", required = false) String outcomes,
-            Pageable pageable) {
+            @RequestParam(name = "cursor", required = false) String cursor,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
         // 검색어가 있으면 검색 모드
         if (searchKeyword != null && !searchKeyword.isBlank()) {
-            return ResponseEntity.ok(logPostService.searchLogPosts(searchKeyword, pageable));
+            return ResponseEntity.ok(logPostService.searchLogPostsUnified(searchKeyword, cursor, page, size));
         }
         // outcome 필터링
+        java.util.List<String> outcomeList = null;
         if (outcomes != null && !outcomes.isBlank()) {
-            java.util.List<String> outcomeList = java.util.Arrays.asList(outcomes.split(","));
-            return ResponseEntity.ok(logPostService.getAllLogsByOutcomes(outcomeList, pageable));
+            outcomeList = java.util.Arrays.asList(outcomes.split(","));
         }
-        return ResponseEntity.ok(logPostService.getAllLogs(pageable));
+        return ResponseEntity.ok(logPostService.getAllLogsUnified(outcomeList, cursor, page, size));
     }
 
     /**
-     * 내 로그 목록 조회 (마이페이지용)
-     * GET /api/v1/log_posts/my?page=0&size=10&outcome=SUCCESS|PARTIAL|FAILED
+     * 내 로그 목록 조회 (마이페이지용, Dual pagination: cursor + offset)
+     * GET /api/v1/log_posts/my?cursor=xxx&size=10&outcome=SUCCESS|PARTIAL|FAILED (mobile)
+     * GET /api/v1/log_posts/my?page=0&size=10&outcome=SUCCESS|PARTIAL|FAILED (web)
      */
     @GetMapping("/my")
-    public ResponseEntity<Slice<LogPostSummaryDto>> getMyLogs(
+    public ResponseEntity<UnifiedPageResponse<LogPostSummaryDto>> getMyLogs(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(name = "outcome", required = false) String outcome,
-            Pageable pageable) {
-        return ResponseEntity.ok(logPostService.getMyLogs(principal.getId(), outcome, pageable));
+            @RequestParam(name = "cursor", required = false) String cursor,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+        return ResponseEntity.ok(logPostService.getMyLogsUnified(principal.getId(), outcome, cursor, page, size));
     }
 
     /**
@@ -116,14 +124,17 @@ public class LogPostController {
     // --- [SAVED LOGS (BOOKMARKS)] ---
 
     /**
-     * 저장한 로그 목록 조회
-     * GET /api/v1/log_posts/saved?page=0&size=20
+     * 저장한 로그 목록 조회 (Dual pagination: cursor + offset)
+     * GET /api/v1/log_posts/saved?cursor=xxx&size=20 (mobile)
+     * GET /api/v1/log_posts/saved?page=0&size=20 (web)
      */
     @GetMapping("/saved")
-    public ResponseEntity<Slice<LogPostSummaryDto>> getSavedLogs(
+    public ResponseEntity<UnifiedPageResponse<LogPostSummaryDto>> getSavedLogs(
             @AuthenticationPrincipal UserPrincipal principal,
-            Pageable pageable) {
-        return ResponseEntity.ok(savedLogService.getSavedLogs(principal.getId(), pageable));
+            @RequestParam(name = "cursor", required = false) String cursor,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+        return ResponseEntity.ok(savedLogService.getSavedLogsUnified(principal.getId(), cursor, page, size));
     }
 
     /**

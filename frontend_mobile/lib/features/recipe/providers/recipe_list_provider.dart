@@ -3,7 +3,7 @@ import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart';
 import '../../../domain/entities/recipe/recipe_summary.dart';
 
-/// State class for recipe list with pagination, cache info, search, and filters.
+/// State class for recipe list with cursor-based pagination, cache info, search, and filters.
 class RecipeListState {
   final List<RecipeSummary> items;
   final bool hasNext;
@@ -42,7 +42,7 @@ class RecipeListState {
 }
 
 class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
-  int _currentPage = 0;
+  String? _nextCursor;
   bool _hasNext = true;
   bool _isFetchingNext = false;
   bool _isFromCache = false;
@@ -56,15 +56,14 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
     final filterState = ref.watch(browseFilterProvider);
 
     // 초기화 로직
-    _currentPage = 0;
+    _nextCursor = null;
     _hasNext = true;
     _isFetchingNext = false;
     _isFromCache = false;
     _cachedAt = null;
     _lastFilterState = filterState;
 
-    final items = await _fetchRecipes(page: _currentPage, filterState: filterState);
-    // 초기 상태에 현재 리스트와 hasNext, 캐시 정보를 함께 담아 반환합니다.
+    final items = await _fetchRecipes(cursor: null, filterState: filterState);
     return RecipeListState(
       items: items,
       hasNext: _hasNext,
@@ -76,7 +75,7 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
   }
 
   Future<List<RecipeSummary>> _fetchRecipes({
-    required int page,
+    String? cursor,
     BrowseFilterState? filterState,
   }) async {
     final repository = ref.read(recipeRepositoryProvider);
@@ -90,42 +89,26 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
       typeFilter = 'variant';
     }
 
-    String? sortBy;
-    switch (filters?.sortOption) {
-      case RecipeSortOption.recent:
-        sortBy = 'recent';
-        break;
-      case RecipeSortOption.trending:
-        sortBy = 'trending';
-        break;
-      case RecipeSortOption.mostForked:
-        sortBy = 'most_forked';
-        break;
-      default:
-        sortBy = null;
-    }
-
     final result = await repository.getRecipes(
-      page: page,
-      size: 10,
+      cursor: cursor,
+      size: 20,
       query: _searchQuery,
       cuisineFilter: filters?.cuisineFilter,
       typeFilter: typeFilter,
-      sortBy: sortBy,
     );
 
-    return result.fold((failure) => throw failure, (sliceResponse) {
-      _hasNext = sliceResponse.hasNext;
-      // Track cache status for first page (only when not searching/filtering)
+    return result.fold((failure) => throw failure, (response) {
+      _hasNext = response.hasNext;
+      _nextCursor = response.nextCursor;
+      // Track cache status for initial page (only when not searching/filtering)
       final hasActiveFilters = _searchQuery != null ||
           filters?.cuisineFilter != null ||
-          typeFilter != null ||
-          (sortBy != null && sortBy != 'recent');
-      if (page == 0 && !hasActiveFilters) {
-        _isFromCache = sliceResponse.isFromCache;
-        _cachedAt = sliceResponse.cachedAt;
+          typeFilter != null;
+      if (cursor == null && !hasActiveFilters) {
+        _isFromCache = response.isFromCache;
+        _cachedAt = response.cachedAt;
       }
-      return sliceResponse.content;
+      return response.content;
     });
   }
 
@@ -138,7 +121,7 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
     }
 
     _searchQuery = trimmedQuery;
-    _currentPage = 0;
+    _nextCursor = null;
     _hasNext = true;
     _isFromCache = false;
     _cachedAt = null;
@@ -146,7 +129,7 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
     state = const AsyncValue.loading();
 
     try {
-      final items = await _fetchRecipes(page: 0);
+      final items = await _fetchRecipes(cursor: null);
       state = AsyncValue.data(RecipeListState(
         items: items,
         hasNext: _hasNext,
@@ -162,7 +145,7 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
     if (_searchQuery == null) return;
 
     _searchQuery = null;
-    _currentPage = 0;
+    _nextCursor = null;
     _hasNext = true;
     _isFromCache = false;
     _cachedAt = null;
@@ -171,22 +154,19 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
   }
 
   /// Pull-to-refresh: uses ref.invalidateSelf() for atomic state management.
-  /// This matches the working pattern in LogPostListNotifier.
   Future<void> refresh() async {
-    _currentPage = 0;
+    _nextCursor = null;
     _hasNext = true;
     _isFromCache = false;
     _cachedAt = null;
     ref.invalidateSelf();
   }
 
-  /// 다음 페이지 로드
+  /// 다음 페이지 로드 (cursor-based)
   Future<void> fetchNextPage() async {
-    // 💡 이미 데이터를 가져오는 중이거나 다음 페이지가 없으면 중단합니다.
     if (_isFetchingNext || !_hasNext) return;
 
     _isFetchingNext = true;
-    final nextPage = _currentPage + 1;
 
     // Get current filter state
     final filters = _lastFilterState;
@@ -199,46 +179,29 @@ class RecipeListNotifier extends AsyncNotifier<RecipeListState> {
       typeFilter = 'variant';
     }
 
-    String? sortBy;
-    switch (filters?.sortOption) {
-      case RecipeSortOption.recent:
-        sortBy = 'recent';
-        break;
-      case RecipeSortOption.trending:
-        sortBy = 'trending';
-        break;
-      case RecipeSortOption.mostForked:
-        sortBy = 'most_forked';
-        break;
-      default:
-        sortBy = null;
-    }
-
     final result = await ref.read(recipeRepositoryProvider).getRecipes(
-          page: nextPage,
-          size: 10,
+          cursor: _nextCursor,
+          size: 20,
           query: _searchQuery,
           cuisineFilter: filters?.cuisineFilter,
           typeFilter: typeFilter,
-          sortBy: sortBy,
         );
 
     result.fold(
       (failure) {
         _isFetchingNext = false;
       },
-      (sliceResponse) {
-        _currentPage = nextPage;
-        _hasNext = sliceResponse.hasNext;
+      (response) {
+        _nextCursor = response.nextCursor;
+        _hasNext = response.hasNext;
         _isFetchingNext = false;
 
-        // 💡 기존 리스트에 새 데이터를 붙이고, 최신 hasNext 상태를 업데이트합니다.
         final previousState = state.value;
         final previousItems = previousState?.items ?? [];
 
         state = AsyncValue.data(
           RecipeListState(
-            items: [...previousItems, ...sliceResponse.content],
+            items: [...previousItems, ...response.content],
             hasNext: _hasNext,
             searchQuery: _searchQuery,
             filterState: filters,

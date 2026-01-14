@@ -10,11 +10,11 @@ import 'package:pairing_planet2_frontend/features/recipe/providers/browse_filter
 import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_providers.dart'
     show networkInfoProvider;
 
-/// 내 레시피 페이지네이션 상태 (with cache metadata)
+/// 내 레시피 페이지네이션 상태 (with cache metadata, cursor-based)
 class MyRecipesState {
   final List<RecipeSummaryDto> items;
   final bool hasNext;
-  final int currentPage;
+  final String? nextCursor;
   final bool isLoading;
   final bool isFromCache;
   final DateTime? cachedAt;
@@ -23,7 +23,7 @@ class MyRecipesState {
   MyRecipesState({
     this.items = const [],
     this.hasNext = true,
-    this.currentPage = 0,
+    this.nextCursor,
     this.isLoading = false,
     this.isFromCache = false,
     this.cachedAt,
@@ -38,7 +38,8 @@ class MyRecipesState {
   MyRecipesState copyWith({
     List<RecipeSummaryDto>? items,
     bool? hasNext,
-    int? currentPage,
+    String? nextCursor,
+    bool clearNextCursor = false,
     bool? isLoading,
     bool? isFromCache,
     DateTime? cachedAt,
@@ -47,7 +48,7 @@ class MyRecipesState {
     return MyRecipesState(
       items: items ?? this.items,
       hasNext: hasNext ?? this.hasNext,
-      currentPage: currentPage ?? this.currentPage,
+      nextCursor: clearNextCursor ? null : (nextCursor ?? this.nextCursor),
       isLoading: isLoading ?? this.isLoading,
       isFromCache: isFromCache ?? this.isFromCache,
       cachedAt: cachedAt ?? this.cachedAt,
@@ -117,7 +118,7 @@ class MyRecipesNotifier extends StateNotifier<MyRecipesState> {
 
       if (isConnected) {
         final response = await _remoteDataSource.getMyRecipes(
-          page: 0,
+          cursor: null,
           typeFilter: _typeFilterParam,
         );
 
@@ -125,14 +126,14 @@ class MyRecipesNotifier extends StateNotifier<MyRecipesState> {
         if (_currentFilter == RecipeTypeFilter.all) {
           await _localDataSource.cacheMyRecipes(
             response.content,
-            response.hasNext ?? false,
+            response.hasNext,
           );
         }
 
         state = MyRecipesState(
           items: response.content,
-          hasNext: response.hasNext ?? false,
-          currentPage: 0,
+          hasNext: response.hasNext,
+          nextCursor: response.nextCursor,
           isLoading: false,
           isFromCache: false,
           cachedAt: DateTime.now(),
@@ -160,13 +161,13 @@ class MyRecipesNotifier extends StateNotifier<MyRecipesState> {
 
     try {
       final response = await _remoteDataSource.getMyRecipes(
-        page: state.currentPage + 1,
+        cursor: state.nextCursor,
         typeFilter: _typeFilterParam,
       );
       state = state.copyWith(
         items: [...state.items, ...response.content],
-        hasNext: response.hasNext ?? false,
-        currentPage: state.currentPage + 1,
+        hasNext: response.hasNext,
+        nextCursor: response.nextCursor,
         isLoading: false,
         isFromCache: false,
       );

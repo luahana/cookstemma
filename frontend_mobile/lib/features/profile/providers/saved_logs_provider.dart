@@ -5,18 +5,18 @@ import 'package:pairing_planet2_frontend/features/recipe/providers/recipe_provid
 import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
 
-/// 저장한 로그 페이지네이션 상태
+/// 저장한 로그 페이지네이션 상태 (cursor-based)
 class SavedLogsState {
   final List<LogPostSummaryDto> items;
   final bool hasNext;
-  final int currentPage;
+  final String? nextCursor;
   final bool isLoading;
   final String? error;
 
   SavedLogsState({
     this.items = const [],
     this.hasNext = true,
-    this.currentPage = 0,
+    this.nextCursor,
     this.isLoading = false,
     this.error,
   });
@@ -24,21 +24,22 @@ class SavedLogsState {
   SavedLogsState copyWith({
     List<LogPostSummaryDto>? items,
     bool? hasNext,
-    int? currentPage,
+    String? nextCursor,
+    bool clearNextCursor = false,
     bool? isLoading,
     String? error,
   }) {
     return SavedLogsState(
       items: items ?? this.items,
       hasNext: hasNext ?? this.hasNext,
-      currentPage: currentPage ?? this.currentPage,
+      nextCursor: clearNextCursor ? null : (nextCursor ?? this.nextCursor),
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
   }
 }
 
-/// 저장한 로그 목록 Notifier
+/// 저장한 로그 목록 Notifier (cursor-based)
 class SavedLogsNotifier extends StateNotifier<SavedLogsState> {
   final LogPostRemoteDataSource _remoteDataSource;
   final NetworkInfo _networkInfo;
@@ -62,12 +63,12 @@ class SavedLogsNotifier extends StateNotifier<SavedLogsState> {
       final isConnected = await _networkInfo.isConnected;
 
       if (isConnected) {
-        final response = await _remoteDataSource.getSavedLogs(page: 0);
+        final response = await _remoteDataSource.getSavedLogs(cursor: null);
 
         state = SavedLogsState(
           items: response.content,
-          hasNext: response.hasNext ?? false,
-          currentPage: 0,
+          hasNext: response.hasNext,
+          nextCursor: response.nextCursor,
           isLoading: false,
         );
       } else {
@@ -93,12 +94,12 @@ class SavedLogsNotifier extends StateNotifier<SavedLogsState> {
 
     try {
       final response = await _remoteDataSource.getSavedLogs(
-        page: state.currentPage + 1,
+        cursor: state.nextCursor,
       );
       state = state.copyWith(
         items: [...state.items, ...response.content],
-        hasNext: response.hasNext ?? false,
-        currentPage: state.currentPage + 1,
+        hasNext: response.hasNext,
+        nextCursor: response.nextCursor,
         isLoading: false,
       );
     } catch (e) {
@@ -110,7 +111,7 @@ class SavedLogsNotifier extends StateNotifier<SavedLogsState> {
     if (_isRefreshing) return;
     _isRefreshing = true;
     try {
-      state = state.copyWith(isLoading: true, error: null);
+      state = state.copyWith(isLoading: true, error: null, clearNextCursor: true);
       await _fetchFromNetwork();
     } finally {
       _isRefreshing = false;

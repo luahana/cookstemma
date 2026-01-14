@@ -54,7 +54,7 @@ void main() {
       // Assert
       expect(state.items, isEmpty);
       expect(state.hasNext, isTrue);
-      expect(state.currentPage, 0);
+      expect(state.nextCursor, isNull);
       expect(state.isLoading, isFalse);
       expect(state.isFromCache, isFalse);
       expect(state.cachedAt, isNull);
@@ -66,20 +66,33 @@ void main() {
       final original = MyLogsState(
         items: [],
         hasNext: true,
-        currentPage: 0,
+        nextCursor: null,
         isLoading: false,
       );
 
       // Act
       final updated = original.copyWith(
         isLoading: true,
-        currentPage: 1,
+        nextCursor: 'next_cursor_token',
       );
 
       // Assert
       expect(updated.isLoading, isTrue);
-      expect(updated.currentPage, 1);
+      expect(updated.nextCursor, 'next_cursor_token');
       expect(updated.hasNext, isTrue); // Preserved from original
+    });
+
+    test('MyLogsState copyWith clearNextCursor should reset cursor', () {
+      // Arrange
+      final original = MyLogsState(
+        nextCursor: 'some_cursor',
+      );
+
+      // Act
+      final updated = original.copyWith(clearNextCursor: true);
+
+      // Assert
+      expect(updated.nextCursor, isNull);
     });
 
     test('MyLogsState isStale should return true for old cache', () {

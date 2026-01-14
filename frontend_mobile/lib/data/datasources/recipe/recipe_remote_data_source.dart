@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:pairing_planet2_frontend/data/models/common/slice_response_dto.dart';
+import 'package:pairing_planet2_frontend/data/models/common/cursor_page_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_detail_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/create_recipe_request_dtos.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_modifiable_dto.dart';
@@ -65,19 +65,21 @@ class RecipeRemoteDataSource {
     }
   }
 
-  Future<SliceResponseDto<RecipeSummaryDto>> getRecipes({
-    required int page,
-    int size = 10,
+  /// Get recipes with cursor-based pagination
+  Future<CursorPageResponseDto<RecipeSummaryDto>> getRecipes({
+    String? cursor,
+    int size = 20,
     String? query,
     String? cuisineFilter,
     String? typeFilter, // 'original', 'variant', or null for all
-    String? sortBy, // 'recent', 'trending', 'most_forked'
   }) async {
     try {
       final queryParams = <String, dynamic>{
-        'page': page,
         'size': size,
       };
+      if (cursor != null && cursor.isNotEmpty) {
+        queryParams['cursor'] = cursor;
+      }
       if (query != null && query.isNotEmpty) {
         queryParams['q'] = query;
       }
@@ -90,27 +92,18 @@ class RecipeRemoteDataSource {
       } else if (typeFilter == 'variant') {
         queryParams['typeFilter'] = 'variant';
       }
-      // Map frontend sort names to Spring Data sort format
-      if (sortBy != null && sortBy.isNotEmpty) {
-        final sortMapping = {
-          'recent': 'createdAt,desc',
-          'trending': 'createdAt,desc', // TODO: implement trending sort on backend
-          'most_forked': 'createdAt,desc', // TODO: implement fork count sort
-        };
-        queryParams['sort'] = sortMapping[sortBy] ?? 'createdAt,desc';
-      }
 
       final response = await _dio.get(
         ApiEndpoints.recipes,
         queryParameters: queryParams,
       );
 
-      return SliceResponseDto.fromJson(
+      return CursorPageResponseDto.fromJson(
         response.data as Map<String, dynamic>,
         (json) => RecipeSummaryDto.fromJson(json),
       );
     } catch (e) {
-      rethrow; // Repository에서 잡을 수 있도록 던짐
+      rethrow;
     }
   }
 

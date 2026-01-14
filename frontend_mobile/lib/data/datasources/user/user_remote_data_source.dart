@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
 import 'package:pairing_planet2_frontend/core/error/exceptions.dart';
+import 'package:pairing_planet2_frontend/data/models/common/cursor_page_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/common/slice_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
@@ -44,15 +45,18 @@ class UserRemoteDataSource {
     }
   }
 
-  /// 내 레시피 목록 조회
+  /// 내 레시피 목록 조회 (cursor-based pagination)
   /// [typeFilter] - 'original', 'variants', or null for all
-  Future<SliceResponseDto<RecipeSummaryDto>> getMyRecipes({
-    required int page,
-    int size = 10,
+  Future<CursorPageResponseDto<RecipeSummaryDto>> getMyRecipes({
+    String? cursor,
+    int size = 20,
     String? typeFilter,
   }) async {
     try {
-      final queryParams = <String, dynamic>{'page': page, 'size': size};
+      final queryParams = <String, dynamic>{'size': size};
+      if (cursor != null && cursor.isNotEmpty) {
+        queryParams['cursor'] = cursor;
+      }
       if (typeFilter != null && typeFilter.isNotEmpty) {
         queryParams['typeFilter'] = typeFilter;
       }
@@ -62,7 +66,7 @@ class UserRemoteDataSource {
         queryParameters: queryParams,
       );
 
-      return SliceResponseDto.fromJson(
+      return CursorPageResponseDto.fromJson(
         response.data as Map<String, dynamic>,
         (json) => RecipeSummaryDto.fromJson(json),
       );
@@ -71,15 +75,18 @@ class UserRemoteDataSource {
     }
   }
 
-  /// 내 로그 목록 조회
+  /// 내 로그 목록 조회 (cursor-based pagination)
   /// [outcome] - 'SUCCESS', 'PARTIAL', 'FAILED', or null for all
-  Future<SliceResponseDto<LogPostSummaryDto>> getMyLogs({
-    required int page,
-    int size = 10,
+  Future<CursorPageResponseDto<LogPostSummaryDto>> getMyLogs({
+    String? cursor,
+    int size = 20,
     String? outcome,
   }) async {
     try {
-      final queryParams = <String, dynamic>{'page': page, 'size': size};
+      final queryParams = <String, dynamic>{'size': size};
+      if (cursor != null && cursor.isNotEmpty) {
+        queryParams['cursor'] = cursor;
+      }
       if (outcome != null && outcome.isNotEmpty) {
         queryParams['outcome'] = outcome;
       }
@@ -89,7 +96,7 @@ class UserRemoteDataSource {
         queryParameters: queryParams,
       );
 
-      return SliceResponseDto.fromJson(
+      return CursorPageResponseDto.fromJson(
         response.data as Map<String, dynamic>,
         (json) => LogPostSummaryDto.fromJson(json),
       );
@@ -98,18 +105,22 @@ class UserRemoteDataSource {
     }
   }
 
-  /// 저장한 레시피 목록 조회
-  Future<SliceResponseDto<RecipeSummaryDto>> getSavedRecipes({
-    required int page,
-    int size = 10,
+  /// 저장한 레시피 목록 조회 (cursor-based pagination)
+  Future<CursorPageResponseDto<RecipeSummaryDto>> getSavedRecipes({
+    String? cursor,
+    int size = 20,
   }) async {
     try {
+      final queryParams = <String, dynamic>{'size': size};
+      if (cursor != null && cursor.isNotEmpty) {
+        queryParams['cursor'] = cursor;
+      }
       final response = await _dio.get(
         ApiEndpoints.savedRecipes,
-        queryParameters: {'page': page, 'size': size},
+        queryParameters: queryParams,
       );
 
-      return SliceResponseDto.fromJson(
+      return CursorPageResponseDto.fromJson(
         response.data as Map<String, dynamic>,
         (json) => RecipeSummaryDto.fromJson(json),
       );

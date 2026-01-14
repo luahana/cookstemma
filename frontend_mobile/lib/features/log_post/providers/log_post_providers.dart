@@ -6,7 +6,7 @@ import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_loca
 import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/repositories/log_post_repository_impl.dart';
 import 'package:pairing_planet2_frontend/domain/entities/analytics/app_event.dart';
-import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
+import 'package:pairing_planet2_frontend/domain/entities/common/cursor_page_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/create_log_post_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_detail.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_summary.dart';
@@ -146,13 +146,13 @@ final logPostDetailProvider = FutureProvider.family<LogPostDetail, String>((
   );
 });
 
-final logPostListProvider = FutureProvider<SliceResponse<LogPostSummary>>((ref) async {
+final logPostListProvider = FutureProvider<CursorPageResponse<LogPostSummary>>((ref) async {
   final useCase = ref.read(getLogPostListUseCaseProvider);
   final result = await useCase();
 
   return result.fold(
     (failure) => throw failure.message,
-    (sliceResponse) => sliceResponse,
+    (response) => response,
   );
 });
 

@@ -7,11 +7,11 @@ import 'package:pairing_planet2_frontend/data/datasources/user/user_remote_data_
 import 'package:pairing_planet2_frontend/data/models/recipe/recipe_summary_dto.dart';
 import 'package:pairing_planet2_frontend/features/profile/providers/profile_provider.dart';
 
-/// 저장한 레시피 페이지네이션 상태 (with cache metadata)
+/// 저장한 레시피 페이지네이션 상태 (with cache metadata, cursor-based)
 class SavedRecipesState {
   final List<RecipeSummaryDto> items;
   final bool hasNext;
-  final int currentPage;
+  final String? nextCursor;
   final bool isLoading;
   final bool isFromCache;
   final DateTime? cachedAt;
@@ -20,7 +20,7 @@ class SavedRecipesState {
   SavedRecipesState({
     this.items = const [],
     this.hasNext = true,
-    this.currentPage = 0,
+    this.nextCursor,
     this.isLoading = false,
     this.isFromCache = false,
     this.cachedAt,
@@ -35,7 +35,8 @@ class SavedRecipesState {
   SavedRecipesState copyWith({
     List<RecipeSummaryDto>? items,
     bool? hasNext,
-    int? currentPage,
+    String? nextCursor,
+    bool clearNextCursor = false,
     bool? isLoading,
     bool? isFromCache,
     DateTime? cachedAt,
@@ -44,7 +45,7 @@ class SavedRecipesState {
     return SavedRecipesState(
       items: items ?? this.items,
       hasNext: hasNext ?? this.hasNext,
-      currentPage: currentPage ?? this.currentPage,
+      nextCursor: clearNextCursor ? null : (nextCursor ?? this.nextCursor),
       isLoading: isLoading ?? this.isLoading,
       isFromCache: isFromCache ?? this.isFromCache,
       cachedAt: cachedAt ?? this.cachedAt,
@@ -53,7 +54,7 @@ class SavedRecipesState {
   }
 }
 
-/// 저장한 레시피 목록 Notifier (cache-first)
+/// 저장한 레시피 목록 Notifier (cache-first, cursor-based)
 class SavedRecipesNotifier extends StateNotifier<SavedRecipesState> {
   final UserRemoteDataSource _remoteDataSource;
   final UserLocalDataSource _localDataSource;
@@ -93,17 +94,17 @@ class SavedRecipesNotifier extends StateNotifier<SavedRecipesState> {
       final isConnected = await _networkInfo.isConnected;
 
       if (isConnected) {
-        final response = await _remoteDataSource.getSavedRecipes(page: 0);
+        final response = await _remoteDataSource.getSavedRecipes(cursor: null);
 
         await _localDataSource.cacheSavedRecipes(
           response.content,
-          response.hasNext ?? false,
+          response.hasNext,
         );
 
         state = SavedRecipesState(
           items: response.content,
-          hasNext: response.hasNext ?? false,
-          currentPage: 0,
+          hasNext: response.hasNext,
+          nextCursor: response.nextCursor,
           isLoading: false,
           isFromCache: false,
           cachedAt: DateTime.now(),
@@ -131,12 +132,12 @@ class SavedRecipesNotifier extends StateNotifier<SavedRecipesState> {
 
     try {
       final response = await _remoteDataSource.getSavedRecipes(
-        page: state.currentPage + 1,
+        cursor: state.nextCursor,
       );
       state = state.copyWith(
         items: [...state.items, ...response.content],
-        hasNext: response.hasNext ?? false,
-        currentPage: state.currentPage + 1,
+        hasNext: response.hasNext,
+        nextCursor: response.nextCursor,
         isLoading: false,
         isFromCache: false,
       );
@@ -149,7 +150,7 @@ class SavedRecipesNotifier extends StateNotifier<SavedRecipesState> {
     if (_isRefreshing) return;
     _isRefreshing = true;
     try {
-      state = state.copyWith(isLoading: true, error: null);
+      state = state.copyWith(isLoading: true, error: null, clearNextCursor: true);
       await _fetchFromNetwork();
     } finally {
       _isRefreshing = false;

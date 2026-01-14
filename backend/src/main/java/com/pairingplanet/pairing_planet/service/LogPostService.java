@@ -5,6 +5,8 @@ import com.pairingplanet.pairing_planet.domain.entity.log_post.LogPost;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.RecipeLog;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
+import com.pairingplanet.pairing_planet.dto.common.CursorPageResponse;
+import com.pairingplanet.pairing_planet.dto.common.UnifiedPageResponse;
 import com.pairingplanet.pairing_planet.dto.hashtag.HashtagDto;
 import com.pairingplanet.pairing_planet.dto.image.ImageResponseDto;
 import com.pairingplanet.pairing_planet.dto.log_post.LogPostDetailResponseDto;
@@ -18,10 +20,14 @@ import com.pairingplanet.pairing_planet.repository.recipe.RecipeLogRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.RecipeRepository;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
+import com.pairingplanet.pairing_planet.util.CursorUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -291,6 +297,99 @@ public class LogPostService {
                 .map(this::convertToLogSummary);
     }
 
+    // ==================== CURSOR-BASED PAGINATION ====================
+
+    /**
+     * 모든 로그 조회 (Cursor-based pagination)
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponse<LogPostSummaryDto> getAllLogsWithCursor(String cursor, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        Slice<LogPost> logs;
+        if (cursorData == null) {
+            logs = logPostRepository.findAllLogsWithCursorInitial(pageable);
+        } else {
+            logs = logPostRepository.findAllLogsWithCursor(cursorData.createdAt(), cursorData.id(), pageable);
+        }
+
+        return buildCursorResponse(logs, size);
+    }
+
+    /**
+     * 로그 목록 조회 with outcomes filter (Cursor-based pagination)
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponse<LogPostSummaryDto> getAllLogsByOutcomesWithCursor(List<String> outcomes, String cursor, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        Slice<LogPost> logs;
+        if (cursorData == null) {
+            logs = logPostRepository.findByOutcomesWithCursorInitial(outcomes, pageable);
+        } else {
+            logs = logPostRepository.findByOutcomesWithCursor(outcomes, cursorData.createdAt(), cursorData.id(), pageable);
+        }
+
+        return buildCursorResponse(logs, size);
+    }
+
+    /**
+     * 내 로그 조회 (Cursor-based pagination)
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponse<LogPostSummaryDto> getMyLogsWithCursor(Long userId, String outcome, String cursor, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        Slice<LogPost> logs;
+        if (outcome != null && !outcome.isBlank()) {
+            if (cursorData == null) {
+                logs = logPostRepository.findMyLogsByOutcomeWithCursorInitial(userId, outcome.toUpperCase(), pageable);
+            } else {
+                logs = logPostRepository.findMyLogsByOutcomeWithCursor(userId, outcome.toUpperCase(), cursorData.createdAt(), cursorData.id(), pageable);
+            }
+        } else {
+            if (cursorData == null) {
+                logs = logPostRepository.findMyLogsWithCursorInitial(userId, pageable);
+            } else {
+                logs = logPostRepository.findMyLogsWithCursor(userId, cursorData.createdAt(), cursorData.id(), pageable);
+            }
+        }
+
+        return buildCursorResponse(logs, size);
+    }
+
+    /**
+     * 로그 검색 (Cursor-based pagination)
+     * Note: Search still uses page-based internally for complex ordering, but returns cursor response
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponse<LogPostSummaryDto> searchLogPostsWithCursor(String keyword, String cursor, int size) {
+        if (keyword == null || keyword.trim().length() < 2) {
+            return CursorPageResponse.empty(size);
+        }
+        // Search uses page-based due to complex ordering, cursor decodes to page number for simplicity
+        Pageable pageable = PageRequest.of(0, size);
+        Slice<LogPost> logs = logPostRepository.searchLogPosts(keyword.trim(), pageable);
+        return buildCursorResponse(logs, size);
+    }
+
+    private CursorPageResponse<LogPostSummaryDto> buildCursorResponse(Slice<LogPost> logs, int size) {
+        List<LogPostSummaryDto> content = logs.getContent().stream()
+                .map(this::convertToLogSummary)
+                .toList();
+
+        String nextCursor = null;
+        if (logs.hasNext() && !logs.getContent().isEmpty()) {
+            LogPost lastItem = logs.getContent().get(logs.getContent().size() - 1);
+            nextCursor = CursorUtil.encode(lastItem.getCreatedAt(), lastItem.getId());
+        }
+
+        return CursorPageResponse.of(content, nextCursor, size);
+    }
+
     /**
      * 로그 수정
      */
@@ -346,5 +445,169 @@ public class LogPostService {
         // Soft delete
         logPost.setIsDeleted(true);
         logPostRepository.save(logPost);
+    }
+
+    // ================================================================
+    // Unified Dual Pagination Methods (Strategy Pattern)
+    // ================================================================
+
+    /**
+     * Unified log list with strategy-based pagination.
+     * - If cursor is provided → cursor-based pagination (mobile)
+     * - If page is provided → offset-based pagination (web)
+     * - Default → cursor-based initial page
+     */
+    @Transactional(readOnly = true)
+    public UnifiedPageResponse<LogPostSummaryDto> getAllLogsUnified(
+            List<String> outcomes, String cursor, Integer page, int size) {
+
+        if (cursor != null && !cursor.isEmpty()) {
+            return getAllLogsWithCursorUnified(outcomes, cursor, size);
+        } else if (page != null) {
+            return getAllLogsWithOffset(outcomes, page, size);
+        } else {
+            return getAllLogsWithCursorUnified(outcomes, null, size);
+        }
+    }
+
+    /**
+     * Offset-based log list for web clients.
+     */
+    private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithOffset(
+            List<String> outcomes, int page, int size) {
+
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<LogPost> logs;
+        if (outcomes != null && !outcomes.isEmpty()) {
+            logs = logPostRepository.findByOutcomesPage(outcomes, pageable);
+        } else {
+            logs = logPostRepository.findAllLogsPage(pageable);
+        }
+
+        Page<LogPostSummaryDto> mappedPage = logs.map(this::convertToLogSummary);
+        return UnifiedPageResponse.fromPage(mappedPage, size);
+    }
+
+    /**
+     * Cursor-based log list wrapped in UnifiedPageResponse.
+     */
+    private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithCursorUnified(
+            List<String> outcomes, String cursor, int size) {
+
+        CursorPageResponse<LogPostSummaryDto> cursorResponse;
+        if (outcomes != null && !outcomes.isEmpty()) {
+            cursorResponse = getAllLogsByOutcomesWithCursor(outcomes, cursor, size);
+        } else {
+            cursorResponse = getAllLogsWithCursor(cursor, size);
+        }
+
+        return UnifiedPageResponse.fromCursor(
+                cursorResponse.content(),
+                cursorResponse.nextCursor(),
+                size
+        );
+    }
+
+    /**
+     * Unified my logs with strategy-based pagination.
+     */
+    @Transactional(readOnly = true)
+    public UnifiedPageResponse<LogPostSummaryDto> getMyLogsUnified(
+            Long userId, String outcome, String cursor, Integer page, int size) {
+
+        if (cursor != null && !cursor.isEmpty()) {
+            return getMyLogsWithCursorUnified(userId, outcome, cursor, size);
+        } else if (page != null) {
+            return getMyLogsWithOffset(userId, outcome, page, size);
+        } else {
+            return getMyLogsWithCursorUnified(userId, outcome, null, size);
+        }
+    }
+
+    /**
+     * Offset-based my logs for web clients.
+     */
+    private UnifiedPageResponse<LogPostSummaryDto> getMyLogsWithOffset(
+            Long userId, String outcome, int page, int size) {
+
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<LogPost> logs;
+        if (outcome != null && !outcome.isBlank()) {
+            logs = logPostRepository.findMyLogsByOutcomePage(userId, outcome.toUpperCase(), pageable);
+        } else {
+            logs = logPostRepository.findMyLogsPage(userId, pageable);
+        }
+
+        Page<LogPostSummaryDto> mappedPage = logs.map(this::convertToLogSummary);
+        return UnifiedPageResponse.fromPage(mappedPage, size);
+    }
+
+    /**
+     * Cursor-based my logs wrapped in UnifiedPageResponse.
+     */
+    private UnifiedPageResponse<LogPostSummaryDto> getMyLogsWithCursorUnified(
+            Long userId, String outcome, String cursor, int size) {
+
+        CursorPageResponse<LogPostSummaryDto> cursorResponse =
+                getMyLogsWithCursor(userId, outcome, cursor, size);
+
+        return UnifiedPageResponse.fromCursor(
+                cursorResponse.content(),
+                cursorResponse.nextCursor(),
+                size
+        );
+    }
+
+    /**
+     * Unified search logs with strategy-based pagination.
+     */
+    @Transactional(readOnly = true)
+    public UnifiedPageResponse<LogPostSummaryDto> searchLogPostsUnified(
+            String keyword, String cursor, Integer page, int size) {
+
+        if (keyword == null || keyword.trim().length() < 2) {
+            return UnifiedPageResponse.emptyCursor(size);
+        }
+
+        if (cursor != null && !cursor.isEmpty()) {
+            return searchLogPostsWithCursorUnified(keyword, cursor, size);
+        } else if (page != null) {
+            return searchLogPostsWithOffset(keyword, page, size);
+        } else {
+            return searchLogPostsWithCursorUnified(keyword, null, size);
+        }
+    }
+
+    /**
+     * Offset-based search logs for web clients.
+     */
+    private UnifiedPageResponse<LogPostSummaryDto> searchLogPostsWithOffset(
+            String keyword, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword.trim(), pageable);
+
+        Page<LogPostSummaryDto> mappedPage = logs.map(this::convertToLogSummary);
+        return UnifiedPageResponse.fromPage(mappedPage, size);
+    }
+
+    /**
+     * Cursor-based search logs wrapped in UnifiedPageResponse.
+     */
+    private UnifiedPageResponse<LogPostSummaryDto> searchLogPostsWithCursorUnified(
+            String keyword, String cursor, int size) {
+
+        CursorPageResponse<LogPostSummaryDto> cursorResponse =
+                searchLogPostsWithCursor(keyword, cursor, size);
+
+        return UnifiedPageResponse.fromCursor(
+                cursorResponse.content(),
+                cursorResponse.nextCursor(),
+                size
+        );
     }
 }

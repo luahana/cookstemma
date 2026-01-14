@@ -4,6 +4,7 @@ import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_loca
 import 'package:pairing_planet2_frontend/data/datasources/log_post/log_post_remote_data_source.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/create_log_post_request_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/update_log_post_request_dto.dart';
+import 'package:pairing_planet2_frontend/domain/entities/common/cursor_page_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/common/slice_response.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/create_log_post_request.dart';
 import 'package:pairing_planet2_frontend/domain/entities/log_post/log_post_detail.dart';
@@ -65,21 +66,21 @@ class LogPostRepositoryImpl implements LogPostRepository {
   }
 
   @override
-  Future<Either<Failure, SliceResponse<LogPostSummary>>> getLogPosts({
-    int page = 0,
+  Future<Either<Failure, CursorPageResponse<LogPostSummary>>> getLogPosts({
+    String? cursor,
     int size = 20,
     String? query,
     List<String>? outcomes,
   }) async {
     if (await networkInfo.isConnected) {
       try {
-        final sliceDto = await remoteDataSource.getLogPosts(
-          page: page,
+        final responseDto = await remoteDataSource.getLogPosts(
+          cursor: cursor,
           size: size,
           query: query,
           outcomes: outcomes,
         );
-        return Right(sliceDto.toEntity((dto) => dto.toEntity()));
+        return Right(responseDto.toEntity((dto) => dto.toEntity()));
       } catch (e) {
         return Left(ServerFailure(e.toString()));
       }
@@ -175,17 +176,17 @@ class LogPostRepositoryImpl implements LogPostRepository {
   }
 
   @override
-  Future<Either<Failure, SliceResponse<LogPostSummary>>> getSavedLogs({
-    int page = 0,
+  Future<Either<Failure, CursorPageResponse<LogPostSummary>>> getSavedLogs({
+    String? cursor,
     int size = 20,
   }) async {
     if (await networkInfo.isConnected) {
       try {
-        final sliceDto = await remoteDataSource.getSavedLogs(
-          page: page,
+        final responseDto = await remoteDataSource.getSavedLogs(
+          cursor: cursor,
           size: size,
         );
-        return Right(sliceDto.toEntity((dto) => dto.toEntity()));
+        return Right(responseDto.toEntity((dto) => dto.toEntity()));
       } catch (e) {
         return Left(ServerFailure(e.toString()));
       }

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/data/models/common/cursor_page_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/create_log_post_request_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_detail_response_dto.dart';
 import 'package:pairing_planet2_frontend/data/models/log_post/log_post_summary_dto.dart';
@@ -42,21 +43,23 @@ class LogPostRemoteDataSource {
     await _dio.delete('${ApiEndpoints.logPosts}/$publicId');
   }
 
-  Future<SliceResponseDto<LogPostSummaryDto>> getLogPosts({
-    int page = 0,
+  /// Get logs with cursor-based pagination
+  Future<CursorPageResponseDto<LogPostSummaryDto>> getLogPosts({
+    String? cursor,
     int size = 20,
     String? query,
     List<String>? outcomes,
   }) async {
     final queryParams = <String, dynamic>{
-      'page': page,
       'size': size,
     };
+    if (cursor != null && cursor.isNotEmpty) {
+      queryParams['cursor'] = cursor;
+    }
     if (query != null && query.isNotEmpty) {
       queryParams['q'] = query;
     }
     if (outcomes != null && outcomes.isNotEmpty) {
-      // Send outcomes as comma-separated string or array based on API spec
       queryParams['outcomes'] = outcomes.join(',');
     }
 
@@ -65,7 +68,7 @@ class LogPostRemoteDataSource {
       queryParameters: queryParams,
     );
 
-    return SliceResponseDto.fromJson(
+    return CursorPageResponseDto.fromJson(
       response.data as Map<String, dynamic>,
       (json) => LogPostSummaryDto.fromJson(json),
     );
@@ -97,16 +100,20 @@ class LogPostRemoteDataSource {
     await _dio.delete(ApiEndpoints.logPostSave(publicId));
   }
 
-  /// 저장한 로그 목록 조회
-  Future<SliceResponseDto<LogPostSummaryDto>> getSavedLogs({
-    int page = 0,
+  /// 저장한 로그 목록 조회 (cursor-based pagination)
+  Future<CursorPageResponseDto<LogPostSummaryDto>> getSavedLogs({
+    String? cursor,
     int size = 20,
   }) async {
+    final queryParams = <String, dynamic>{'size': size};
+    if (cursor != null && cursor.isNotEmpty) {
+      queryParams['cursor'] = cursor;
+    }
     final response = await _dio.get(
       ApiEndpoints.savedLogs,
-      queryParameters: {'page': page, 'size': size},
+      queryParameters: queryParams,
     );
-    return SliceResponseDto.fromJson(
+    return CursorPageResponseDto.fromJson(
       response.data as Map<String, dynamic>,
       (json) => LogPostSummaryDto.fromJson(json),
     );

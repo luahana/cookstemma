@@ -64,7 +64,7 @@ class _RecipePickerSheetState extends ConsumerState<RecipePickerSheet> {
     try {
       final repository = ref.read(recipeRepositoryProvider);
       final result = await repository.getRecipes(
-        page: 0,
+        cursor: null,
         size: 20,
         query: query.trim(),
       );
