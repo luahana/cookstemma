@@ -138,12 +138,17 @@ jobs:
           sed -i '' "s|Pairing Planet Dev AdHoc|$PP_UUID|g" ios/ExportOptions-dev.plist
           cat ios/ExportOptions-dev.plist
 
-      - name: Prepare Flutter iOS build
+      - name: Build Dart code
         run: |
-          # Generate iOS build files without full build
-          flutter build ios -t lib/main_dev.dart --release --no-codesign --config-only || true
-          # Run pod install manually
-          cd ios && pod install --repo-update
+          # Build just the Dart/Flutter bundle
+          flutter build bundle -t lib/main_dev.dart
+
+      - name: Setup iOS project
+        run: |
+          cd ios
+          # Generate Flutter xcconfig files
+          flutter precache --ios
+          pod install --repo-update
 
       - name: Archive with xcodebuild
         run: |
@@ -151,13 +156,16 @@ jobs:
           xcodebuild archive \
             -workspace Runner.xcworkspace \
             -scheme Runner \
-            -configuration Release \
+            -configuration Release-dev \
             -archivePath ../build/ios/archive/Runner.xcarchive \
             -sdk iphoneos \
+            -allowProvisioningUpdates \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
             DEVELOPMENT_TEAM=DFAR672Q54 \
-            "PROVISIONING_PROFILE_SPECIFIER=$PP_UUID"
+            "PROVISIONING_PROFILE_SPECIFIER=$PP_UUID" \
+            FLUTTER_BUILD_MODE=release \
+            FLUTTER_TARGET=lib/main_dev.dart
 
       - name: Export IPA
         run: |
@@ -165,7 +173,8 @@ jobs:
           xcodebuild -exportArchive \
             -archivePath ../build/ios/archive/Runner.xcarchive \
             -exportPath ../build/ios/ipa \
-            -exportOptionsPlist ExportOptions-dev.plist
+            -exportOptionsPlist ExportOptions-dev.plist \
+            -allowProvisioningUpdates
 
       - name: Find IPA file
         run: |
