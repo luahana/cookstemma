@@ -124,6 +124,19 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
           echo "PP_UUID=$PP_UUID" >> $GITHUB_ENV
 
+      - name: Clean build artifacts
+        run: |
+          flutter clean
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
+          cd ios && rm -rf Pods Podfile.lock && cd ..
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Pod install
+        working-directory: ./frontend_mobile/ios
+        run: pod install --repo-update
+
       - name: Build Flutter iOS (no codesign)
         run: flutter build ios -t lib/main_dev.dart --release --no-codesign
 
