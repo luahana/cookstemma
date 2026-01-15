@@ -23,10 +23,41 @@ platform :ios do
 
     # Build Flutter IPA with signing
     # Fastlane runs from ios/fastlane, so we need to go up two levels for flutter dir
-    # and one level for the export plist
     ios_dir = File.expand_path("..", Dir.pwd)  # ios
     flutter_dir = File.expand_path("..", ios_dir)  # frontend_mobile
-    export_plist = File.join(ios_dir, "ExportOptions-dev.plist")
+
+    # Generate ExportOptions plist dynamically with the correct profile UUID
+    profile_uuid = ENV['PROVISIONING_PROFILE_NAME'] || 'Pairing Planet Dev AppStore'
+    export_plist = File.join(ios_dir, "ExportOptions-generated.plist")
+
+    plist_content = <<~PLIST
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+          <key>method</key>
+          <string>app-store</string>
+          <key>teamID</key>
+          <string>DFAR672Q54</string>
+          <key>signingStyle</key>
+          <string>manual</string>
+          <key>provisioningProfiles</key>
+          <dict>
+              <key>com.pairingplanet.pairingplanetfrontend.dev</key>
+              <string>#{profile_uuid}</string>
+          </dict>
+          <key>compileBitcode</key>
+          <false/>
+          <key>stripSwiftSymbols</key>
+          <true/>
+          <key>uploadSymbols</key>
+          <true/>
+      </dict>
+      </plist>
+    PLIST
+
+    File.write(export_plist, plist_content)
+    UI.message("Generated ExportOptions plist with profile: #{profile_uuid}")
 
     sh("cd #{flutter_dir} && flutter build ipa --release -t lib/main_dev.dart --export-options-plist #{export_plist}")
 
