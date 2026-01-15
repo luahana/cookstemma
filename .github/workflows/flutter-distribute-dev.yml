@@ -124,20 +124,30 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
           echo "PP_UUID=$PP_UUID" >> $GITHUB_ENV
 
-      - name: Disable automatic signing for Release
+      - name: Disable automatic signing
         run: |
           cd ios
-          # Disable automatic signing for Runner target in Release configuration
+          # Disable automatic code signing style
           sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' Runner.xcodeproj/project.pbxproj
-          # Set provisioning profile specifier for dev bundle ID
+
+          # Disable ProvisioningStyle in TargetAttributes (this is the key setting)
+          sed -i '' 's/ProvisioningStyle = Automatic;/ProvisioningStyle = Manual;/g' Runner.xcodeproj/project.pbxproj
+
+          # Set development team
+          sed -i '' 's/DevelopmentTeam = "";/DevelopmentTeam = DFAR672Q54;/g' Runner.xcodeproj/project.pbxproj
+
+          # Set provisioning profile specifier
           sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = "";/PROVISIONING_PROFILE_SPECIFIER = "Pairing Planet Dev AdHoc";/g' Runner.xcodeproj/project.pbxproj
+
+          echo "Modified project.pbxproj for manual signing"
 
       - name: Build iOS IPA
         run: |
           flutter build ipa \
             -t lib/main_dev.dart \
             --release \
-            --export-options-plist=ios/ExportOptions-dev.plist
+            --export-options-plist=ios/ExportOptions-dev.plist \
+            || (echo "Build failed, showing project signing settings:" && grep -A2 "CODE_SIGN_STYLE\|ProvisioningStyle" ios/Runner.xcodeproj/project.pbxproj | head -30 && exit 1)
 
       - name: Upload IPA to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
