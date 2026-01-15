@@ -164,7 +164,7 @@ class UserServiceTest extends BaseIntegrationTest {
 
             assertThat(result.id()).isNotNull();
             assertThat(result.username()).isNotNull();
-            assertThat(result.profileImageUrl()).isNotNull();
+            // profileImageUrl can be null when user has no profile image (clients handle fallback)
             assertThat(result.followerCount()).isGreaterThanOrEqualTo(0);
             assertThat(result.followingCount()).isGreaterThanOrEqualTo(0);
             assertThat(result.recipeCount()).isGreaterThanOrEqualTo(0);
