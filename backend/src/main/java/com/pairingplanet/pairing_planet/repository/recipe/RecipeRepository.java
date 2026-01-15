@@ -328,13 +328,14 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             GROUP BY root_recipe_id
         ) rv ON r.id = rv.root_recipe_id
         LEFT JOIN (
-            SELECT recipe_id, COUNT(*) as recent_logs
-            FROM recipe_logs
-            WHERE created_at > NOW() - INTERVAL '7 days'
-            GROUP BY recipe_id
-        ) rl ON r.id = rl.recipe_id
+            SELECT rl.recipe_id, COUNT(*) as recent_logs
+            FROM recipe_logs rl
+            JOIN log_posts lp ON rl.log_post_id = lp.id
+            WHERE lp.created_at > NOW() - INTERVAL '7 days'
+            GROUP BY rl.recipe_id
+        ) rlc ON r.id = rlc.recipe_id
         WHERE r.is_deleted = false AND r.is_private = false AND r.parent_recipe_id IS NULL
-        ORDER BY (COALESCE(rv.recent_variants, 0) + COALESCE(rl.recent_logs, 0)) DESC, r.created_at DESC
+        ORDER BY (COALESCE(rv.recent_variants, 0) + COALESCE(rlc.recent_logs, 0)) DESC, r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
