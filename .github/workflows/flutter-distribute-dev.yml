@@ -1,6 +1,6 @@
 # Flutter Dev Distribution
 # Triggers on push to dev branch
-# Builds APK and distributes to Firebase App Distribution
+# Builds APK and IPA, distributes to Firebase App Distribution
 
 name: Flutter Distribute Dev
 
@@ -11,10 +11,11 @@ on:
     paths:
       - 'frontend_mobile/**'
       - '.github/workflows/flutter-distribute-dev.yml'
+  workflow_dispatch:  # Allow manual trigger
 
 jobs:
-  distribute:
-    name: Build and Distribute Dev
+  distribute-android:
+    name: Build and Distribute Android
     runs-on: ubuntu-latest
     environment: dev
     defaults:
@@ -43,16 +44,10 @@ jobs:
 
       - name: Patch isar_flutter_libs for AGP 8.0+ compatibility
         run: |
-          # Find and patch isar_flutter_libs AndroidManifest.xml to remove package attribute
-          # AGP 8.0+ requires namespace in build.gradle, not package in manifest
           ISAR_MANIFEST=$(find ~/.pub-cache/hosted/pub.dev -path "*/isar_flutter_libs-*/android/src/main/AndroidManifest.xml" 2>/dev/null | head -1)
           if [ -n "$ISAR_MANIFEST" ] && [ -f "$ISAR_MANIFEST" ]; then
             echo "Patching isar_flutter_libs manifest at: $ISAR_MANIFEST"
             sed -i 's/package="[^"]*"//g' "$ISAR_MANIFEST"
-            echo "Patched manifest contents:"
-            cat "$ISAR_MANIFEST"
-          else
-            echo "isar_flutter_libs manifest not found, skipping patch"
           fi
 
       - name: Build Release APK
@@ -69,36 +64,89 @@ jobs:
             Dev build from commit ${{ github.sha }}
             Branch: ${{ github.ref_name }}
 
-      - name: Upload Crashlytics mapping file
-        if: success()
-        continue-on-error: true
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+      - name: Android Summary
         run: |
-          # Install Firebase CLI
-          npm install -g firebase-tools
-
-          # Set up service account authentication
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/sa.json
-          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
-
-          # Upload mapping file for Crashlytics symbol resolution
-          MAPPING_FILE="build/app/outputs/mapping/devRelease/mapping.txt"
-          if [ -f "$MAPPING_FILE" ]; then
-            firebase crashlytics:mappingfile:upload \
-              --app=${{ secrets.FIREBASE_APP_ID_ANDROID_DEV }} \
-              "$MAPPING_FILE"
-          else
-            echo "No mapping file found at $MAPPING_FILE (ProGuard not enabled for dev builds)"
-          fi
-
-          # Cleanup
-          rm -f /tmp/sa.json
-
-      - name: Distribution Summary
-        run: |
-          echo "## Distribution Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment:** Dev" >> $GITHUB_STEP_SUMMARY
-          echo "- **Flavor:** dev" >> $GITHUB_STEP_SUMMARY
+          echo "## Android Distribution" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platform:** Android" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Tester Group:** internal-testers" >> $GITHUB_STEP_SUMMARY
+
+  distribute-ios:
+    name: Build and Distribute iOS
+    runs-on: macos-latest
+    environment: dev
+    defaults:
+      run:
+        working-directory: ./frontend_mobile
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Install Apple certificate and provisioning profile
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_DEV_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # Create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # Import certificate and provisioning profile from secrets
+          echo -n "$APPLE_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$APPLE_PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+
+          # Create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # Apply provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      - name: Build iOS IPA
+        run: |
+          flutter build ipa \
+            -t lib/main_dev.dart \
+            --release \
+            --export-options-plist=ios/ExportOptions-dev.plist
+
+      - name: Upload IPA to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID_IOS_DEV }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+          groups: internal-testers
+          file: frontend_mobile/build/ios/ipa/*.ipa
+          releaseNotes: |
+            Dev build from commit ${{ github.sha }}
+            Branch: ${{ github.ref_name }}
+
+      - name: Clean up keychain
+        if: always()
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
+
+      - name: iOS Summary
+        run: |
+          echo "## iOS Distribution" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platform:** iOS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
