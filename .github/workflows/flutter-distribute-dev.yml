@@ -72,7 +72,7 @@ jobs:
 
   distribute-ios:
     name: Build and Distribute iOS
-    runs-on: macos-13
+    runs-on: macos-14
     environment: dev
     defaults:
       run:
@@ -124,24 +124,42 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
           echo "PP_UUID=$PP_UUID" >> $GITHUB_ENV
 
-      - name: Update ExportOptions with profile UUID
+      - name: Setup signing config
         run: |
-          # Replace profile name with UUID for more reliable signing
-          sed -i '' "s|Pairing Planet Dev AdHoc|$PP_UUID|g" ios/ExportOptions-dev.plist
-          cat ios/ExportOptions-dev.plist
+          # Add profile specifier to xcconfig
+          echo "PROVISIONING_PROFILE_SPECIFIER = $PP_UUID" >> ios/ci.xcconfig
+          cat ios/ci.xcconfig
 
-      - name: Build IPA
+          # Update ExportOptions with profile UUID
+          sed -i '' "s|Pairing Planet Dev AdHoc|$PP_UUID|g" ios/ExportOptions-dev.plist
+
+      - name: Build Flutter iOS without signing
+        run: flutter build ios -t lib/main_dev.dart --release --no-codesign --config-only
+
+      - name: Archive with xcodebuild
         run: |
-          flutter build ipa \
-            -t lib/main_dev.dart \
-            --release \
-            --export-options-plist=ios/ExportOptions-dev.plist
+          cd ios
+          xcodebuild archive \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -xcconfig ci.xcconfig \
+            -archivePath ../build/ios/archive/Runner.xcarchive \
+            -destination 'generic/platform=iOS' \
+            COMPILER_INDEX_STORE_ENABLE=NO
+
+      - name: Export IPA
+        run: |
+          cd ios
+          xcodebuild -exportArchive \
+            -archivePath ../build/ios/archive/Runner.xcarchive \
+            -exportPath ../build/ios/ipa \
+            -exportOptionsPlist ExportOptions-dev.plist
 
       - name: Find IPA file
         run: |
           IPA_PATH=$(find build/ios/ipa -name "*.ipa" | head -1)
           echo "IPA_PATH=$IPA_PATH" >> $GITHUB_ENV
-          echo "Found IPA: $IPA_PATH"
           ls -la build/ios/ipa/
 
       - name: Upload IPA to Firebase App Distribution
