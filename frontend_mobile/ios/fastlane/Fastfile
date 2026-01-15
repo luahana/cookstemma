@@ -22,15 +22,12 @@ platform :ios do
     ) if ENV['PROVISIONING_PROFILE_PATH']
 
     # Build Flutter IPA with signing
-    # This builds the full app and exports a signed IPA
-    Dir.chdir("..") do
-      # Debug: show current directory and file
-      sh("pwd && ls -la ios/ExportOptions-dev.plist")
+    # Run flutter from frontend_mobile directory (parent of ios)
+    # Use absolute path for export options
+    flutter_dir = File.expand_path("..", Dir.pwd)  # frontend_mobile
+    export_plist = File.expand_path("ExportOptions-dev.plist", Dir.pwd)  # ios/ExportOptions-dev.plist
 
-      # Get absolute path for export options
-      export_plist = File.expand_path("ios/ExportOptions-dev.plist")
-      sh("flutter build ipa --release -t lib/main_dev.dart --export-options-plist #{export_plist}")
-    end
+    sh("cd #{flutter_dir} && flutter build ipa --release -t lib/main_dev.dart --export-options-plist #{export_plist}")
 
     # Upload to TestFlight
     # Find the IPA that flutter built
