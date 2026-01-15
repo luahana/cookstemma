@@ -51,7 +51,7 @@ describe('apiFetch', () => {
       } catch (error) {
         expect(error).toBeInstanceOf(ApiError);
         expect((error as ApiError).status).toBe(404);
-        expect((error as ApiError).message).toContain('Not Found');
+        expect((error as ApiError).message).toContain('404');
       }
     });
   });
@@ -270,7 +270,7 @@ describe('apiFetch', () => {
         fail('Should have thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(ApiError);
-        expect((error as ApiError).message).toContain('Forbidden');
+        expect((error as ApiError).message).toContain('403');
       }
     });
   });

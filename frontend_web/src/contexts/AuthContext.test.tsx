@@ -84,7 +84,8 @@ describe('AuthContext', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
-          user: { publicId: 'user-123', username: 'testuser' },
+          // UserDto returns 'id' field (not 'publicId') for the user's public identifier
+          user: { id: 'user-123', username: 'testuser' },
           recipeCount: 0,
           logCount: 0,
           savedCount: 0,
