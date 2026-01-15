@@ -38,6 +38,11 @@ data "aws_ecr_repository" "main" {
   name = var.ecr_repository_name
 }
 
+# Data source to get Frontend ECR repository (created by shared terraform)
+data "aws_ecr_repository" "frontend" {
+  name = "${var.ecr_repository_name}-frontend"
+}
+
 # VPC Module - No private subnets, no NAT for dev
 module "vpc" {
   source = "../../modules/vpc"
@@ -116,6 +121,11 @@ module "alb" {
   container_port    = 4000
   health_check_path = "/actuator/health"
   certificate_arn   = null  # No HTTPS for dev, HTTP only
+
+  # Enable frontend routing
+  enable_frontend            = true
+  frontend_port              = 3000
+  frontend_health_check_path = "/"
 }
 
 # ECS Module - With ALB for stable DNS
@@ -150,4 +160,25 @@ module "ecs" {
   encryption_secret_arn = module.secrets.encryption_secret_arn
   s3_secret_arn         = module.secrets.s3_secret_arn
   firebase_secret_arn   = module.secrets.firebase_secret_arn
+}
+
+# ECS Frontend Module - Next.js application
+module "ecs_frontend" {
+  source = "../../modules/ecs-frontend"
+
+  project_name     = var.project_name
+  environment      = var.environment
+  aws_region       = var.aws_region
+  vpc_id           = module.vpc.vpc_id
+  subnet_ids       = module.vpc.public_subnet_ids
+  container_image  = "${data.aws_ecr_repository.frontend.repository_url}:dev-latest"
+  container_port   = 3000
+  task_cpu         = 256
+  task_memory      = 512
+  desired_count    = 1
+  assign_public_ip = true
+
+  # ALB configuration
+  alb_security_group_id = module.alb.security_group_id
+  target_group_arn      = module.alb.frontend_target_group_arn
 }

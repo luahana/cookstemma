@@ -40,5 +40,31 @@ output "alb_dns_name" {
 
 output "api_endpoint" {
   description = "API endpoint URL (HTTP)"
+  value       = "http://${module.alb.alb_dns_name}/api/v1"
+}
+
+# Frontend outputs
+output "frontend_ecr_repository_url" {
+  description = "Frontend ECR repository URL"
+  value       = data.aws_ecr_repository.frontend.repository_url
+}
+
+output "frontend_ecs_cluster_name" {
+  description = "Name of the frontend ECS cluster"
+  value       = module.ecs_frontend.cluster_name
+}
+
+output "frontend_ecs_service_name" {
+  description = "Name of the frontend ECS service"
+  value       = module.ecs_frontend.service_name
+}
+
+output "frontend_cloudwatch_log_group" {
+  description = "Frontend CloudWatch log group name"
+  value       = module.ecs_frontend.log_group_name
+}
+
+output "frontend_endpoint" {
+  description = "Frontend URL (HTTP)"
   value       = "http://${module.alb.alb_dns_name}"
 }

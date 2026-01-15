@@ -35,3 +35,22 @@ variable "certificate_arn" {
   type        = string
   default     = null
 }
+
+# Frontend configuration
+variable "enable_frontend" {
+  description = "Enable frontend target group and routing"
+  type        = bool
+  default     = false
+}
+
+variable "frontend_port" {
+  description = "Port exposed by the frontend container"
+  type        = number
+  default     = 3000
+}
+
+variable "frontend_health_check_path" {
+  description = "Health check path for frontend target group"
+  type        = string
+  default     = "/"
+}

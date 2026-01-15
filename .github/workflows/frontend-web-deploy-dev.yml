@@ -1,0 +1,133 @@
+# Deploy Frontend Web to Dev Environment
+# Triggers on push to dev branch
+# Simple rolling update (no Blue/Green)
+
+name: Frontend Web Deploy to Dev
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'frontend_web/**'
+      - '.github/workflows/frontend-web-deploy-dev.yml'
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: pairing-planet-frontend
+  ECS_CLUSTER: pairing-planet-dev-frontend-cluster
+  ECS_SERVICE: pairing-planet-dev-frontend-service
+  CONTAINER_NAME: pairing-planet-dev-frontend
+
+jobs:
+  deploy:
+    name: Deploy to Dev
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      id-token: write   # Required for OIDC
+      contents: read    # Required to checkout code
+    defaults:
+      run:
+        working-directory: ./frontend_web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend_web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::819551471059:role/github-actions-pairing-planet-dev
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Get ALB DNS Name
+        id: get-alb
+        run: |
+          ALB_DNS=$(aws elbv2 describe-load-balancers \
+            --names pairing-planet-dev-alb \
+            --query 'LoadBalancers[0].DNSName' \
+            --output text)
+          echo "alb_dns=$ALB_DNS" >> $GITHUB_OUTPUT
+
+      - name: Build, tag, and push Docker image
+        id: build-image
+        working-directory: .
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: dev-${{ github.sha }}
+          NEXT_PUBLIC_API_URL: http://${{ steps.get-alb.outputs.alb_dns }}/api/v1
+          NEXT_PUBLIC_SITE_URL: http://${{ steps.get-alb.outputs.alb_dns }}
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+            --build-arg NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+            --build-arg NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY \
+            --build-arg NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN \
+            --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID \
+            --build-arg NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -f ./frontend_web/Dockerfile \
+            ./frontend_web
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Download task definition
+        working-directory: .
+        run: |
+          aws ecs describe-task-definition --task-definition pairing-planet-dev-frontend \
+            --query taskDefinition > task-definition.json
+
+      - name: Update task definition with new image
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy to ECS (Rolling Update)
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Deployment Summary
+        working-directory: .
+        run: |
+          echo "## Frontend Web Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** Dev" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** ${{ steps.build-image.outputs.image }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Cluster:** ${{ env.ECS_CLUSTER }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Service:** ${{ env.ECS_SERVICE }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend URL:** http://${{ steps.get-alb.outputs.alb_dns }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **API URL:** http://${{ steps.get-alb.outputs.alb_dns }}/api/v1" >> $GITHUB_STEP_SUMMARY

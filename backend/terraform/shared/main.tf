@@ -51,6 +51,86 @@ resource "aws_ecr_repository" "main" {
   }
 }
 
+# ECR Repository for Frontend - shared across all environments
+resource "aws_ecr_repository" "frontend" {
+  name                 = "${var.ecr_repository_name}-frontend"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "AES256"
+  }
+
+  tags = {
+    Name = "${var.ecr_repository_name}-frontend"
+  }
+}
+
+# ECR Lifecycle Policy for Frontend
+resource "aws_ecr_lifecycle_policy" "frontend" {
+  repository = aws_ecr_repository.frontend.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 10 dev images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["dev-"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 10
+        }
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 2
+        description  = "Keep last 10 staging images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["staging-"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 10
+        }
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 3
+        description  = "Keep last 20 prod images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["prod-"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 20
+        }
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 4
+        description  = "Remove untagged images after 7 days"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
+          countNumber = 7
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
+
 # ECR Lifecycle Policy - keep images for each environment
 resource "aws_ecr_lifecycle_policy" "main" {
   repository = aws_ecr_repository.main.name
