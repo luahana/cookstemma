@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { siteConfig } from '@/config/site';
 
@@ -12,7 +11,8 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <Image
+              {/* Use img tag for SVG to avoid Next.js Image optimization issues in Docker */}
+              <img
                 src="/logo-icon.svg"
                 alt={siteConfig.name}
                 width={32}

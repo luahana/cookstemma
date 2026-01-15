@@ -52,8 +52,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const data = await response.json();
         // /users/me returns MyProfileResponseDto which wraps user in a 'user' property
+        // UserDto uses 'id' field (not 'publicId') for the user's public identifier
         const userData = data.user;
-        setUser({ publicId: userData.publicId, username: userData.username });
+        setUser({ publicId: userData.id, username: userData.username });
       } else {
         setUser(null);
       }
