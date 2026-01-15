@@ -50,8 +50,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install wget for health checks
-RUN apk add --no-cache wget
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 # Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs
@@ -74,7 +74,8 @@ USER nextjs
 EXPOSE 3000
 
 ENV PORT=3000
+# Bind to all interfaces so health checks via localhost work
 ENV HOSTNAME="0.0.0.0"
 
-# Start the application
-CMD ["node", "server.js"]
+# Start the application with explicit host binding
+CMD HOSTNAME=0.0.0.0 node server.js

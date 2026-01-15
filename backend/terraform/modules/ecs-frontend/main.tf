@@ -159,11 +159,11 @@ resource "aws_ecs_task_definition" "frontend" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:${var.container_port}/ || exit 1"]
+        command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port}/ || exit 1"]
         interval    = 30
-        timeout     = 5
+        timeout     = 10
         retries     = 3
-        startPeriod = 60
+        startPeriod = 120
       }
 
       essential = true
