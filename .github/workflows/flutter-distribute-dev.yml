@@ -82,21 +82,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode
+      - name: Select Xcode and install iOS platform
         run: |
           # List available Xcode versions
           ls /Applications/ | grep -i xcode
-          # Try Xcode 16.2 for better compatibility (16.4 has issues)
-          if [ -d "/Applications/Xcode_16.2.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
-          elif [ -d "/Applications/Xcode_16.1.app" ]; then
-            sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer
-          else
-            sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer || sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
-          fi
+          # Use Xcode 16.4 (latest)
+          sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
           xcodebuild -version
+          # Check and download iOS platform if needed
+          xcodebuild -downloadPlatform iOS || true
           # List available SDKs
-          xcodebuild -showsdks | grep -i ios
+          xcodebuild -showsdks | grep -i ios || echo "No iOS SDKs found, continuing anyway"
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2

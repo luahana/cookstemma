@@ -52,7 +52,8 @@ platform :ios do
       codesigning_identity: "Apple Distribution",
       xcargs: "FLUTTER_TARGET=lib/main_dev.dart FLUTTER_BUILD_MODE=release",
       buildlog_path: "../build/ios/logs",
-      verbose: true
+      sdk: "iphoneos",
+      destination: "generic/platform=iOS"
     )
 
     # Upload to TestFlight
