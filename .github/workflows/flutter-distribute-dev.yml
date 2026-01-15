@@ -82,13 +82,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16
+      - name: Select Xcode and install iOS platform
         run: |
           # List available Xcode versions
           ls /Applications | grep Xcode
-          # Use Xcode 16.1 which has iOS SDK bundled
-          sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer || sudo xcode-select -s /Applications/Xcode_16.0.app/Contents/Developer || sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          # Use Xcode 16.1
+          sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer || sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           xcodebuild -version
+          # Download iOS platform (required for macos-15 runners)
+          xcodebuild -downloadPlatform iOS
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
