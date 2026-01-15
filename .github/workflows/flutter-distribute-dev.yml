@@ -132,66 +132,22 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
           echo "PP_UUID=$PP_UUID" >> $GITHUB_ENV
 
-      - name: Setup signing config
-        run: |
-          # Update ExportOptions with profile UUID
-          sed -i '' "s|Pairing Planet Dev AdHoc|$PP_UUID|g" ios/ExportOptions-dev.plist
-          cat ios/ExportOptions-dev.plist
-
-      - name: Build Dart code
-        run: |
-          # Build just the Dart/Flutter bundle
-          flutter build bundle -t lib/main_dev.dart
-
-      - name: Setup iOS project
-        run: |
-          cd ios
-          # Generate Flutter xcconfig files
-          flutter precache --ios
-          pod install --repo-update
-
-      - name: Archive with xcodebuild
-        run: |
-          cd ios
-          xcodebuild archive \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release-dev \
-            -archivePath ../build/ios/archive/Runner.xcarchive \
-            -sdk iphoneos \
-            -allowProvisioningUpdates \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            DEVELOPMENT_TEAM=DFAR672Q54 \
-            "PROVISIONING_PROFILE_SPECIFIER=$PP_UUID" \
-            FLUTTER_BUILD_MODE=release \
-            FLUTTER_TARGET=lib/main_dev.dart
-
-      - name: Export IPA
-        run: |
-          cd ios
-          xcodebuild -exportArchive \
-            -archivePath ../build/ios/archive/Runner.xcarchive \
-            -exportPath ../build/ios/ipa \
-            -exportOptionsPlist ExportOptions-dev.plist \
-            -allowProvisioningUpdates
-
-      - name: Find IPA file
-        run: |
-          IPA_PATH=$(find build/ios/ipa -name "*.ipa" | head -1)
-          echo "IPA_PATH=$IPA_PATH" >> $GITHUB_ENV
-          ls -la build/ios/ipa/
-
-      - name: Upload IPA to Firebase App Distribution
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          appId: ${{ secrets.FIREBASE_APP_ID_IOS_DEV }}
-          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
-          groups: internal-testers
-          file: frontend_mobile/${{ env.IPA_PATH }}
-          releaseNotes: |
-            Dev build from commit ${{ github.sha }}
-            Branch: ${{ github.ref_name }}
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: frontend_mobile/ios
+
+      - name: Build and distribute with Fastlane
+        env:
+          PROVISIONING_PROFILE_PATH: ${{ runner.temp }}/build_pp.mobileprovision
+          PROVISIONING_PROFILE_NAME: ${{ env.PP_UUID }}
+          FIREBASE_APP_ID_IOS_DEV: ${{ secrets.FIREBASE_APP_ID_IOS_DEV }}
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+        run: |
+          cd ios
+          bundle exec fastlane dev
 
       - name: Clean up keychain
         if: always()

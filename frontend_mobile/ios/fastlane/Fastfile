@@ -1,0 +1,55 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and distribute dev IPA to Firebase"
+  lane :dev do
+    # Setup code signing
+    setup_ci if ENV['CI']
+
+    # Install provisioning profile
+    install_provisioning_profile(
+      path: ENV['PROVISIONING_PROFILE_PATH']
+    ) if ENV['PROVISIONING_PROFILE_PATH']
+
+    # Build the Flutter app first
+    Dir.chdir("..") do
+      sh("flutter", "build", "ios", "-t", "lib/main_dev.dart", "--release", "--no-codesign")
+    end
+
+    # Build and sign the IPA
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Release-dev",
+      export_method: "ad-hoc",
+      export_options: {
+        provisioningProfiles: {
+          "com.pairingplanet.pairingplanetfrontend.dev" => ENV['PROVISIONING_PROFILE_NAME'] || "Pairing Planet Dev AdHoc"
+        },
+        teamID: "DFAR672Q54",
+        signingStyle: "manual"
+      },
+      output_directory: "../build/ios/ipa",
+      output_name: "PairingPlanet-dev.ipa",
+      clean: true,
+      skip_profile_detection: true,
+      codesigning_identity: "Apple Distribution"
+    )
+
+    # Upload to Firebase App Distribution
+    if ENV['FIREBASE_APP_ID_IOS_DEV']
+      firebase_app_distribution(
+        app: ENV['FIREBASE_APP_ID_IOS_DEV'],
+        groups: "internal-testers",
+        release_notes: "Dev build from CI"
+      )
+    end
+  end
+
+  desc "Build without signing (for CI debugging)"
+  lane :build_only do
+    Dir.chdir("..") do
+      sh("flutter", "build", "ios", "-t", "lib/main_dev.dart", "--release", "--no-codesign")
+    end
+  end
+end
