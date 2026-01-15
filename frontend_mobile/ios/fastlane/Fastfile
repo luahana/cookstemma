@@ -11,6 +11,11 @@ platform :ios do
       path: ENV['PROVISIONING_PROFILE_PATH']
     ) if ENV['PROVISIONING_PROFILE_PATH']
 
+    # Compile Dart code first (without invoking xcodebuild)
+    Dir.chdir("..") do
+      sh("flutter", "build", "bundle", "-t", "lib/main_dev.dart", "--release")
+    end
+
     # Run pod install (using bundled cocoapods)
     cocoapods(
       podfile: "./Podfile",
@@ -18,7 +23,6 @@ platform :ios do
     )
 
     # Build using gym directly (avoids flutter build ios ARG_MAX issues)
-    # Flutter's Dart code is compiled by xcodebuild via build phases
     build_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
