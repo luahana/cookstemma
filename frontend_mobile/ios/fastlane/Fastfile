@@ -50,10 +50,9 @@ platform :ios do
       clean: true,
       skip_profile_detection: true,
       codesigning_identity: "Apple Distribution",
-      xcargs: "FLUTTER_TARGET=lib/main_dev.dart FLUTTER_BUILD_MODE=release",
+      xcargs: "FLUTTER_TARGET=lib/main_dev.dart FLUTTER_BUILD_MODE=release CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=DFAR672Q54 PROVISIONING_PROFILE_SPECIFIER='#{ENV['PROVISIONING_PROFILE_NAME']}'",
       buildlog_path: "../build/ios/logs",
-      sdk: "iphoneos",
-      destination: "generic/platform=iOS"
+      sdk: "iphoneos"
     )
 
     # Upload to TestFlight
