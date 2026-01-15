@@ -26,33 +26,51 @@ platform :ios do
     flutter_dir = File.expand_path("..", ios_dir)  # frontend_mobile
     profile_uuid = ENV['PROVISIONING_PROFILE_NAME'] || 'Pairing Planet Dev AppStore'
 
-    # Step 1: Build Flutter iOS app (without creating IPA)
-    # This compiles Dart code and prepares the Xcode project
-    sh("cd #{flutter_dir} && flutter build ios --release -t lib/main_dev.dart --no-codesign")
+    # Generate ExportOptions plist dynamically with the correct profile UUID
+    export_plist = File.join(ios_dir, "ExportOptions-generated.plist")
+    plist_content = <<~PLIST
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+          <key>method</key>
+          <string>app-store</string>
+          <key>teamID</key>
+          <string>DFAR672Q54</string>
+          <key>signingStyle</key>
+          <string>manual</string>
+          <key>provisioningProfiles</key>
+          <dict>
+              <key>com.pairingplanet.pairingplanetfrontend.dev</key>
+              <string>#{profile_uuid}</string>
+          </dict>
+          <key>compileBitcode</key>
+          <false/>
+          <key>stripSwiftSymbols</key>
+          <true/>
+          <key>uploadSymbols</key>
+          <true/>
+      </dict>
+      </plist>
+    PLIST
+    File.write(export_plist, plist_content)
+    UI.message("Generated ExportOptions plist with profile: #{profile_uuid}")
 
-    # Step 2: Use gym to archive and export with proper manual signing
-    build_app(
-      workspace: "#{ios_dir}/Runner.xcworkspace",
-      scheme: "Runner",
-      configuration: "Release-dev",
-      export_method: "app-store",
-      export_team_id: "DFAR672Q54",
-      output_directory: "#{flutter_dir}/build/ios/ipa",
-      output_name: "pairing_planet_dev.ipa",
-      codesigning_identity: "Apple Distribution",
-      export_options: {
-        provisioningProfiles: {
-          "com.pairingplanet.pairingplanetfrontend.dev" => profile_uuid
-        },
-        signingStyle: "manual",
-        teamID: "DFAR672Q54"
-      },
-      xcargs: "-allowProvisioningUpdates=NO CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=DFAR672Q54 PROVISIONING_PROFILE_SPECIFIER='#{profile_uuid}'"
-    )
+    # Clean build folder to avoid "Argument list too long" error
+    sh("cd #{flutter_dir} && flutter clean")
 
-    # Step 3: Upload to TestFlight
-    ipa_path = "#{flutter_dir}/build/ios/ipa/pairing_planet_dev.ipa"
-    UI.user_error!("No IPA found at #{ipa_path}") unless File.exist?(ipa_path)
+    # Build IPA with manual signing xcargs
+    # The xcargs override the automatic signing settings in the Xcode project
+    xcargs = "CODE_SIGN_STYLE=Manual " \
+             "DEVELOPMENT_TEAM=DFAR672Q54 " \
+             "CODE_SIGN_IDENTITY='Apple Distribution' " \
+             "PROVISIONING_PROFILE_SPECIFIER='#{profile_uuid}'"
+
+    sh("cd #{flutter_dir} && flutter build ipa --release -t lib/main_dev.dart --export-options-plist #{export_plist} -- #{xcargs}")
+
+    # Upload to TestFlight
+    ipa_path = Dir.glob("#{flutter_dir}/build/ios/ipa/*.ipa").first
+    UI.user_error!("No IPA found in build/ios/ipa/") unless ipa_path
 
     upload_to_testflight(
       ipa: ipa_path,
