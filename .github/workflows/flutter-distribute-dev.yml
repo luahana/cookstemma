@@ -124,30 +124,39 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
           echo "PP_UUID=$PP_UUID" >> $GITHUB_ENV
 
-      - name: Disable automatic signing
+      - name: Build Flutter iOS (no codesign)
         run: |
-          cd ios
-          # Disable automatic code signing style
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' Runner.xcodeproj/project.pbxproj
-
-          # Disable ProvisioningStyle in TargetAttributes (this is the key setting)
-          sed -i '' 's/ProvisioningStyle = Automatic;/ProvisioningStyle = Manual;/g' Runner.xcodeproj/project.pbxproj
-
-          # Set development team
-          sed -i '' 's/DevelopmentTeam = "";/DevelopmentTeam = DFAR672Q54;/g' Runner.xcodeproj/project.pbxproj
-
-          # Set provisioning profile specifier
-          sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = "";/PROVISIONING_PROFILE_SPECIFIER = "Pairing Planet Dev AdHoc";/g' Runner.xcodeproj/project.pbxproj
-
-          echo "Modified project.pbxproj for manual signing"
-
-      - name: Build iOS IPA
-        run: |
-          flutter build ipa \
+          flutter build ios \
             -t lib/main_dev.dart \
             --release \
-            --export-options-plist=ios/ExportOptions-dev.plist \
-            || (echo "Build failed, showing project signing settings:" && grep -A2 "CODE_SIGN_STYLE\|ProvisioningStyle" ios/Runner.xcodeproj/project.pbxproj | head -30 && exit 1)
+            --no-codesign
+
+      - name: Archive and Export IPA with signing
+        run: |
+          cd ios
+
+          # Archive with explicit signing settings
+          xcodebuild -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            DEVELOPMENT_TEAM=DFAR672Q54 \
+            PROVISIONING_PROFILE_SPECIFIER="Pairing Planet Dev AdHoc"
+
+          # Export IPA
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            -exportPath ../build/ios/ipa \
+            -exportOptionsPlist ExportOptions-dev.plist
+
+      - name: Find IPA file
+        run: |
+          IPA_PATH=$(find build/ios/ipa -name "*.ipa" | head -1)
+          echo "IPA_PATH=$IPA_PATH" >> $GITHUB_ENV
+          echo "Found IPA: $IPA_PATH"
 
       - name: Upload IPA to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -155,7 +164,7 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID_IOS_DEV }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
           groups: internal-testers
-          file: frontend_mobile/build/ios/ipa/*.ipa
+          file: frontend_mobile/${{ env.IPA_PATH }}
           releaseNotes: |
             Dev build from commit ${{ github.sha }}
             Branch: ${{ github.ref_name }}
