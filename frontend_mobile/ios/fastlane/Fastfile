@@ -22,10 +22,11 @@ platform :ios do
     ) if ENV['PROVISIONING_PROFILE_PATH']
 
     # Build Flutter IPA with signing
-    # Run flutter from frontend_mobile directory (parent of ios)
-    # Use absolute path for export options
-    flutter_dir = File.expand_path("..", Dir.pwd)  # frontend_mobile
-    export_plist = File.expand_path("ExportOptions-dev.plist", Dir.pwd)  # ios/ExportOptions-dev.plist
+    # Fastlane runs from ios/fastlane, so we need to go up two levels for flutter dir
+    # and one level for the export plist
+    ios_dir = File.expand_path("..", Dir.pwd)  # ios
+    flutter_dir = File.expand_path("..", ios_dir)  # frontend_mobile
+    export_plist = File.join(ios_dir, "ExportOptions-dev.plist")
 
     sh("cd #{flutter_dir} && flutter build ipa --release -t lib/main_dev.dart --export-options-plist #{export_plist}")
 
