@@ -125,36 +125,32 @@ jobs:
           echo "PP_UUID=$PP_UUID" >> $GITHUB_ENV
 
       - name: Build Flutter iOS (no codesign)
-        run: |
-          flutter build ios \
-            -t lib/main_dev.dart \
-            --release \
-            --no-codesign
+        run: flutter build ios -t lib/main_dev.dart --release --no-codesign
 
-      - name: Archive and Export IPA with signing
+      - name: Archive with xcodebuild
+        working-directory: ./frontend_mobile/ios
         run: |
-          cd ios
-
-          # Archive with explicit signing settings
-          xcodebuild -workspace Runner.xcworkspace \
+          xcodebuild archive \
+            -workspace Runner.xcworkspace \
             -scheme Runner \
             -configuration Release \
-            -archivePath $RUNNER_TEMP/Runner.xcarchive \
-            archive \
+            -archivePath "$RUNNER_TEMP/Runner.xcarchive" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
             DEVELOPMENT_TEAM=DFAR672Q54 \
-            PROVISIONING_PROFILE_SPECIFIER="Pairing Planet Dev AdHoc"
+            "PROVISIONING_PROFILE_SPECIFIER=Pairing Planet Dev AdHoc"
 
-          # Export IPA
+      - name: Export IPA
+        working-directory: ./frontend_mobile/ios
+        run: |
           xcodebuild -exportArchive \
-            -archivePath $RUNNER_TEMP/Runner.xcarchive \
+            -archivePath "$RUNNER_TEMP/Runner.xcarchive" \
             -exportPath ../build/ios/ipa \
             -exportOptionsPlist ExportOptions-dev.plist
 
       - name: Find IPA file
         run: |
-          IPA_PATH=$(find build/ios/ipa -name "*.ipa" | head -1)
+          IPA_PATH=$(find frontend_mobile/build/ios/ipa -name "*.ipa" | head -1)
           echo "IPA_PATH=$IPA_PATH" >> $GITHUB_ENV
           echo "Found IPA: $IPA_PATH"
 
@@ -164,7 +160,7 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID_IOS_DEV }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
           groups: internal-testers
-          file: frontend_mobile/${{ env.IPA_PATH }}
+          file: ${{ env.IPA_PATH }}
           releaseNotes: |
             Dev build from commit ${{ github.sha }}
             Branch: ${{ github.ref_name }}
