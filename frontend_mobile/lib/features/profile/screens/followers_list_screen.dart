@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pairing_planet2_frontend/core/constants/constants.dart';
+import 'package:pairing_planet2_frontend/core/theme/app_colors.dart';
 import 'package:pairing_planet2_frontend/core/widgets/custom_bottom_nav_bar.dart';
 import 'package:pairing_planet2_frontend/data/models/follow/follower_dto.dart';
 import 'package:pairing_planet2_frontend/features/auth/providers/auth_provider.dart';
@@ -316,11 +317,21 @@ class _FollowerListItem extends StatelessWidget {
       onTap: () => context.push(RouteConstants.userProfilePath(follower.publicId)),
       leading: CircleAvatar(
         radius: 24.r,
+        backgroundColor: follower.profileImageUrl == null
+            ? AppColors.primaryLight
+            : Colors.grey[200],
         backgroundImage: follower.profileImageUrl != null
             ? NetworkImage(follower.profileImageUrl!)
             : null,
         child: follower.profileImageUrl == null
-            ? Icon(Icons.person, size: 24.sp)
+            ? Text(
+                follower.username.isNotEmpty ? follower.username[0].toUpperCase() : '?',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              )
             : null,
       ),
       title: Text(

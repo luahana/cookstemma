@@ -74,15 +74,24 @@ class CookingDnaHeader extends StatelessWidget {
   Widget _buildAvatarAndStats(BuildContext context) {
     return Row(
       children: [
-        // Avatar
+        // Avatar with initial letter fallback
         CircleAvatar(
           radius: 40.r,
-          backgroundColor: Colors.grey[200],
+          backgroundColor: profile.user.profileImageUrl == null
+              ? AppColors.primaryLight
+              : Colors.grey[200],
           backgroundImage: profile.user.profileImageUrl != null
               ? NetworkImage(profile.user.profileImageUrl!)
               : null,
           child: profile.user.profileImageUrl == null
-              ? Icon(Icons.person, size: 40.sp, color: Colors.grey[400])
+              ? Text(
+                  profile.user.username.isNotEmpty ? profile.user.username[0].toUpperCase() : '?',
+                  style: TextStyle(
+                    fontSize: 32.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                )
               : null,
         ),
         SizedBox(width: 20.w),
