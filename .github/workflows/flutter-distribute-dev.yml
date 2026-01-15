@@ -118,9 +118,19 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
-          # Apply provisioning profile
+          # Extract UUID from provisioning profile and install with UUID filename
+          PP_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i $PP_PATH))
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
+          echo "PP_UUID=$PP_UUID" >> $GITHUB_ENV
+
+      - name: Disable automatic signing for Release
+        run: |
+          cd ios
+          # Disable automatic signing for Runner target in Release configuration
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' Runner.xcodeproj/project.pbxproj
+          # Set provisioning profile specifier for dev bundle ID
+          sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = "";/PROVISIONING_PROFILE_SPECIFIER = "Pairing Planet Dev AdHoc";/g' Runner.xcodeproj/project.pbxproj
 
       - name: Build iOS IPA
         run: |
