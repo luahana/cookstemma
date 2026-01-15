@@ -45,11 +45,6 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
-      {
-        // UI Avatars for default profile images
-        protocol: 'https',
-        hostname: 'ui-avatars.com',
-      },
     ],
     // Disable image optimization for local development (allows private IPs)
     unoptimized: isDev,

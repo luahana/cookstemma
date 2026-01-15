@@ -114,12 +114,21 @@ class BlockedUsersScreen extends ConsumerWidget {
       child: ListTile(
         leading: CircleAvatar(
           radius: 24.r,
-          backgroundColor: Colors.grey[200],
+          backgroundColor: user.profileImageUrl == null
+              ? AppColors.primaryLight
+              : Colors.grey[200],
           backgroundImage: user.profileImageUrl != null
               ? NetworkImage(user.profileImageUrl!)
               : null,
           child: user.profileImageUrl == null
-              ? Icon(Icons.person, size: 24.sp, color: Colors.grey[400])
+              ? Text(
+                  user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                )
               : null,
         ),
         title: Text(

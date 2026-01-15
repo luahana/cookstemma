@@ -186,15 +186,24 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
           // Avatar and username row
           Row(
             children: [
-              // Avatar
+              // Avatar with initial letter fallback
               CircleAvatar(
                 radius: 40.r,
-                backgroundColor: Colors.grey[200],
+                backgroundColor: user.profileImageUrl == null
+                    ? AppColors.primaryLight
+                    : Colors.grey[200],
                 backgroundImage: user.profileImageUrl != null
                     ? NetworkImage(user.profileImageUrl!)
                     : null,
                 child: user.profileImageUrl == null
-                    ? Icon(Icons.person, size: 40.sp, color: Colors.grey[400])
+                    ? Text(
+                        user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
+                        style: TextStyle(
+                          fontSize: 32.sp,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      )
                     : null,
               ),
               SizedBox(width: 20.w),
