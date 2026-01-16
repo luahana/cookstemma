@@ -85,8 +85,18 @@ jobs:
 
       - name: Select Xcode 16
         run: |
-          sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
-          xcodebuild -version
+          # List available Xcode versions
+          ls -la /Applications/ | grep Xcode
+          # Select the latest Xcode 16.x available
+          XCODE_PATH=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$XCODE_PATH" ]; then
+            echo "Xcode 16 not found, using default"
+            xcodebuild -version
+          else
+            echo "Using: $XCODE_PATH"
+            sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
+            xcodebuild -version
+          fi
 
       - name: Install CocoaPods
         run: sudo gem install cocoapods
