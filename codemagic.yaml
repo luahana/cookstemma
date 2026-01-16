@@ -37,8 +37,10 @@ workflows:
           xcode-project use-profiles --project $CM_BUILD_DIR/frontend_mobile/ios/Runner.xcodeproj
       - name: Archive iOS app
         script: |
+          set -o pipefail
           cd $CM_BUILD_DIR/frontend_mobile/ios
           mkdir -p $CM_BUILD_DIR/frontend_mobile/build/ios
+
           xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -configuration Release-dev \
@@ -46,16 +48,24 @@ workflows:
             -destination 'generic/platform=iOS' \
             archive 2>&1 | tee /tmp/xcodebuild_archive.log
 
+          ARCHIVE_RESULT=$?
+
+          if [ $ARCHIVE_RESULT -ne 0 ]; then
+            echo "=== XCODEBUILD ARCHIVE FAILED (exit code $ARCHIVE_RESULT) ==="
+            echo "=== Searching for actual error in log ==="
+            grep -i "error:" /tmp/xcodebuild_archive.log | tail -20
+            echo "=== Last 100 lines of log ==="
+            tail -100 /tmp/xcodebuild_archive.log
+            exit $ARCHIVE_RESULT
+          fi
+
           # Check if archive was created
           if [ -d "$CM_BUILD_DIR/frontend_mobile/build/ios/Runner.xcarchive" ]; then
-            echo "Archive created successfully at $CM_BUILD_DIR/frontend_mobile/build/ios/Runner.xcarchive"
+            echo "Archive created successfully"
             ls -la $CM_BUILD_DIR/frontend_mobile/build/ios/
           else
-            echo "=== ARCHIVE NOT FOUND - Checking other locations ==="
+            echo "=== ARCHIVE NOT FOUND ==="
             find $CM_BUILD_DIR -name "*.xcarchive" 2>/dev/null || echo "No archives found"
-            find ~/Library/Developer/Xcode/Archives -name "*.xcarchive" 2>/dev/null | head -5 || echo "No archives in default location"
-            echo "=== Last 50 lines of archive log ==="
-            tail -50 /tmp/xcodebuild_archive.log
             exit 1
           fi
       - name: Export IPA
