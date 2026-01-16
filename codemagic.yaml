@@ -38,16 +38,26 @@ workflows:
       - name: Archive iOS app
         script: |
           cd $CM_BUILD_DIR/frontend_mobile/ios
+          mkdir -p $CM_BUILD_DIR/frontend_mobile/build/ios
           xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -configuration Release-dev \
             -archivePath $CM_BUILD_DIR/frontend_mobile/build/ios/Runner.xcarchive \
             -destination 'generic/platform=iOS' \
-            archive 2>&1 | tee /tmp/xcodebuild_archive.log || {
-              echo "=== ARCHIVE FAILED - Last 100 lines of log ==="
-              tail -100 /tmp/xcodebuild_archive.log
-              exit 1
-            }
+            archive 2>&1 | tee /tmp/xcodebuild_archive.log
+
+          # Check if archive was created
+          if [ -d "$CM_BUILD_DIR/frontend_mobile/build/ios/Runner.xcarchive" ]; then
+            echo "Archive created successfully at $CM_BUILD_DIR/frontend_mobile/build/ios/Runner.xcarchive"
+            ls -la $CM_BUILD_DIR/frontend_mobile/build/ios/
+          else
+            echo "=== ARCHIVE NOT FOUND - Checking other locations ==="
+            find $CM_BUILD_DIR -name "*.xcarchive" 2>/dev/null || echo "No archives found"
+            find ~/Library/Developer/Xcode/Archives -name "*.xcarchive" 2>/dev/null | head -5 || echo "No archives in default location"
+            echo "=== Last 50 lines of archive log ==="
+            tail -50 /tmp/xcodebuild_archive.log
+            exit 1
+          fi
       - name: Export IPA
         script: |
           cd $CM_BUILD_DIR/frontend_mobile/ios
