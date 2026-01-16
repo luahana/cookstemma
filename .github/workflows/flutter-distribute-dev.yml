@@ -72,10 +72,11 @@ jobs:
 
   distribute-ios:
     name: Build and Distribute iOS
-    runs-on: macos-15
+    # Use macos-14 with Xcode 15.4 to avoid "Argument list too long" error
+    # Xcode 16.4 on macos-15 may have stricter environment variable handling
+    runs-on: macos-14
     environment: dev
-    # Use short path to avoid "Argument list too long" error
-    # See: https://github.com/CocoaPods/CocoaPods/issues/9954
+    # Use short path to reduce ARG_MAX pressure
     env:
       APP_DIR: /tmp/b
 
@@ -88,22 +89,19 @@ jobs:
       - name: Move to shortest possible path
         run: |
           # Move to /tmp/b for shortest possible paths in xcconfig files
-          # This reduces ARG_MAX pressure from accumulated FRAMEWORK_SEARCH_PATHS
           sudo mv $GITHUB_WORKSPACE/b /tmp/b
           echo "Project at: /tmp/b"
           ls -la /tmp/b
 
-      - name: Select Xcode and install iOS platform
+      - name: Select Xcode 15.4
         run: |
           # List available Xcode versions
           ls /Applications/ | grep -i xcode
-          # Use Xcode 16.4 (latest)
-          sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+          # Use Xcode 15.4 (more stable with large projects)
+          sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
           xcodebuild -version
-          # Check and download iOS platform if needed
-          xcodebuild -downloadPlatform iOS || true
           # List available SDKs
-          xcodebuild -showsdks | grep -i ios || echo "No iOS SDKs found, continuing anyway"
+          xcodebuild -showsdks | grep -i ios || echo "No iOS SDKs found"
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
