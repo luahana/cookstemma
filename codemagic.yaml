@@ -38,14 +38,16 @@ workflows:
       - name: Archive iOS app
         script: |
           cd $CM_BUILD_DIR/frontend_mobile/ios
-          # Use xcodebuild with response file to avoid ARG_MAX
           xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -configuration Release-dev \
             -archivePath $CM_BUILD_DIR/frontend_mobile/build/ios/Runner.xcarchive \
             -destination 'generic/platform=iOS' \
-            -allowProvisioningUpdates \
-            archive
+            archive 2>&1 | tee /tmp/xcodebuild_archive.log || {
+              echo "=== ARCHIVE FAILED - Last 100 lines of log ==="
+              tail -100 /tmp/xcodebuild_archive.log
+              exit 1
+            }
       - name: Export IPA
         script: |
           cd $CM_BUILD_DIR/frontend_mobile/ios

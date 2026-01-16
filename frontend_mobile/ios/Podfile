@@ -64,21 +64,4 @@ post_install do |installer|
       config.build_settings['CODE_SIGN_IDENTITY'] = ''
     end
   end
-
-  # Reduce HEADER_SEARCH_PATHS and FRAMEWORK_SEARCH_PATHS to fix ARG_MAX issue
-  installer.pods_project.build_configurations.each do |config|
-    # Use inherited paths instead of explicit long lists
-    config.build_settings['HEADER_SEARCH_PATHS'] = '$(inherited)'
-    config.build_settings['FRAMEWORK_SEARCH_PATHS'] = '$(inherited)'
-  end
-
-  # Also reduce paths in the main project
-  installer.aggregate_targets.each do |target|
-    target.xcconfigs.each do |config_name, config_file|
-      # Simplify the xcconfig by removing duplicate paths
-      config_file.attributes.delete('HEADER_SEARCH_PATHS')
-      config_file.attributes.delete('FRAMEWORK_SEARCH_PATHS')
-      config_file.save_as(target.xcconfig_path(config_name))
-    end
-  end
 end
