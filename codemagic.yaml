@@ -9,7 +9,7 @@ workflows:
       vars:
         FLUTTER_TARGET: lib/main_dev.dart
       flutter: stable
-      xcode: 16.2
+      xcode: 15.4
       cocoapods: default
     scripts:
       - name: Get Flutter packages
