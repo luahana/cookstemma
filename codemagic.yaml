@@ -3,7 +3,6 @@ workflows:
     name: iOS Dev (TestFlight)
     max_build_duration: 60
     instance_type: mac_mini_m2
-    working_directory: frontend_mobile
     integrations:
       app_store_connect: codemagic
     environment:
@@ -12,21 +11,33 @@ workflows:
         bundle_identifier: com.pairingplanet.pairingplanetfrontend.dev
       vars:
         FLUTTER_TARGET: lib/main_dev.dart
-      flutter: stable
+        FLUTTER_VERSION: "3.27.4"
       xcode: latest
       cocoapods: default
     scripts:
+      - name: Install Flutter
+        script: |
+          git clone https://github.com/flutter/flutter.git --depth 1 -b $FLUTTER_VERSION $HOME/flutter
+          export PATH="$PATH:$HOME/flutter/bin"
+          flutter --version
+          echo "PATH=$PATH:$HOME/flutter/bin" >> $CM_ENV
+      - name: Get Flutter packages
+        script: |
+          cd $CM_BUILD_DIR/frontend_mobile
+          flutter pub get
       - name: Install CocoaPods dependencies
         script: |
-          cd ios && pod install
+          cd $CM_BUILD_DIR/frontend_mobile/ios
+          pod install
       - name: Build iOS IPA
         script: |
+          cd $CM_BUILD_DIR/frontend_mobile
           flutter build ipa \
             --release \
             --target=$FLUTTER_TARGET \
             --export-options-plist=$HOME/export_options.plist
     artifacts:
-      - build/ios/ipa/*.ipa
+      - frontend_mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:
@@ -38,7 +49,6 @@ workflows:
     name: iOS Staging (TestFlight)
     max_build_duration: 60
     instance_type: mac_mini_m2
-    working_directory: frontend_mobile
     integrations:
       app_store_connect: codemagic
     environment:
@@ -47,21 +57,33 @@ workflows:
         bundle_identifier: com.pairingplanet.pairingplanetfrontend.stg
       vars:
         FLUTTER_TARGET: lib/main_staging.dart
-      flutter: stable
+        FLUTTER_VERSION: "3.27.4"
       xcode: latest
       cocoapods: default
     scripts:
+      - name: Install Flutter
+        script: |
+          git clone https://github.com/flutter/flutter.git --depth 1 -b $FLUTTER_VERSION $HOME/flutter
+          export PATH="$PATH:$HOME/flutter/bin"
+          flutter --version
+          echo "PATH=$PATH:$HOME/flutter/bin" >> $CM_ENV
+      - name: Get Flutter packages
+        script: |
+          cd $CM_BUILD_DIR/frontend_mobile
+          flutter pub get
       - name: Install CocoaPods dependencies
         script: |
-          cd ios && pod install
+          cd $CM_BUILD_DIR/frontend_mobile/ios
+          pod install
       - name: Build iOS IPA
         script: |
+          cd $CM_BUILD_DIR/frontend_mobile
           flutter build ipa \
             --release \
             --target=$FLUTTER_TARGET \
             --export-options-plist=$HOME/export_options.plist
     artifacts:
-      - build/ios/ipa/*.ipa
+      - frontend_mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:
@@ -73,7 +95,6 @@ workflows:
     name: iOS Production (App Store)
     max_build_duration: 60
     instance_type: mac_mini_m2
-    working_directory: frontend_mobile
     integrations:
       app_store_connect: codemagic
     environment:
@@ -82,21 +103,33 @@ workflows:
         bundle_identifier: com.pairingplanet.pairingplanetfrontend.prod
       vars:
         FLUTTER_TARGET: lib/main_prod.dart
-      flutter: stable
+        FLUTTER_VERSION: "3.27.4"
       xcode: latest
       cocoapods: default
     scripts:
+      - name: Install Flutter
+        script: |
+          git clone https://github.com/flutter/flutter.git --depth 1 -b $FLUTTER_VERSION $HOME/flutter
+          export PATH="$PATH:$HOME/flutter/bin"
+          flutter --version
+          echo "PATH=$PATH:$HOME/flutter/bin" >> $CM_ENV
+      - name: Get Flutter packages
+        script: |
+          cd $CM_BUILD_DIR/frontend_mobile
+          flutter pub get
       - name: Install CocoaPods dependencies
         script: |
-          cd ios && pod install
+          cd $CM_BUILD_DIR/frontend_mobile/ios
+          pod install
       - name: Build iOS IPA
         script: |
+          cd $CM_BUILD_DIR/frontend_mobile
           flutter build ipa \
             --release \
             --target=$FLUTTER_TARGET \
             --export-options-plist=$HOME/export_options.plist
     artifacts:
-      - build/ios/ipa/*.ipa
+      - frontend_mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:
