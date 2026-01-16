@@ -83,6 +83,11 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Select Xcode 16
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+          xcodebuild -version
+
       - name: Install CocoaPods
         run: sudo gem install cocoapods
 
