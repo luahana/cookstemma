@@ -191,13 +191,15 @@ jobs:
           <plist version="1.0">
           <dict>
               <key>method</key>
-              <string>development</string>
+              <string>app-store-connect</string>
               <key>teamID</key>
               <string>DFAR672Q54</string>
               <key>signingStyle</key>
               <string>manual</string>
               <key>compileBitcode</key>
               <false/>
+              <key>uploadSymbols</key>
+              <true/>
           </dict>
           </plist>
           EOF
