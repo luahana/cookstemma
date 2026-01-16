@@ -116,6 +116,11 @@ jobs:
           echo "=== Available signing identities ==="
           security find-identity -v -p codesigning
 
+          # Export the first valid identity name for use in build
+          IDENTITY=$(security find-identity -v -p codesigning | grep -o '"[^"]*"' | head -1 | tr -d '"')
+          echo "CODE_SIGN_IDENTITY=$IDENTITY" >> $GITHUB_ENV
+          echo "Using identity: $IDENTITY"
+
       - name: Setup Provisioning Profile
         env:
           APPLE_PROVISIONING_PROFILE_DEV_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_DEV_BASE64 }}
@@ -163,6 +168,9 @@ jobs:
       - name: Archive iOS app
         working-directory: frontend_mobile/ios
         run: |
+          echo "Using CODE_SIGN_IDENTITY: $CODE_SIGN_IDENTITY"
+          echo "Using PP_UUID: $PP_UUID"
+
           xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -configuration ${{ steps.target.outputs.config }} \
@@ -171,7 +179,7 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM=DFAR672Q54 \
             PROVISIONING_PROFILE_SPECIFIER="$PP_UUID" \
-            CODE_SIGN_IDENTITY="Apple Development" \
+            "CODE_SIGN_IDENTITY=$CODE_SIGN_IDENTITY" \
             archive
 
       - name: Export IPA
