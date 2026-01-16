@@ -186,16 +186,23 @@ jobs:
           echo "Using CODE_SIGN_IDENTITY: $CODE_SIGN_IDENTITY"
           echo "Using PP_UUID: $PP_UUID"
 
-          xcodebuild -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -configuration ${{ steps.target.outputs.config }} \
-            -archivePath $PWD/build/Runner.xcarchive \
-            -destination 'generic/platform=iOS' \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM=DFAR672Q54 \
-            PROVISIONING_PROFILE_SPECIFIER="$PP_UUID" \
-            "CODE_SIGN_IDENTITY=$CODE_SIGN_IDENTITY" \
-            archive
+          # Run xcodebuild with minimal environment to avoid ARG_MAX limit
+          # See: https://github.com/CocoaPods/CocoaPods/issues/9954
+          env -i \
+            HOME="$HOME" \
+            PATH="$PATH" \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            PP_UUID="$PP_UUID" \
+            xcodebuild -workspace Runner.xcworkspace \
+              -scheme Runner \
+              -configuration ${{ steps.target.outputs.config }} \
+              -archivePath $PWD/build/Runner.xcarchive \
+              -destination 'generic/platform=iOS' \
+              CODE_SIGN_STYLE=Manual \
+              DEVELOPMENT_TEAM=DFAR672Q54 \
+              PROVISIONING_PROFILE_SPECIFIER="$PP_UUID" \
+              "CODE_SIGN_IDENTITY=$CODE_SIGN_IDENTITY" \
+              archive
 
       - name: Export IPA
         working-directory: frontend_mobile/ios
