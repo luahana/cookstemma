@@ -59,8 +59,10 @@ platform :ios do
     # Clean build folder to avoid "Argument list too long" error
     sh("cd #{flutter_dir} && flutter clean")
 
-    # Update Xcode project to use manual signing
-    # This is required because xcargs don't override automatic signing in project.pbxproj
+    # Build iOS app without codesigning - let Fastlane handle signing
+    sh("cd #{flutter_dir} && flutter build ios --release -t lib/main_dev.dart --no-codesign")
+
+    # Update Xcode project to use manual signing before archiving
     update_code_signing_settings(
       use_automatic_signing: false,
       path: "#{ios_dir}/Runner.xcodeproj",
@@ -69,15 +71,28 @@ platform :ios do
       code_sign_identity: "Apple Distribution"
     )
 
-    # Build IPA with export options for manual signing
-    sh("cd #{flutter_dir} && flutter build ipa --release -t lib/main_dev.dart --export-options-plist #{export_plist}")
+    # Archive and sign with gym - this gives Fastlane full control over signing
+    gym(
+      workspace: "#{ios_dir}/Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Release",
+      export_method: "app-store",
+      export_options: {
+        signingStyle: "manual",
+        teamID: "DFAR672Q54",
+        provisioningProfiles: {
+          "com.pairingplanet.pairingplanetfrontend.dev" => profile_uuid
+        }
+      },
+      output_directory: "#{flutter_dir}/build/ios/ipa",
+      output_name: "pairing_planet_dev.ipa",
+      skip_build_archive: false,
+      xcargs: "CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=DFAR672Q54 CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='#{profile_uuid}'"
+    )
 
     # Upload to TestFlight
-    ipa_path = Dir.glob("#{flutter_dir}/build/ios/ipa/*.ipa").first
-    UI.user_error!("No IPA found in build/ios/ipa/") unless ipa_path
-
     upload_to_testflight(
-      ipa: ipa_path,
+      ipa: "#{flutter_dir}/build/ios/ipa/pairing_planet_dev.ipa",
       skip_waiting_for_build_processing: true,
       changelog: "Dev build from CI"
     )
