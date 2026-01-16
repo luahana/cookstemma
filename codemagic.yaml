@@ -8,16 +8,18 @@ workflows:
     environment:
       vars:
         FLUTTER_TARGET: lib/main_dev.dart
-        FLUTTER_VERSION: "3.27.4"
-      xcode: latest
+        FLUTTER_VERSION: "3.24.5"
+      xcode: 16.2
       cocoapods: default
     scripts:
       - name: Install Flutter
         script: |
           git clone https://github.com/flutter/flutter.git --depth 1 -b $FLUTTER_VERSION $HOME/flutter
-          export PATH="$PATH:$HOME/flutter/bin"
+          # Prepend to PATH so our Flutter is used first
+          export PATH="$HOME/flutter/bin:$PATH"
+          flutter precache --ios
           flutter --version
-          echo "PATH=$PATH:$HOME/flutter/bin" >> $CM_ENV
+          echo "PATH=$HOME/flutter/bin:$PATH" >> $CM_ENV
       - name: Get Flutter packages
         script: |
           cd $CM_BUILD_DIR/frontend_mobile
