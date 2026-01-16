@@ -46,6 +46,7 @@ workflows:
             -configuration Release-dev \
             -archivePath $CM_BUILD_DIR/frontend_mobile/build/ios/Runner.xcarchive \
             -destination 'generic/platform=iOS' \
+            -allowProvisioningUpdates \
             archive 2>&1 | tee /tmp/xcodebuild_archive.log
 
           ARCHIVE_RESULT=$?
