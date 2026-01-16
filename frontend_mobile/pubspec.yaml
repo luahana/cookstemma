@@ -55,8 +55,8 @@ dependencies:
   easy_localization: ^3.0.8
   country_picker: ^2.0.26  # Country selection with flags
   firebase_core: ^4.3.0
-  firebase_crashlytics: ^5.0.6
-  firebase_analytics: ^12.1.0
+  # firebase_crashlytics: ^5.0.6  # Temporarily disabled to reduce iOS pods
+  # firebase_analytics: ^12.1.0  # Temporarily disabled to reduce iOS pods
   google_sign_in: ^7.2.0
   sign_in_with_apple: ^7.0.1
   firebase_auth: ^6.1.3

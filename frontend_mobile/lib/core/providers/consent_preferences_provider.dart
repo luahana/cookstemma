@@ -1,4 +1,3 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -133,7 +132,8 @@ class ConsentPreferencesNotifier extends StateNotifier<ConsentState> {
   }
 
   Future<void> _applyAnalyticsConsent(bool enabled) async {
-    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
+    // TODO: Re-enable when firebase_analytics is added back
+    // await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
   }
 }
 

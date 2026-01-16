@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pairing_planet2_frontend/config/app_config.dart';
@@ -94,9 +93,9 @@ final dioProvider = Provider<Dio>((ref) {
             e.type == DioExceptionType.connectionError) {
           ToastService.showError("네트워크 연결이 불안정합니다.");
         } else if (e.response?.statusCode == HttpStatus.serverError) {
-          FirebaseCrashlytics.instance.log(
-            "Server Error 500: ${e.requestOptions.path}",
-          );
+          // TODO: Re-enable when firebase_crashlytics is added back
+          // FirebaseCrashlytics.instance.log("Server Error 500: ${e.requestOptions.path}");
+          talker.error("Server Error 500: ${e.requestOptions.path}");
           ToastService.showError("서버 내부 오류가 발생했습니다.");
         }
         return handler.next(e);
