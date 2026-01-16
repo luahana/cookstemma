@@ -56,8 +56,11 @@ platform :ios do
     File.write(export_plist, plist_content)
     UI.message("Generated ExportOptions plist with profile: #{profile_uuid}")
 
-    # Clean build folder to avoid "Argument list too long" error
+    # Clean build folders to avoid "Argument list too long" error
     sh("cd #{flutter_dir} && flutter clean")
+    # Clean Xcode derived data - this is critical for CI
+    sh("rm -rf ~/Library/Developer/Xcode/DerivedData/*Runner* || true")
+    sh("rm -rf #{ios_dir}/build || true")
 
     # Build iOS app without codesigning - let Fastlane handle signing
     sh("cd #{flutter_dir} && flutter build ios --release -t lib/main_dev.dart --no-codesign")
