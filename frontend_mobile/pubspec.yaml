@@ -68,9 +68,9 @@ dependencies:
   isar: ^3.1.0+1
   isar_flutter_libs: ^3.1.0+1
 
-  # Image processing
-  flutter_image_compress: ^2.1.0
-  image: ^4.1.3
+  # Image processing (compression moved to backend)
+  # flutter_image_compress: ^2.1.0  # Removed - backend handles compression
+  image: ^4.1.3  # Still needed for perceptual hashing
 
   # Background work
   # TODO: Re-enable after fixing compatibility

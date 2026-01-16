@@ -1,14 +1,11 @@
 import 'dart:io';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image/image.dart' as img;
-import 'package:path_provider/path_provider.dart';
-import 'package:pairing_planet2_frontend/domain/entities/image/image_config.dart';
 import 'package:pairing_planet2_frontend/domain/entities/image/processed_image.dart';
 import 'package:uuid/uuid.dart';
 
-/// Service for processing images: compression, resizing, format conversion, and hashing
+/// Service for processing images: hashing only (compression moved to backend)
 class ImageProcessingService {
-  /// Process image with compression, resizing, WebP conversion, and hashing
+  /// Process image - compute hash only, backend handles compression
   ///
   /// Throws exception if processing fails - caller should handle fallback
   Future<ProcessedImage> processImage({
@@ -17,72 +14,27 @@ class ImageProcessingService {
   }) async {
     final startTime = DateTime.now();
 
-    // Get configuration for this image type
-    final config = ImageConfig.forType(imageType);
-
-    // Get file sizes before processing
+    // Get file size
     final originalSize = await originalFile.length();
 
     try {
-      // Step 1: Resize and compress to WebP
-      final compressedFile = await _compressToWebP(
-        originalFile,
-        config,
-      );
-
-      // Step 2: Generate perceptual hash for deduplication (Phase 3)
-      final hash = await _computePerceptualHash(compressedFile);
-
-      // Get compressed file size
-      final compressedSize = await compressedFile.length();
-
-      // Calculate compression ratio
-      final compressionRatio = originalSize > 0
-          ? (originalSize - compressedSize) / originalSize
-          : 0.0;
+      // Generate perceptual hash for deduplication
+      final hash = await _computePerceptualHash(originalFile);
 
       final processingTime = DateTime.now().difference(startTime);
 
+      // Return original file - backend will handle compression
       return ProcessedImage(
-        file: compressedFile,
+        file: originalFile,
         hash: hash,
         originalSize: originalSize,
-        compressedSize: compressedSize,
-        compressionRatio: compressionRatio,
+        compressedSize: originalSize, // Same as original (no client compression)
+        compressionRatio: 0.0, // No client-side compression
         processingTime: processingTime,
       );
     } catch (e) {
-      // Clean up any partially created files
       rethrow; // Let UseCase handle fallback
     }
-  }
-
-  /// Compress image to WebP format with resizing
-  Future<File> _compressToWebP(
-    File originalFile,
-    ImageConfig config,
-  ) async {
-    // Create temp directory for compressed file
-    final tempDir = await getTemporaryDirectory();
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final uuid = const Uuid().v4().substring(0, 8);
-    final tempPath = '${tempDir.path}/compressed_${timestamp}_$uuid.webp';
-
-    // Compress to WebP with resizing
-    final result = await FlutterImageCompress.compressAndGetFile(
-      originalFile.absolute.path,
-      tempPath,
-      quality: config.quality,
-      minWidth: config.maxWidth,
-      minHeight: config.maxHeight,
-      format: CompressFormat.webp,
-    );
-
-    if (result == null) {
-      throw Exception('Image compression failed - result is null');
-    }
-
-    return File(result.path);
   }
 
   /// Compute 8x8 average perceptual hash for image deduplication
