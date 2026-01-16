@@ -683,6 +683,66 @@ User logs in within 30 days?
 
 ---
 
+### [INFRA-002]: Bot Fleet System (Backend Infrastructure)
+
+**Status:** 🟡 In Progress
+**Branch:** `feature/bot-fleet-system`
+
+**Description:** Backend infrastructure for an AI-driven bot fleet that will generate realistic recipes, variants, and cooking logs to seed Pairing Planet with synthetic data. This phase implements the backend authentication and persona management.
+
+**Target:** 500 recipes, 2000 logs from 10 bot personas (5 Korean, 5 English)
+
+**Acceptance Criteria (Phase 1 - Backend):**
+- [x] Database migrations for bot_personas and bot_api_keys tables
+- [x] Bot persona entity with localized display names, tone, skill level, dietary focus
+- [x] Bot API key entity with Stripe-style prefix + SHA-256 hash pattern
+- [x] BOT role added to Role enum
+- [x] Persona reference added to User entity
+- [x] BotAuthService for API key authentication
+- [x] BotUserService for bot user and API key management
+- [x] BotPersonaService for persona queries
+- [x] POST /api/v1/auth/bot-login endpoint (public)
+- [x] Admin endpoints for bot user creation and API key management
+- [x] Rate limiting for bot-login (20 req/min)
+- [x] Comprehensive test coverage (31 tests)
+
+**Acceptance Criteria (Phase 2 - Bot Engine - Planned):**
+- [ ] Python bot engine with ChatGPT integration
+- [ ] Nano Banana Pro image generation
+- [ ] Content generation pipeline (recipes, variants, logs)
+- [ ] Celery + Redis task queue
+- [ ] Scheduler for content drip
+
+**Technical Notes:**
+- Backend:
+  - `V29__bot_personas_and_api_keys.sql` - Tables for personas and API keys
+  - `V30__seed_bot_personas.sql` - 10 pre-seeded personas (5 Korean, 5 English archetypes)
+  - `BotPersona.java` - Entity with JSONB display_name for localization
+  - `BotApiKey.java` - Stripe-style API key (pp_bot_xxx prefix + hash)
+  - `BotAuthService.java` - API key authentication and token generation
+  - `BotAdminController.java` - Admin-only bot management endpoints
+- API Keys:
+  - Format: `pp_bot_<base64-url-random-32-bytes>`
+  - Stored as SHA-256 hash (key only shown once at creation)
+  - Max 5 active keys per bot user
+  - Optional expiration date
+
+**Bot Personas:**
+| Username | Locale | Archetype | Specialty |
+|----------|--------|-----------|-----------|
+| chef_park_soojin | ko-KR | Professional Chef | Fine dining, fusion |
+| yoriking_minsu | ko-KR | College Student | Budget, quick meals |
+| healthymom_hana | ko-KR | Health Parent | Kid-friendly healthy |
+| bakingmom_jieun | ko-KR | Home Baker | Korean bakery, desserts |
+| worldfoodie_junhyuk | ko-KR | Cultural Enthusiast | Global cuisines |
+| chef_marcus_stone | en-US | Professional Chef | Farm-to-table |
+| broke_college_cook | en-US | College Student | Dorm hacks, budget |
+| fitfamilyfoods | en-US | Health Parent | Meal prep, nutrition |
+| sweettoothemma | en-US | Home Baker | American/European pastry |
+| globaleatsalex | en-US | Cultural Enthusiast | International recipes |
+
+---
+
 ## Planned 📋
 
 ### [FEAT-016]: Improved Onboarding
@@ -1201,6 +1261,7 @@ adb reverse tcp:9000 tcp:9000  # MinIO images
 | FEAT-038 | Profile Bio & Social Links | ✅ |
 | FEAT-039 | Multi-Language Support | ✅ |
 | INFRA-001 | AWS Dev Environment with ALB | ✅ |
+| INFRA-002 | Bot Fleet System (Backend) | 🟡 In Progress |
 
 ## Website Features
 
