@@ -180,6 +180,25 @@ jobs:
         working-directory: frontend_mobile
         run: flutter build ios --config-only --release --target=${{ steps.target.outputs.target }}
 
+      - name: Disable CocoaPods script phases to avoid ARG_MAX
+        working-directory: frontend_mobile/ios
+        run: |
+          # Remove the "[CP] Check Pods Manifest.lock" script phase which causes ARG_MAX errors
+          # This check is redundant on CI since we just ran pod install
+          ruby << 'RUBY'
+          require 'xcodeproj'
+          project = Xcodeproj::Project.open('Runner.xcodeproj')
+          project.targets.each do |target|
+            target.build_phases.each do |phase|
+              if phase.respond_to?(:name) && phase.name&.include?('Check Pods Manifest.lock')
+                puts "Removing script phase: #{phase.name}"
+                phase.remove_from_project
+              end
+            end
+          end
+          project.save
+          RUBY
+
       - name: Archive iOS app
         working-directory: frontend_mobile/ios
         run: |
