@@ -3,35 +3,39 @@ workflows:
     name: iOS Dev (TestFlight)
     max_build_duration: 60
     instance_type: mac_mini_m2
-    working_directory: frontend_mobile
     environment:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.pairingplanet.pairingplanetfrontend.dev
       vars:
         FLUTTER_TARGET: lib/main_dev.dart
+        PROJECT_PATH: frontend_mobile
       flutter: stable
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Set up local properties
-        script: echo "flutter.sdk=$HOME/programs/flutter" > android/local.properties
+      - name: Change to project directory
+        script: |
+          cd $CM_BUILD_DIR/$PROJECT_PATH
+          echo "Working in $(pwd)"
       - name: Get Flutter packages
-        script: flutter pub get
+        script: |
+          cd $CM_BUILD_DIR/$PROJECT_PATH
+          flutter pub get
       - name: Install CocoaPods dependencies
         script: |
-          cd ios
+          cd $CM_BUILD_DIR/$PROJECT_PATH/ios
           pod install
       - name: Build iOS IPA
         script: |
+          cd $CM_BUILD_DIR/$PROJECT_PATH
           flutter build ipa \
             --release \
             --target=$FLUTTER_TARGET \
-            --export-options-plist=/Users/builder/export_options.plist
+            --export-options-plist=$HOME/export_options.plist
     artifacts:
-      - build/ios/ipa/*.ipa
+      - frontend_mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
     publishing:
       app_store_connect:
         auth: integration
@@ -42,31 +46,34 @@ workflows:
     name: iOS Staging (TestFlight)
     max_build_duration: 60
     instance_type: mac_mini_m2
-    working_directory: frontend_mobile
     environment:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.pairingplanet.pairingplanetfrontend.stg
       vars:
         FLUTTER_TARGET: lib/main_staging.dart
+        PROJECT_PATH: frontend_mobile
       flutter: stable
       xcode: latest
       cocoapods: default
     scripts:
       - name: Get Flutter packages
-        script: flutter pub get
+        script: |
+          cd $CM_BUILD_DIR/$PROJECT_PATH
+          flutter pub get
       - name: Install CocoaPods dependencies
         script: |
-          cd ios
+          cd $CM_BUILD_DIR/$PROJECT_PATH/ios
           pod install
       - name: Build iOS IPA
         script: |
+          cd $CM_BUILD_DIR/$PROJECT_PATH
           flutter build ipa \
             --release \
             --target=$FLUTTER_TARGET \
-            --export-options-plist=/Users/builder/export_options.plist
+            --export-options-plist=$HOME/export_options.plist
     artifacts:
-      - build/ios/ipa/*.ipa
+      - frontend_mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:
@@ -78,34 +85,37 @@ workflows:
     name: iOS Production (App Store)
     max_build_duration: 60
     instance_type: mac_mini_m2
-    working_directory: frontend_mobile
     environment:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.pairingplanet.pairingplanetfrontend.prod
       vars:
         FLUTTER_TARGET: lib/main_prod.dart
+        PROJECT_PATH: frontend_mobile
       flutter: stable
       xcode: latest
       cocoapods: default
     scripts:
       - name: Get Flutter packages
-        script: flutter pub get
+        script: |
+          cd $CM_BUILD_DIR/$PROJECT_PATH
+          flutter pub get
       - name: Install CocoaPods dependencies
         script: |
-          cd ios
+          cd $CM_BUILD_DIR/$PROJECT_PATH/ios
           pod install
       - name: Build iOS IPA
         script: |
+          cd $CM_BUILD_DIR/$PROJECT_PATH
           flutter build ipa \
             --release \
             --target=$FLUTTER_TARGET \
-            --export-options-plist=/Users/builder/export_options.plist
+            --export-options-plist=$HOME/export_options.plist
     artifacts:
-      - build/ios/ipa/*.ipa
+      - frontend_mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        submit_to_app_store: false  # Change to true when ready for App Store release
+        submit_to_app_store: false
