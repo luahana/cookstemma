@@ -72,8 +72,8 @@ jobs:
 
   distribute-ios:
     name: Build and Distribute iOS
-    # Use macos-14 with Xcode 16.2 to avoid "Argument list too long" error
-    # macos-15 with Xcode 16.4 causes ARG_MAX overflow due to environment bloat
+    # Manual-only: ARG_MAX issue not resolved, use local builds for TestFlight
+    if: github.event_name == 'workflow_dispatch'
     runs-on: macos-14
     environment: dev
     # Use short path to reduce ARG_MAX pressure

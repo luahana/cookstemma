@@ -64,29 +64,4 @@ post_install do |installer|
       config.build_settings['CODE_SIGN_IDENTITY'] = ''
     end
   end
-
-  # Deduplicate paths in xcconfig files to fix ARG_MAX issue
-  # See: https://github.com/CocoaPods/CocoaPods/issues/9954
-  installer.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      xcconfig_path = config.base_configuration_reference&.real_path
-      next unless xcconfig_path && File.exist?(xcconfig_path)
-
-      content = File.read(xcconfig_path)
-      modified = false
-
-      ['HEADER_SEARCH_PATHS', 'FRAMEWORK_SEARCH_PATHS', 'OTHER_LDFLAGS'].each do |key|
-        if content =~ /^#{key}\s*=\s*(.*)$/
-          paths = $1.split(/\s+(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-          unique_paths = paths.uniq
-          if paths.size != unique_paths.size
-            content.gsub!(/^#{key}\s*=.*$/, "#{key} = #{unique_paths.join(' ')}")
-            modified = true
-          end
-        end
-      end
-
-      File.write(xcconfig_path, content) if modified
-    end
-  end
 end
