@@ -59,14 +59,18 @@ platform :ios do
     # Clean build folder to avoid "Argument list too long" error
     sh("cd #{flutter_dir} && flutter clean")
 
-    # Build IPA with manual signing xcargs
-    # The xcargs override the automatic signing settings in the Xcode project
-    xcargs = "CODE_SIGN_STYLE=Manual " \
-             "DEVELOPMENT_TEAM=DFAR672Q54 " \
-             "CODE_SIGN_IDENTITY='Apple Distribution' " \
-             "PROVISIONING_PROFILE_SPECIFIER='#{profile_uuid}'"
+    # Update Xcode project to use manual signing
+    # This is required because xcargs don't override automatic signing in project.pbxproj
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "#{ios_dir}/Runner.xcodeproj",
+      team_id: "DFAR672Q54",
+      profile_name: profile_uuid,
+      code_sign_identity: "Apple Distribution"
+    )
 
-    sh("cd #{flutter_dir} && flutter build ipa --release -t lib/main_dev.dart --export-options-plist #{export_plist} -- #{xcargs}")
+    # Build IPA with export options for manual signing
+    sh("cd #{flutter_dir} && flutter build ipa --release -t lib/main_dev.dart --export-options-plist #{export_plist}")
 
     # Upload to TestFlight
     ipa_path = Dir.glob("#{flutter_dir}/build/ios/ipa/*.ipa").first
