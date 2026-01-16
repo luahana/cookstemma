@@ -34,21 +34,27 @@ workflows:
             --create
           keychain add-certificates
           xcode-project use-profiles --project $CM_BUILD_DIR/frontend_mobile/ios/Runner.xcodeproj
-      - name: Build iOS app
+      - name: Build and Archive iOS app
         script: |
           cd $CM_BUILD_DIR/frontend_mobile
-          flutter build ios \
-            --release \
-            --target=$FLUTTER_TARGET \
-            --no-codesign
-      - name: Archive and export IPA
-        script: |
-          cd $CM_BUILD_DIR/frontend_mobile/ios
+          # Generate Xcode project config
+          flutter build ios --config-only --release --target=$FLUTTER_TARGET
+          # Archive directly with xcodebuild
+          cd ios
           xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -configuration Release-dev \
             -archivePath $CM_BUILD_DIR/frontend_mobile/build/ios/Runner.xcarchive \
-            archive
+            -destination 'generic/platform=iOS' \
+            archive \
+            CODE_SIGN_IDENTITY=- \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Sign and export IPA
+        script: |
+          # Re-sign the archive
+          cd $CM_BUILD_DIR/frontend_mobile/ios
+          xcode-project use-profiles --project Runner.xcodeproj --archive $CM_BUILD_DIR/frontend_mobile/build/ios/Runner.xcarchive
           xcodebuild -exportArchive \
             -archivePath $CM_BUILD_DIR/frontend_mobile/build/ios/Runner.xcarchive \
             -exportPath $CM_BUILD_DIR/frontend_mobile/build/ios/ipa \
