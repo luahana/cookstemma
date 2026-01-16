@@ -28,6 +28,12 @@ workflows:
             --create
           keychain add-certificates
           xcode-project use-profiles --project $CM_BUILD_DIR/frontend_mobile/ios/Runner.xcodeproj
+
+          # Debug: show available profiles and identities
+          echo "=== Available signing identities ==="
+          security find-identity -v -p codesigning
+          echo "=== Available provisioning profiles ==="
+          ls -la ~/Library/MobileDevice/Provisioning\ Profiles/ || echo "No profiles directory"
       - name: Generate Xcode config
         script: |
           cd $CM_BUILD_DIR/frontend_mobile
@@ -41,12 +47,16 @@ workflows:
           cd $CM_BUILD_DIR/frontend_mobile/ios
           mkdir -p $CM_BUILD_DIR/frontend_mobile/build/ios
 
+          # Debug: Show current build settings for signing
+          echo "=== Current Xcode signing settings ==="
+          xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release-dev -showBuildSettings | grep -E "(CODE_SIGN|PROVISIONING|DEVELOPMENT_TEAM)" | head -20
+
           xcodebuild -workspace Runner.xcworkspace \
             -scheme Runner \
             -configuration Release-dev \
             -archivePath $CM_BUILD_DIR/frontend_mobile/build/ios/Runner.xcarchive \
             -destination 'generic/platform=iOS' \
-            -allowProvisioningUpdates \
+            CODE_SIGN_STYLE=Manual \
             archive 2>&1 | tee /tmp/xcodebuild_archive.log
 
           ARCHIVE_RESULT=$?
@@ -72,7 +82,7 @@ workflows:
       - name: Export IPA
         script: |
           cd $CM_BUILD_DIR/frontend_mobile/ios
-          # Create proper export options plist
+          # Create proper export options plist with manual signing
           cat > /tmp/ExportOptions.plist << 'PLIST'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -83,7 +93,7 @@ workflows:
               <key>teamID</key>
               <string>DFAR672Q54</string>
               <key>signingStyle</key>
-              <string>automatic</string>
+              <string>manual</string>
               <key>compileBitcode</key>
               <false/>
           </dict>
