@@ -1,9 +1,11 @@
 # Uncomment this line to define a global platform for your project
 platform :ios, '15.0'
 
-# Disable input/output paths to fix "Argument list too long" error on CI
-# See: https://github.com/CocoaPods/CocoaPods/issues/10200
-install! 'cocoapods', :disable_input_output_paths => true
+# Disable input/output paths and generate multiple pod projects to fix "Argument list too long" error on CI
+# See: https://github.com/CocoaPods/CocoaPods/issues/9954
+install! 'cocoapods',
+  :disable_input_output_paths => true,
+  :generate_multiple_pod_projects => true
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
