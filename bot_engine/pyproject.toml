@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pairing-planet-bot-engine"
+version = "0.1.0"
+description = "AI-driven bot fleet for generating recipes, variants, and cooking logs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+    { name = "Pairing Planet Team" }
+]
+dependencies = [
+    "openai>=1.0.0",
+    "httpx>=0.25.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "celery[redis]>=5.3.0",
+    "apscheduler>=3.10.0",
+    "python-dotenv>=1.0.0",
+    "tenacity>=8.2.0",
+    "structlog>=23.0.0",
+    "pillow>=10.0.0",
+    "aiofiles>=23.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "httpx[http2]>=0.25.0",
+]
+
+[project.scripts]
+bot-engine = "bot_engine.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

@@ -35,7 +35,10 @@ public record RecipeDetailResponseDto(
         String changeReason,                 // User-provided reason for changes
         // Servings and cooking time
         Integer servings,                    // Number of servings (default: 2)
-        String cookingTimeRange              // Cooking time range enum (e.g., "MIN_30_TO_60")
+        String cookingTimeRange,             // Cooking time range enum (e.g., "MIN_30_TO_60")
+        // Translations (async populated by OpenAI GPT)
+        Map<String, String> titleTranslations,        // {"en": "...", "ja": "...", ...}
+        Map<String, String> descriptionTranslations   // {"en": "...", "ja": "...", ...}
 ) {
     public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix, Boolean isSavedByCurrentUser, UUID creatorPublicId, String userName, UUID rootCreatorPublicId, String rootCreatorName) {
         Recipe root = recipe.getRootRecipe();
@@ -100,8 +103,10 @@ public record RecipeDetailResponseDto(
         ) : null;
 
         // 4. 이미지 리스트 변환 (COVER 타입만 반환, STEP 이미지는 steps[].imageUrl로 반환됨)
+        // Note: distinct() is needed because EntityGraph with multiple *ToMany relations causes Cartesian product
         List<ImageResponseDto> imageResponses = recipe.getImages().stream()
                 .filter(img -> img.getType() == com.pairingplanet.pairing_planet.domain.enums.ImageType.COVER)
+                .distinct()
                 .map(img -> new ImageResponseDto(
                         img.getPublicId(),
                         urlPrefix + "/" + img.getStoredFilename()
@@ -145,6 +150,8 @@ public record RecipeDetailResponseDto(
                 .changeReason(recipe.getChangeReason())
                 .servings(recipe.getServings() != null ? recipe.getServings() : 2)
                 .cookingTimeRange(recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60")
+                .titleTranslations(recipe.getTitleTranslations())
+                .descriptionTranslations(recipe.getDescriptionTranslations())
                 .build();
     }
 }

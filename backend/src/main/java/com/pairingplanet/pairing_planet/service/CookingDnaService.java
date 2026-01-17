@@ -72,7 +72,7 @@ public class CookingDnaService {
         int totalLogs = successCount + partialCount + failedCount;
 
         // 2. Get recipe count
-        long recipeCount = recipeRepository.countByCreatorIdAndIsDeletedFalse(userId);
+        long recipeCount = recipeRepository.countByCreatorIdAndDeletedAtIsNull(userId);
 
         // 3. Calculate XP
         int totalXp = calculateTotalXp(recipeCount, successCount, partialCount, failedCount);

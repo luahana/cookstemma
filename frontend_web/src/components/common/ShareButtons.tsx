@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ShareButtonsProps {
   url: string;
@@ -10,10 +10,14 @@ interface ShareButtonsProps {
 
 export function ShareButtons({ url, title, description }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
+  const [canNativeShare, setCanNativeShare] = useState(false);
+  const [fullUrl, setFullUrl] = useState(url);
 
-  const fullUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}${url}`
-    : url;
+  // Detect native share support after hydration to avoid SSR mismatch
+  useEffect(() => {
+    setFullUrl(`${window.location.origin}${url}`);
+    setCanNativeShare(typeof navigator !== 'undefined' && 'share' in navigator);
+  }, [url]);
 
   const handleNativeShare = async () => {
     if (navigator.share) {
@@ -51,7 +55,7 @@ export function ShareButtons({ url, title, description }: ShareButtonsProps) {
       <span className="text-sm text-[var(--text-secondary)] mr-1">Share:</span>
 
       {/* Native Share (mobile) */}
-      {typeof navigator !== 'undefined' && 'share' in navigator && (
+      {canNativeShare && (
         <button
           onClick={handleNativeShare}
           className="p-2 rounded-lg bg-[var(--background)] hover:bg-[var(--primary-light)] text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors"

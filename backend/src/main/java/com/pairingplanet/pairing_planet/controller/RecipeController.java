@@ -1,5 +1,6 @@
 package com.pairingplanet.pairing_planet.controller;
 
+import com.pairingplanet.pairing_planet.domain.enums.CookingTimeRange;
 import com.pairingplanet.pairing_planet.dto.common.CursorPageResponse;
 import com.pairingplanet.pairing_planet.dto.common.UnifiedPageResponse;
 import com.pairingplanet.pairing_planet.dto.recipe.*;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -30,6 +32,8 @@ public class RecipeController {
      * - GET /api/v1/recipes?typeFilter=original|variant : 타입 필터
      * - GET /api/v1/recipes?q=검색어 : 제목/설명/재료 검색
      * - GET /api/v1/recipes?sort=recent|mostForked|trending : 정렬 옵션
+     * - GET /api/v1/recipes?cookingTime=UNDER_15_MIN,MIN_15_TO_30 : 조리시간 필터
+     * - GET /api/v1/recipes?minServings=1&maxServings=4 : 인원수 필터
      * - GET /api/v1/recipes?cursor=xxx : 커서 기반 다음 페이지 (mobile)
      * - GET /api/v1/recipes?page=0 : 오프셋 기반 페이지 (web)
      */
@@ -40,6 +44,9 @@ public class RecipeController {
             @RequestParam(name = "typeFilter", required = false) String typeFilter,
             @RequestParam(name = "q", required = false) String searchKeyword,
             @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "cookingTime", required = false) List<CookingTimeRange> cookingTimeRanges,
+            @RequestParam(name = "minServings", required = false) Integer minServings,
+            @RequestParam(name = "maxServings", required = false) Integer maxServings,
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
@@ -49,7 +56,8 @@ public class RecipeController {
         }
         // typeFilter takes precedence over onlyRoot
         String effectiveTypeFilter = (typeFilter != null) ? typeFilter : (onlyRoot ? "original" : null);
-        return ResponseEntity.ok(recipeService.findRecipesUnified(locale, effectiveTypeFilter, sort, cursor, page, size));
+        return ResponseEntity.ok(recipeService.findRecipesUnified(
+                locale, effectiveTypeFilter, sort, cookingTimeRanges, minServings, maxServings, cursor, page, size));
     }
 
     /**

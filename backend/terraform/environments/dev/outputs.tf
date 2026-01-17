@@ -68,3 +68,41 @@ output "frontend_endpoint" {
   description = "Frontend URL (HTTP)"
   value       = "http://${module.alb.alb_dns_name}"
 }
+
+# Translation Lambda outputs
+output "translation_lambda_arn" {
+  description = "ARN of the translation Lambda function"
+  value       = module.lambda_translation.lambda_function_arn
+}
+
+output "translation_sqs_queue_url" {
+  description = "URL of the translation SQS queue"
+  value       = module.lambda_translation.sqs_queue_url
+}
+
+# Image processing outputs
+output "image_processor_lambda_arn" {
+  description = "ARN of the image processor Lambda"
+  value       = module.lambda_image_processing.processor_lambda_arn
+}
+
+output "image_state_machine_arn" {
+  description = "ARN of the image processing Step Functions state machine"
+  value       = module.lambda_image_processing.state_machine_arn
+}
+
+# CloudFront outputs
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID"
+  value       = module.cloudfront.distribution_id
+}
+
+output "cloudfront_domain_name" {
+  description = "CloudFront domain name"
+  value       = module.cloudfront.distribution_domain_name
+}
+
+output "cdn_url" {
+  description = "CDN URL for images"
+  value       = module.cloudfront.cdn_url
+}

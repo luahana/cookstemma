@@ -11,10 +11,15 @@ import { uploadImage } from '@/lib/api/images';
 import { getImageUrl } from '@/lib/utils/image';
 import type { Outcome, RecipeSummary, RecipeDetail } from '@/lib/types';
 
+// Constants matching Flutter app
+const MAX_CONTENT_LENGTH = 500;
+const MAX_HASHTAGS = 5;
+const MAX_HASHTAG_LENGTH = 30;
+
 const OUTCOME_OPTIONS: { value: Outcome; label: string; emoji: string }[] = [
-  { value: 'SUCCESS', label: 'Success', emoji: '😊' },
-  { value: 'PARTIAL', label: 'Partial', emoji: '😐' },
-  { value: 'FAILED', label: 'Failed', emoji: '😢' },
+  { value: 'SUCCESS', label: 'Nailed it', emoji: '😊' },
+  { value: 'PARTIAL', label: 'Learning', emoji: '🌱' },
+  { value: 'FAILED', label: 'Lesson learned', emoji: '🌀' },
 ];
 
 interface UploadedImage {
@@ -49,7 +54,8 @@ function CreateLogPageContent() {
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeDetail | null>(null);
   const [content, setContent] = useState('');
   const [outcome, setOutcome] = useState<Outcome>('SUCCESS');
-  const [hashtags, setHashtags] = useState('');
+  const [hashtags, setHashtags] = useState<string[]>([]);
+  const [hashtagInput, setHashtagInput] = useState('');
   const [images, setImages] = useState<UploadedImage[]>([]);
 
   // UI state
@@ -178,6 +184,41 @@ function CreateLogPageContent() {
     });
   };
 
+  // Normalize hashtag: lowercase, trim, remove #, spaces to hyphens
+  const normalizeHashtag = (tag: string): string => {
+    return tag
+      .toLowerCase()
+      .trim()
+      .replace(/^#/, '')
+      .replace(/\s+/g, '-')
+      .slice(0, MAX_HASHTAG_LENGTH);
+  };
+
+  // Add hashtag to array
+  const addHashtag = (rawTag: string) => {
+    const tag = normalizeHashtag(rawTag);
+    if (!tag) return;
+    if (hashtags.length >= MAX_HASHTAGS) return;
+    if (hashtags.includes(tag)) return;
+    setHashtags((prev) => [...prev, tag]);
+    setHashtagInput('');
+  };
+
+  // Handle Enter or comma key in hashtag input
+  const handleHashtagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addHashtag(hashtagInput);
+    } else if (e.key === 'Backspace' && !hashtagInput && hashtags.length > 0) {
+      setHashtags((prev) => prev.slice(0, -1));
+    }
+  };
+
+  // Remove hashtag from array
+  const removeHashtag = (tag: string) => {
+    setHashtags((prev) => prev.filter((t) => t !== tag));
+  };
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -210,11 +251,6 @@ function CreateLogPageContent() {
     setIsSubmitting(true);
 
     try {
-      const hashtagList = hashtags
-        .split(',')
-        .map((h) => h.trim().replace(/^#/, ''))
-        .filter((h) => h.length > 0);
-
       const imagePublicIds = images
         .filter((img) => img.publicId)
         .map((img) => img.publicId!);
@@ -224,7 +260,7 @@ function CreateLogPageContent() {
         content: content.trim(),
         outcome,
         imagePublicIds,
-        hashtags: hashtagList.length > 0 ? hashtagList : undefined,
+        hashtags: hashtags.length > 0 ? hashtags : undefined,
       });
 
       // Redirect to the new log
@@ -237,7 +273,8 @@ function CreateLogPageContent() {
     }
   };
 
-  if (authLoading) {
+  // Show loading state while auth is loading or redirecting to login
+  if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <div className="animate-pulse">
@@ -245,10 +282,6 @@ function CreateLogPageContent() {
         </div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (
@@ -452,9 +485,13 @@ function CreateLogPageContent() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={6}
+              maxLength={MAX_CONTENT_LENGTH}
               className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)] resize-none"
               placeholder="How did it turn out? Share your experience, tips, or modifications..."
             />
+            <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">
+              {content.length}/{MAX_CONTENT_LENGTH}
+            </p>
           </div>
 
           {/* Images */}
@@ -522,22 +559,55 @@ function CreateLogPageContent() {
 
           {/* Hashtags */}
           <div>
-            <label
-              htmlFor="hashtags"
-              className="block text-sm font-medium text-[var(--text-primary)] mb-2"
-            >
-              Hashtags (optional)
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+              Hashtags (optional, max {MAX_HASHTAGS})
             </label>
-            <input
-              id="hashtags"
-              type="text"
-              value={hashtags}
-              onChange={(e) => setHashtags(e.target.value)}
-              className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
-              placeholder="homecooking, weeknight, spicy (comma separated)"
-            />
+            {/* Tag chips */}
+            {hashtags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {hashtags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-[var(--primary-light)] text-[var(--primary)] rounded-full text-sm"
+                  >
+                    #{tag}
+                    <button
+                      type="button"
+                      onClick={() => removeHashtag(tag)}
+                      className="ml-1 hover:text-[var(--error)] transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {/* Input with Add button */}
+            {hashtags.length < MAX_HASHTAGS && (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={hashtagInput}
+                  onChange={(e) => setHashtagInput(e.target.value)}
+                  onKeyDown={handleHashtagKeyDown}
+                  maxLength={MAX_HASHTAG_LENGTH}
+                  className="flex-1 px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
+                  placeholder="Add a hashtag..."
+                />
+                <button
+                  type="button"
+                  onClick={() => addHashtag(hashtagInput)}
+                  disabled={!hashtagInput.trim()}
+                  className="px-4 py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Add
+                </button>
+              </div>
+            )}
             <p className="text-xs text-[var(--text-secondary)] mt-1">
-              Separate hashtags with commas
+              Press Enter or comma to add • {hashtags.length}/{MAX_HASHTAGS} tags
             </p>
           </div>
 

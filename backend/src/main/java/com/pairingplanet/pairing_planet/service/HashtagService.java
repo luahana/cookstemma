@@ -248,7 +248,7 @@ public class HashtagService {
                 .orElse(null);
 
         // 4. Variant count
-        int variantCount = (int) recipeRepository.countByRootRecipeIdAndIsDeletedFalse(recipe.getId());
+        int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
 
         // 5. Log count
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());

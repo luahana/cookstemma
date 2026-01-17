@@ -20,14 +20,14 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     Optional<LogPost> findByPublicId(UUID publicId);
 
     // 2. 내 로그 목록 (최신순)
-    Slice<LogPost> findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(Long creatorId, Pageable pageable);
+    Slice<LogPost> findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long creatorId, Pageable pageable);
 
     // 2-1. 내 로그 목록 (outcome 필터링)
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.creator_id = :creatorId
-        AND lp.is_deleted = false
+        AND lp.deleted_at IS NULL
         AND rl.outcome = :outcome
         ORDER BY lp.created_at DESC
         """,
@@ -38,7 +38,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
             Pageable pageable);
 
     // 3. 특정 지역/언어 기반 최신 로그 피드
-    Slice<LogPost> findByLocaleAndIsDeletedFalseAndIsPrivateFalseOrderByCreatedAtDesc(String locale, Pageable pageable);
+    Slice<LogPost> findByLocaleAndDeletedAtIsNullAndIsPrivateFalseOrderByCreatedAtDesc(String locale, Pageable pageable);
 
     @Query("SELECT l FROM LogPost l ORDER BY l.createdAt DESC")
     Slice<LogPost> findAllOrderByCreatedAtDesc(Pageable pageable);
@@ -47,7 +47,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.is_deleted = false
+        WHERE lp.deleted_at IS NULL
         AND rl.outcome IN (:outcomes)
         ORDER BY lp.created_at DESC
         """,
@@ -55,14 +55,14 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     Slice<LogPost> findByOutcomesIn(@Param("outcomes") List<String> outcomes, Pageable pageable);
 
     // 4. 사용자의 로그 개수 (삭제되지 않은 것만)
-    long countByCreatorIdAndIsDeletedFalse(Long creatorId);
+    long countByCreatorIdAndDeletedAtIsNull(Long creatorId);
 
     // [검색] pg_trgm 기반 로그 검색 (제목, 내용, 연결된 레시피명)
     @Query(value = """
         SELECT DISTINCT lp.* FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
-        WHERE lp.is_deleted = false AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
         AND (
             lp.title ILIKE '%' || :keyword || '%'
             OR lp.content ILIKE '%' || :keyword || '%'
@@ -74,7 +74,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT COUNT(DISTINCT lp.id) FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
-        WHERE lp.is_deleted = false AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
         AND (
             lp.title ILIKE '%' || :keyword || '%'
             OR lp.content ILIKE '%' || :keyword || '%'
@@ -87,11 +87,11 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // ==================== CURSOR-BASED PAGINATION ====================
 
     // [Cursor] All logs - initial page
-    @Query("SELECT l FROM LogPost l WHERE l.isDeleted = false ORDER BY l.createdAt DESC, l.id DESC")
+    @Query("SELECT l FROM LogPost l WHERE l.deletedAt IS NULL ORDER BY l.createdAt DESC, l.id DESC")
     Slice<LogPost> findAllLogsWithCursorInitial(Pageable pageable);
 
     // [Cursor] All logs - with cursor
-    @Query("SELECT l FROM LogPost l WHERE l.isDeleted = false " +
+    @Query("SELECT l FROM LogPost l WHERE l.deletedAt IS NULL " +
            "AND (l.createdAt < :cursorTime OR (l.createdAt = :cursorTime AND l.id < :cursorId)) " +
            "ORDER BY l.createdAt DESC, l.id DESC")
     Slice<LogPost> findAllLogsWithCursor(@Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
@@ -100,7 +100,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.is_deleted = false
+        WHERE lp.deleted_at IS NULL
         AND rl.outcome IN (:outcomes)
         ORDER BY lp.created_at DESC, lp.id DESC
         """,
@@ -111,7 +111,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.is_deleted = false
+        WHERE lp.deleted_at IS NULL
         AND rl.outcome IN (:outcomes)
         AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
         ORDER BY lp.created_at DESC, lp.id DESC
@@ -120,11 +120,11 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     Slice<LogPost> findByOutcomesWithCursor(@Param("outcomes") List<String> outcomes, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] My logs - initial page
-    @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.isDeleted = false ORDER BY l.createdAt DESC, l.id DESC")
+    @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.deletedAt IS NULL ORDER BY l.createdAt DESC, l.id DESC")
     Slice<LogPost> findMyLogsWithCursorInitial(@Param("creatorId") Long creatorId, Pageable pageable);
 
     // [Cursor] My logs - with cursor
-    @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.isDeleted = false " +
+    @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.deletedAt IS NULL " +
            "AND (l.createdAt < :cursorTime OR (l.createdAt = :cursorTime AND l.id < :cursorId)) " +
            "ORDER BY l.createdAt DESC, l.id DESC")
     Slice<LogPost> findMyLogsWithCursor(@Param("creatorId") Long creatorId, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
@@ -134,7 +134,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.creator_id = :creatorId
-        AND lp.is_deleted = false
+        AND lp.deleted_at IS NULL
         AND rl.outcome = :outcome
         ORDER BY lp.created_at DESC, lp.id DESC
         """,
@@ -146,7 +146,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.creator_id = :creatorId
-        AND lp.is_deleted = false
+        AND lp.deleted_at IS NULL
         AND rl.outcome = :outcome
         AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
         ORDER BY lp.created_at DESC, lp.id DESC
@@ -157,27 +157,27 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // ==================== OFFSET-BASED PAGINATION (for Web) ====================
 
     // [Offset] All logs - page
-    @Query("SELECT l FROM LogPost l WHERE l.isDeleted = false")
+    @Query("SELECT l FROM LogPost l WHERE l.deletedAt IS NULL")
     Page<LogPost> findAllLogsPage(Pageable pageable);
 
     // [Offset] Logs by outcomes - page (native query for JOIN)
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.is_deleted = false
+        WHERE lp.deleted_at IS NULL
         AND rl.outcome IN (:outcomes)
         """,
         countQuery = """
         SELECT COUNT(lp.id) FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.is_deleted = false
+        WHERE lp.deleted_at IS NULL
         AND rl.outcome IN (:outcomes)
         """,
         nativeQuery = true)
     Page<LogPost> findByOutcomesPage(@Param("outcomes") List<String> outcomes, Pageable pageable);
 
     // [Offset] My logs - page
-    @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.isDeleted = false")
+    @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.deletedAt IS NULL")
     Page<LogPost> findMyLogsPage(@Param("creatorId") Long creatorId, Pageable pageable);
 
     // [Offset] My logs by outcome - page (native query for JOIN)
@@ -185,14 +185,14 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.creator_id = :creatorId
-        AND lp.is_deleted = false
+        AND lp.deleted_at IS NULL
         AND rl.outcome = :outcome
         """,
         countQuery = """
         SELECT COUNT(lp.id) FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.creator_id = :creatorId
-        AND lp.is_deleted = false
+        AND lp.deleted_at IS NULL
         AND rl.outcome = :outcome
         """,
         nativeQuery = true)
@@ -203,7 +203,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT DISTINCT lp.* FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
-        WHERE lp.is_deleted = false AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
         AND (
             lp.title ILIKE '%' || :keyword || '%'
             OR lp.content ILIKE '%' || :keyword || '%'
@@ -214,7 +214,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT COUNT(DISTINCT lp.id) FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
-        WHERE lp.is_deleted = false AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
         AND (
             lp.title ILIKE '%' || :keyword || '%'
             OR lp.content ILIKE '%' || :keyword || '%'
@@ -228,13 +228,13 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
 
     // [Cursor] LogPosts by hashtag - initial page
     @Query("SELECT l FROM LogPost l JOIN l.hashtags h " +
-           "WHERE h.name = :hashtagName AND l.isDeleted = false AND l.isPrivate = false " +
+           "WHERE h.name = :hashtagName AND l.deletedAt IS NULL AND l.isPrivate = false " +
            "ORDER BY l.createdAt DESC, l.id DESC")
     Slice<LogPost> findByHashtagWithCursorInitial(@Param("hashtagName") String hashtagName, Pageable pageable);
 
     // [Cursor] LogPosts by hashtag - with cursor
     @Query("SELECT l FROM LogPost l JOIN l.hashtags h " +
-           "WHERE h.name = :hashtagName AND l.isDeleted = false AND l.isPrivate = false " +
+           "WHERE h.name = :hashtagName AND l.deletedAt IS NULL AND l.isPrivate = false " +
            "AND (l.createdAt < :cursorTime OR (l.createdAt = :cursorTime AND l.id < :cursorId)) " +
            "ORDER BY l.createdAt DESC, l.id DESC")
     Slice<LogPost> findByHashtagWithCursor(
@@ -245,11 +245,11 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
 
     // [Offset] LogPosts by hashtag - page
     @Query("SELECT l FROM LogPost l JOIN l.hashtags h " +
-           "WHERE h.name = :hashtagName AND l.isDeleted = false AND l.isPrivate = false")
+           "WHERE h.name = :hashtagName AND l.deletedAt IS NULL AND l.isPrivate = false")
     Page<LogPost> findByHashtagPage(@Param("hashtagName") String hashtagName, Pageable pageable);
 
     // Count log posts by hashtag
     @Query("SELECT COUNT(l) FROM LogPost l JOIN l.hashtags h " +
-           "WHERE h.name = :hashtagName AND l.isDeleted = false AND l.isPrivate = false")
+           "WHERE h.name = :hashtagName AND l.deletedAt IS NULL AND l.isPrivate = false")
     long countByHashtag(@Param("hashtagName") String hashtagName);
 }

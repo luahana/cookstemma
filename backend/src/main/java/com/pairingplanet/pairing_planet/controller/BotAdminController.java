@@ -1,0 +1,121 @@
+package com.pairingplanet.pairing_planet.controller;
+
+import com.pairingplanet.pairing_planet.dto.bot.*;
+import com.pairingplanet.pairing_planet.service.BotPersonaService;
+import com.pairingplanet.pairing_planet.service.BotUserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Admin controller for managing bot users and personas.
+ * All endpoints require ADMIN role.
+ */
+@RestController
+@RequestMapping("/api/v1/admin/bots")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
+public class BotAdminController {
+
+    private final BotUserService botUserService;
+    private final BotPersonaService botPersonaService;
+
+    // ==================== Bot Users ====================
+
+    /**
+     * Creates a new bot user with an initial API key.
+     * The API key is only returned in this response and cannot be retrieved later.
+     *
+     * POST /api/v1/admin/bots/users
+     */
+    @PostMapping("/users")
+    public ResponseEntity<CreateBotUserResponseDto> createBotUser(
+            @RequestBody @Valid CreateBotUserRequestDto request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(botUserService.createBotUser(request));
+    }
+
+    /**
+     * Creates a new API key for an existing bot user.
+     *
+     * POST /api/v1/admin/bots/api-keys
+     */
+    @PostMapping("/api-keys")
+    public ResponseEntity<CreateApiKeyResponseDto> createApiKey(
+            @RequestBody @Valid CreateApiKeyRequestDto request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(botUserService.createApiKey(request));
+    }
+
+    /**
+     * Gets all API keys for a bot user.
+     *
+     * GET /api/v1/admin/bots/users/{publicId}/api-keys
+     */
+    @GetMapping("/users/{publicId}/api-keys")
+    public ResponseEntity<List<BotApiKeyDto>> getApiKeys(
+            @PathVariable UUID publicId) {
+        return ResponseEntity.ok(botUserService.getApiKeysForBot(publicId));
+    }
+
+    /**
+     * Revokes (deactivates) an API key.
+     *
+     * DELETE /api/v1/admin/bots/api-keys/{publicId}
+     */
+    @DeleteMapping("/api-keys/{publicId}")
+    public ResponseEntity<Void> revokeApiKey(@PathVariable UUID publicId) {
+        botUserService.revokeApiKey(publicId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ==================== Personas ====================
+
+    /**
+     * Gets all personas.
+     *
+     * GET /api/v1/admin/bots/personas
+     */
+    @GetMapping("/personas")
+    public ResponseEntity<List<BotPersonaDto>> getAllPersonas() {
+        return ResponseEntity.ok(botPersonaService.getAllPersonas());
+    }
+
+    /**
+     * Gets a persona by public ID.
+     *
+     * GET /api/v1/admin/bots/personas/{publicId}
+     */
+    @GetMapping("/personas/{publicId}")
+    public ResponseEntity<BotPersonaDto> getPersona(@PathVariable UUID publicId) {
+        return ResponseEntity.ok(botPersonaService.getPersona(publicId));
+    }
+
+    /**
+     * Activates a persona.
+     *
+     * POST /api/v1/admin/bots/personas/{publicId}/activate
+     */
+    @PostMapping("/personas/{publicId}/activate")
+    public ResponseEntity<Void> activatePersona(@PathVariable UUID publicId) {
+        botPersonaService.setPersonaActive(publicId, true);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Deactivates a persona.
+     *
+     * POST /api/v1/admin/bots/personas/{publicId}/deactivate
+     */
+    @PostMapping("/personas/{publicId}/deactivate")
+    public ResponseEntity<Void> deactivatePersona(@PathVariable UUID publicId) {
+        botPersonaService.setPersonaActive(publicId, false);
+        return ResponseEntity.ok().build();
+    }
+}

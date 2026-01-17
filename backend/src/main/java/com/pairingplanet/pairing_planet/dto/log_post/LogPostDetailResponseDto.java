@@ -6,6 +6,7 @@ import com.pairingplanet.pairing_planet.dto.recipe.RecipeSummaryDto;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public record LogPostDetailResponseDto(
@@ -19,5 +20,8 @@ public record LogPostDetailResponseDto(
         List<HashtagDto> hashtags,
         Boolean isSavedByCurrentUser,  // null if not logged in
         UUID creatorPublicId,  // for ownership check (UUID for frontend comparison)
-        String userName     // Creator's username for display
+        String userName,     // Creator's username for display
+        // Translations (async populated by OpenAI GPT)
+        Map<String, String> titleTranslations,    // {"en": "...", "ja": "...", ...}
+        Map<String, String> contentTranslations   // {"en": "...", "ja": "...", ...}
 ) {}

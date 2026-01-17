@@ -1,5 +1,6 @@
 package com.pairingplanet.pairing_planet.domain.entity.user;
 
+import com.pairingplanet.pairing_planet.domain.entity.bot.BotPersona;
 import com.pairingplanet.pairing_planet.domain.entity.common.BaseEntity;
 import com.pairingplanet.pairing_planet.domain.enums.AccountStatus;
 import com.pairingplanet.pairing_planet.domain.enums.Gender;
@@ -99,4 +100,11 @@ public class User extends BaseEntity {
 
     @Column(name = "instagram_handle", length = 30)
     private String instagramHandle;
+
+    /**
+     * Persona for bot users. Null for regular human users.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "persona_id")
+    private BotPersona persona;
 }

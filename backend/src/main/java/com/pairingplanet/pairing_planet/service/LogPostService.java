@@ -47,6 +47,7 @@ public class LogPostService {
     private final HashtagService hashtagService;
     private final NotificationService notificationService;
     private final SavedLogRepository savedLogRepository;
+    private final TranslationEventService translationEventService;
 
     @Value("${file.upload.url-prefix}") // [추가] URL 조합을 위해 필요
     private String urlPrefix;
@@ -89,6 +90,9 @@ public class LogPostService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         notificationService.notifyRecipeCooked(recipe, logPost, sender);
 
+        // Queue async translation for all languages
+        translationEventService.queueLogPostTranslation(logPost);
+
         return getLogDetail(logPost.getPublicId());
     }
 
@@ -119,7 +123,7 @@ public class LogPostService {
         if (outcome != null && !outcome.isBlank()) {
             logs = logPostRepository.findByCreatorIdAndOutcome(userId, outcome.toUpperCase(), pageable);
         } else {
-            logs = logPostRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+            logs = logPostRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
         }
 
         return logs.map(this::convertToLogSummary);
@@ -191,7 +195,9 @@ public class LogPostService {
                 hashtagDtos,
                 isSavedByCurrentUser,
                 creatorPublicId,
-                userName
+                userName,
+                logPost.getTitleTranslations(),
+                logPost.getContentTranslations()
         );
     }
 
@@ -249,7 +255,7 @@ public class LogPostService {
                 .orElse(null);
 
         // 4. 변형 수 조회
-        int variantCount = (int) recipeRepository.countByRootRecipeIdAndIsDeletedFalse(recipe.getId());
+        int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
 
         // 5. 로그 수 조회 (Activity count)
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
@@ -443,7 +449,7 @@ public class LogPostService {
         }
 
         // Soft delete
-        logPost.setIsDeleted(true);
+        logPost.softDelete();
         logPostRepository.save(logPost);
     }
 

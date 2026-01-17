@@ -4,6 +4,11 @@ import com.pairingplanet.pairing_planet.domain.enums.IngredientType;
 import com.pairingplanet.pairing_planet.domain.enums.MeasurementUnit;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 @Table(name = "recipe_ingredients")
@@ -18,6 +23,12 @@ public class RecipeIngredient {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    // Translation field for multilingual content
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "name_translations", columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, String> nameTranslations = new HashMap<>();
 
     /**
      * Legacy amount field - stores free-text like "2 cups" or "a pinch".
@@ -46,7 +57,8 @@ public class RecipeIngredient {
     private IngredientType type;
 
     @Column(name = "display_order")
-    private Integer displayOrder;
+    @Builder.Default
+    private Integer displayOrder = 0;
 
     /**
      * Check if this ingredient uses structured measurements (quantity + unit).

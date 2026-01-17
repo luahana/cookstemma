@@ -9,12 +9,25 @@ import type {
   PaginationParams,
 } from '@/lib/types';
 
+/**
+ * Cooking time filter values matching backend CookingTimeRange enum
+ */
+export type CookingTimeFilter =
+  | 'UNDER_15_MIN'
+  | 'MIN_15_TO_30'
+  | 'MIN_30_TO_60'
+  | 'HOUR_1_TO_2'
+  | 'OVER_2_HOURS';
+
 interface RecipeSearchParams extends PaginationParams {
   q?: string;
   locale?: string;
   onlyRoot?: boolean;
   typeFilter?: 'original' | 'variants';
   sort?: 'recent' | 'mostForked' | 'trending';
+  cookingTime?: CookingTimeFilter[];
+  minServings?: number;
+  maxServings?: number;
 }
 
 /**
@@ -31,6 +44,9 @@ export async function getRecipes(
     onlyRoot: params.onlyRoot,
     typeFilter: params.typeFilter,
     sort: params.sort,
+    cookingTime: params.cookingTime?.join(','),
+    minServings: params.minServings,
+    maxServings: params.maxServings,
   });
 
   return apiFetch<UnifiedPageResponse<RecipeSummary>>(`/recipes${queryString}`, {

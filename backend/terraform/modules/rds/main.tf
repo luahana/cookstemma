@@ -67,13 +67,13 @@ resource "aws_db_instance" "main" {
   snapshot_identifier = var.snapshot_identifier
 
   # Engine configuration (some ignored when restoring from snapshot)
-  engine               = "postgres"
-  engine_version       = var.engine_version
-  instance_class       = var.instance_class
-  allocated_storage    = var.snapshot_identifier == null ? var.allocated_storage : null
+  engine                = "postgres"
+  engine_version        = var.engine_version
+  instance_class        = var.instance_class
+  allocated_storage     = var.snapshot_identifier == null ? var.allocated_storage : null
   max_allocated_storage = var.max_allocated_storage
-  storage_type         = "gp3"
-  storage_encrypted    = true
+  storage_type          = "gp3"
+  storage_encrypted     = true
 
   # Database configuration (ignored when restoring from snapshot)
   db_name  = var.snapshot_identifier == null ? var.database_name : null

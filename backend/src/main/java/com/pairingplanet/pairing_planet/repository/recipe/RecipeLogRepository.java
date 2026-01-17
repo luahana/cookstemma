@@ -17,7 +17,7 @@ public interface RecipeLogRepository extends JpaRepository<RecipeLog, Long> {
     List<RecipeLog> findAllByRecipeId(@Param("recipeId") Long recipeId);
 
     // 특정 레시피에 달린 로그 조회 (페이지네이션)
-    @Query("SELECT rl FROM RecipeLog rl JOIN FETCH rl.logPost lp WHERE rl.recipe.id = :recipeId AND lp.isDeleted = false ORDER BY lp.createdAt DESC")
+    @Query("SELECT rl FROM RecipeLog rl JOIN FETCH rl.logPost lp WHERE rl.recipe.id = :recipeId AND lp.deletedAt IS NULL ORDER BY lp.createdAt DESC")
     Slice<RecipeLog> findByRecipeIdOrderByCreatedAtDesc(@Param("recipeId") Long recipeId, Pageable pageable);
 
     /**
@@ -35,7 +35,7 @@ public interface RecipeLogRepository extends JpaRepository<RecipeLog, Long> {
         SELECT rl.outcome, COUNT(rl)
         FROM RecipeLog rl
         JOIN rl.logPost lp
-        WHERE lp.creatorId = :userId AND lp.isDeleted = false
+        WHERE lp.creatorId = :userId AND lp.deletedAt IS NULL
         GROUP BY rl.outcome
         """)
     List<Object[]> countByOutcomeForUser(@Param("userId") Long userId);
@@ -48,9 +48,9 @@ public interface RecipeLogRepository extends JpaRepository<RecipeLog, Long> {
         FROM recipe_logs rl
         JOIN log_posts lp ON rl.log_post_id = lp.id
         JOIN recipes r ON rl.recipe_id = r.id
-        JOIN foods_master fm ON r.food1_master_id = fm.id
+        JOIN foods_master fm ON r.food_master_id = fm.id
         LEFT JOIN food_categories fc ON fm.category_id = fc.id
-        WHERE lp.creator_id = :userId AND lp.is_deleted = false
+        WHERE lp.creator_id = :userId AND lp.deleted_at IS NULL
         GROUP BY fc.code
         ORDER BY count DESC
         """, nativeQuery = true)
@@ -63,7 +63,7 @@ public interface RecipeLogRepository extends JpaRepository<RecipeLog, Long> {
         SELECT DISTINCT DATE(lp.created_at) as cook_date
         FROM recipe_logs rl
         JOIN log_posts lp ON rl.log_post_id = lp.id
-        WHERE lp.creator_id = :userId AND lp.is_deleted = false
+        WHERE lp.creator_id = :userId AND lp.deleted_at IS NULL
         ORDER BY cook_date DESC
         """, nativeQuery = true)
     List<java.sql.Date> getCookingDatesForUser(@Param("userId") Long userId);

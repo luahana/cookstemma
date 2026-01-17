@@ -11,6 +11,7 @@ import { RecipeCard } from '@/components/recipe/RecipeCard';
 import { ShareButtons } from '@/components/common/ShareButtons';
 import { getImageUrl } from '@/lib/utils/image';
 import { siteConfig } from '@/config/site';
+import { ViewTracker } from '@/components/common/ViewTracker';
 
 interface Props {
   params: Promise<{ publicId: string }>;
@@ -71,6 +72,7 @@ export default async function LogDetailPage({ params }: Props) {
 
   return (
     <>
+      <ViewTracker publicId={publicId} type="log" />
       <LogJsonLd log={log} />
       <BreadcrumbJsonLd
         items={[

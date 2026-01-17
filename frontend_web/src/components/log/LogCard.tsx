@@ -3,12 +3,14 @@ import Link from 'next/link';
 import type { LogPostSummary } from '@/lib/types';
 import { OutcomeBadge } from './OutcomeBadge';
 import { getImageUrl } from '@/lib/utils/image';
+import { BookmarkButton } from '@/components/common/BookmarkButton';
 
 interface LogCardProps {
   log: LogPostSummary;
+  isSaved?: boolean;
 }
 
-export function LogCard({ log }: LogCardProps) {
+export function LogCard({ log, isSaved = false }: LogCardProps) {
   return (
     <Link
       href={`/logs/${log.publicId}`}
@@ -47,12 +49,22 @@ export function LogCard({ log }: LogCardProps) {
           <OutcomeBadge outcome={log.outcome} size="sm" />
         </div>
 
-        {/* Variant indicator */}
+        {/* Variant indicator - shift left if bookmark button is present */}
         {log.isVariant && (
-          <span className="absolute top-3 right-3 px-2 py-1 bg-[var(--secondary)] text-white text-xs font-medium rounded-full">
+          <span className="absolute top-3 right-12 px-2 py-1 bg-[var(--secondary)] text-white text-xs font-medium rounded-full">
             Variant
           </span>
         )}
+
+        {/* Bookmark button */}
+        <div className="absolute top-3 right-3">
+          <BookmarkButton
+            publicId={log.publicId}
+            type="log"
+            initialSaved={isSaved}
+            size="sm"
+          />
+        </div>
       </div>
 
       {/* Content */}

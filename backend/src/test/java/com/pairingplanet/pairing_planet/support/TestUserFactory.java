@@ -1,5 +1,6 @@
 package com.pairingplanet.pairing_planet.support;
 
+import com.pairingplanet.pairing_planet.domain.entity.bot.BotPersona;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import com.pairingplanet.pairing_planet.domain.enums.AccountStatus;
 import com.pairingplanet.pairing_planet.domain.enums.Role;
@@ -37,6 +38,19 @@ public class TestUserFactory {
                 .locale("ko-KR")
                 .role(Role.ADMIN)
                 .status(AccountStatus.ACTIVE)
+                .build();
+        return userRepository.save(user);
+    }
+
+    public User createBotUser(String username, BotPersona persona) {
+        User user = User.builder()
+                .username(username)
+                .locale(persona.getLocale())
+                .defaultFoodStyle(persona.getCulinaryLocale())
+                .role(Role.BOT)
+                .status(AccountStatus.ACTIVE)
+                .isBot(true)
+                .persona(persona)
                 .build();
         return userRepository.save(user);
     }

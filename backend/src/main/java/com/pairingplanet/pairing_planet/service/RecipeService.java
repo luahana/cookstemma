@@ -22,9 +22,11 @@ import com.pairingplanet.pairing_planet.repository.log_post.LogPostRepository;
 import com.pairingplanet.pairing_planet.repository.food.UserSuggestedFoodRepository;
 import com.pairingplanet.pairing_planet.repository.image.ImageRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.*;
+import com.pairingplanet.pairing_planet.repository.specification.RecipeSpecification;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +44,7 @@ import java.util.UUID;
 import com.pairingplanet.pairing_planet.domain.entity.hashtag.Hashtag;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -61,6 +64,7 @@ public class RecipeService {
     private final SavedRecipeRepository savedRecipeRepository;
     private final HashtagService hashtagService;
     private final NotificationService notificationService;
+    private final TranslationEventService translationEventService;
 
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
@@ -147,6 +151,9 @@ public class RecipeService {
             notificationService.notifyRecipeVariation(parent, recipe, sender);
         }
 
+        // Queue async translation for all languages
+        translationEventService.queueRecipeTranslation(recipe);
+
         return getRecipeDetail(recipe.getPublicId());
     }
 
@@ -170,7 +177,7 @@ public class RecipeService {
         Recipe root = (recipe.getRootRecipe() != null) ? recipe.getRootRecipe() : recipe;
 
         // 변형 및 로그 리스트 조회 - 루트에 연결된 모든 변형을 가져옴
-        List<RecipeSummaryDto> variants = recipeRepository.findByRootRecipeIdAndIsDeletedFalse(root.getId())
+        List<RecipeSummaryDto> variants = recipeRepository.findByRootRecipeIdAndDeletedAtIsNull(root.getId())
                 .stream()
                 .filter(v -> !v.getId().equals(recipe.getId())) // Exclude current recipe
                 .limit(6)  // Limit to 6 for "View All" detection (show 5, detect more if 6)
@@ -315,16 +322,20 @@ public class RecipeService {
     private void saveIngredientsAndSteps(Recipe recipe, CreateRecipeRequestDto req) {
         // 1. 재료 저장
         if (req.ingredients() != null) {
-            List<RecipeIngredient> ingredients = req.ingredients().stream()
-                    .map(dto -> RecipeIngredient.builder()
-                            .recipe(recipe)
-                            .name(dto.name())
-                            .amount(dto.amount())
-                            .quantity(dto.quantity())
-                            .unit(dto.unit())
-                            .type(dto.type())
-                            .build())
-                    .toList();
+            var ingredientList = req.ingredients();
+            List<RecipeIngredient> ingredients = new java.util.ArrayList<>();
+            for (int i = 0; i < ingredientList.size(); i++) {
+                var dto = ingredientList.get(i);
+                ingredients.add(RecipeIngredient.builder()
+                        .recipe(recipe)
+                        .name(dto.name())
+                        .amount(dto.amount())
+                        .quantity(dto.quantity())
+                        .unit(dto.unit())
+                        .type(dto.type())
+                        .displayOrder(i + 1)
+                        .build());
+            }
             ingredientRepository.saveAll(ingredients);
             // Maintain bidirectional relationship for proper lazy loading in same transaction
             recipe.getIngredients().addAll(ingredients);
@@ -338,8 +349,10 @@ public class RecipeService {
                     stepImage = imageRepository.findByPublicId(stepDto.imagePublicId())
                             .orElseThrow(() -> new IllegalArgumentException("Step image not found"));
 
-                    // Step images are linked ONLY via RecipeStep.image_id, NOT via recipe_id
-                    // This keeps them separate from cover images in recipe.getImages()
+                    // Set recipe_id to satisfy chk_images_has_parent constraint
+                    // Also set type to STEP to distinguish from cover images
+                    stepImage.setRecipe(recipe);
+                    stepImage.setType(com.pairingplanet.pairing_planet.domain.enums.ImageType.STEP);
                     stepImage.setStatus(com.pairingplanet.pairing_planet.domain.enums.ImageStatus.ACTIVE);
                     imageRepository.save(stepImage);
                 }
@@ -392,7 +405,7 @@ public class RecipeService {
                 .orElse(null);
 
         // 4. 변형 수 조회
-        int variantCount = (int) recipeRepository.countByRootRecipeIdAndIsDeletedFalse(recipe.getId());
+        int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
 
         // 5. 로그 수 조회 (Activity count)
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
@@ -459,13 +472,13 @@ public class RecipeService {
                 .toList();
 
         // 2. 최근 레시피 조회
-        List<RecipeSummaryDto> recentRecipes = recipeRepository.findTop5ByIsDeletedFalseAndIsPrivateFalseOrderByCreatedAtDesc()
+        List<RecipeSummaryDto> recentRecipes = recipeRepository.findTop5ByDeletedAtIsNullAndIsPrivateFalseOrderByCreatedAtDesc()
                 .stream().map(this::convertToSummary).toList();
 
         // 3. 활발한 변형 트리 조회 (기획서: "🔥 이 레시피, 이렇게 바뀌고 있어요")
         List<TrendingTreeDto> trending = recipeRepository.findTrendingOriginals(PageRequest.of(0, 5))
                 .stream().map(root -> {
-                    long variants = recipeRepository.countByRootRecipeIdAndIsDeletedFalse(root.getId());
+                    long variants = recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(root.getId());
                     long logs = recipeLogRepository.countByRecipeId(root.getId());
                     String thumbnail = root.getImages().stream()
                             .filter(img -> img.getType() == com.pairingplanet.pairing_planet.domain.enums.ImageType.COVER)
@@ -514,11 +527,11 @@ public class RecipeService {
         Slice<Recipe> recipes;
 
         if ("original".equalsIgnoreCase(typeFilter)) {
-            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseAndParentRecipeIsNullOrderByCreatedAtDesc(userId, pageable);
+            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNullOrderByCreatedAtDesc(userId, pageable);
         } else if ("variants".equalsIgnoreCase(typeFilter)) {
-            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseAndParentRecipeIsNotNullOrderByCreatedAtDesc(userId, pageable);
+            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNotNullOrderByCreatedAtDesc(userId, pageable);
         } else {
-            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
         }
 
         return recipes.map(this::convertToSummary);
@@ -554,7 +567,7 @@ public class RecipeService {
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
 
         boolean isOwner = recipe.getCreatorId().equals(userId);
-        long variantCount = recipeRepository.countByParentRecipeIdAndIsDeletedFalse(recipe.getId());
+        long variantCount = recipeRepository.countByParentRecipeIdAndDeletedAtIsNull(recipe.getId());
         long logCount = recipeLogRepository.countByRecipeId(recipe.getId());
 
         boolean hasVariants = variantCount > 0;
@@ -596,7 +609,7 @@ public class RecipeService {
         }
 
         // Validate no variants
-        long variantCount = recipeRepository.countByParentRecipeIdAndIsDeletedFalse(recipe.getId());
+        long variantCount = recipeRepository.countByParentRecipeIdAndDeletedAtIsNull(recipe.getId());
         if (variantCount > 0) {
             throw new IllegalArgumentException("Cannot edit: recipe has " + variantCount + " variant(s)");
         }
@@ -629,16 +642,20 @@ public class RecipeService {
         // Update ingredients (clear and re-add)
         ingredientRepository.deleteAllByRecipeId(recipe.getId());
         if (req.ingredients() != null) {
-            List<RecipeIngredient> newIngredients = req.ingredients().stream()
-                    .map(dto -> RecipeIngredient.builder()
-                            .recipe(recipe)
-                            .name(dto.name())
-                            .amount(dto.amount())
-                            .quantity(dto.quantity())
-                            .unit(dto.unit())
-                            .type(dto.type())
-                            .build())
-                    .toList();
+            var ingredientList = req.ingredients();
+            List<RecipeIngredient> newIngredients = new java.util.ArrayList<>();
+            for (int i = 0; i < ingredientList.size(); i++) {
+                var dto = ingredientList.get(i);
+                newIngredients.add(RecipeIngredient.builder()
+                        .recipe(recipe)
+                        .name(dto.name())
+                        .amount(dto.amount())
+                        .quantity(dto.quantity())
+                        .unit(dto.unit())
+                        .type(dto.type())
+                        .displayOrder(i + 1)
+                        .build());
+            }
             ingredientRepository.saveAll(newIngredients);
         }
 
@@ -650,7 +667,10 @@ public class RecipeService {
                 if (stepDto.imagePublicId() != null) {
                     stepImage = imageRepository.findByPublicId(stepDto.imagePublicId())
                             .orElseThrow(() -> new IllegalArgumentException("Step image not found"));
-                    // Step images are linked ONLY via RecipeStep.image_id, NOT via recipe_id
+                    // Set recipe_id to satisfy chk_images_has_parent constraint
+                    // Also set type to STEP to distinguish from cover images
+                    stepImage.setRecipe(recipe);
+                    stepImage.setType(com.pairingplanet.pairing_planet.domain.enums.ImageType.STEP);
                     stepImage.setStatus(com.pairingplanet.pairing_planet.domain.enums.ImageStatus.ACTIVE);
                     imageRepository.save(stepImage);
                 }
@@ -695,7 +715,7 @@ public class RecipeService {
         }
 
         // Validate no variants
-        long variantCount = recipeRepository.countByParentRecipeIdAndIsDeletedFalse(recipe.getId());
+        long variantCount = recipeRepository.countByParentRecipeIdAndDeletedAtIsNull(recipe.getId());
         if (variantCount > 0) {
             throw new IllegalArgumentException("Cannot delete: recipe has " + variantCount + " variant(s)");
         }
@@ -707,7 +727,7 @@ public class RecipeService {
         }
 
         // Soft delete (images remain, just hidden with recipe)
-        recipe.setIsDeleted(true);
+        recipe.softDelete();
         recipeRepository.save(recipe);
     }
 
@@ -863,21 +883,34 @@ public class RecipeService {
      * - recent (default): order by createdAt DESC
      * - mostForked: order by variant count DESC
      * - trending: order by recent activity (variants + logs in last 7 days)
+     *
+     * Filter options:
+     * - cookingTimeRanges: List of acceptable cooking time ranges
+     * - minServings/maxServings: Servings range filter
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<RecipeSummaryDto> findRecipesUnified(
-            String locale, String typeFilter, String sort, String cursor, Integer page, int size) {
+            String locale, String typeFilter, String sort,
+            List<CookingTimeRange> cookingTimeRanges, Integer minServings, Integer maxServings,
+            String cursor, Integer page, int size) {
+
+        // Check if any advanced filters are applied
+        boolean hasAdvancedFilters = (cookingTimeRanges != null && !cookingTimeRanges.isEmpty())
+                || minServings != null || maxServings != null;
 
         // For mostForked and trending, use offset pagination (complex sorting)
         boolean isComplexSort = "mostForked".equalsIgnoreCase(sort) || "trending".equalsIgnoreCase(sort);
 
-        if (isComplexSort) {
-            // Use offset pagination for complex sorts
+        // For advanced filters, use specification-based pagination
+        if (hasAdvancedFilters || isComplexSort) {
             int pageNum = (page != null) ? page : 0;
-            return findRecipesWithOffsetSorted(locale, typeFilter, sort, pageNum, size);
+            if (isComplexSort && !hasAdvancedFilters) {
+                return findRecipesWithOffsetSorted(locale, typeFilter, sort, pageNum, size);
+            }
+            return findRecipesWithSpecification(locale, typeFilter, sort, cookingTimeRanges, minServings, maxServings, pageNum, size);
         }
 
-        // Strategy selection for recent sort (default)
+        // Strategy selection for recent sort (default) without advanced filters
         if (cursor != null && !cursor.isEmpty()) {
             return findRecipesWithCursorUnified(locale, typeFilter, cursor, size);
         } else if (page != null) {
@@ -886,6 +919,32 @@ public class RecipeService {
             // Default: initial cursor-based (first page)
             return findRecipesWithCursorUnified(locale, typeFilter, null, size);
         }
+    }
+
+    /**
+     * Specification-based pagination for advanced filtering.
+     * Supports cooking time ranges and servings filters.
+     */
+    private UnifiedPageResponse<RecipeSummaryDto> findRecipesWithSpecification(
+            String locale, String typeFilter, String sort,
+            List<CookingTimeRange> cookingTimeRanges, Integer minServings, Integer maxServings,
+            int page, int size) {
+
+        Sort sortBy;
+        if ("mostForked".equalsIgnoreCase(sort)) {
+            sortBy = Sort.by(Sort.Direction.DESC, "createdAt"); // TODO: Implement variant count sorting with Spec
+        } else if ("trending".equalsIgnoreCase(sort)) {
+            sortBy = Sort.by(Sort.Direction.DESC, "createdAt"); // TODO: Implement trending with Spec
+        } else {
+            sortBy = Sort.by(Sort.Direction.DESC, "createdAt");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sortBy);
+        var spec = RecipeSpecification.withFilters(locale, typeFilter, cookingTimeRanges, minServings, maxServings);
+
+        Page<Recipe> recipes = recipeRepository.findAll(spec, pageable);
+        Page<RecipeSummaryDto> mappedPage = recipes.map(this::convertToSummary);
+        return UnifiedPageResponse.fromPage(mappedPage, size);
     }
 
     /**

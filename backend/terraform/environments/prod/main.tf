@@ -122,16 +122,16 @@ module "alb" {
 module "ecs" {
   source = "../../modules/ecs"
 
-  project_name    = var.project_name
-  environment     = var.environment
-  aws_region      = var.aws_region
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = module.vpc.private_subnet_ids
-  container_image = "${data.aws_ecr_repository.main.repository_url}:prod-latest"
-  container_port  = 4000
-  task_cpu        = 1024
-  task_memory     = 2048
-  desired_count   = 2 # Run 2 tasks for production
+  project_name     = var.project_name
+  environment      = var.environment
+  aws_region       = var.aws_region
+  vpc_id           = module.vpc.vpc_id
+  subnet_ids       = module.vpc.private_subnet_ids
+  container_image  = "${data.aws_ecr_repository.main.repository_url}:prod-latest"
+  container_port   = 4000
+  task_cpu         = 1024
+  task_memory      = 2048
+  desired_count    = 2 # Run 2 tasks for production
   assign_public_ip = false
 
   # ALB configuration

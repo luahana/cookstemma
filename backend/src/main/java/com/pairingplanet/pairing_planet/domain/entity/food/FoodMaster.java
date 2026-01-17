@@ -33,7 +33,8 @@ public class FoodMaster extends BaseEntity {
     private Map<String, String> description = new HashMap<>();
 
     @Column(name = "food_score")
-    private Double foodScore;
+    @Builder.Default
+    private Double foodScore = 0.0;
 
     @Column(name = "search_keywords", columnDefinition = "TEXT")
     private String searchKeywords;

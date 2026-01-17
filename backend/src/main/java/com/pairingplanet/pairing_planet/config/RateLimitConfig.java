@@ -26,6 +26,9 @@ public class RateLimitConfig {
     @Value("${app.rate-limit.reissue.requests-per-minute:10}")
     private int reissueRequestsPerMinute;
 
+    @Value("${app.rate-limit.bot-login.requests-per-minute:20}")
+    private int botLoginRequestsPerMinute;
+
     /**
      * Cache for storing bucket configurations per endpoint pattern.
      */
@@ -43,6 +46,9 @@ public class RateLimitConfig {
 
         // Rate limit for logout: 10 requests per minute
         configs.put("/api/v1/auth/web/logout", createBucketConfig(reissueRequestsPerMinute, Duration.ofMinutes(1)));
+
+        // Rate limit for bot login: 20 requests per minute (higher limit for automated systems)
+        configs.put("/api/v1/auth/bot-login", createBucketConfig(botLoginRequestsPerMinute, Duration.ofMinutes(1)));
 
         return configs;
     }

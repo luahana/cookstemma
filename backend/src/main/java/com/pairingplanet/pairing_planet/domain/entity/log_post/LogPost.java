@@ -7,7 +7,10 @@ import com.pairingplanet.pairing_planet.domain.entity.recipe.RecipeLog;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
+import java.time.Instant;
 import java.util.*;
 
 @Entity
@@ -19,16 +22,36 @@ import java.util.*;
 @SuperBuilder
 public class LogPost extends BaseEntity {
     private String locale;
+
+    @Column(columnDefinition = "TEXT")
     private String title;
+
+    @Column(columnDefinition = "TEXT")
     private String content;
+
     private Long creatorId;
 
-    // [추가] 레포지토리에서 필터링을 위해 필요한 필드들입니다.
+    // Translation fields for multilingual content
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "title_translations", columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, String> titleTranslations = new HashMap<>();
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "content_translations", columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, String> contentTranslations = new HashMap<>();
+
     @Builder.Default
     private Boolean isPrivate = false;
 
-    @Builder.Default
-    private Boolean isDeleted = false;
+    // Soft delete (standardized pattern - NULL means active, timestamp means deleted)
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    // Audit: who last updated this log post
+    @Column(name = "updated_by_id")
+    private Long updatedById;
 
     @OneToOne(mappedBy = "logPost", cascade = CascadeType.ALL)
     private RecipeLog recipeLog;
@@ -56,5 +79,13 @@ public class LogPost extends BaseEntity {
 
     public void decrementSavedCount() {
         this.savedCount = Math.max(0, (this.savedCount == null ? 0 : this.savedCount) - 1);
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
+    public void softDelete() {
+        this.deletedAt = Instant.now();
     }
 }
