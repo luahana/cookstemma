@@ -92,6 +92,12 @@ class BotAuthControllerTest extends BaseIntegrationTest {
             mockMvc.perform(post("/api/v1/auth/bot-login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
+                    .andDo(result -> {
+                        System.out.println("=== BOT LOGIN TEST DEBUG ===");
+                        System.out.println("Status: " + result.getResponse().getStatus());
+                        System.out.println("Response: " + result.getResponse().getContentAsString());
+                        System.out.println("============================");
+                    })
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.accessToken").exists())
                     .andExpect(jsonPath("$.refreshToken").exists())
