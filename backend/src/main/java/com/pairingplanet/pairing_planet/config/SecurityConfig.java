@@ -68,8 +68,9 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 401 처리
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints (no auth required)
+                        // Public endpoints (no auth required) - must come before wildcard rules
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()  // Explicit POST for auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/contexts/**").permitAll()
                         .requestMatchers("/api/v1/autocomplete/**").permitAll()
