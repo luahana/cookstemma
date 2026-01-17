@@ -2,6 +2,7 @@ package com.pairingplanet.pairing_planet.dto.user;
 
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import com.pairingplanet.pairing_planet.domain.enums.Gender;
+import com.pairingplanet.pairing_planet.domain.enums.Role;
 import lombok.Builder;
 
 import java.time.Instant;
@@ -12,6 +13,7 @@ import java.util.UUID;
 public record UserDto(
         UUID id,                 // 유저 고유 ID
         String username,
+        Role role,               // User role (USER, ADMIN, CREATOR, BOT)
         UUID profileImageId,     // [추가] 프로필 이미지의 UUID
         String profileImageUrl,  // [유지] 화면 표시용 전체 URL
         Gender gender,
@@ -56,6 +58,7 @@ public record UserDto(
         return UserDto.builder()
                 .id(user.getPublicId())
                 .username(user.getUsername())
+                .role(user.getRole())
                 .profileImageUrl(profileUrl)
                 .gender(user.getGender())
                 .birthDate(user.getBirthDate())

@@ -18,15 +18,19 @@ import { auth, googleProvider, appleProvider, isFirebaseConfigured } from '@/lib
 import type { SocialProvider } from '@/lib/firebase/providers';
 import { siteConfig } from '@/config/site';
 
+export type UserRole = 'USER' | 'ADMIN' | 'CREATOR' | 'BOT';
+
 interface User {
   publicId: string;
   username: string;
+  role: UserRole;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   signIn: (provider: SocialProvider) => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<boolean>;
@@ -57,8 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // /users/me returns MyProfileResponseDto which wraps user in a 'user' property
         // UserDto uses 'id' field (not 'publicId') for the user's public identifier
         const userData = data.user;
-        console.log('[Auth] User authenticated:', userData.username);
-        setUser({ publicId: userData.id, username: userData.username });
+        console.log('[Auth] User authenticated:', userData.username, 'role:', userData.role);
+        setUser({ publicId: userData.id, username: userData.username, role: userData.role || 'USER' });
       } else {
         console.log('[Auth] Not authenticated, response not ok');
         setUser(null);
@@ -137,8 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const userData = await response.json();
-      console.log('[Auth] Login successful, user:', userData.username);
-      setUser({ publicId: userData.userPublicId, username: userData.username });
+      console.log('[Auth] Login successful, user:', userData.username, 'role:', userData.role);
+      setUser({ publicId: userData.userPublicId, username: userData.username, role: userData.role || 'USER' });
     } catch (error) {
       console.error('[Auth] Sign in error:', error);
       throw error;
@@ -183,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const userData = await response.json();
-        setUser({ publicId: userData.userPublicId, username: userData.username });
+        setUser({ publicId: userData.userPublicId, username: userData.username, role: userData.role || 'USER' });
         return true;
       }
 
@@ -201,6 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isLoading,
         isAuthenticated: !!user,
+        isAdmin: user?.role === 'ADMIN',
         signIn,
         signOut,
         refreshSession,

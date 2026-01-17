@@ -25,29 +25,34 @@ export interface RecipeSummary {
 }
 
 /**
- * Ingredient types
+ * Ingredient types (matches backend IngredientType.java)
  */
-export type IngredientType = 'MAIN' | 'SUB' | 'SAUCE' | 'GARNISH' | 'OPTIONAL';
+export type IngredientType = 'MAIN' | 'SECONDARY' | 'SEASONING';
 
 /**
- * Measurement units
+ * Measurement units (matches backend MeasurementUnit.java)
  */
 export type MeasurementUnit =
-  | 'G'
-  | 'KG'
   | 'ML'
   | 'L'
   | 'TSP'
   | 'TBSP'
   | 'CUP'
+  | 'FL_OZ'
+  | 'PINT'
+  | 'QUART'
+  | 'G'
+  | 'KG'
+  | 'OZ'
+  | 'LB'
   | 'PIECE'
-  | 'WHOLE'
-  | 'BUNCH'
-  | 'CLOVE'
-  | 'SLICE'
   | 'PINCH'
   | 'DASH'
-  | 'TO_TASTE';
+  | 'TO_TASTE'
+  | 'CLOVE'
+  | 'BUNCH'
+  | 'CAN'
+  | 'PACKAGE';
 
 /**
  * Recipe ingredient

@@ -72,7 +72,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Write a Log
+            Cooking Log
           </Link>
         </div>
       </section>

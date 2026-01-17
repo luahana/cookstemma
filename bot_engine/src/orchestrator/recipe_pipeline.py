@@ -39,6 +39,7 @@ class RecipePipeline:
         food_name: str,
         generate_images: bool = True,
         cover_image_count: int = 2,
+        generate_step_images: bool = False,
     ) -> Recipe:
         """Generate and publish an original recipe.
 
@@ -47,6 +48,7 @@ class RecipePipeline:
             food_name: Name of the dish to create
             generate_images: Whether to generate AI images
             cover_image_count: Number of cover images to generate
+            generate_step_images: Whether to generate images for each step
 
         Returns:
             Created Recipe from API
@@ -62,31 +64,49 @@ class RecipePipeline:
 
         # 2. Generate images if enabled
         image_public_ids: List[str] = []
-        if generate_images and cover_image_count > 0:
-            print(f"Generating {cover_image_count} cover image(s)...")
-            images = await self.image_gen.generate_recipe_images(
-                dish_name=food_name,
-                persona=persona,
-                cover_count=cover_image_count,
-            )
-            print(f"Generated {len(images.get('cover_images', []))} images")
+        step_image_public_ids: List[str] = []
 
-            # Upload cover images
-            for img_bytes in images.get("cover_images", []):
-                print(f"Uploading image ({len(img_bytes)} bytes)...")
-                optimized = self.image_gen.optimize_image(img_bytes)
-                upload = await self.api.upload_image_bytes(
-                    optimized,
-                    filename=f"{food_name.replace(' ', '_')}_cover.jpg",
+        if generate_images:
+            step_count = len(recipe_data.get("steps", [])) if generate_step_images else 0
+
+            if cover_image_count > 0 or step_count > 0:
+                print(f"Generating {cover_image_count} cover image(s) and {step_count} step image(s)...")
+                images = await self.image_gen.generate_recipe_images(
+                    dish_name=food_name,
+                    persona=persona,
+                    cover_count=cover_image_count,
+                    step_count=step_count,
                 )
-                print(f"Uploaded image: {upload.public_id}")
-                image_public_ids.append(upload.public_id)
+                print(f"Generated {len(images.get('cover_images', []))} cover images and {len(images.get('step_images', []))} step images")
 
-        print(f"Total image_public_ids: {image_public_ids}")
+                # Upload cover images
+                for img_bytes in images.get("cover_images", []):
+                    print(f"Uploading cover image ({len(img_bytes)} bytes)...")
+                    optimized = self.image_gen.optimize_image(img_bytes)
+                    upload = await self.api.upload_image_bytes(
+                        optimized,
+                        filename=f"{food_name.replace(' ', '_')}_cover.jpg",
+                    )
+                    print(f"Uploaded cover image: {upload.public_id}")
+                    image_public_ids.append(upload.public_id)
+
+                # Upload step images
+                for i, img_bytes in enumerate(images.get("step_images", [])):
+                    print(f"Uploading step image {i+1} ({len(img_bytes)} bytes)...")
+                    optimized = self.image_gen.optimize_image(img_bytes)
+                    upload = await self.api.upload_image_bytes(
+                        optimized,
+                        filename=f"{food_name.replace(' ', '_')}_step_{i+1}.jpg",
+                    )
+                    print(f"Uploaded step image: {upload.public_id}")
+                    step_image_public_ids.append(upload.public_id)
+
+        print(f"Total cover image_public_ids: {image_public_ids}")
+        print(f"Total step image_public_ids: {step_image_public_ids}")
 
         # 3. Build recipe request
         ingredients = self._parse_ingredients(recipe_data.get("ingredients", []))
-        steps = self._parse_steps(recipe_data.get("steps", []))
+        steps = self._parse_steps(recipe_data.get("steps", []), step_image_public_ids)
 
         request = CreateRecipeRequest(
             title=recipe_data["title"],
@@ -320,12 +340,23 @@ class RecipePipeline:
     def _parse_steps(
         self,
         steps_data: List[Dict[str, Any]],
+        step_image_public_ids: Optional[List[str]] = None,
     ) -> List[RecipeStep]:
-        """Parse step data from ChatGPT response."""
-        return [
-            RecipeStep(
+        """Parse step data from ChatGPT response.
+
+        Args:
+            steps_data: List of step dictionaries from ChatGPT
+            step_image_public_ids: Optional list of image public IDs for each step
+        """
+        result = []
+        for i, step in enumerate(steps_data):
+            image_id = None
+            if step_image_public_ids and i < len(step_image_public_ids):
+                image_id = step_image_public_ids[i]
+
+            result.append(RecipeStep(
                 step_number=step.get("order", i + 1),
                 description=step.get("description", ""),
-            )
-            for i, step in enumerate(steps_data)
-        ]
+                image_public_id=image_id,
+            ))
+        return result

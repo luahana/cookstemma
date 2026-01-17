@@ -101,7 +101,7 @@ public class AuthService {
         user.setAppRefreshToken(refreshToken);
         user.setLastLoginAt(Instant.now());
 
-        return new AuthResponseDto(accessToken, refreshToken, user.getPublicId(), user.getUsername());
+        return new AuthResponseDto(accessToken, refreshToken, user.getPublicId(), user.getUsername(), user.getRole());
     }
 
     private SocialAccount registerNewFirebaseUser(String uid, String email, String name, String picture, Provider provider, String locale) {
