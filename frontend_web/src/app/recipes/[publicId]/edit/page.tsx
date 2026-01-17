@@ -16,11 +16,9 @@ import type {
 } from '@/lib/types';
 
 const INGREDIENT_TYPES: { value: IngredientType; label: string }[] = [
-  { value: 'MAIN', label: 'Main' },
-  { value: 'SUB', label: 'Additional' },
-  { value: 'SAUCE', label: 'Sauce & Seasoning' },
-  { value: 'GARNISH', label: 'Garnish' },
-  { value: 'OPTIONAL', label: 'Optional' },
+  { value: 'MAIN', label: 'Main Ingredients' },
+  { value: 'SECONDARY', label: 'Secondary Ingredients' },
+  { value: 'SEASONING', label: 'Seasonings' },
 ];
 
 const COOKING_TIME_OPTIONS = [
