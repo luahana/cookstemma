@@ -8,6 +8,7 @@ import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import com.pairingplanet.pairing_planet.domain.enums.ImageStatus;
 import com.pairingplanet.pairing_planet.domain.enums.ImageType;
 import com.pairingplanet.pairing_planet.domain.enums.IngredientType;
+import com.pairingplanet.pairing_planet.domain.enums.MeasurementUnit;
 import com.pairingplanet.pairing_planet.dto.recipe.CreateRecipeRequestDto;
 import com.pairingplanet.pairing_planet.dto.recipe.IngredientDto;
 import com.pairingplanet.pairing_planet.dto.recipe.StepDto;
@@ -278,7 +279,7 @@ class RecipeControllerTest extends BaseIntegrationTest {
                     "ko-KR",
                     testFood.getPublicId(),
                     null,
-                    List.of(new IngredientDto("Salt", "1 tsp", null, null, IngredientType.SEASONING)),
+                    List.of(new IngredientDto("Salt", 1.0, MeasurementUnit.TSP, IngredientType.SEASONING)),
                     List.of(new StepDto(1, "Mix ingredients", null, null)),
                     List.of(testImage.getPublicId()),
                     null,
@@ -372,7 +373,7 @@ class RecipeControllerTest extends BaseIntegrationTest {
                     "ko-KR",
                     testFood.getPublicId(),
                     null,
-                    List.of(new IngredientDto("Extra Spice", "2 tsp", null, null, IngredientType.SEASONING)),
+                    List.of(new IngredientDto("Extra Spice", 2.0, MeasurementUnit.TSP, IngredientType.SEASONING)),
                     List.of(new StepDto(1, "Add spice and mix well", null, null)),
                     List.of(testImage.getPublicId()),
                     "INGREDIENT_CHANGE",

@@ -35,10 +35,10 @@ export function IngredientsSection({ ingredients }: IngredientsSectionProps) {
   }, [ingredients]);
 
   useEffect(() => {
-    // Get initial preference
+    // Get initial preference - use queueMicrotask to avoid synchronous setState warning
     const initialPref = getMeasurementPreference();
     console.log('[IngredientsSection] Initial preference:', initialPref);
-    setPreference(initialPref);
+    queueMicrotask(() => setPreference(initialPref));
 
     // Listen for storage changes (when user changes preference in header from another tab)
     const handleStorageChange = (e: StorageEvent) => {

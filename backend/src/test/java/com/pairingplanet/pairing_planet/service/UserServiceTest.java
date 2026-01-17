@@ -229,14 +229,14 @@ class UserServiceTest extends BaseIntegrationTest {
 
             // Verify in database
             User updated = userRepository.findById(testUser.getId()).orElseThrow();
-            assertThat(updated.getDefaultFoodStyle()).isEqualTo("JP");
+            assertThat(updated.getDefaultCookingStyle()).isEqualTo("JP");
         }
 
         @Test
         @DisplayName("Should return defaultCookingStyle in UserDto after update")
         void getUserProfile_ReturnsDefaultFoodStyle() {
             // Set up user with defaultCookingStyle
-            testUser.setDefaultFoodStyle("US");
+            testUser.setDefaultCookingStyle("US");
             userRepository.save(testUser);
 
             UserDto result = userService.getUserProfile(testUser.getPublicId());
