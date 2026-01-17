@@ -1,9 +1,9 @@
 """API data models matching backend DTOs."""
 
 from enum import Enum
-from typing import List, Optional
+from typing import Any, List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class IngredientType(str, Enum):
@@ -107,7 +107,7 @@ class Recipe(BaseModel):
     ingredients: List[RecipeIngredient] = Field(default_factory=list)
     steps: List[RecipeStep] = Field(default_factory=list)
     images: List[RecipeImage] = Field(default_factory=list)
-    hashtags: List[Hashtag] = Field(default_factory=list)
+    hashtags: List[Union[Hashtag, str]] = Field(default_factory=list)
     servings: Optional[int] = None
     cooking_time_range: Optional[str] = Field(default=None, alias="cookingTimeRange")
     parent_public_id: Optional[str] = Field(default=None, alias="parentPublicId")
@@ -117,15 +117,31 @@ class Recipe(BaseModel):
 
     model_config = {"populate_by_name": True, "extra": "ignore"}
 
+    @field_validator("hashtags", mode="before")
+    @classmethod
+    def normalize_hashtags(cls, v: Any) -> List[Union[Hashtag, str]]:
+        """Handle both string and Hashtag object formats from API."""
+        if not v:
+            return []
+        result = []
+        for item in v:
+            if isinstance(item, str):
+                result.append(item)
+            elif isinstance(item, dict):
+                # Try to create Hashtag, fallback to name string
+                result.append(item.get("name", str(item)))
+            else:
+                result.append(item)
+        return result
+
 
 class CreateLogRequest(BaseModel):
     """Request to create a cooking log."""
 
     recipe_public_id: str = Field(description="Recipe that was cooked")
     title: str = Field(max_length=100)
-    content: str = Field(max_length=2000, description="Log notes/description")
+    content: str = Field(max_length=500, description="Log notes/description")
     outcome: LogOutcome = Field(description="Cooking outcome")
-    locale: str = Field(default="ko-KR")
     image_public_ids: List[str] = Field(
         default_factory=list,
         description="Log photo IDs",
@@ -133,20 +149,72 @@ class CreateLogRequest(BaseModel):
     hashtags: List[str] = Field(default_factory=list)
 
 
+class LogPostImage(BaseModel):
+    """Image in log post response."""
+    image_public_id: str = Field(alias="imagePublicId")
+    image_url: str = Field(alias="imageUrl")
+
+    model_config = {"populate_by_name": True}
+
+
+class LinkedRecipeSummary(BaseModel):
+    """Summary of linked recipe in log post response."""
+    public_id: str = Field(alias="publicId")
+    title: str
+    food_name: Optional[str] = Field(default=None, alias="foodName")
+
+    model_config = {"populate_by_name": True, "extra": "ignore"}
+
+
 class LogPost(BaseModel):
     """Log post response from API."""
 
-    public_id: str
-    title: str
+    public_id: str = Field(alias="publicId")
+    title: Optional[str] = None
     content: str
     outcome: LogOutcome
-    locale: str
-    creator_id: str
-    creator_username: str
-    recipe_public_id: str
-    recipe_title: str
-    image_urls: List[str] = Field(default_factory=list)
-    hashtags: List[str] = Field(default_factory=list)
+    images: List[LogPostImage] = Field(default_factory=list)
+    linked_recipe: Optional[LinkedRecipeSummary] = Field(default=None, alias="linkedRecipe")
+    created_at: Optional[str] = Field(default=None, alias="createdAt")
+    hashtags: List[Union[Hashtag, str]] = Field(default_factory=list)
+    is_saved_by_current_user: Optional[bool] = Field(default=None, alias="isSavedByCurrentUser")
+    creator_public_id: Optional[str] = Field(default=None, alias="creatorPublicId")
+    user_name: Optional[str] = Field(default=None, alias="userName")
+    title_translations: Optional[dict] = Field(default=None, alias="titleTranslations")
+    content_translations: Optional[dict] = Field(default=None, alias="contentTranslations")
+
+    model_config = {"populate_by_name": True, "extra": "ignore"}
+
+    @field_validator("hashtags", mode="before")
+    @classmethod
+    def normalize_hashtags(cls, v: Any) -> List[Union[Hashtag, str]]:
+        """Handle both string and Hashtag object formats from API."""
+        if not v:
+            return []
+        result = []
+        for item in v:
+            if isinstance(item, str):
+                result.append(item)
+            elif isinstance(item, dict):
+                result.append(item.get("name", str(item)))
+            else:
+                result.append(item)
+        return result
+
+    @property
+    def recipe_public_id(self) -> Optional[str]:
+        """Get recipe public ID from linked recipe."""
+        return self.linked_recipe.public_id if self.linked_recipe else None
+
+    @property
+    def recipe_title(self) -> Optional[str]:
+        """Get recipe title from linked recipe."""
+        return self.linked_recipe.title if self.linked_recipe else None
+
+    @property
+    def image_urls(self) -> List[str]:
+        """Get list of image URLs."""
+        return [img.image_url for img in self.images]
 
 
 class ImageUploadResponse(BaseModel):

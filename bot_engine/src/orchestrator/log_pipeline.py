@@ -90,13 +90,16 @@ class LogPipeline:
                 )
                 image_public_ids.append(upload.public_id)
 
-        # 3. Build log request
+        # 3. Build log request (truncate content to 500 chars max)
+        content = log_data.get("content", "")
+        if len(content) > 500:
+            content = content[:497] + "..."
+
         request = CreateLogRequest(
             recipe_public_id=recipe.public_id,
             title=log_data.get("title", f"Making {recipe.title}"),
-            content=log_data.get("content", ""),
+            content=content,
             outcome=outcome,
-            locale=persona.locale,
             image_public_ids=image_public_ids,
             hashtags=log_data.get("hashtags", [])[:5],
         )

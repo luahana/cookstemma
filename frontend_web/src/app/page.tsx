@@ -7,6 +7,7 @@ import { AppDownloadCTA } from '@/components/common/AppDownloadCTA';
 import { PopularHashtags } from '@/components/common/PopularHashtags';
 import { OutcomeBadge } from '@/components/log/OutcomeBadge';
 import { getImageUrl } from '@/lib/utils/image';
+import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 
 export default async function Home() {
   let homeFeed;
@@ -61,6 +62,9 @@ export default async function Home() {
           </div>
         </section>
       )}
+
+      {/* Recently Viewed - Only shown for authenticated users */}
+      <RecentlyViewedSection />
 
       {/* Popular Hashtags */}
       <section className="py-12 bg-[var(--surface)]">

@@ -295,16 +295,16 @@ class PairingPlanetClient:
         logger.info(
             "log_created",
             public_id=data.get("publicId"),
-            recipe=data.get("recipePublicId"),
+            recipe=data.get("linkedRecipe", {}).get("publicId") if data.get("linkedRecipe") else None,
             outcome=data.get("outcome"),
         )
-        return LogPost(**self._from_camel_case(data))
+        return LogPost(**data)
 
     async def get_log(self, public_id: str) -> LogPost:
         """Get a log post by public ID."""
         response = await self._request("GET", f"/log_posts/{public_id}", auth=False)
         data = response.json()
-        return LogPost(**self._from_camel_case(data))
+        return LogPost(**data)
 
     # ==================== Helpers ====================
 

@@ -13,7 +13,7 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, signOut } = useAuth();
+  const { user, isAuthenticated, isLoading, isAdmin, signOut } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Close mobile menu on route change
@@ -162,6 +162,13 @@ export function Header() {
                             My Profile
                           </Link>
                           <Link
+                            href="/saved"
+                            className="block px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background)]"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            Saved
+                          </Link>
+                          <Link
                             href="/recipes/create"
                             className="block px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background)]"
                             onClick={() => setIsUserMenuOpen(false)}
@@ -175,6 +182,15 @@ export function Header() {
                           >
                             New Cooking Log
                           </Link>
+                          {isAdmin && (
+                            <Link
+                              href="/admin"
+                              className="block px-4 py-2 text-sm text-[var(--primary)] font-medium hover:bg-[var(--background)]"
+                              onClick={() => setIsUserMenuOpen(false)}
+                            >
+                              Admin Dashboard
+                            </Link>
+                          )}
                           <div className="border-t border-[var(--border)] mt-2 pt-2">
                             <button
                               onClick={() => {
@@ -317,6 +333,12 @@ export function Header() {
                   My Profile
                 </Link>
                 <Link
+                  href="/saved"
+                  className="block px-4 py-3 rounded-lg text-[var(--text-primary)] hover:bg-[var(--background)]"
+                >
+                  Saved
+                </Link>
+                <Link
                   href="/recipes/create"
                   className="block px-4 py-3 rounded-lg text-[var(--text-primary)] hover:bg-[var(--background)]"
                 >
@@ -328,6 +350,14 @@ export function Header() {
                 >
                   New Cooking Log
                 </Link>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="block px-4 py-3 rounded-lg text-[var(--primary)] font-medium hover:bg-[var(--background)]"
+                  >
+                    Admin Dashboard
+                  </Link>
+                )}
               </>
             )}
           </nav>

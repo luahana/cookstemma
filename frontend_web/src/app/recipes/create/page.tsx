@@ -7,35 +7,54 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { createRecipe } from '@/lib/api/recipes';
 import { uploadImage } from '@/lib/api/images';
-import type { IngredientType, CookingTimeRange, IngredientDto } from '@/lib/types';
+import type { IngredientType, CookingTimeRange, IngredientDto, MeasurementUnit } from '@/lib/types';
 import { COOKING_TIME_RANGES } from '@/lib/types';
 import { getDefaultCulinaryLocale } from '@/lib/utils/cookingStyle';
+import { CookingStyleSelect, COOKING_STYLE_OPTIONS } from '@/components/common/CookingStyleSelect';
 
-const INGREDIENT_TYPES: { value: IngredientType; label: string }[] = [
-  { value: 'MAIN', label: 'Main' },
-  { value: 'SUB', label: 'Sub' },
-  { value: 'SAUCE', label: 'Sauce' },
-  { value: 'GARNISH', label: 'Garnish' },
-  { value: 'OPTIONAL', label: 'Optional' },
+// Limits matching Flutter app
+const MAX_RECIPE_PHOTOS = 3;
+const MAX_STEPS = 12;
+const MAX_HASHTAGS = 5;
+const MAX_HASHTAG_LENGTH = 30;
+
+const INGREDIENT_LIMITS: Record<IngredientType, number> = {
+  MAIN: 5,
+  SECONDARY: 8,
+  SEASONING: 10,
+};
+
+const INGREDIENT_CATEGORIES: { value: IngredientType; label: string; max: number }[] = [
+  { value: 'MAIN', label: 'Main Ingredients', max: 5 },
+  { value: 'SECONDARY', label: 'Secondary Ingredients', max: 8 },
+  { value: 'SEASONING', label: 'Seasonings', max: 10 },
 ];
 
-const CULINARY_LOCALES = [
-  { value: 'KR', label: 'Korean' },
-  { value: 'JP', label: 'Japanese' },
-  { value: 'CN', label: 'Chinese' },
-  { value: 'US', label: 'American' },
-  { value: 'IT', label: 'Italian' },
-  { value: 'FR', label: 'French' },
-  { value: 'ES', label: 'Spanish' },
-  { value: 'TH', label: 'Thai' },
-  { value: 'VN', label: 'Vietnamese' },
-  { value: 'IN', label: 'Indian' },
-  { value: 'MX', label: 'Mexican' },
-  { value: 'GB', label: 'British' },
-  { value: 'DE', label: 'German' },
-  { value: 'GR', label: 'Greek' },
-  { value: 'TR', label: 'Turkish' },
-  { value: 'international', label: 'International' },
+const MEASUREMENT_UNITS: { value: MeasurementUnit | ''; label: string }[] = [
+  { value: '', label: 'Unit' },
+  // Volume
+  { value: 'CUP', label: 'Cup' },
+  { value: 'TBSP', label: 'Tbsp' },
+  { value: 'TSP', label: 'Tsp' },
+  { value: 'ML', label: 'ml' },
+  { value: 'L', label: 'L' },
+  { value: 'FL_OZ', label: 'fl oz' },
+  { value: 'PINT', label: 'Pint' },
+  { value: 'QUART', label: 'Quart' },
+  // Weight
+  { value: 'G', label: 'g' },
+  { value: 'KG', label: 'kg' },
+  { value: 'OZ', label: 'oz' },
+  { value: 'LB', label: 'lb' },
+  // Count/Other
+  { value: 'PIECE', label: 'Piece' },
+  { value: 'CLOVE', label: 'Clove' },
+  { value: 'BUNCH', label: 'Bunch' },
+  { value: 'CAN', label: 'Can' },
+  { value: 'PACKAGE', label: 'Package' },
+  { value: 'PINCH', label: 'Pinch' },
+  { value: 'DASH', label: 'Dash' },
+  { value: 'TO_TASTE', label: 'To Taste' },
 ];
 
 interface UploadedImage {
@@ -49,7 +68,8 @@ interface UploadedImage {
 interface FormIngredient {
   id: string;
   name: string;
-  amount: string;
+  quantity: string;  // Numeric quantity (max 4 chars)
+  unit: MeasurementUnit | '';  // Measurement unit from dropdown
   type: IngredientType;
 }
 
@@ -72,10 +92,11 @@ export default function CreateRecipePage() {
   const [culinaryLocale, setCulinaryLocale] = useState('');
   const [servings, setServings] = useState(2);
   const [cookingTimeRange, setCookingTimeRange] = useState<CookingTimeRange>('MIN_30_TO_60');
-  const [hashtags, setHashtags] = useState('');
+  const [hashtags, setHashtags] = useState<string[]>([]);
+  const [hashtagInput, setHashtagInput] = useState('');
   const [recipeImages, setRecipeImages] = useState<UploadedImage[]>([]);
   const [ingredients, setIngredients] = useState<FormIngredient[]>([
-    { id: crypto.randomUUID(), name: '', amount: '', type: 'MAIN' },
+    { id: crypto.randomUUID(), name: '', quantity: '', unit: '', type: 'MAIN' },
   ]);
   const [steps, setSteps] = useState<FormStep[]>([
     { id: crypto.randomUUID(), description: '', image: null },
@@ -97,7 +118,7 @@ export default function CreateRecipePage() {
     if (!culinaryLocale) {
       const defaultLocale = getDefaultCulinaryLocale();
       // Check if the detected locale is in our list, otherwise use 'international'
-      const isValid = CULINARY_LOCALES.some((l) => l.value === defaultLocale);
+      const isValid = COOKING_STYLE_OPTIONS.some((l) => l.value === defaultLocale);
       setCulinaryLocale(isValid ? defaultLocale : 'international');
     }
   }, [culinaryLocale]);
@@ -107,7 +128,7 @@ export default function CreateRecipePage() {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    const remaining = 5 - recipeImages.length;
+    const remaining = MAX_RECIPE_PHOTOS - recipeImages.length;
     const filesToAdd = files.slice(0, remaining);
 
     const newImages: UploadedImage[] = filesToAdd.map((file) => ({
@@ -208,27 +229,43 @@ export default function CreateRecipePage() {
     );
   };
 
+  // Get count of ingredients by type
+  const getIngredientCountByType = (type: IngredientType) => {
+    return ingredients.filter((ing) => ing.type === type).length;
+  };
+
   // Ingredient handlers
-  const addIngredient = () => {
+  const addIngredient = (type: IngredientType) => {
+    const currentCount = getIngredientCountByType(type);
+    if (currentCount >= INGREDIENT_LIMITS[type]) return;
+
     setIngredients((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), name: '', amount: '', type: 'MAIN' },
+      { id: crypto.randomUUID(), name: '', quantity: '', unit: '', type },
     ]);
   };
 
   const updateIngredient = (id: string, field: keyof FormIngredient, value: string) => {
     setIngredients((prev) =>
-      prev.map((ing) => (ing.id === id ? { ...ing, [field]: value } : ing))
+      prev.map((ing) => {
+        if (ing.id !== id) return ing;
+        // For quantity field, only allow numeric input (digits and decimal)
+        if (field === 'quantity') {
+          const sanitized = value.replace(/[^0-9.]/g, '').slice(0, 4);
+          return { ...ing, [field]: sanitized };
+        }
+        return { ...ing, [field]: value };
+      })
     );
   };
 
   const removeIngredient = (id: string) => {
-    if (ingredients.length <= 1) return;
     setIngredients((prev) => prev.filter((ing) => ing.id !== id));
   };
 
   // Step handlers
   const addStep = () => {
+    if (steps.length >= MAX_STEPS) return;
     setSteps((prev) => [
       ...prev,
       { id: crypto.randomUUID(), description: '', image: null },
@@ -248,6 +285,42 @@ export default function CreateRecipePage() {
       if (step?.image) URL.revokeObjectURL(step.image.preview);
       return prev.filter((s) => s.id !== id);
     });
+  };
+
+  // Hashtag handlers
+  const normalizeHashtag = (tag: string): string => {
+    return tag
+      .toLowerCase()
+      .trim()
+      .replace(/^#/, '')  // Remove leading #
+      .replace(/\s+/g, '-')  // Replace spaces with hyphens
+      .slice(0, MAX_HASHTAG_LENGTH);
+  };
+
+  const addHashtag = () => {
+    if (!hashtagInput.trim()) return;
+    if (hashtags.length >= MAX_HASHTAGS) return;
+
+    const normalized = normalizeHashtag(hashtagInput);
+    if (!normalized) return;
+    if (hashtags.includes(normalized)) {
+      setHashtagInput('');
+      return;
+    }
+
+    setHashtags((prev) => [...prev, normalized]);
+    setHashtagInput('');
+  };
+
+  const handleHashtagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addHashtag();
+    }
+  };
+
+  const removeHashtag = (tag: string) => {
+    setHashtags((prev) => prev.filter((t) => t !== tag));
   };
 
   // Handle form submission
@@ -315,20 +388,15 @@ export default function CreateRecipePage() {
     setIsSubmitting(true);
 
     try {
-      const hashtagList = hashtags
-        .split(',')
-        .map((h) => h.trim().replace(/^#/, ''))
-        .filter((h) => h.length > 0);
-
       const imagePublicIds = recipeImages
         .filter((img) => img.publicId)
         .map((img) => img.publicId!);
 
       const ingredientsData: IngredientDto[] = validIngredients.map((ing) => ({
         name: ing.name.trim(),
-        amount: ing.amount.trim() || null,
-        quantity: null,
-        unit: null,
+        amount: null,  // Legacy field, not used
+        quantity: ing.quantity ? parseFloat(ing.quantity) : null,
+        unit: (ing.unit || null) as IngredientDto['unit'],
         type: ing.type,
       }));
 
@@ -346,7 +414,7 @@ export default function CreateRecipePage() {
         ingredients: ingredientsData,
         steps: stepsData,
         imagePublicIds,
-        hashtags: hashtagList.length > 0 ? hashtagList : undefined,
+        hashtags: hashtags.length > 0 ? hashtags : undefined,
         servings,
         cookingTimeRange,
       });
@@ -394,6 +462,72 @@ export default function CreateRecipePage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Recipe Photos Section */}
+          <section className="bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)]">
+            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+              Photos <span className="text-[var(--error)]">*</span>
+            </h2>
+            <p className="text-sm text-[var(--text-secondary)] mb-4">
+              Add photos of your finished dish (at least 1, up to {MAX_RECIPE_PHOTOS})
+            </p>
+            <div className="flex gap-3 flex-wrap">
+              {recipeImages.map((img) => (
+                <div
+                  key={img.preview}
+                  className="relative w-28 h-28 rounded-lg overflow-hidden bg-[var(--background)]"
+                >
+                  <Image
+                    src={img.preview}
+                    alt="Recipe photo"
+                    fill
+                    className="object-cover"
+                    sizes="112px"
+                  />
+                  {img.uploading && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="animate-spin w-6 h-6 border-2 border-white border-t-transparent rounded-full" />
+                    </div>
+                  )}
+                  {img.error && (
+                    <div className="absolute inset-0 bg-[var(--error)]/50 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeRecipeImage(img.preview)}
+                    className="absolute top-1 right-1 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+              {recipeImages.length < MAX_RECIPE_PHOTOS && (
+                <button
+                  type="button"
+                  onClick={() => recipeImageInputRef.current?.click()}
+                  className="w-28 h-28 rounded-lg border-2 border-dashed border-[var(--border)] hover:border-[var(--primary)] transition-colors flex items-center justify-center"
+                >
+                  <svg className="w-8 h-8 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            <input
+              ref={recipeImageInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleRecipeImageSelect}
+              className="hidden"
+            />
+          </section>
+
           {/* Basic Info Section */}
           <section className="bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)]">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
@@ -410,9 +544,13 @@ export default function CreateRecipePage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  maxLength={100}
                   className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
                   placeholder="e.g., Grandma's Secret Kimchi Fried Rice"
                 />
+                <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">
+                  {title.length}/100
+                </p>
               </div>
 
               {/* Food Name */}
@@ -425,12 +563,18 @@ export default function CreateRecipePage() {
                   type="text"
                   value={foodName}
                   onChange={(e) => setFoodName(e.target.value)}
+                  maxLength={50}
                   className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
                   placeholder="e.g., Kimchi Fried Rice"
                 />
-                <p className="text-xs text-[var(--text-secondary)] mt-1">
-                  The general name of the dish (used for categorization)
-                </p>
+                <div className="flex justify-between mt-1">
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    The general name of the dish (used for categorization)
+                  </p>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    {foodName.length}/50
+                  </p>
+                </div>
               </div>
 
               {/* Description */}
@@ -442,30 +586,28 @@ export default function CreateRecipePage() {
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  maxLength={500}
                   rows={3}
                   className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)] resize-none"
                   placeholder="Tell us about your recipe..."
                 />
+                <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">
+                  {description.length}/500
+                </p>
               </div>
 
               {/* Culinary Locale & Servings Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="locale" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     Cooking Style <span className="text-[var(--error)]">*</span>
                   </label>
-                  <select
-                    id="locale"
+                  <CookingStyleSelect
                     value={culinaryLocale}
-                    onChange={(e) => setCulinaryLocale(e.target.value)}
-                    className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
-                  >
-                    {CULINARY_LOCALES.map((locale) => (
-                      <option key={locale.value} value={locale.value}>
-                        {locale.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setCulinaryLocale}
+                    options={COOKING_STYLE_OPTIONS}
+                    placeholder="Select cooking style"
+                  />
                 </div>
 
                 <div>
@@ -505,140 +647,113 @@ export default function CreateRecipePage() {
             </div>
           </section>
 
-          {/* Recipe Photos Section */}
-          <section className="bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)]">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Photos <span className="text-[var(--error)]">*</span>
-            </h2>
-            <p className="text-sm text-[var(--text-secondary)] mb-4">
-              Add photos of your finished dish (at least 1, up to 5)
-            </p>
-            <div className="flex gap-3 flex-wrap">
-              {recipeImages.map((img) => (
-                <div
-                  key={img.preview}
-                  className="relative w-28 h-28 rounded-lg overflow-hidden bg-[var(--background)]"
-                >
-                  <Image
-                    src={img.preview}
-                    alt="Recipe photo"
-                    fill
-                    className="object-cover"
-                    sizes="112px"
-                  />
-                  {img.uploading && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <div className="animate-spin w-6 h-6 border-2 border-white border-t-transparent rounded-full" />
-                    </div>
-                  )}
-                  {img.error && (
-                    <div className="absolute inset-0 bg-[var(--error)]/50 flex items-center justify-center">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => removeRecipeImage(img.preview)}
-                    className="absolute top-1 right-1 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
-                  >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-              {recipeImages.length < 5 && (
-                <button
-                  type="button"
-                  onClick={() => recipeImageInputRef.current?.click()}
-                  className="w-28 h-28 rounded-lg border-2 border-dashed border-[var(--border)] hover:border-[var(--primary)] transition-colors flex items-center justify-center"
-                >
-                  <svg className="w-8 h-8 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            <input
-              ref={recipeImageInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleRecipeImageSelect}
-              className="hidden"
-            />
-          </section>
-
           {/* Ingredients Section */}
           <section className="bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)]">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
               Ingredients <span className="text-[var(--error)]">*</span>
             </h2>
-            <div className="space-y-3">
-              {ingredients.map((ing, index) => (
-                <div key={ing.id} className="flex gap-2 items-start">
-                  <span className="text-sm text-[var(--text-secondary)] mt-3 w-6">
-                    {index + 1}.
-                  </span>
-                  <div className="flex-1 grid grid-cols-12 gap-2">
-                    <input
-                      type="text"
-                      value={ing.name}
-                      onChange={(e) => updateIngredient(ing.id, 'name', e.target.value)}
-                      className="col-span-5 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm"
-                      placeholder="Ingredient name"
-                    />
-                    <input
-                      type="text"
-                      value={ing.amount}
-                      onChange={(e) => updateIngredient(ing.id, 'amount', e.target.value)}
-                      className="col-span-4 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm"
-                      placeholder="Amount (e.g., 2 cups)"
-                    />
-                    <select
-                      value={ing.type}
-                      onChange={(e) => updateIngredient(ing.id, 'type', e.target.value)}
-                      className="col-span-3 px-2 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm"
-                    >
-                      {INGREDIENT_TYPES.map((type) => (
-                        <option key={type.value} value={type.value}>
-                          {type.label}
-                        </option>
+            <p className="text-sm text-[var(--text-secondary)] mb-4">
+              Add ingredients by category. Each category has a maximum limit.
+            </p>
+
+            {/* Ingredient Categories */}
+            <div className="space-y-6">
+              {INGREDIENT_CATEGORIES.map((category) => {
+                const categoryIngredients = ingredients.filter((ing) => ing.type === category.value);
+                const count = categoryIngredients.length;
+                const canAdd = count < category.max;
+
+                return (
+                  <div key={category.value} className="border border-[var(--border)] rounded-xl p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-sm font-medium text-[var(--text-primary)]">
+                        {category.label}
+                      </h3>
+                      <span className="text-xs text-[var(--text-secondary)]">
+                        {count}/{category.max}
+                      </span>
+                    </div>
+
+                    {/* Ingredient rows for this category */}
+                    <div className="space-y-2">
+                      {categoryIngredients.map((ing, index) => (
+                        <div key={ing.id} className="flex gap-2 items-center">
+                          <span className="text-xs text-[var(--text-secondary)] w-4">
+                            {index + 1}.
+                          </span>
+                          <input
+                            type="text"
+                            value={ing.name}
+                            onChange={(e) => updateIngredient(ing.id, 'name', e.target.value)}
+                            maxLength={50}
+                            className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm"
+                            placeholder="Ingredient name"
+                          />
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={ing.quantity}
+                            onChange={(e) => updateIngredient(ing.id, 'quantity', e.target.value)}
+                            className="w-16 px-2 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm text-center"
+                            placeholder="Qty"
+                          />
+                          <select
+                            value={ing.unit}
+                            onChange={(e) => updateIngredient(ing.id, 'unit', e.target.value)}
+                            className="w-24 px-2 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm"
+                          >
+                            {MEASUREMENT_UNITS.map((unit) => (
+                              <option key={unit.value} value={unit.value}>
+                                {unit.label}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => removeIngredient(ing.id)}
+                            className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--error)] transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
                       ))}
-                    </select>
+                    </div>
+
+                    {/* Add button for this category */}
+                    {canAdd ? (
+                      <button
+                        type="button"
+                        onClick={() => addIngredient(category.value)}
+                        className="mt-3 px-3 py-1.5 text-xs text-[var(--primary)] hover:bg-[var(--primary-light)]/10 rounded-lg transition-colors inline-flex items-center gap-1"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add {category.label.replace(' Ingredients', '').replace('s', '')}
+                      </button>
+                    ) : (
+                      <p className="mt-3 text-xs text-[var(--text-secondary)]">
+                        Maximum {category.max} items reached
+                      </p>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeIngredient(ing.id)}
-                    disabled={ingredients.length <= 1}
-                    className="p-2 text-[var(--text-secondary)] hover:text-[var(--error)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
-            <button
-              type="button"
-              onClick={addIngredient}
-              className="mt-4 px-4 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary-light)]/10 rounded-lg transition-colors inline-flex items-center gap-1"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Ingredient
-            </button>
           </section>
 
           {/* Steps Section */}
           <section className="bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)]">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Cooking Steps <span className="text-[var(--error)]">*</span>
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                Cooking Steps <span className="text-[var(--error)]">*</span>
+              </h2>
+              <span className="text-sm text-[var(--text-secondary)]">
+                {steps.length}/{MAX_STEPS}
+              </span>
+            </div>
             <div className="space-y-4">
               {steps.map((step, index) => (
                 <div key={step.id} className="flex gap-3 items-start">
@@ -646,13 +761,19 @@ export default function CreateRecipePage() {
                     {index + 1}
                   </div>
                   <div className="flex-1 space-y-2">
-                    <textarea
-                      value={step.description}
-                      onChange={(e) => updateStep(step.id, e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm resize-none"
-                      placeholder="Describe this step..."
-                    />
+                    <div>
+                      <textarea
+                        value={step.description}
+                        onChange={(e) => updateStep(step.id, e.target.value)}
+                        maxLength={500}
+                        rows={3}
+                        className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm resize-none"
+                        placeholder="Describe this step..."
+                      />
+                      <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">
+                        {step.description.length}/500
+                      </p>
+                    </div>
                     {/* Step Image */}
                     <div className="flex items-center gap-2">
                       {step.image ? (
@@ -725,32 +846,83 @@ export default function CreateRecipePage() {
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={addStep}
-              className="mt-4 px-4 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary-light)]/10 rounded-lg transition-colors inline-flex items-center gap-1"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Step
-            </button>
+            {steps.length < MAX_STEPS ? (
+              <button
+                type="button"
+                onClick={addStep}
+                className="mt-4 px-4 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary-light)]/10 rounded-lg transition-colors inline-flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Step
+              </button>
+            ) : (
+              <p className="mt-4 text-sm text-[var(--text-secondary)]">
+                Maximum {MAX_STEPS} steps reached
+              </p>
+            )}
           </section>
 
           {/* Hashtags Section */}
           <section className="bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)]">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Hashtags
-            </h2>
-            <input
-              type="text"
-              value={hashtags}
-              onChange={(e) => setHashtags(e.target.value)}
-              className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
-              placeholder="vegetarian, quick-meal, spicy (comma separated)"
-            />
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                Hashtags
+              </h2>
+              <span className="text-sm text-[var(--text-secondary)]">
+                {hashtags.length}/{MAX_HASHTAGS}
+              </span>
+            </div>
+
+            {/* Tag chips */}
+            {hashtags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {hashtags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-[var(--primary-light)]/20 text-[var(--primary)] rounded-full text-sm"
+                  >
+                    #{tag}
+                    <button
+                      type="button"
+                      onClick={() => removeHashtag(tag)}
+                      className="hover:text-[var(--error)] transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Tag input */}
+            {hashtags.length < MAX_HASHTAGS && (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={hashtagInput}
+                  onChange={(e) => setHashtagInput(e.target.value)}
+                  onKeyDown={handleHashtagKeyDown}
+                  maxLength={MAX_HASHTAG_LENGTH}
+                  className="flex-1 px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
+                  placeholder="Type a tag and press Enter"
+                />
+                <button
+                  type="button"
+                  onClick={addHashtag}
+                  disabled={!hashtagInput.trim()}
+                  className="px-4 py-3 bg-[var(--primary)] text-white rounded-xl hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Add
+                </button>
+              </div>
+            )}
+
             <p className="text-xs text-[var(--text-secondary)] mt-2">
-              Help others find your recipe with relevant tags
+              Help others find your recipe with relevant tags (max {MAX_HASHTAG_LENGTH} chars each)
             </p>
           </section>
 

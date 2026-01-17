@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getRecipes } from '@/lib/api/recipes';
+import { getRecipes, type CookingTimeFilter } from '@/lib/api/recipes';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { RecipeFilters } from '@/components/common/RecipeFilters';
 import { Pagination } from '@/components/common/Pagination';
@@ -18,6 +18,11 @@ interface Props {
     page?: string;
     sort?: 'recent' | 'trending' | 'mostForked';
     type?: 'all' | 'original' | 'variants';
+    style?: string;
+    cookingTime?: string;
+    servings?: string;
+    minServings?: string;
+    maxServings?: string;
   }>;
 }
 
@@ -29,18 +34,41 @@ export default async function RecipesPage({ searchParams }: Props) {
     ? params.type
     : undefined;
 
+  // Parse cooking style filter (maps to backend locale parameter)
+  const locale = params.style && params.style !== 'any'
+    ? params.style
+    : undefined;
+
+  // Parse cooking time filter
+  const cookingTime = params.cookingTime && params.cookingTime !== 'any'
+    ? [params.cookingTime as CookingTimeFilter]
+    : undefined;
+
+  // Parse servings filter
+  const minServings = params.minServings ? parseInt(params.minServings, 10) : undefined;
+  const maxServings = params.maxServings ? parseInt(params.maxServings, 10) : undefined;
+
   const recipes = await getRecipes({
     page,
     size: 12,
     sort,
     typeFilter,
+    locale,
     onlyRoot: params.type === 'original' ? true : undefined,
+    cookingTime,
+    minServings,
+    maxServings,
   });
 
   // Build base URL with current filters for pagination
   const filterParams = new URLSearchParams();
   if (sort !== 'recent') filterParams.set('sort', sort);
   if (params.type && params.type !== 'all') filterParams.set('type', params.type);
+  if (params.style && params.style !== 'any') filterParams.set('style', params.style);
+  if (params.cookingTime && params.cookingTime !== 'any') filterParams.set('cookingTime', params.cookingTime);
+  if (params.servings && params.servings !== 'any') filterParams.set('servings', params.servings);
+  if (params.minServings) filterParams.set('minServings', params.minServings);
+  if (params.maxServings) filterParams.set('maxServings', params.maxServings);
   const baseUrl = filterParams.toString()
     ? `/recipes?${filterParams.toString()}`
     : '/recipes';

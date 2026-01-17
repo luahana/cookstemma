@@ -14,6 +14,7 @@ import { CookingStyleBadge } from '@/components/common/CookingStyleBadge';
 import { COOKING_TIME_RANGES, type CookingTimeRange } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
 import { siteConfig } from '@/config/site';
+import { ViewTracker } from '@/components/common/ViewTracker';
 
 interface Props {
   params: Promise<{ publicId: string }>;
@@ -91,6 +92,7 @@ export default async function RecipeDetailPage({ params }: Props) {
 
   return (
     <>
+      <ViewTracker publicId={publicId} type="recipe" />
       <RecipeJsonLd recipe={recipe} />
       <BreadcrumbJsonLd
         items={[

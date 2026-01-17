@@ -7,6 +7,8 @@ import com.pairingplanet.pairing_planet.domain.entity.recipe.RecipeLog;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.*;
@@ -20,9 +22,25 @@ import java.util.*;
 @SuperBuilder
 public class LogPost extends BaseEntity {
     private String locale;
+
+    @Column(columnDefinition = "TEXT")
     private String title;
+
+    @Column(columnDefinition = "TEXT")
     private String content;
+
     private Long creatorId;
+
+    // Translation fields for multilingual content
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "title_translations", columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, String> titleTranslations = new HashMap<>();
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "content_translations", columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, String> contentTranslations = new HashMap<>();
 
     @Builder.Default
     private Boolean isPrivate = false;
