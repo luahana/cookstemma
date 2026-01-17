@@ -59,7 +59,7 @@ describe('AuthContext', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
-          user: { publicId: 'user-123', username: 'testuser' },
+          user: { publicId: 'user-123', username: 'testuser', role: 'USER' },
           recipeCount: 0,
           logCount: 0,
           savedCount: 0,
@@ -85,7 +85,7 @@ describe('AuthContext', () => {
         ok: true,
         json: () => Promise.resolve({
           // UserDto returns 'id' field (not 'publicId') for the user's public identifier
-          user: { id: 'user-123', username: 'testuser' },
+          user: { id: 'user-123', username: 'testuser', role: 'USER' },
           recipeCount: 0,
           logCount: 0,
           savedCount: 0,
@@ -128,7 +128,7 @@ describe('AuthContext', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
-          user: { publicId: 'user-123', username: 'testuser' },
+          user: { publicId: 'user-123', username: 'testuser', role: 'USER' },
           recipeCount: 0,
           logCount: 0,
           savedCount: 0,
@@ -167,7 +167,7 @@ describe('AuthContext', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
-          user: { publicId: 'user-123', username: 'testuser' },
+          user: { publicId: 'user-123', username: 'testuser', role: 'USER' },
           recipeCount: 0,
           logCount: 0,
           savedCount: 0,
@@ -198,7 +198,7 @@ describe('AuthContext', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
-          user: { publicId: 'user-123', username: 'testuser' },
+          user: { publicId: 'user-123', username: 'testuser', role: 'USER' },
           recipeCount: 0,
           logCount: 0,
           savedCount: 0,
@@ -244,6 +244,7 @@ describe('AuthContext', () => {
         json: () => Promise.resolve({
           userPublicId: 'user-456',
           username: 'refresheduser',
+          role: 'USER',
         }),
       });
 
@@ -281,6 +282,7 @@ describe('AuthContext', () => {
         json: () => Promise.resolve({
           userPublicId: 'user-456',
           username: 'refresheduser',
+          role: 'USER',
         }),
       });
 
@@ -291,6 +293,7 @@ describe('AuthContext', () => {
       expect(result.current.user).toEqual({
         publicId: 'user-456',
         username: 'refresheduser',
+        role: 'USER',
       });
       expect(result.current.isAuthenticated).toBe(true);
     });
@@ -328,7 +331,7 @@ describe('AuthContext', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
-          user: { publicId: 'user-123', username: 'testuser' },
+          user: { publicId: 'user-123', username: 'testuser', role: 'USER' },
           recipeCount: 0,
           logCount: 0,
           savedCount: 0,
@@ -364,7 +367,7 @@ describe('AuthContext', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
-          user: { publicId: 'user-123', username: 'testuser' },
+          user: { publicId: 'user-123', username: 'testuser', role: 'USER' },
           recipeCount: 0,
           logCount: 0,
           savedCount: 0,
@@ -416,6 +419,7 @@ describe('AuthContext', () => {
         json: () => Promise.resolve({
           userPublicId: 'user-456',
           username: 'refresheduser',
+          role: 'USER',
         }),
       });
 
