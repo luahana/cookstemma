@@ -25,6 +25,7 @@ import com.pairingplanet.pairing_planet.repository.recipe.*;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
 import com.pairingplanet.pairing_planet.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +43,7 @@ import java.util.UUID;
 import com.pairingplanet.pairing_planet.domain.entity.hashtag.Hashtag;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -707,7 +709,7 @@ public class RecipeService {
         }
 
         // Soft delete (images remain, just hidden with recipe)
-        recipe.setIsDeleted(true);
+        recipe.softDelete();
         recipeRepository.save(recipe);
     }
 

@@ -11,21 +11,22 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-// Recipe.java 수정 제안
+
 @Entity
 @Table(name = "recipes")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-@SuperBuilder // BaseEntity 상속을 위해 SuperBuilder 사용
+@SuperBuilder
 public class Recipe extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "food1_master_id", nullable = false)
+    @JoinColumn(name = "food_master_id", nullable = false)
     private FoodMaster foodMaster;
 
     private String culinaryLocale;
@@ -46,8 +47,14 @@ public class Recipe extends BaseEntity {
     private Integer savedCount = 0;
     @Builder.Default
     private Boolean isPrivate = false;
-    @Builder.Default
-    private Boolean isDeleted = false;
+
+    // Soft delete (standardized pattern - NULL means active, timestamp means deleted)
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    // Audit: who last updated this recipe
+    @Column(name = "updated_by_id")
+    private Long updatedById;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "root_recipe_id")
@@ -106,5 +113,13 @@ public class Recipe extends BaseEntity {
 
     public boolean isOriginal() {
         return this.rootRecipe == null;
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
+    public void softDelete() {
+        this.deletedAt = Instant.now();
     }
 }

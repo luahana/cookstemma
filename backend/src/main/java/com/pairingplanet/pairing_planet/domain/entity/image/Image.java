@@ -74,6 +74,10 @@ public class Image extends BaseEntity {
     @Column(name = "delete_scheduled_at")
     private Instant deleteScheduledAt;
 
+    // Audit: who last updated this image
+    @Column(name = "updated_by_id")
+    private Long updatedById;
+
     public boolean isOriginal() {
         return originalImage == null;
     }

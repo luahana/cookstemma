@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.time.Instant;
 import java.util.*;
 
 @Entity
@@ -23,12 +24,16 @@ public class LogPost extends BaseEntity {
     private String content;
     private Long creatorId;
 
-    // [추가] 레포지토리에서 필터링을 위해 필요한 필드들입니다.
     @Builder.Default
     private Boolean isPrivate = false;
 
-    @Builder.Default
-    private Boolean isDeleted = false;
+    // Soft delete (standardized pattern - NULL means active, timestamp means deleted)
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    // Audit: who last updated this log post
+    @Column(name = "updated_by_id")
+    private Long updatedById;
 
     @OneToOne(mappedBy = "logPost", cascade = CascadeType.ALL)
     private RecipeLog recipeLog;
@@ -56,5 +61,13 @@ public class LogPost extends BaseEntity {
 
     public void decrementSavedCount() {
         this.savedCount = Math.max(0, (this.savedCount == null ? 0 : this.savedCount) - 1);
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
+    public void softDelete() {
+        this.deletedAt = Instant.now();
     }
 }

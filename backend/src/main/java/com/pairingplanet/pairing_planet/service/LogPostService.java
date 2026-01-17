@@ -443,7 +443,7 @@ public class LogPostService {
         }
 
         // Soft delete
-        logPost.setIsDeleted(true);
+        logPost.softDelete();
         logPostRepository.save(logPost);
     }
 
