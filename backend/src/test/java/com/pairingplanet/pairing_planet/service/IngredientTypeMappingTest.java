@@ -117,7 +117,6 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
             // Arrange
             IngredientDto mainIngredient = new IngredientDto(
                     "Chicken",
-                    null,
                     500.0,
                     MeasurementUnit.G,
                     IngredientType.MAIN
@@ -139,7 +138,6 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
             // Arrange
             IngredientDto secondaryIngredient = new IngredientDto(
                     "Onion",
-                    null,
                     1.0,
                     MeasurementUnit.PIECE,
                     IngredientType.SECONDARY
@@ -161,7 +159,6 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
             // Arrange
             IngredientDto seasoningIngredient = new IngredientDto(
                     "Salt",
-                    null,
                     1.0,
                     MeasurementUnit.TSP,
                     IngredientType.SEASONING
@@ -183,21 +180,18 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
             // Arrange
             IngredientDto mainIngredient = new IngredientDto(
                     "Beef",
-                    null,
                     300.0,
                     MeasurementUnit.G,
                     IngredientType.MAIN
             );
             IngredientDto secondaryIngredient = new IngredientDto(
                     "Carrot",
-                    null,
                     2.0,
                     MeasurementUnit.PIECE,
                     IngredientType.SECONDARY
             );
             IngredientDto seasoningIngredient = new IngredientDto(
                     "Pepper",
-                    null,
                     1.0,
                     MeasurementUnit.PINCH,
                     IngredientType.SEASONING
@@ -245,14 +239,12 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
             // Arrange - Create recipe with mixed ingredient types
             IngredientDto mainIngredient = new IngredientDto(
                     "Salmon",
-                    null,
                     200.0,
                     MeasurementUnit.G,
                     IngredientType.MAIN
             );
             IngredientDto seasoningIngredient = new IngredientDto(
                     "Dill",
-                    null,
                     1.0,
                     MeasurementUnit.TBSP,
                     IngredientType.SEASONING

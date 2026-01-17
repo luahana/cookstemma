@@ -77,7 +77,6 @@ class RecipeMeasurementIntegrationTest extends BaseIntegrationTest {
             // Arrange
             IngredientDto structuredIngredient = new IngredientDto(
                     "Flour",
-                    null, // no legacy amount
                     2.0,  // quantity
                     MeasurementUnit.CUP, // unit
                     IngredientType.MAIN
@@ -113,75 +112,33 @@ class RecipeMeasurementIntegrationTest extends BaseIntegrationTest {
             assertThat(savedIngredient.name()).isEqualTo("Flour");
             assertThat(savedIngredient.quantity()).isEqualTo(2.0);
             assertThat(savedIngredient.unit()).isEqualTo(MeasurementUnit.CUP);
-            assertThat(savedIngredient.hasStructuredMeasurement()).isTrue();
         }
 
         @Test
-        @DisplayName("Should create recipe with legacy amount string")
-        void createRecipe_WithLegacyAmount_Success() {
+        @DisplayName("Should create recipe with multiple structured ingredients")
+        void createRecipe_WithMultipleIngredients_Success() {
             // Arrange
-            IngredientDto legacyIngredient = new IngredientDto(
-                    "Salt",
-                    "a pinch", // legacy amount
-                    null, // no quantity
-                    null, // no unit
-                    IngredientType.SEASONING
-            );
-
-            CreateRecipeRequestDto request = new CreateRecipeRequestDto(
-                    "Legacy Recipe",
-                    "A recipe with legacy amount",
-                    "en-US",
-                    testFood.getPublicId(),
-                    null,
-                    List.of(legacyIngredient),
-                    List.of(new StepDto(1, "Add salt", null, null)),
-                    List.of(),
-                    null, null, null, null, null, null, null, null
-            );
-
-            // Act
-            RecipeDetailResponseDto result = recipeService.createRecipe(request, userPrincipal);
-
-            // Assert
-            assertThat(result).isNotNull();
-            assertThat(result.ingredients()).hasSize(1);
-
-            IngredientDto savedIngredient = result.ingredients().get(0);
-            assertThat(savedIngredient.name()).isEqualTo("Salt");
-            assertThat(savedIngredient.amount()).isEqualTo("a pinch");
-            assertThat(savedIngredient.quantity()).isNull();
-            assertThat(savedIngredient.unit()).isNull();
-            assertThat(savedIngredient.hasStructuredMeasurement()).isFalse();
-        }
-
-        @Test
-        @DisplayName("Should create recipe with mixed ingredient types")
-        void createRecipe_WithMixedIngredients_Success() {
-            // Arrange
-            IngredientDto structuredIngredient = new IngredientDto(
+            IngredientDto mainIngredient = new IngredientDto(
                     "Sugar",
-                    null,
                     100.0,
                     MeasurementUnit.G,
                     IngredientType.MAIN
             );
 
-            IngredientDto legacyIngredient = new IngredientDto(
+            IngredientDto seasoningIngredient = new IngredientDto(
                     "Vanilla",
-                    "to taste",
-                    null,
-                    null,
+                    1.0,
+                    MeasurementUnit.TSP,
                     IngredientType.SEASONING
             );
 
             CreateRecipeRequestDto request = new CreateRecipeRequestDto(
                     "Mixed Recipe",
-                    "Recipe with both types",
+                    "Recipe with multiple ingredients",
                     "en-US",
                     testFood.getPublicId(),
                     null,
-                    List.of(structuredIngredient, legacyIngredient),
+                    List.of(mainIngredient, seasoningIngredient),
                     List.of(new StepDto(1, "Combine", null, null)),
                     List.of(),
                     null, null, null, null, null, null, null, null
@@ -198,13 +155,12 @@ class RecipeMeasurementIntegrationTest extends BaseIntegrationTest {
                     .findFirst().orElseThrow();
             assertThat(sugar.quantity()).isEqualTo(100.0);
             assertThat(sugar.unit()).isEqualTo(MeasurementUnit.G);
-            assertThat(sugar.hasStructuredMeasurement()).isTrue();
 
             IngredientDto vanilla = result.ingredients().stream()
                     .filter(i -> i.name().equals("Vanilla"))
                     .findFirst().orElseThrow();
-            assertThat(vanilla.amount()).isEqualTo("to taste");
-            assertThat(vanilla.hasStructuredMeasurement()).isFalse();
+            assertThat(vanilla.quantity()).isEqualTo(1.0);
+            assertThat(vanilla.unit()).isEqualTo(MeasurementUnit.TSP);
         }
     }
 
@@ -282,8 +238,8 @@ class RecipeMeasurementIntegrationTest extends BaseIntegrationTest {
     class RecipeIngredientEntity {
 
         @Test
-        @DisplayName("Should identify structured measurement")
-        void hasStructuredMeasurement_WithBothFields_ReturnsTrue() {
+        @DisplayName("Should store quantity and unit correctly")
+        void recipeIngredient_WithQuantityAndUnit_StoresCorrectly() {
             RecipeIngredient ingredient = RecipeIngredient.builder()
                     .name("Test")
                     .quantity(1.0)
@@ -291,43 +247,34 @@ class RecipeMeasurementIntegrationTest extends BaseIntegrationTest {
                     .type(IngredientType.MAIN)
                     .build();
 
-            assertThat(ingredient.hasStructuredMeasurement()).isTrue();
+            assertThat(ingredient.getQuantity()).isEqualTo(1.0);
+            assertThat(ingredient.getUnit()).isEqualTo(MeasurementUnit.CUP);
         }
 
         @Test
-        @DisplayName("Should identify legacy measurement")
-        void hasStructuredMeasurement_WithOnlyAmount_ReturnsFalse() {
+        @DisplayName("Should allow null quantity")
+        void recipeIngredient_WithNullQuantity_AllowsNull() {
             RecipeIngredient ingredient = RecipeIngredient.builder()
                     .name("Test")
-                    .amount("1 cup")
-                    .type(IngredientType.MAIN)
+                    .unit(MeasurementUnit.PINCH)
+                    .type(IngredientType.SEASONING)
                     .build();
 
-            assertThat(ingredient.hasStructuredMeasurement()).isFalse();
+            assertThat(ingredient.getQuantity()).isNull();
+            assertThat(ingredient.getUnit()).isEqualTo(MeasurementUnit.PINCH);
         }
 
         @Test
-        @DisplayName("Should return false when only quantity is set")
-        void hasStructuredMeasurement_WithOnlyQuantity_ReturnsFalse() {
+        @DisplayName("Should allow null unit")
+        void recipeIngredient_WithNullUnit_AllowsNull() {
             RecipeIngredient ingredient = RecipeIngredient.builder()
                     .name("Test")
                     .quantity(1.0)
                     .type(IngredientType.MAIN)
                     .build();
 
-            assertThat(ingredient.hasStructuredMeasurement()).isFalse();
-        }
-
-        @Test
-        @DisplayName("Should return false when only unit is set")
-        void hasStructuredMeasurement_WithOnlyUnit_ReturnsFalse() {
-            RecipeIngredient ingredient = RecipeIngredient.builder()
-                    .name("Test")
-                    .unit(MeasurementUnit.CUP)
-                    .type(IngredientType.MAIN)
-                    .build();
-
-            assertThat(ingredient.hasStructuredMeasurement()).isFalse();
+            assertThat(ingredient.getQuantity()).isEqualTo(1.0);
+            assertThat(ingredient.getUnit()).isNull();
         }
     }
 

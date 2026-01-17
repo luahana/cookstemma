@@ -88,8 +88,11 @@ export function Header() {
   useEffect(() => {
     const savedLocale = localStorage.getItem('userLocale');
     const savedMeasurement = localStorage.getItem('userMeasurement');
-    if (savedLocale) setCurrentLocale(savedLocale);
-    if (savedMeasurement) setCurrentMeasurement(savedMeasurement as MeasurementPreference);
+    // Use queueMicrotask to avoid synchronous setState warning in effect
+    queueMicrotask(() => {
+      if (savedLocale) setCurrentLocale(savedLocale);
+      if (savedMeasurement) setCurrentMeasurement(savedMeasurement as MeasurementPreference);
+    });
   }, []);
 
   // Handle locale change
