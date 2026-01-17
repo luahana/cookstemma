@@ -99,6 +99,7 @@ class BotAuthControllerTest extends BaseIntegrationTest {
             String responseBody = result.getResponse().getContentAsString();
 
             // Force debug output to test log
+            System.err.println(">>> BOT_TEST: Status=" + actualStatus + ", Response=" + responseBody);
             if (actualStatus != 200) {
                 throw new AssertionError(
                         String.format("BOT LOGIN TEST FAILED - Status: %d, Response: %s",
