@@ -1,9 +1,10 @@
 import Link from 'next/link';
 
-interface PaginationProps {
+export interface PaginationProps {
   currentPage: number;
   totalPages: number;
   baseUrl: string;
+  onPageChange?: (page: number) => void;
 }
 
 /**
@@ -59,12 +60,19 @@ function buildPageUrl(baseUrl: string, page: number): string {
   return `${baseUrl}${separator}page=${page}`;
 }
 
-export function Pagination({ currentPage, totalPages, baseUrl }: PaginationProps) {
+export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: PaginationProps) {
   if (totalPages <= 1) {
     return null;
   }
 
   const pages = generatePageNumbers(currentPage, totalPages);
+
+  const handleClick = (page: number, e: React.MouseEvent) => {
+    if (onPageChange) {
+      e.preventDefault();
+      onPageChange(page);
+    }
+  };
 
   return (
     <nav
@@ -75,6 +83,7 @@ export function Pagination({ currentPage, totalPages, baseUrl }: PaginationProps
       {currentPage > 0 ? (
         <Link
           href={buildPageUrl(baseUrl, currentPage - 1)}
+          onClick={(e) => handleClick(currentPage - 1, e)}
           className="px-3 py-2 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--primary-light)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
           aria-label="Previous page"
         >
@@ -123,6 +132,7 @@ export function Pagination({ currentPage, totalPages, baseUrl }: PaginationProps
           <Link
             key={page}
             href={buildPageUrl(baseUrl, page)}
+            onClick={(e) => handleClick(page, e)}
             className={`px-4 py-2 rounded-lg border transition-colors ${
               page === currentPage
                 ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
@@ -140,6 +150,7 @@ export function Pagination({ currentPage, totalPages, baseUrl }: PaginationProps
       {currentPage < totalPages - 1 ? (
         <Link
           href={buildPageUrl(baseUrl, currentPage + 1)}
+          onClick={(e) => handleClick(currentPage + 1, e)}
           className="px-3 py-2 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--primary-light)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
           aria-label="Next page"
         >
