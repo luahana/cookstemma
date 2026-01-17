@@ -4,6 +4,11 @@
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY';
 
 /**
+ * Measurement preference type
+ */
+export type MeasurementPreference = 'METRIC' | 'US' | 'ORIGINAL';
+
+/**
  * User profile data
  */
 export interface UserProfile {
@@ -14,6 +19,7 @@ export interface UserProfile {
   birthDate: string | null;
   locale: string | null;
   defaultFoodStyle: string | null;
+  measurementPreference: MeasurementPreference | null;
   followerCount: number;
   followingCount: number;
   recipeCount: number;
@@ -23,6 +29,31 @@ export interface UserProfile {
   bio: string | null;
   youtubeUrl: string | null;
   instagramHandle: string | null;
+}
+
+/**
+ * Update profile request data
+ */
+export interface UpdateProfileRequest {
+  username?: string | null;
+  gender?: string | null;
+  birthDate?: string | null;
+  locale?: string | null;
+  defaultFoodStyle?: string | null;
+  measurementPreference?: MeasurementPreference | null;
+  bio?: string | null;
+  youtubeUrl?: string | null;
+  instagramHandle?: string | null;
+}
+
+/**
+ * My profile response data
+ */
+export interface MyProfileResponse {
+  user: UserProfile;
+  recipeCount: number;
+  logCount: number;
+  savedCount: number;
 }
 
 /**

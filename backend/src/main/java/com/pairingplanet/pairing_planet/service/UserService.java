@@ -107,7 +107,17 @@ public class UserService {
         User user = userRepository.findById(principal.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 1. 사용자명 중복 체크 및 변경 로직 동일
+        // 1. Username update with duplicate check
+        if (request.username() != null && !request.username().isBlank()) {
+            String newUsername = request.username().trim();
+            if (!newUsername.equals(user.getUsername())) {
+                // Check if username is already taken by another user
+                if (userRepository.existsByUsernameIgnoreCase(newUsername)) {
+                    throw new IllegalArgumentException("Username is already taken");
+                }
+                user.setUsername(newUsername);
+            }
+        }
 
         // 2. 프로필 이미지 업데이트 (UUID 방식 적용)
         if (request.profileImagePublicId() != null) {
@@ -140,6 +150,11 @@ public class UserService {
         // 6. 기본 요리 스타일 업데이트
         if (request.defaultFoodStyle() != null) {
             user.setDefaultFoodStyle(request.defaultFoodStyle());
+        }
+
+        // 6b. 측정 단위 선호 업데이트
+        if (request.measurementPreference() != null) {
+            user.setMeasurementPreference(request.measurementPreference());
         }
 
         // 7. Bio update with sanitization

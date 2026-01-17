@@ -1,6 +1,7 @@
 package com.pairingplanet.pairing_planet.dto.user;
 
 import com.pairingplanet.pairing_planet.domain.enums.Gender;
+import com.pairingplanet.pairing_planet.domain.enums.MeasurementPreference;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -8,6 +9,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record UpdateProfileRequestDto(
+        @Size(max = 50, message = "Username cannot exceed 50 characters")
         String username,
         UUID profileImagePublicId, // [수정] String profileImageUrl -> UUID profileImagePublicId
         Gender gender,
@@ -16,6 +18,7 @@ public record UpdateProfileRequestDto(
         Boolean marketingAgreed,
         String locale,  // 언어 설정: ko-KR, en-US
         String defaultFoodStyle,  // 기본 요리 스타일: ISO country code (e.g., "KR", "US")
+        MeasurementPreference measurementPreference,  // 측정 단위 선호: METRIC, US, ORIGINAL
 
         @Size(max = 150, message = "Bio cannot exceed 150 characters")
         String bio,
