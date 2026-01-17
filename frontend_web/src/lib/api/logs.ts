@@ -12,6 +12,7 @@ import type {
 interface LogSearchParams extends PaginationParams {
   q?: string;
   outcomes?: Outcome[];
+  sort?: 'recent' | 'popular' | 'trending';
 }
 
 /**
@@ -25,6 +26,7 @@ export async function getLogs(
     size: params.size ?? 20,
     q: params.q,
     outcomes: params.outcomes?.join(','),
+    sort: params.sort,
   });
 
   return apiFetch<UnifiedPageResponse<LogPostSummary>>(`/log_posts${queryString}`, {

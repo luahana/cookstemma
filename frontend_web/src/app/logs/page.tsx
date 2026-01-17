@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 interface Props {
   searchParams: Promise<{
     page?: string;
+    sort?: 'recent' | 'popular' | 'trending';
     outcome?: Outcome;
   }>;
 }
@@ -24,16 +25,19 @@ interface Props {
 export default async function LogsPage({ searchParams }: Props) {
   const params = await searchParams;
   const page = parseInt(params.page || '0', 10);
+  const sort = params.sort || 'recent';
   const outcome = params.outcome;
 
   const logs = await getLogs({
     page,
     size: 12,
+    sort,
     outcomes: outcome ? [outcome] : undefined,
   });
 
   // Build base URL with current filters for pagination
   const filterParams = new URLSearchParams();
+  if (sort !== 'recent') filterParams.set('sort', sort);
   if (outcome) filterParams.set('outcome', outcome);
   const baseUrl = filterParams.toString()
     ? `/logs?${filterParams.toString()}`

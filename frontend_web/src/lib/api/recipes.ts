@@ -24,7 +24,7 @@ interface RecipeSearchParams extends PaginationParams {
   locale?: string;
   onlyRoot?: boolean;
   typeFilter?: 'original' | 'variants';
-  sort?: 'recent' | 'mostForked' | 'trending';
+  sort?: 'recent' | 'popular' | 'mostForked' | 'trending';
   cookingTime?: CookingTimeFilter[];
   minServings?: number;
   maxServings?: number;

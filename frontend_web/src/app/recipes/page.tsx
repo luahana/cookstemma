@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 interface Props {
   searchParams: Promise<{
     page?: string;
-    sort?: 'recent' | 'trending' | 'mostForked';
+    sort?: 'recent' | 'popular' | 'trending' | 'mostForked';
     type?: 'all' | 'original' | 'variants';
     style?: string;
     cookingTime?: string;

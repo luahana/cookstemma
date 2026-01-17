@@ -11,16 +11,17 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const currentSort = searchParams.get('sort') || 'recent';
   const currentOutcome = searchParams.get('outcome') || 'all';
 
   const updateFilters = useCallback(
-    (value: string) => {
+    (key: string, value: string) => {
       const params = new URLSearchParams(searchParams.toString());
 
-      if (value === 'all') {
-        params.delete('outcome');
+      if (value === 'all' || value === 'recent') {
+        params.delete(key);
       } else {
-        params.set('outcome', value);
+        params.set(key, value);
       }
 
       // Reset to first page when filters change
@@ -32,8 +33,27 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
     [router, searchParams, baseUrl]
   );
 
+  const hasActiveFilters = currentSort !== 'recent' || currentOutcome !== 'all';
+
   return (
     <div className="flex flex-wrap items-center gap-4 mb-6">
+      {/* Sort */}
+      <div className="flex items-center gap-2">
+        <label htmlFor="sort" className="text-sm text-[var(--text-secondary)]">
+          Sort:
+        </label>
+        <select
+          id="sort"
+          value={currentSort}
+          onChange={(e) => updateFilters('sort', e.target.value)}
+          className="px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
+        >
+          <option value="recent">Most Recent</option>
+          <option value="popular">Most Popular</option>
+          <option value="trending">Trending</option>
+        </select>
+      </div>
+
       {/* Outcome filter */}
       <div className="flex items-center gap-2">
         <label htmlFor="outcome" className="text-sm text-[var(--text-secondary)]">
@@ -42,7 +62,7 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
         <select
           id="outcome"
           value={currentOutcome}
-          onChange={(e) => updateFilters(e.target.value)}
+          onChange={(e) => updateFilters('outcome', e.target.value)}
           className="px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
         >
           <option value="all">All Outcomes</option>
@@ -53,14 +73,14 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
       </div>
 
       {/* Active filters indicator */}
-      {currentOutcome !== 'all' && (
+      {hasActiveFilters && (
         <button
           onClick={() => {
             router.push(baseUrl);
           }}
           className="text-sm text-[var(--primary)] hover:underline"
         >
-          Clear filter
+          Clear filters
         </button>
       )}
     </div>

@@ -96,6 +96,7 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
           className="px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
         >
           <option value="recent">Most Recent</option>
+          <option value="popular">Most Popular</option>
           <option value="trending">Trending</option>
           <option value="mostForked">Most Forked</option>
         </select>
