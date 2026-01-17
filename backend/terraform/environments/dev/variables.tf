@@ -108,3 +108,10 @@ variable "rds_snapshot_identifier" {
   type        = string
   default     = null
 }
+
+# OpenAI
+variable "openai_api_key" {
+  description = "OpenAI API key for translation"
+  type        = string
+  sensitive   = true
+}

@@ -81,6 +81,17 @@ public class Recipe extends BaseEntity {
     @Builder.Default
     private List<String> changeCategories = new ArrayList<>();
 
+    // Translation fields for multilingual content
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "title_translations", columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, String> titleTranslations = new HashMap<>();
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "description_translations", columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, String> descriptionTranslations = new HashMap<>();
+
     // [경고 해결] @Builder.Default 추가
     @Builder.Default
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
