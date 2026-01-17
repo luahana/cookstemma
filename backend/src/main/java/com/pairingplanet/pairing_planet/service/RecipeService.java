@@ -172,7 +172,7 @@ public class RecipeService {
         Recipe root = (recipe.getRootRecipe() != null) ? recipe.getRootRecipe() : recipe;
 
         // 변형 및 로그 리스트 조회 - 루트에 연결된 모든 변형을 가져옴
-        List<RecipeSummaryDto> variants = recipeRepository.findByRootRecipeIdAndIsDeletedFalse(root.getId())
+        List<RecipeSummaryDto> variants = recipeRepository.findByRootRecipeIdAndDeletedAtIsNull(root.getId())
                 .stream()
                 .filter(v -> !v.getId().equals(recipe.getId())) // Exclude current recipe
                 .limit(6)  // Limit to 6 for "View All" detection (show 5, detect more if 6)
@@ -394,7 +394,7 @@ public class RecipeService {
                 .orElse(null);
 
         // 4. 변형 수 조회
-        int variantCount = (int) recipeRepository.countByRootRecipeIdAndIsDeletedFalse(recipe.getId());
+        int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
 
         // 5. 로그 수 조회 (Activity count)
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
@@ -461,13 +461,13 @@ public class RecipeService {
                 .toList();
 
         // 2. 최근 레시피 조회
-        List<RecipeSummaryDto> recentRecipes = recipeRepository.findTop5ByIsDeletedFalseAndIsPrivateFalseOrderByCreatedAtDesc()
+        List<RecipeSummaryDto> recentRecipes = recipeRepository.findTop5ByDeletedAtIsNullAndIsPrivateFalseOrderByCreatedAtDesc()
                 .stream().map(this::convertToSummary).toList();
 
         // 3. 활발한 변형 트리 조회 (기획서: "🔥 이 레시피, 이렇게 바뀌고 있어요")
         List<TrendingTreeDto> trending = recipeRepository.findTrendingOriginals(PageRequest.of(0, 5))
                 .stream().map(root -> {
-                    long variants = recipeRepository.countByRootRecipeIdAndIsDeletedFalse(root.getId());
+                    long variants = recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(root.getId());
                     long logs = recipeLogRepository.countByRecipeId(root.getId());
                     String thumbnail = root.getImages().stream()
                             .filter(img -> img.getType() == com.pairingplanet.pairing_planet.domain.enums.ImageType.COVER)
@@ -516,11 +516,11 @@ public class RecipeService {
         Slice<Recipe> recipes;
 
         if ("original".equalsIgnoreCase(typeFilter)) {
-            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseAndParentRecipeIsNullOrderByCreatedAtDesc(userId, pageable);
+            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNullOrderByCreatedAtDesc(userId, pageable);
         } else if ("variants".equalsIgnoreCase(typeFilter)) {
-            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseAndParentRecipeIsNotNullOrderByCreatedAtDesc(userId, pageable);
+            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNotNullOrderByCreatedAtDesc(userId, pageable);
         } else {
-            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
         }
 
         return recipes.map(this::convertToSummary);
@@ -556,7 +556,7 @@ public class RecipeService {
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
 
         boolean isOwner = recipe.getCreatorId().equals(userId);
-        long variantCount = recipeRepository.countByParentRecipeIdAndIsDeletedFalse(recipe.getId());
+        long variantCount = recipeRepository.countByParentRecipeIdAndDeletedAtIsNull(recipe.getId());
         long logCount = recipeLogRepository.countByRecipeId(recipe.getId());
 
         boolean hasVariants = variantCount > 0;
@@ -598,7 +598,7 @@ public class RecipeService {
         }
 
         // Validate no variants
-        long variantCount = recipeRepository.countByParentRecipeIdAndIsDeletedFalse(recipe.getId());
+        long variantCount = recipeRepository.countByParentRecipeIdAndDeletedAtIsNull(recipe.getId());
         if (variantCount > 0) {
             throw new IllegalArgumentException("Cannot edit: recipe has " + variantCount + " variant(s)");
         }
@@ -697,7 +697,7 @@ public class RecipeService {
         }
 
         // Validate no variants
-        long variantCount = recipeRepository.countByParentRecipeIdAndIsDeletedFalse(recipe.getId());
+        long variantCount = recipeRepository.countByParentRecipeIdAndDeletedAtIsNull(recipe.getId());
         if (variantCount > 0) {
             throw new IllegalArgumentException("Cannot delete: recipe has " + variantCount + " variant(s)");
         }

@@ -2,7 +2,7 @@
 
 import pytest
 
-from bot_engine.src.personas import BotPersona, get_persona_registry
+from src.personas import BotPersona, get_persona_registry, Tone, SkillLevel
 
 
 class TestBotPersona:
@@ -30,12 +30,14 @@ class TestBotPersona:
         assert "English" in prompt
         assert english_persona.tone.lower() in prompt.lower()
 
-    def test_system_prompt_includes_kitchen_style(
+    def test_system_prompt_includes_specialties(
         self, korean_persona: BotPersona
     ) -> None:
-        """Test that system prompt includes kitchen style."""
+        """Test that system prompt includes cooking specialties."""
         prompt = korean_persona.build_system_prompt()
-        assert korean_persona.kitchen_style_prompt in prompt
+        # System prompt should include specialties
+        for specialty in korean_persona.specialties:
+            assert specialty in prompt
 
     def test_system_prompt_enforces_language(
         self, korean_persona: BotPersona
@@ -58,13 +60,13 @@ class TestPersonaRegistry:
     def test_registry_has_korean_personas(self) -> None:
         """Test that registry has 5 Korean personas."""
         registry = get_persona_registry()
-        korean = registry.get_by_locale("ko")
+        korean = registry.get_korean_personas()
         assert len(korean) == 5
 
     def test_registry_has_english_personas(self) -> None:
         """Test that registry has 5 English personas."""
         registry = get_persona_registry()
-        english = registry.get_by_locale("en")
+        english = registry.get_english_personas()
         assert len(english) == 5
 
     def test_registry_get_by_name(self) -> None:
@@ -73,11 +75,11 @@ class TestPersonaRegistry:
 
         chef = registry.get("chef_park_soojin")
         assert chef is not None
-        assert chef.locale == "ko"
+        assert chef.is_korean()
 
         marcus = registry.get("chef_marcus_stone")
         assert marcus is not None
-        assert marcus.locale == "en"
+        assert marcus.is_english()
 
     def test_registry_get_nonexistent_returns_none(self) -> None:
         """Test that getting nonexistent persona returns None."""
@@ -99,8 +101,8 @@ class TestPersonaRegistry:
         for name in korean_names:
             persona = registry.get(name)
             assert persona is not None
-            assert persona.locale == "ko"
-            assert persona.culinary_locale == "ko"
+            assert persona.is_korean()
+            assert persona.culinary_locale == "KR"
 
     def test_english_personas_have_english_locale(self) -> None:
         """Test that all English personas have correct locale."""
@@ -116,7 +118,7 @@ class TestPersonaRegistry:
         for name in english_names:
             persona = registry.get(name)
             assert persona is not None
-            assert persona.locale == "en"
+            assert persona.is_english()
 
     def test_each_persona_has_unique_specialties(self) -> None:
         """Test that personas have diverse specialties."""
@@ -130,7 +132,7 @@ class TestPersonaRegistry:
     def test_persona_skill_levels_are_valid(self) -> None:
         """Test that all personas have valid skill levels."""
         registry = get_persona_registry()
-        valid_levels = {"BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"}
+        valid_levels = {SkillLevel.PROFESSIONAL, SkillLevel.INTERMEDIATE, SkillLevel.BEGINNER, SkillLevel.HOME_COOK}
 
         for persona in registry.get_all():
             assert persona.skill_level in valid_levels
@@ -138,7 +140,7 @@ class TestPersonaRegistry:
     def test_persona_tones_are_valid(self) -> None:
         """Test that all personas have valid tones."""
         registry = get_persona_registry()
-        valid_tones = {"CASUAL", "PROFESSIONAL", "ENTHUSIASTIC", "WARM", "PLAYFUL"}
+        valid_tones = {Tone.CASUAL, Tone.PROFESSIONAL, Tone.ENTHUSIASTIC, Tone.WARM, Tone.EDUCATIONAL, Tone.MOTIVATIONAL}
 
         for persona in registry.get_all():
             assert persona.tone in valid_tones

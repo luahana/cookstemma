@@ -237,7 +237,8 @@ function CreateLogPageContent() {
     }
   };
 
-  if (authLoading) {
+  // Show loading state while auth is loading or redirecting to login
+  if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <div className="animate-pulse">
@@ -245,10 +246,6 @@ function CreateLogPageContent() {
         </div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (

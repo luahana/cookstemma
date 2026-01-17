@@ -63,8 +63,8 @@ public class UserService {
         // 활동 내역: 레시피, 로그, 저장 개수
         return MyProfileResponseDto.builder()
                 .user(UserDto.from(user, urlPrefix))
-                .recipeCount(recipeRepository.countByCreatorIdAndIsDeletedFalse(userId))
-                .logCount(logPostRepository.countByCreatorIdAndIsDeletedFalse(userId))
+                .recipeCount(recipeRepository.countByCreatorIdAndDeletedAtIsNull(userId))
+                .logCount(logPostRepository.countByCreatorIdAndDeletedAtIsNull(userId))
                 .savedCount(savedRecipeRepository.countByUserId(userId))
                 .build();
     }
@@ -78,8 +78,8 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Long userId = user.getId();
-        long recipeCount = recipeRepository.countByCreatorIdAndIsDeletedFalse(userId);
-        long logCount = logPostRepository.countByCreatorIdAndIsDeletedFalse(userId);
+        long recipeCount = recipeRepository.countByCreatorIdAndDeletedAtIsNull(userId);
+        long logCount = logPostRepository.countByCreatorIdAndDeletedAtIsNull(userId);
 
         // Calculate gamification level
         List<Object[]> outcomeCounts = recipeLogRepository.countByOutcomeForUser(userId);
@@ -299,11 +299,11 @@ public class UserService {
         Slice<Recipe> recipes;
 
         if ("original".equalsIgnoreCase(typeFilter)) {
-            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseAndParentRecipeIsNullOrderByCreatedAtDesc(userId, pageable);
+            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNullOrderByCreatedAtDesc(userId, pageable);
         } else if ("variants".equalsIgnoreCase(typeFilter)) {
-            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseAndParentRecipeIsNotNullOrderByCreatedAtDesc(userId, pageable);
+            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNotNullOrderByCreatedAtDesc(userId, pageable);
         } else {
-            recipes = recipeRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
         }
 
         return recipes.map(this::convertToRecipeSummary);
@@ -317,7 +317,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Long userId = user.getId();
-        Slice<LogPost> logs = logPostRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+        Slice<LogPost> logs = logPostRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
 
         return logs.map(this::convertToLogSummary);
     }
@@ -335,7 +335,7 @@ public class UserService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        int variantCount = (int) recipeRepository.countByRootRecipeIdAndIsDeletedFalse(recipe.getId());
+        int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
         String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
         List<String> hashtags = recipe.getHashtags().stream()

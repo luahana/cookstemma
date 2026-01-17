@@ -47,12 +47,11 @@ class RecipeIngredient(BaseModel):
 class RecipeStep(BaseModel):
     """Step in a recipe."""
 
-    order: int = Field(description="Step number (1-based)")
+    step_number: int = Field(alias="stepNumber", description="Step number (1-based)")
     description: str = Field(description="Step instructions")
-    image_public_ids: List[str] = Field(
-        default_factory=list,
-        description="Optional image IDs for this step",
-    )
+    image_public_id: Optional[str] = Field(default=None, alias="imagePublicId")
+
+    model_config = {"populate_by_name": True}
 
 
 class CreateRecipeRequest(BaseModel):
@@ -60,62 +59,63 @@ class CreateRecipeRequest(BaseModel):
 
     title: str = Field(max_length=100)
     description: str = Field(max_length=2000)
-    locale: str = Field(default="ko-KR", description="Recipe language locale")
-    culinary_locale: str = Field(
-        default="KR",
-        description="Culinary style country code",
-    )
+    locale: str = Field(default="ko-KR")
+    culinary_locale: str = Field(default="KR", alias="culinaryLocale")
+    new_food_name: Optional[str] = Field(default=None, alias="newFoodName")
+    food_public_id: Optional[str] = Field(default=None, alias="foodPublicId")
     ingredients: List[RecipeIngredient] = Field(default_factory=list)
     steps: List[RecipeStep] = Field(default_factory=list)
-    image_public_ids: List[str] = Field(
-        default_factory=list,
-        description="Cover image IDs",
-    )
+    image_public_ids: List[str] = Field(default_factory=list, alias="imagePublicIds")
     hashtags: List[str] = Field(default_factory=list)
     servings: Optional[int] = Field(default=None, ge=1, le=100)
-    cooking_time_range: Optional[str] = Field(
-        default=None,
-        description="e.g., 'UNDER_15', 'UNDER_30', 'UNDER_60', 'OVER_60'",
-    )
+    cooking_time_range: Optional[str] = Field(default=None, alias="cookingTimeRange")
     # Variant fields
-    parent_public_id: Optional[str] = Field(
-        default=None,
-        description="Parent recipe ID for variants",
-    )
-    change_diff: Optional[str] = Field(
-        default=None,
-        description="Description of changes from parent",
-    )
-    change_reason: Optional[str] = Field(
-        default=None,
-        description="Reason for the changes",
-    )
-    change_categories: List[ChangeCategory] = Field(
-        default_factory=list,
-        description="Categories of changes",
-    )
+    parent_public_id: Optional[str] = Field(default=None, alias="parentPublicId")
+    change_diff: Optional[str] = Field(default=None, alias="changeDiff")
+    change_reason: Optional[str] = Field(default=None, alias="changeReason")
+    change_categories: List[ChangeCategory] = Field(default_factory=list, alias="changeCategories")
+
+    model_config = {"populate_by_name": True}
+
+
+class Hashtag(BaseModel):
+    """Hashtag response from API."""
+    public_id: str = Field(alias="publicId")
+    name: str
+
+    model_config = {"populate_by_name": True}
+
+
+class RecipeImage(BaseModel):
+    """Image in recipe response from API."""
+    image_public_id: str = Field(alias="imagePublicId")
+    image_url: str = Field(alias="imageUrl")
+
+    model_config = {"populate_by_name": True}
 
 
 class Recipe(BaseModel):
     """Recipe response from API."""
 
-    public_id: str
+    public_id: str = Field(alias="publicId")
     title: str
-    description: str
-    locale: str
-    culinary_locale: str
-    creator_id: str
-    creator_username: str
+    description: Optional[str] = None
+    locale: Optional[str] = None
+    culinary_locale: Optional[str] = Field(default=None, alias="culinaryLocale")
+    creator_public_id: Optional[str] = Field(default=None, alias="creatorPublicId")
+    creator_username: Optional[str] = Field(default=None, alias="creatorUsername")
     ingredients: List[RecipeIngredient] = Field(default_factory=list)
     steps: List[RecipeStep] = Field(default_factory=list)
-    image_urls: List[str] = Field(default_factory=list)
-    hashtags: List[str] = Field(default_factory=list)
+    images: List[RecipeImage] = Field(default_factory=list)
+    hashtags: List[Hashtag] = Field(default_factory=list)
     servings: Optional[int] = None
-    cooking_time_range: Optional[str] = None
-    parent_public_id: Optional[str] = None
-    root_public_id: Optional[str] = None
-    log_count: int = 0
-    variant_count: int = 0
+    cooking_time_range: Optional[str] = Field(default=None, alias="cookingTimeRange")
+    parent_public_id: Optional[str] = Field(default=None, alias="parentPublicId")
+    root_public_id: Optional[str] = Field(default=None, alias="rootPublicId")
+    log_count: int = Field(default=0, alias="logCount")
+    variant_count: int = Field(default=0, alias="variantCount")
+
+    model_config = {"populate_by_name": True, "extra": "ignore"}
 
 
 class CreateLogRequest(BaseModel):
@@ -160,9 +160,11 @@ class ImageUploadResponse(BaseModel):
 class AuthResponse(BaseModel):
     """Authentication response."""
 
-    access_token: str
-    refresh_token: str
-    user_public_id: str
+    access_token: str = Field(alias="accessToken")
+    refresh_token: str = Field(alias="refreshToken")
+    user_public_id: str = Field(alias="userPublicId")
     username: str
-    persona_public_id: Optional[str] = None
-    persona_name: Optional[str] = None
+    persona_public_id: Optional[str] = Field(default=None, alias="personaPublicId")
+    persona_name: Optional[str] = Field(default=None, alias="personaName")
+
+    model_config = {"populate_by_name": True}

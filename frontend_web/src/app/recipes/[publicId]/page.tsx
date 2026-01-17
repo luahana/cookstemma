@@ -7,7 +7,10 @@ import { RecipeJsonLd } from '@/components/recipe/RecipeJsonLd';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { RecipeActions } from '@/components/recipe/RecipeActions';
+import { RecentLogsGallery } from '@/components/recipe/RecentLogsGallery';
 import { ShareButtons } from '@/components/common/ShareButtons';
+import { ImageCarousel } from '@/components/common/ImageCarousel';
+import { CookingStyleBadge } from '@/components/common/CookingStyleBadge';
 import { COOKING_TIME_RANGES, type CookingTimeRange } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
 import { siteConfig } from '@/config/site';
@@ -107,18 +110,9 @@ export default async function RecipeDetailPage({ params }: Props) {
           <span className="text-[var(--text-primary)]">{recipe.foodName}</span>
         </nav>
 
-        {/* Hero image */}
-        {recipe.images.length > 0 && getImageUrl(recipe.images[0].imageUrl) && (
-          <div className="relative aspect-video rounded-2xl overflow-hidden mb-8">
-            <Image
-              src={getImageUrl(recipe.images[0].imageUrl)!}
-              alt={recipe.title}
-              fill
-              className="object-cover"
-              priority
-              sizes="(max-width: 896px) 100vw, 896px"
-            />
-          </div>
+        {/* Hero image carousel */}
+        {recipe.images.length > 0 && (
+          <ImageCarousel images={recipe.images} alt={recipe.title} />
         )}
 
         {/* Header */}
@@ -155,6 +149,7 @@ export default async function RecipeDetailPage({ params }: Props) {
                 <span>{recipe.userName}</span>
               </Link>
             )}
+            <CookingStyleBadge localeCode={recipe.culinaryLocale} size="md" />
             <span className="text-[var(--text-secondary)]">{cookingTime}</span>
             <span className="text-[var(--text-secondary)]">
               {recipe.servings} servings
@@ -280,56 +275,8 @@ export default async function RecipeDetailPage({ params }: Props) {
           </section>
         )}
 
-        {/* Cooking logs */}
-        {recipe.logs.length > 0 && (
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">
-              Cooking Logs ({recipe.logs.length})
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {recipe.logs.slice(0, 4).map((log) => (
-                <Link
-                  key={log.publicId}
-                  href={`/logs/${log.publicId}`}
-                  className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 hover:border-[var(--primary-light)] transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    {getImageUrl(log.thumbnailUrl) && (
-                      <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                        <Image
-                          src={getImageUrl(log.thumbnailUrl)!}
-                          alt={log.title}
-                          fill
-                          className="object-cover"
-                          sizes="64px"
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-[var(--text-primary)] truncate">
-                        {log.title}
-                      </p>
-                      <p className="text-sm text-[var(--text-secondary)]">
-                        by {log.userName}
-                      </p>
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded ${
-                          log.outcome === 'SUCCESS'
-                            ? 'bg-[var(--diff-added-bg)] text-[var(--success)]'
-                            : log.outcome === 'PARTIAL'
-                              ? 'bg-[var(--diff-modified-bg)] text-[var(--diff-modified)]'
-                              : 'bg-[var(--diff-removed-bg)] text-[var(--error)]'
-                        }`}
-                      >
-                        {log.outcome}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
+        {/* Cooking logs gallery */}
+        <RecentLogsGallery logs={recipe.logs} recipePublicId={publicId} />
       </article>
     </>
   );

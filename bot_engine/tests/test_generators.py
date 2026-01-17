@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from bot_engine.src.generators.text.generator import TextGenerator
-from bot_engine.src.personas import BotPersona
+from src.generators.text.generator import TextGenerator
+from src.personas import BotPersona
 
 
 class TestTextGenerator:
@@ -16,7 +16,7 @@ class TestTextGenerator:
     @pytest.fixture
     def text_generator(self) -> TextGenerator:
         """Create a text generator with mocked OpenAI client."""
-        with patch("bot_engine.src.generators.text.generator.OpenAI") as mock_openai:
+        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
             generator = TextGenerator()
             return generator
 
@@ -27,7 +27,7 @@ class TestTextGenerator:
         recipe_generation_response: Dict,
     ) -> None:
         """Test that generate_recipe returns properly structured data."""
-        with patch("bot_engine.src.generators.text.generator.OpenAI") as mock_openai:
+        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
             # Setup mock
             mock_client = MagicMock()
             mock_openai.return_value = mock_client
@@ -40,7 +40,8 @@ class TestTextGenerator:
                     )
                 )
             ]
-            mock_client.chat.completions.create = MagicMock(
+            mock_response.usage = MagicMock(total_tokens=100)
+            mock_client.chat.completions.create = AsyncMock(
                 return_value=mock_response
             )
 
@@ -64,7 +65,7 @@ class TestTextGenerator:
         recipe_generation_response: Dict,
     ) -> None:
         """Test that generate_recipe uses persona's system prompt."""
-        with patch("bot_engine.src.generators.text.generator.OpenAI") as mock_openai:
+        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
             mock_client = MagicMock()
             mock_openai.return_value = mock_client
 
@@ -76,7 +77,8 @@ class TestTextGenerator:
                     )
                 )
             ]
-            mock_client.chat.completions.create = MagicMock(
+            mock_response.usage = MagicMock(total_tokens=100)
+            mock_client.chat.completions.create = AsyncMock(
                 return_value=mock_response
             )
 
@@ -94,7 +96,9 @@ class TestTextGenerator:
             messages = call_kwargs["messages"]
             system_message = messages[0]
             assert system_message["role"] == "system"
-            assert korean_persona.kitchen_style_prompt in system_message["content"]
+            # System prompt includes persona's specialties
+            for specialty in korean_persona.specialties:
+                assert specialty in system_message["content"]
 
     @pytest.mark.asyncio
     async def test_generate_log_returns_expected_structure(
@@ -103,7 +107,7 @@ class TestTextGenerator:
         log_generation_response: Dict,
     ) -> None:
         """Test that generate_log returns properly structured data."""
-        with patch("bot_engine.src.generators.text.generator.OpenAI") as mock_openai:
+        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
             mock_client = MagicMock()
             mock_openai.return_value = mock_client
 
@@ -115,7 +119,8 @@ class TestTextGenerator:
                     )
                 )
             ]
-            mock_client.chat.completions.create = MagicMock(
+            mock_response.usage = MagicMock(total_tokens=100)
+            mock_client.chat.completions.create = AsyncMock(
                 return_value=mock_response
             )
 
@@ -137,7 +142,7 @@ class TestTextGenerator:
         korean_persona: BotPersona,
     ) -> None:
         """Test that suggest_food_names returns a list of names."""
-        with patch("bot_engine.src.generators.text.generator.OpenAI") as mock_openai:
+        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
             mock_client = MagicMock()
             mock_openai.return_value = mock_client
 
@@ -146,11 +151,12 @@ class TestTextGenerator:
             mock_response.choices = [
                 MagicMock(
                     message=MagicMock(
-                        content=json.dumps({"food_names": food_names})
+                        content=json.dumps({"dishes": food_names})
                     )
                 )
             ]
-            mock_client.chat.completions.create = MagicMock(
+            mock_response.usage = MagicMock(total_tokens=100)
+            mock_client.chat.completions.create = AsyncMock(
                 return_value=mock_response
             )
 
@@ -169,7 +175,7 @@ class TestTextGenerator:
         english_persona: BotPersona,
     ) -> None:
         """Test that variant generation includes parent recipe info."""
-        with patch("bot_engine.src.generators.text.generator.OpenAI") as mock_openai:
+        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
             mock_client = MagicMock()
             mock_openai.return_value = mock_client
 
@@ -192,7 +198,8 @@ class TestTextGenerator:
                     )
                 )
             ]
-            mock_client.chat.completions.create = MagicMock(
+            mock_response.usage = MagicMock(total_tokens=100)
+            mock_client.chat.completions.create = AsyncMock(
                 return_value=mock_response
             )
 

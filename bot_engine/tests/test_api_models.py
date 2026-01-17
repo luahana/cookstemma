@@ -2,7 +2,7 @@
 
 import pytest
 
-from bot_engine.src.api.models import (
+from src.api.models import (
     ChangeCategory,
     CreateLogRequest,
     CreateRecipeRequest,

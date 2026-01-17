@@ -100,8 +100,10 @@ public record RecipeDetailResponseDto(
         ) : null;
 
         // 4. 이미지 리스트 변환 (COVER 타입만 반환, STEP 이미지는 steps[].imageUrl로 반환됨)
+        // Note: distinct() is needed because EntityGraph with multiple *ToMany relations causes Cartesian product
         List<ImageResponseDto> imageResponses = recipe.getImages().stream()
                 .filter(img -> img.getType() == com.pairingplanet.pairing_planet.domain.enums.ImageType.COVER)
+                .distinct()
                 .map(img -> new ImageResponseDto(
                         img.getPublicId(),
                         urlPrefix + "/" + img.getStoredFilename()

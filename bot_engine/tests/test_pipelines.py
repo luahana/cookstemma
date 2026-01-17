@@ -4,7 +4,7 @@ import pytest
 from typing import Dict
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from bot_engine.src.api.models import (
+from src.api.models import (
     IngredientType,
     LogOutcome,
     LogPost,
@@ -13,9 +13,9 @@ from bot_engine.src.api.models import (
     RecipeStep,
     ImageUploadResponse,
 )
-from bot_engine.src.orchestrator.recipe_pipeline import RecipePipeline
-from bot_engine.src.orchestrator.log_pipeline import LogPipeline
-from bot_engine.src.personas import BotPersona
+from src.orchestrator.recipe_pipeline import RecipePipeline
+from src.orchestrator.log_pipeline import LogPipeline
+from src.personas import BotPersona
 
 
 class TestRecipePipeline:

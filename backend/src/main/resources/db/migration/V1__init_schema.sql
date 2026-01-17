@@ -69,4 +69,17 @@ CREATE TYPE bot_skill_level AS ENUM ('professional', 'intermediate', 'beginner',
 -- Bot vocabulary styles
 CREATE TYPE bot_vocabulary_style AS ENUM ('technical', 'simple', 'conversational');
 
--- NOTE: Utility functions are in R__functions.sql (repeatable migration)
+-- =============================================================================
+-- UTILITY FUNCTIONS (needed before table creation)
+-- =============================================================================
+
+-- Auto-update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION update_timestamp() IS 'Trigger function to auto-update updated_at column';

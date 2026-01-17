@@ -41,6 +41,15 @@ public class ImageProcessingService {
     @Async("imageProcessingExecutor")
     @Transactional
     public void generateVariantsAsync(Long originalImageId) {
+        // Add a small delay to ensure the calling transaction has committed
+        // This prevents race condition where we read recipe_id as NULL
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+
         try {
             Image original = imageRepository.findById(originalImageId)
                     .orElseThrow(() -> new IllegalArgumentException("Image not found: " + originalImageId));

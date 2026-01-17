@@ -44,21 +44,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkAuthStatus = async () => {
+    console.log('[Auth] Checking auth status...');
     try {
       const response = await fetch(`${siteConfig.apiUrl}/users/me`, {
         credentials: 'include',
       });
+
+      console.log('[Auth] /users/me response:', response.status);
 
       if (response.ok) {
         const data = await response.json();
         // /users/me returns MyProfileResponseDto which wraps user in a 'user' property
         // UserDto uses 'id' field (not 'publicId') for the user's public identifier
         const userData = data.user;
+        console.log('[Auth] User authenticated:', userData.username);
         setUser({ publicId: userData.id, username: userData.username });
       } else {
+        console.log('[Auth] Not authenticated, response not ok');
         setUser(null);
       }
-    } catch {
+    } catch (error) {
+      console.error('[Auth] Error checking auth status:', error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -89,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Firebase is not configured. Please set up Firebase environment variables.');
     }
 
+    console.log('[Auth] Starting sign in with', provider);
     setIsLoading(true);
 
     try {
@@ -96,13 +103,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const authProvider = getAuthProvider(provider);
 
       // 2. Sign in with Firebase popup
+      console.log('[Auth] Opening Firebase popup...');
       const result = await signInWithPopup(auth, authProvider);
+      console.log('[Auth] Firebase sign in successful');
 
       // 3. Get Firebase ID token
       const idToken = await result.user.getIdToken();
+      console.log('[Auth] Got Firebase ID token');
 
       // 4. Get CSRF token first
       await fetchCsrfToken();
+      console.log('[Auth] Got CSRF token');
 
       // 5. Exchange Firebase token for app tokens (sets cookies)
       const response = await fetch(`${siteConfig.apiUrl}/auth/web/social-login`, {
@@ -118,15 +129,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }),
       });
 
+      console.log('[Auth] social-login response:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Login failed');
       }
 
       const userData = await response.json();
+      console.log('[Auth] Login successful, user:', userData.username);
       setUser({ publicId: userData.userPublicId, username: userData.username });
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error('[Auth] Sign in error:', error);
       throw error;
     } finally {
       setIsLoading(false);

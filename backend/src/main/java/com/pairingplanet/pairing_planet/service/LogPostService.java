@@ -119,7 +119,7 @@ public class LogPostService {
         if (outcome != null && !outcome.isBlank()) {
             logs = logPostRepository.findByCreatorIdAndOutcome(userId, outcome.toUpperCase(), pageable);
         } else {
-            logs = logPostRepository.findByCreatorIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+            logs = logPostRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
         }
 
         return logs.map(this::convertToLogSummary);
@@ -249,7 +249,7 @@ public class LogPostService {
                 .orElse(null);
 
         // 4. 변형 수 조회
-        int variantCount = (int) recipeRepository.countByRootRecipeIdAndIsDeletedFalse(recipe.getId());
+        int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
 
         // 5. 로그 수 조회 (Activity count)
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());

@@ -9,6 +9,7 @@ import { createRecipe } from '@/lib/api/recipes';
 import { uploadImage } from '@/lib/api/images';
 import type { IngredientType, CookingTimeRange, IngredientDto } from '@/lib/types';
 import { COOKING_TIME_RANGES } from '@/lib/types';
+import { getDefaultCulinaryLocale } from '@/lib/utils/cookingStyle';
 
 const INGREDIENT_TYPES: { value: IngredientType; label: string }[] = [
   { value: 'MAIN', label: 'Main' },
@@ -19,18 +20,22 @@ const INGREDIENT_TYPES: { value: IngredientType; label: string }[] = [
 ];
 
 const CULINARY_LOCALES = [
-  { value: 'ko-KR', label: 'Korean' },
-  { value: 'ja-JP', label: 'Japanese' },
-  { value: 'zh-CN', label: 'Chinese' },
-  { value: 'it-IT', label: 'Italian' },
-  { value: 'fr-FR', label: 'French' },
-  { value: 'es-ES', label: 'Spanish' },
-  { value: 'th-TH', label: 'Thai' },
-  { value: 'vi-VN', label: 'Vietnamese' },
-  { value: 'in-IN', label: 'Indian' },
-  { value: 'us-US', label: 'American' },
-  { value: 'mx-MX', label: 'Mexican' },
-  { value: 'other', label: 'Other' },
+  { value: 'KR', label: 'Korean' },
+  { value: 'JP', label: 'Japanese' },
+  { value: 'CN', label: 'Chinese' },
+  { value: 'US', label: 'American' },
+  { value: 'IT', label: 'Italian' },
+  { value: 'FR', label: 'French' },
+  { value: 'ES', label: 'Spanish' },
+  { value: 'TH', label: 'Thai' },
+  { value: 'VN', label: 'Vietnamese' },
+  { value: 'IN', label: 'Indian' },
+  { value: 'MX', label: 'Mexican' },
+  { value: 'GB', label: 'British' },
+  { value: 'DE', label: 'German' },
+  { value: 'GR', label: 'Greek' },
+  { value: 'TR', label: 'Turkish' },
+  { value: 'international', label: 'International' },
 ];
 
 interface UploadedImage {
@@ -64,7 +69,7 @@ export default function CreateRecipePage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [foodName, setFoodName] = useState('');
-  const [culinaryLocale, setCulinaryLocale] = useState('ko-KR');
+  const [culinaryLocale, setCulinaryLocale] = useState('');
   const [servings, setServings] = useState(2);
   const [cookingTimeRange, setCookingTimeRange] = useState<CookingTimeRange>('MIN_30_TO_60');
   const [hashtags, setHashtags] = useState('');
@@ -86,6 +91,16 @@ export default function CreateRecipePage() {
       router.push('/login?redirect=/recipes/create');
     }
   }, [isAuthenticated, authLoading, router]);
+
+  // Set default culinary locale based on browser locale
+  useEffect(() => {
+    if (!culinaryLocale) {
+      const defaultLocale = getDefaultCulinaryLocale();
+      // Check if the detected locale is in our list, otherwise use 'international'
+      const isValid = CULINARY_LOCALES.some((l) => l.value === defaultLocale);
+      setCulinaryLocale(isValid ? defaultLocale : 'international');
+    }
+  }, [culinaryLocale]);
 
   // Handle recipe image selection
   const handleRecipeImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,6 +266,11 @@ export default function CreateRecipePage() {
       return;
     }
 
+    if (!culinaryLocale) {
+      setError('Please select a cooking style');
+      return;
+    }
+
     if (recipeImages.length === 0) {
       setError('Please add at least one photo of your dish');
       return;
@@ -340,7 +360,8 @@ export default function CreateRecipePage() {
     }
   };
 
-  if (authLoading) {
+  // Show loading state while auth is loading or redirecting to login
+  if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <div className="animate-pulse">
@@ -348,10 +369,6 @@ export default function CreateRecipePage() {
         </div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (
@@ -435,7 +452,7 @@ export default function CreateRecipePage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="locale" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                    Cuisine Origin
+                    Cooking Style <span className="text-[var(--error)]">*</span>
                   </label>
                   <select
                     id="locale"

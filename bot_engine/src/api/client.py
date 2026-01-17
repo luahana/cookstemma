@@ -58,7 +58,6 @@ class PairingPlanetClient:
             self._client = httpx.AsyncClient(
                 base_url=self.base_url,
                 timeout=self.timeout,
-                headers={"Content-Type": "application/json"},
             )
         return self._client
 
@@ -97,9 +96,9 @@ class PairingPlanetClient:
         if auth:
             headers.update(self._get_auth_headers())
 
-        if files:
-            # For multipart uploads, don't set Content-Type
-            headers.pop("Content-Type", None)
+        # Set Content-Type for JSON requests (not for file uploads)
+        if json is not None and not files:
+            headers.setdefault("Content-Type", "application/json")
 
         response = await client.request(
             method,
@@ -134,6 +133,8 @@ class PairingPlanetClient:
                 **kwargs,
             )
 
+        if response.status_code >= 400:
+            print(f"API Error {response.status_code}: {response.text[:1000]}")
         response.raise_for_status()
         return response
 
@@ -219,20 +220,23 @@ class PairingPlanetClient:
         self,
         image_bytes: bytes,
         filename: str = "image.jpg",
+        image_type: str = "COVER",
     ) -> ImageUploadResponse:
         """Upload image from bytes."""
         files = {"file": (filename, image_bytes, "image/jpeg")}
+        form_data = {"type": image_type}
         response = await self._request(
             "POST",
             "/images/upload",
             files=files,
+            data=form_data,
         )
-        data = response.json()
-        logger.info("image_uploaded", public_id=data.get("publicId"))
+        result = response.json()
+        logger.info("image_uploaded", public_id=result.get("imagePublicId"))
         return ImageUploadResponse(
-            public_id=data["publicId"],
-            url=data["url"],
-            thumbnail_url=data.get("thumbnailUrl"),
+            public_id=result["imagePublicId"],
+            url=result["imageUrl"],
+            thumbnail_url=result.get("thumbnailUrl"),
         )
 
     # ==================== Recipes ====================
@@ -241,17 +245,21 @@ class PairingPlanetClient:
         """Create a new recipe."""
         payload = request.model_dump(exclude_none=True, by_alias=True)
 
-        # Convert to camelCase for API
-        payload = self._to_camel_case(payload)
+        # Debug: print payload
+        import json
+        print(f"imagePublicIds in payload: {payload.get('imagePublicIds', 'NOT FOUND')}")
+        print(f"Full payload keys: {list(payload.keys())}")
 
         response = await self._request("POST", "/recipes", json=payload)
         data = response.json()
+        print(f"Response imageUrls: {data.get('imageUrls', 'NOT FOUND')}")
+        print(f"Response images: {data.get('images', 'NOT FOUND')}")
         logger.info(
             "recipe_created",
             public_id=data.get("publicId"),
             title=data.get("title"),
         )
-        return Recipe(**self._from_camel_case(data))
+        return Recipe(**data)
 
     async def get_recipe(self, public_id: str) -> Recipe:
         """Get a recipe by public ID."""

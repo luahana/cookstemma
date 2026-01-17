@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from bot_engine.src.api.models import (
+from src.api.models import (
     ChangeCategory,
     CreateLogRequest,
     CreateRecipeRequest,
@@ -16,7 +16,7 @@ from bot_engine.src.api.models import (
     RecipeIngredient,
     RecipeStep,
 )
-from bot_engine.src.personas import BotPersona
+from src.personas import BotPersona, Tone, SkillLevel, DietaryFocus, VocabularyStyle
 
 
 @pytest.fixture
@@ -25,12 +25,12 @@ def korean_persona() -> BotPersona:
     return BotPersona(
         name="test_korean_chef",
         display_name={"ko": "테스트 셰프", "en": "Test Chef"},
-        tone="PROFESSIONAL",
-        skill_level="EXPERT",
-        vocabulary_style="TECHNICAL",
-        locale="ko",
-        culinary_locale="ko",
-        dietary_focus="NONE",
+        tone=Tone.PROFESSIONAL,
+        skill_level=SkillLevel.PROFESSIONAL,
+        vocabulary_style=VocabularyStyle.TECHNICAL,
+        locale="ko-KR",
+        culinary_locale="KR",
+        dietary_focus=DietaryFocus.FINE_DINING,
         kitchen_style_prompt="Modern Korean kitchen with professional equipment",
         specialties=["Korean cuisine", "Fusion"],
     )
@@ -42,12 +42,12 @@ def english_persona() -> BotPersona:
     return BotPersona(
         name="test_english_chef",
         display_name={"ko": "테스트 셰프", "en": "Test Chef"},
-        tone="CASUAL",
-        skill_level="INTERMEDIATE",
-        vocabulary_style="COLLOQUIAL",
-        locale="en",
-        culinary_locale="en-US",
-        dietary_focus="HEALTHY",
+        tone=Tone.CASUAL,
+        skill_level=SkillLevel.INTERMEDIATE,
+        vocabulary_style=VocabularyStyle.CONVERSATIONAL,
+        locale="en-US",
+        culinary_locale="US",
+        dietary_focus=DietaryFocus.HEALTHY,
         kitchen_style_prompt="Cozy home kitchen with natural lighting",
         specialties=["American comfort food"],
     )

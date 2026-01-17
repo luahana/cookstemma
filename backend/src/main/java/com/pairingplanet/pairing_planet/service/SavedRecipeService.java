@@ -87,7 +87,7 @@ public class SavedRecipeService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        int variantCount = (int) recipeRepository.countByRootRecipeIdAndIsDeletedFalse(recipe.getId());
+        int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
         String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
         List<String> hashtags = recipe.getHashtags().stream()

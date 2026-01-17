@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { RecipeSummary } from '@/lib/types';
 import { COOKING_TIME_RANGES, type CookingTimeRange } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
+import { CookingStyleBadge } from '@/components/common/CookingStyleBadge';
 
 interface RecipeCardProps {
   recipe: RecipeSummary;
@@ -88,6 +89,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
 
         {/* Tags row */}
         <div className="flex items-center gap-2 mt-3 flex-wrap">
+          <CookingStyleBadge localeCode={recipe.culinaryLocale} size="sm" />
           <span className="text-xs px-2 py-1 bg-[var(--background)] text-[var(--text-secondary)] rounded">
             {cookingTime}
           </span>

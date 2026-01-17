@@ -21,11 +21,11 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     properties:
       hibernate:
-        format_sql: false
-        show_sql: false
+        format_sql: true
+        show_sql: true
 
   # MinIO (S3) 설정
   cloud:
@@ -85,10 +85,15 @@ internal:
 file:
   upload:
     bucket: pairing-planet-local # MinIO에 생성될 버킷 이름
-    url-prefix: http://10.0.2.2:9000/${file.upload.bucket}
+    url-prefix: http://localhost:9000/${file.upload.bucket}
 
 minio:
   endpoint: http://localhost:9000
   access-key: minioadmin
   secret-key: minioadmin
   bucket-name: pairing-planet-local
+
+# Cookie settings for development (HTTP, not HTTPS)
+app:
+  cookie:
+    secure: false

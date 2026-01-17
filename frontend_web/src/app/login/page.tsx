@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,33 +8,60 @@ import { isFirebaseConfigured } from '@/lib/firebase/config';
 import type { SocialProvider } from '@/lib/firebase/providers';
 
 function LoginContent() {
-  const { signIn, isLoading, isAuthenticated } = useAuth();
+  const { signIn, isLoading, isAuthenticated, refreshSession } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [signingInWith, setSigningInWith] = useState<SocialProvider | null>(null);
+  // Use ref instead of state - refs update synchronously so it's set before useEffect runs
+  const justLoggedInRef = useRef(false);
 
   const redirectUrl = searchParams.get('redirect') || '/';
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push(redirectUrl);
-    }
-  }, [isAuthenticated, redirectUrl, router]);
+    const handleRedirect = async () => {
+      if (isAuthenticated) {
+        if (justLoggedInRef.current) {
+          // Fresh login - cookies are already set by social-login endpoint
+          router.push(redirectUrl);
+        } else {
+          // Existing session - refresh to ensure access_token cookie is valid
+          const refreshed = await refreshSession();
+          if (refreshed) {
+            router.push(redirectUrl);
+          }
+          // If refresh failed, isAuthenticated will become false and login form will show
+        }
+      }
+    };
+    handleRedirect();
+  }, [isAuthenticated, redirectUrl, router, refreshSession]);
 
-  // Show nothing while redirecting
-  if (isAuthenticated) {
-    return null;
+  // Show loading while checking auth or redirecting
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+        <div className="animate-pulse">
+          <div className="w-12 h-12 rounded-full bg-[var(--primary-light)]" />
+        </div>
+      </div>
+    );
   }
 
   const handleSignIn = async (provider: SocialProvider) => {
     setError(null);
     setSigningInWith(provider);
+    // Set ref BEFORE signIn so it's ready when useEffect runs
+    justLoggedInRef.current = true;
     try {
       await signIn(provider);
-      router.push(redirectUrl);
+      // Redirect directly after successful sign-in using full page navigation
+      // This bypasses Next.js router to ensure cookies are sent with the request
+      console.log('[Login] Sign in successful, redirecting to:', redirectUrl);
+      window.location.href = redirectUrl;
     } catch (err) {
+      justLoggedInRef.current = false;
       setError('Sign in failed. Please try again.');
       setSigningInWith(null);
     }
