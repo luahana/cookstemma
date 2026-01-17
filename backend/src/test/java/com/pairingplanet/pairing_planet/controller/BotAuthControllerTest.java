@@ -98,10 +98,12 @@ class BotAuthControllerTest extends BaseIntegrationTest {
             int actualStatus = result.getResponse().getStatus();
             String responseBody = result.getResponse().getContentAsString();
 
-            // Include debug info in assertion message
-            assertThat(actualStatus)
-                    .as("Expected 200 OK but got %d. Response: %s", actualStatus, responseBody)
-                    .isEqualTo(200);
+            // Force debug output to test log
+            if (actualStatus != 200) {
+                throw new AssertionError(
+                        String.format("BOT LOGIN TEST FAILED - Status: %d, Response: %s",
+                                actualStatus, responseBody));
+            }
 
             assertThat(responseBody).contains("accessToken");
             assertThat(responseBody).contains("refreshToken");
