@@ -168,10 +168,16 @@ public class RecipeService {
     /**
      * 레시피 상세 조회 (기획 원칙 1 반영: 상단 루트 고정)
      * 로그인 사용자용 (저장 여부 확인)
+     * Increments view count for analytics.
      */
+    @Transactional
     public RecipeDetailResponseDto getRecipeDetail(UUID publicId, Long userId) {
         Recipe recipe = recipeRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
+
+        // Increment view count for analytics
+        recipe.incrementViewCount();
+        recipeRepository.save(recipe);
 
         // [원칙 1] 어디서든 루트 레시피 정보 포함
         Recipe root = (recipe.getRootRecipe() != null) ? recipe.getRootRecipe() : recipe;
@@ -896,8 +902,8 @@ public class RecipeService {
         boolean hasAdvancedFilters = (cookingTimeRanges != null && !cookingTimeRanges.isEmpty())
                 || minServings != null || maxServings != null;
 
-        // For mostForked and trending, use offset pagination (complex sorting)
-        boolean isComplexSort = "mostForked".equalsIgnoreCase(sort) || "trending".equalsIgnoreCase(sort);
+        // For mostForked, trending, and popular, use offset pagination (complex sorting)
+        boolean isComplexSort = "mostForked".equalsIgnoreCase(sort) || "trending".equalsIgnoreCase(sort) || "popular".equalsIgnoreCase(sort);
 
         // For advanced filters, use specification-based pagination
         if (hasAdvancedFilters || isComplexSort) {
@@ -998,6 +1004,9 @@ public class RecipeService {
         } else if ("trending".equalsIgnoreCase(sort)) {
             // Order by recent activity (variants + logs in last 7 days)
             recipes = recipeRepository.findRecipesOrderByTrending(pageable);
+        } else if ("popular".equalsIgnoreCase(sort)) {
+            // Order by popularity score (weighted engagement metrics)
+            recipes = recipeRepository.findRecipesOrderByPopular(pageable);
         } else {
             // Fallback to recent
             Sort sortBy = Sort.by(Sort.Direction.DESC, "createdAt");

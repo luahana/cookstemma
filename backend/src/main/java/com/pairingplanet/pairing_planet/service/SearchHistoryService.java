@@ -17,6 +17,7 @@ public class SearchHistoryService {
     /**
      * Record a search query for a user.
      * Stores all search queries with timestamps for analytics purposes.
+     * Empty or null queries are silently ignored.
      */
     @Transactional
     public void recordSearch(Long userId, String query) {

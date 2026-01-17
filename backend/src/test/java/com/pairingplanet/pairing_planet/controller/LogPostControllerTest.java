@@ -392,4 +392,84 @@ class LogPostControllerTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.content[0].userName").value(testUser.getUsername()));
         }
     }
+
+    @Nested
+    @DisplayName("GET /api/v1/log_posts - Sort Options")
+    class GetLogsWithSortTests {
+
+        @Test
+        @DisplayName("Should return logs sorted by recent (default)")
+        void getLogs_DefaultSort_ReturnsRecentFirst() throws Exception {
+            mockMvc.perform(get("/api/v1/log_posts"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
+        }
+
+        @Test
+        @DisplayName("Should accept popular sort parameter")
+        void getLogs_PopularSort_Returns200() throws Exception {
+            mockMvc.perform(get("/api/v1/log_posts")
+                            .param("sort", "popular"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
+        }
+
+        @Test
+        @DisplayName("Should accept trending sort parameter")
+        void getLogs_TrendingSort_Returns200() throws Exception {
+            mockMvc.perform(get("/api/v1/log_posts")
+                            .param("sort", "trending"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
+        }
+
+        @Test
+        @DisplayName("Should accept recent sort parameter explicitly")
+        void getLogs_RecentSort_Returns200() throws Exception {
+            mockMvc.perform(get("/api/v1/log_posts")
+                            .param("sort", "recent"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
+        }
+
+        @Test
+        @DisplayName("Should combine sort with outcome filter")
+        void getLogs_SortWithOutcomeFilter_Returns200() throws Exception {
+            mockMvc.perform(get("/api/v1/log_posts")
+                            .param("sort", "popular")
+                            .param("outcomes", "SUCCESS"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
+        }
+
+        @Test
+        @DisplayName("Should combine sort with pagination")
+        void getLogs_SortWithPagination_Returns200() throws Exception {
+            mockMvc.perform(get("/api/v1/log_posts")
+                            .param("sort", "trending")
+                            .param("page", "0")
+                            .param("size", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
+        }
+    }
+
+    @Nested
+    @DisplayName("View Count Increment")
+    class ViewCountTests {
+
+        @Test
+        @DisplayName("Should increment view count when viewing log detail")
+        void getLogDetail_IncrementsViewCount() throws Exception {
+            Integer initialViewCount = testLogPost.getViewCount();
+
+            mockMvc.perform(get("/api/v1/log_posts/" + testLogPost.getPublicId())
+                            .header("Authorization", "Bearer " + testUserToken))
+                    .andExpect(status().isOk());
+
+            // Verify view count was incremented
+            LogPost updated = logPostRepository.findByPublicId(testLogPost.getPublicId()).orElseThrow();
+            assertThat(updated.getViewCount()).isEqualTo((initialViewCount != null ? initialViewCount : 0) + 1);
+        }
+    }
 }

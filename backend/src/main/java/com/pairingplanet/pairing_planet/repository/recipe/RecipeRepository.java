@@ -345,6 +345,36 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
         nativeQuery = true)
     org.springframework.data.domain.Page<Recipe> findRecipesOrderByTrending(Pageable pageable);
 
+    /**
+     * Find recipes ordered by popularity score.
+     * Score = viewCount * 1 + savedCount * 3 + variantCount * 5 + logCount * 2
+     */
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        LEFT JOIN (
+            SELECT root_recipe_id, COUNT(*) as variant_count
+            FROM recipes
+            WHERE root_recipe_id IS NOT NULL AND deleted_at IS NULL
+            GROUP BY root_recipe_id
+        ) vc ON r.id = vc.root_recipe_id
+        LEFT JOIN (
+            SELECT rl.recipe_id, COUNT(*) as log_count
+            FROM recipe_logs rl
+            JOIN log_posts lp ON rl.log_post_id = lp.id
+            WHERE lp.deleted_at IS NULL
+            GROUP BY rl.recipe_id
+        ) lc ON r.id = lc.recipe_id
+        WHERE r.deleted_at IS NULL AND r.is_private = false AND r.parent_recipe_id IS NULL
+        ORDER BY (COALESCE(r.view_count, 0) * 1 + COALESCE(r.saved_count, 0) * 3 + COALESCE(vc.variant_count, 0) * 5 + COALESCE(lc.log_count, 0) * 2) DESC,
+                 r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        WHERE r.deleted_at IS NULL AND r.is_private = false AND r.parent_recipe_id IS NULL
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findRecipesOrderByPopular(Pageable pageable);
+
     // ==================== HASHTAG-BASED QUERIES ====================
 
     // [Cursor] Recipes by hashtag - initial page

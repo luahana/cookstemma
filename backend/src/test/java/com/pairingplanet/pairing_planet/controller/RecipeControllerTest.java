@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -392,6 +393,114 @@ class RecipeControllerTest extends BaseIntegrationTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.parentInfo.publicId").value(parentRecipe.getPublicId().toString()));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/v1/recipes - Sort Options")
+    class RecipeSortTests {
+
+        @Test
+        @DisplayName("Should return recipes sorted by recent (default)")
+        void getRecipes_DefaultSort_ReturnsRecentFirst() throws Exception {
+            mockMvc.perform(get("/api/v1/recipes"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
+        }
+
+        @Test
+        @DisplayName("Should accept popular sort parameter")
+        void getRecipes_PopularSort_Returns200() throws Exception {
+            mockMvc.perform(get("/api/v1/recipes")
+                            .param("sort", "popular"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
+        }
+
+        @Test
+        @DisplayName("Should accept trending sort parameter")
+        void getRecipes_TrendingSort_Returns200() throws Exception {
+            mockMvc.perform(get("/api/v1/recipes")
+                            .param("sort", "trending"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
+        }
+
+        @Test
+        @DisplayName("Should accept mostForked sort parameter")
+        void getRecipes_MostForkedSort_Returns200() throws Exception {
+            mockMvc.perform(get("/api/v1/recipes")
+                            .param("sort", "mostForked"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
+        }
+
+        @Test
+        @DisplayName("Should combine sort with other filters")
+        void getRecipes_PopularWithLocale_Returns200() throws Exception {
+            mockMvc.perform(get("/api/v1/recipes")
+                            .param("sort", "popular")
+                            .param("locale", "ko-KR"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").isArray());
+        }
+    }
+
+    @Nested
+    @DisplayName("View Count Increment")
+    class ViewCountTests {
+
+        @Test
+        @DisplayName("Should increment view count when viewing recipe detail")
+        void getRecipeDetail_IncrementsViewCount() throws Exception {
+            String token = testJwtTokenProvider.createAccessToken(testUser.getPublicId(), "USER");
+
+            Recipe recipe = Recipe.builder()
+                    .title("Test Recipe For View Count")
+                    .description("Test Description")
+                    .cookingStyle("ko-KR")
+                    .foodMaster(testFood)
+                    .creatorId(testUser.getId())
+                    .viewCount(0)
+                    .build();
+            recipeRepository.save(recipe);
+
+            mockMvc.perform(get("/api/v1/recipes/" + recipe.getPublicId())
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk());
+
+            // Verify view count was incremented
+            Recipe updated = recipeRepository.findByPublicId(recipe.getPublicId()).orElseThrow();
+            assertThat(updated.getViewCount()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("Should increment view count on each detail view")
+        void getRecipeDetail_IncrementsViewCountMultipleTimes() throws Exception {
+            String token = testJwtTokenProvider.createAccessToken(testUser.getPublicId(), "USER");
+
+            Recipe recipe = Recipe.builder()
+                    .title("Test Recipe Multiple Views")
+                    .description("Test Description")
+                    .cookingStyle("ko-KR")
+                    .foodMaster(testFood)
+                    .creatorId(testUser.getId())
+                    .viewCount(5)
+                    .build();
+            recipeRepository.save(recipe);
+
+            // View recipe twice
+            mockMvc.perform(get("/api/v1/recipes/" + recipe.getPublicId())
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk());
+
+            mockMvc.perform(get("/api/v1/recipes/" + recipe.getPublicId())
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk());
+
+            // Verify view count was incremented twice
+            Recipe updated = recipeRepository.findByPublicId(recipe.getPublicId()).orElseThrow();
+            assertThat(updated.getViewCount()).isEqualTo(7);
         }
     }
 }

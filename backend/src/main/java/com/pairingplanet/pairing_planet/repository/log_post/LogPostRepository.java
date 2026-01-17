@@ -160,6 +160,35 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query("SELECT l FROM LogPost l WHERE l.deletedAt IS NULL")
     Page<LogPost> findAllLogsPage(Pageable pageable);
 
+    // [Offset] All logs ordered by popularity score
+    // Score = viewCount + savedCount * 5
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        ORDER BY (COALESCE(lp.view_count, 0) + COALESCE(lp.saved_count, 0) * 5) DESC, lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        """,
+        nativeQuery = true)
+    Page<LogPost> findAllLogsOrderByPopular(Pageable pageable);
+
+    // [Offset] All logs ordered by trending (engagement with time decay)
+    // Score = (viewCount + savedCount * 5) / (1 + days_since_creation / 7)
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        ORDER BY ((COALESCE(lp.view_count, 0) + COALESCE(lp.saved_count, 0) * 5)::float / (1.0 + EXTRACT(EPOCH FROM (NOW() - lp.created_at)) / 604800.0)) DESC,
+                 lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        """,
+        nativeQuery = true)
+    Page<LogPost> findAllLogsOrderByTrending(Pageable pageable);
+
     // [Offset] Logs by outcomes - page (native query for JOIN)
     @Query(value = """
         SELECT lp.* FROM log_posts lp

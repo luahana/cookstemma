@@ -45,6 +45,9 @@ public class Recipe extends BaseEntity {
     @Builder.Default
     private Integer savedCount = 0;
     @Builder.Default
+    @Column(name = "view_count")
+    private Integer viewCount = 0;
+    @Builder.Default
     private Boolean isPrivate = false;
 
     // Soft delete (standardized pattern - NULL means active, timestamp means deleted)
@@ -119,6 +122,10 @@ public class Recipe extends BaseEntity {
 
     public void decrementSavedCount() {
         this.savedCount = Math.max(0, (this.savedCount == null ? 0 : this.savedCount) - 1);
+    }
+
+    public void incrementViewCount() {
+        this.viewCount = (this.viewCount == null ? 0 : this.viewCount) + 1;
     }
 
     public boolean isOriginal() {

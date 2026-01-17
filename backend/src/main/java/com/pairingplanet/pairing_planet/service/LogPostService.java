@@ -148,10 +148,14 @@ public class LogPostService {
         return getLogDetail(publicId, null);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public LogPostDetailResponseDto getLogDetail(UUID publicId, Long userId) {
         LogPost logPost = logPostRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("Log not found"));
+
+        // Increment view count for analytics
+        logPost.incrementViewCount();
+        logPostRepository.save(logPost);
 
         RecipeLog recipeLog = logPost.getRecipeLog();
         Recipe linkedRecipe = recipeLog.getRecipe();
@@ -462,10 +466,23 @@ public class LogPostService {
      * - If cursor is provided → cursor-based pagination (mobile)
      * - If page is provided → offset-based pagination (web)
      * - Default → cursor-based initial page
+     *
+     * Sort options:
+     * - recent (default): order by createdAt DESC
+     * - popular: order by popularity score (viewCount + savedCount * 5)
+     * - trending: order by engagement with time decay
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<LogPostSummaryDto> getAllLogsUnified(
-            List<String> outcomes, String cursor, Integer page, int size) {
+            List<String> outcomes, String sort, String cursor, Integer page, int size) {
+
+        // For popular and trending sorts, use offset-based pagination (complex sorting)
+        boolean isComplexSort = "popular".equalsIgnoreCase(sort) || "trending".equalsIgnoreCase(sort);
+
+        if (isComplexSort) {
+            int pageNum = (page != null) ? page : 0;
+            return getAllLogsWithOffsetSorted(outcomes, sort, pageNum, size);
+        }
 
         if (cursor != null && !cursor.isEmpty()) {
             return getAllLogsWithCursorUnified(outcomes, cursor, size);
@@ -489,6 +506,31 @@ public class LogPostService {
         if (outcomes != null && !outcomes.isEmpty()) {
             logs = logPostRepository.findByOutcomesPage(outcomes, pageable);
         } else {
+            logs = logPostRepository.findAllLogsPage(pageable);
+        }
+
+        Page<LogPostSummaryDto> mappedPage = logs.map(this::convertToLogSummary);
+        return UnifiedPageResponse.fromPage(mappedPage, size);
+    }
+
+    /**
+     * Offset-based log list with complex sorting (popular, trending).
+     * Note: outcome filters are not combined with complex sorting for simplicity.
+     */
+    private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithOffsetSorted(
+            List<String> outcomes, String sort, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<LogPost> logs;
+
+        if ("popular".equalsIgnoreCase(sort)) {
+            logs = logPostRepository.findAllLogsOrderByPopular(pageable);
+        } else if ("trending".equalsIgnoreCase(sort)) {
+            logs = logPostRepository.findAllLogsOrderByTrending(pageable);
+        } else {
+            // Fallback to recent
+            Sort sortBy = Sort.by(Sort.Direction.DESC, "createdAt");
+            pageable = PageRequest.of(page, size, sortBy);
             logs = logPostRepository.findAllLogsPage(pageable);
         }
 

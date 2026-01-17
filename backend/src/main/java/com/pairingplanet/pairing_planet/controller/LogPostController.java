@@ -39,11 +39,13 @@ public class LogPostController {
      * GET /api/v1/log_posts?page=0&size=10 (web)
      * GET /api/v1/log_posts?q=검색어 : 제목/내용/레시피명 검색
      * GET /api/v1/log_posts?outcomes=PARTIAL,FAILED : outcome 필터링
+     * GET /api/v1/log_posts?sort=recent|popular|trending : 정렬 옵션
      */
     @GetMapping
     public ResponseEntity<UnifiedPageResponse<LogPostSummaryDto>> getAllLogs(
             @RequestParam(name = "q", required = false) String searchKeyword,
             @RequestParam(name = "outcomes", required = false) String outcomes,
+            @RequestParam(name = "sort", required = false) String sort,
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
@@ -56,7 +58,7 @@ public class LogPostController {
         if (outcomes != null && !outcomes.isBlank()) {
             outcomeList = java.util.Arrays.asList(outcomes.split(","));
         }
-        return ResponseEntity.ok(logPostService.getAllLogsUnified(outcomeList, cursor, page, size));
+        return ResponseEntity.ok(logPostService.getAllLogsUnified(outcomeList, sort, cursor, page, size));
     }
 
     /**
