@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -13,6 +13,26 @@ import { COOKING_TIME_RANGES } from '@/lib/types';
 import { getDefaultCookingStyle } from '@/lib/utils/cookingStyle';
 import { CookingStyleSelect, COOKING_STYLE_OPTIONS } from '@/components/common/CookingStyleSelect';
 import { getImageUrl } from '@/lib/utils/image';
+
+// Loading fallback component
+function CreateRecipeLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+      <div className="animate-pulse">
+        <div className="w-12 h-12 rounded-full bg-[var(--primary-light)]" />
+      </div>
+    </div>
+  );
+}
+
+// Wrapper component with Suspense for useSearchParams
+export default function CreateRecipePage() {
+  return (
+    <Suspense fallback={<CreateRecipeLoading />}>
+      <CreateRecipeContent />
+    </Suspense>
+  );
+}
 
 // Limits matching Flutter app
 const MAX_RECIPE_PHOTOS = 3;
@@ -136,7 +156,7 @@ interface FormHashtag {
   isDeleted?: boolean;  // True if marked for removal (soft delete)
 }
 
-export default function CreateRecipePage() {
+function CreateRecipeContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
