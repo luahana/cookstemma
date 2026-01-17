@@ -78,15 +78,16 @@ async def main() -> None:
         # 4. Create pipeline and generate recipe
         pipeline = RecipePipeline(api_client, text_gen, image_gen)
 
-        food_name = "Kimchi Jjigae"  # Korean kimchi stew
+        food_name = "Bibimbap"  # Korean mixed rice bowl (different dish)
         print(f"\nGenerating recipe for: {food_name}")
-        print("This may take a minute (generating text + images)...")
+        print("This may take several minutes (generating text + 3 cover images + step images)...")
 
         recipe = await pipeline.generate_original_recipe(
             persona=persona,
             food_name=food_name,
             generate_images=True,
-            cover_image_count=1,
+            cover_image_count=3,
+            generate_step_images=True,
         )
 
         # 5. Print results
@@ -101,9 +102,16 @@ async def main() -> None:
         print(f"Images: {len(recipe.images)} cover images")
 
         if recipe.images:
-            print("\nImage URLs:")
+            print("\nCover Image URLs:")
             for i, img in enumerate(recipe.images, 1):
                 print(f"  {i}. {img.image_url}")
+
+        # Show step images
+        steps_with_images = [s for s in recipe.steps if s.image_public_id]
+        if steps_with_images:
+            print(f"\nSteps with images: {len(steps_with_images)}")
+            for step in steps_with_images:
+                print(f"  Step {step.step_number}: image_id={step.image_public_id}")
 
         print("\nView in app or backend logs for full details.")
 

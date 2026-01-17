@@ -1,5 +1,7 @@
 package com.pairingplanet.pairing_planet.dto.auth;
 
+import com.pairingplanet.pairing_planet.domain.enums.Role;
+
 import java.util.UUID;
 
 /**
@@ -9,7 +11,8 @@ import java.util.UUID;
  */
 public record WebAuthResponseDto(
         UUID userPublicId,
-        String username
+        String username,
+        Role role
 ) {
     /**
      * Creates a WebAuthResponseDto from a full AuthResponseDto.
@@ -18,7 +21,8 @@ public record WebAuthResponseDto(
     public static WebAuthResponseDto from(AuthResponseDto authResponse) {
         return new WebAuthResponseDto(
                 authResponse.userPublicId(),
-                authResponse.username()
+                authResponse.username(),
+                authResponse.role()
         );
     }
 }

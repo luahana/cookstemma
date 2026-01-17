@@ -35,4 +35,7 @@ public class UserSuggestedFood extends BaseEntity {
     @JoinColumn(name = "master_food_id_ref")
     private FoodMaster masterFoodRef;
 
+    public void updateStatus(SuggestionStatus status) {
+        this.status = status;
+    }
 }

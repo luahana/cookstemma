@@ -47,6 +47,7 @@ public class LogPostService {
     private final HashtagService hashtagService;
     private final NotificationService notificationService;
     private final SavedLogRepository savedLogRepository;
+    private final TranslationEventService translationEventService;
 
     @Value("${file.upload.url-prefix}") // [추가] URL 조합을 위해 필요
     private String urlPrefix;
@@ -88,6 +89,9 @@ public class LogPostService {
         User sender = userRepository.findById(creatorId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         notificationService.notifyRecipeCooked(recipe, logPost, sender);
+
+        // Queue async translation for all languages
+        translationEventService.queueLogPostTranslation(logPost);
 
         return getLogDetail(logPost.getPublicId());
     }
@@ -191,7 +195,9 @@ public class LogPostService {
                 hashtagDtos,
                 isSavedByCurrentUser,
                 creatorPublicId,
-                userName
+                userName,
+                logPost.getTitleTranslations(),
+                logPost.getContentTranslations()
         );
     }
 
