@@ -28,7 +28,7 @@ public class TestUserFactory {
                 .role(Role.USER)
                 .status(AccountStatus.ACTIVE)
                 .build();
-        return userRepository.save(user);
+        return userRepository.saveAndFlush(user);
     }
 
     public User createAdminUser() {
@@ -39,7 +39,7 @@ public class TestUserFactory {
                 .role(Role.ADMIN)
                 .status(AccountStatus.ACTIVE)
                 .build();
-        return userRepository.save(user);
+        return userRepository.saveAndFlush(user);
     }
 
     public User createBotUser(String username, BotPersona persona) {
@@ -52,6 +52,6 @@ public class TestUserFactory {
                 .isBot(true)
                 .persona(persona)
                 .build();
-        return userRepository.save(user);
+        return userRepository.saveAndFlush(user);
     }
 }

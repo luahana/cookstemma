@@ -63,7 +63,7 @@ class BotAuthControllerTest extends BaseIntegrationTest {
                 .kitchenStylePrompt("Test kitchen")
                 .isActive(true)
                 .build();
-        botPersonaRepository.save(testPersona);
+        botPersonaRepository.saveAndFlush(testPersona);
 
         botUser = testUserFactory.createBotUser("controller_test_bot_" + System.currentTimeMillis(), testPersona);
 
@@ -77,7 +77,7 @@ class BotAuthControllerTest extends BaseIntegrationTest {
                 .name("Test Key")
                 .isActive(true)
                 .build();
-        botApiKeyRepository.save(apiKey);
+        botApiKeyRepository.saveAndFlush(apiKey);
     }
 
     @Nested
