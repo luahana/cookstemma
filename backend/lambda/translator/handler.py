@@ -17,6 +17,14 @@ from openai_translator import OpenAITranslator
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+# Locale mapping: short code -> BCP47 format
+LOCALE_MAP = {
+    'ko': 'ko-KR', 'en': 'en-US', 'ja': 'ja-JP',
+    'zh': 'zh-CN', 'fr': 'fr-FR', 'es': 'es-ES',
+    'it': 'it-IT', 'de': 'de-DE', 'ru': 'ru-RU',
+    'pt': 'pt-BR', 'el': 'el-GR', 'ar': 'ar-SA'
+}
+
 # Initialize AWS clients
 secrets_client = boto3.client('secretsmanager')
 
@@ -165,7 +173,14 @@ def run_migrations(conn):
         """)
         cur.execute("""
             DO $$ BEGIN
-                CREATE TYPE translatable_entity AS ENUM ('RECIPE', 'RECIPE_STEP', 'RECIPE_INGREDIENT', 'LOG_POST');
+                CREATE TYPE translatable_entity AS ENUM ('RECIPE', 'RECIPE_STEP', 'RECIPE_INGREDIENT', 'LOG_POST', 'FOOD_MASTER');
+            EXCEPTION WHEN duplicate_object THEN null;
+            END $$
+        """)
+        # Add FOOD_MASTER to existing enum if it exists but doesn't have FOOD_MASTER
+        cur.execute("""
+            DO $$ BEGIN
+                ALTER TYPE translatable_entity ADD VALUE IF NOT EXISTS 'FOOD_MASTER';
             EXCEPTION WHEN duplicate_object THEN null;
             END $$
         """)
@@ -297,6 +312,11 @@ def fetch_entity_content(conn, entity_type: str, entity_id: int) -> dict | None:
                 SELECT id, title, content, title_translations, content_translations
                 FROM log_posts WHERE id = %s
             """, (entity_id,))
+        elif entity_type == 'FOOD_MASTER':
+            cur.execute("""
+                SELECT id, name, description
+                FROM foods_master WHERE id = %s
+            """, (entity_id,))
         else:
             return None
 
@@ -336,6 +356,18 @@ def save_translations(conn, entity_type: str, entity_id: int, translations: dict
             """, (
                 json.dumps(translations.get('title', {})),
                 json.dumps(translations.get('content', {})),
+                entity_id
+            ))
+        elif entity_type == 'FOOD_MASTER':
+            # Merge new translations into existing JSONB name and description
+            cur.execute("""
+                UPDATE foods_master
+                SET name = name || %s,
+                    description = COALESCE(description, '{}'::jsonb) || %s
+                WHERE id = %s
+            """, (
+                json.dumps(translations.get('name', {})),
+                json.dumps(translations.get('description', {})),
                 entity_id
             ))
 
@@ -388,24 +420,61 @@ def process_event(conn, translator: OpenAITranslator, event: dict) -> bool:
             'title': entity['title_translations'] or {},
             'content': entity['content_translations'] or {}
         }
+    elif entity_type == 'FOOD_MASTER':
+        # FoodMaster stores translations directly in name/description JSONB
+        name_json = entity['name'] or {}
+        description_json = entity['description'] or {}
+
+        # Convert source_locale to BCP47 format to find source content
+        source_bcp47 = LOCALE_MAP.get(source_locale, f"{source_locale}-{source_locale.upper()}")
+
+        # Extract source name from JSONB
+        source_name = name_json.get(source_bcp47) or name_json.get(source_locale)
+        if not source_name and name_json:
+            # Fallback: use first available name
+            source_name = next(iter(name_json.values()))
+
+        source_description = description_json.get(source_bcp47) or description_json.get(source_locale) or ''
+
+        content_to_translate = {
+            'name': source_name or '',
+            'description': source_description
+        }
+        existing_translations = {
+            'name': {},
+            'description': {}
+        }
 
     # Translate to each pending locale
     new_completed = list(completed_locales)
 
     for target_locale in pending_locales:
         try:
+            # Determine appropriate context for translation
+            if entity_type == 'RECIPE_STEP':
+                context = "cooking recipe step"
+            elif entity_type == 'FOOD_MASTER':
+                context = "food ingredient name for a cooking recipe app"
+            else:
+                context = "cooking recipe content"
+
             translated = translator.translate_content(
                 content=content_to_translate,
                 source_locale=source_locale,
                 target_locale=target_locale,
-                context=f"cooking recipe {'step' if entity_type == 'RECIPE_STEP' else 'content'}"
+                context=context
             )
 
             # Merge translations
+            # For FOOD_MASTER, use BCP47 locale keys (ko-KR, en-US, etc.)
+            translation_key = target_locale
+            if entity_type == 'FOOD_MASTER':
+                translation_key = LOCALE_MAP.get(target_locale, f"{target_locale}-{target_locale.upper()}")
+
             for field, value in translated.items():
                 if field not in existing_translations:
                     existing_translations[field] = {}
-                existing_translations[field][target_locale] = value
+                existing_translations[field][translation_key] = value
 
             new_completed.append(target_locale)
             logger.info(f"Translated {entity_type}:{entity_id} to {target_locale}")

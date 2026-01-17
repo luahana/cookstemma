@@ -38,4 +38,8 @@ public class UserSuggestedFood extends BaseEntity {
     public void updateStatus(SuggestionStatus status) {
         this.status = status;
     }
+
+    public void linkToFoodMaster(FoodMaster foodMaster) {
+        this.masterFoodRef = foodMaster;
+    }
 }

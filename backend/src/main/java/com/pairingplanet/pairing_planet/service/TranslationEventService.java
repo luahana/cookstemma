@@ -1,5 +1,6 @@
 package com.pairingplanet.pairing_planet.service;
 
+import com.pairingplanet.pairing_planet.domain.entity.food.FoodMaster;
 import com.pairingplanet.pairing_planet.domain.entity.log_post.LogPost;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.RecipeIngredient;
@@ -135,6 +136,33 @@ public class TranslationEventService {
         translationEventRepository.save(event);
         log.info("Queued translation for log post {} (source: {}, targets: {})",
                 logPost.getId(), sourceLocale, targetLocales.size());
+    }
+
+    @Transactional
+    public void queueFoodMasterTranslation(FoodMaster foodMaster, String sourceLocale) {
+        String normalized = normalizeLocale(sourceLocale);
+        List<String> targetLocales = getTargetLocales(normalized);
+
+        if (targetLocales.isEmpty()) {
+            log.debug("No target locales for food master {} (source: {})", foodMaster.getId(), normalized);
+            return;
+        }
+
+        if (isTranslationPending(TranslatableEntity.FOOD_MASTER, foodMaster.getId())) {
+            log.debug("Translation already pending for food master {}", foodMaster.getId());
+            return;
+        }
+
+        TranslationEvent event = TranslationEvent.builder()
+                .entityType(TranslatableEntity.FOOD_MASTER)
+                .entityId(foodMaster.getId())
+                .sourceLocale(normalized)
+                .targetLocales(targetLocales)
+                .build();
+
+        translationEventRepository.save(event);
+        log.info("Queued translation for food master {} (source: {}, targets: {})",
+                foodMaster.getId(), normalized, targetLocales.size());
     }
 
     @Transactional(readOnly = true)

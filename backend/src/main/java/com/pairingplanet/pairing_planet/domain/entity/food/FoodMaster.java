@@ -59,4 +59,18 @@ public class FoodMaster extends BaseEntity {
         // 3. 영어도 없을 경우 맵에 저장된 첫 번째 이름을 반환
         return name.values().iterator().next();
     }
+
+    public void addNameTranslation(String locale, String translatedName) {
+        if (this.name == null) {
+            this.name = new HashMap<>();
+        }
+        this.name.put(locale, translatedName);
+    }
+
+    public void addDescriptionTranslation(String locale, String translatedDescription) {
+        if (this.description == null) {
+            this.description = new HashMap<>();
+        }
+        this.description.put(locale, translatedDescription);
+    }
 }

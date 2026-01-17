@@ -209,7 +209,7 @@ class UserServiceTest extends BaseIntegrationTest {
         void updateProfile_WithDefaultFoodStyle_Success() {
             UserPrincipal principal = new UserPrincipal(testUser);
             UpdateProfileRequestDto request = new UpdateProfileRequestDto(
-                    null, null, null, null, null, null, null, "KR", null, null, null
+                    null, null, null, null, null, null, null, "KR", null, null, null, null
             );
 
             UserDto result = userService.updateProfile(principal, request);
@@ -222,7 +222,7 @@ class UserServiceTest extends BaseIntegrationTest {
         void updateProfile_DefaultFoodStyle_Persisted() {
             UserPrincipal principal = new UserPrincipal(testUser);
             UpdateProfileRequestDto request = new UpdateProfileRequestDto(
-                    null, null, null, null, null, null, null, "JP", null, null, null
+                    null, null, null, null, null, null, null, "JP", null, null, null, null
             );
 
             userService.updateProfile(principal, request);
@@ -249,7 +249,7 @@ class UserServiceTest extends BaseIntegrationTest {
         void updateProfile_OtherFoodStyle_Success() {
             UserPrincipal principal = new UserPrincipal(testUser);
             UpdateProfileRequestDto request = new UpdateProfileRequestDto(
-                    null, null, null, null, null, null, null, "other", null, null, null
+                    null, null, null, null, null, null, null, "other", null, null, null, null
             );
 
             UserDto result = userService.updateProfile(principal, request);
@@ -267,7 +267,7 @@ class UserServiceTest extends BaseIntegrationTest {
 
             for (String code : countryCodes) {
                 UpdateProfileRequestDto request = new UpdateProfileRequestDto(
-                        null, null, null, null, null, null, null, code, null, null, null
+                        null, null, null, null, null, null, null, code, null, null, null, null
                 );
 
                 UserDto result = userService.updateProfile(principal, request);

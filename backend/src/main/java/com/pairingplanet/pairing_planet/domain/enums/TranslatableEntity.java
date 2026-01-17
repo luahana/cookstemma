@@ -4,5 +4,6 @@ public enum TranslatableEntity {
     RECIPE,
     RECIPE_STEP,
     RECIPE_INGREDIENT,
-    LOG_POST
+    LOG_POST,
+    FOOD_MASTER
 }
