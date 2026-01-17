@@ -27,7 +27,7 @@ export function LogEditModal({
 }: LogEditModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [content, setContent] = useState(log.content);
-  const [outcome, setOutcome] = useState<Outcome>(log.outcome);
+  const [outcome, setOutcome] = useState<Outcome>(log.outcome ?? 'SUCCESS');
   const [hashtags, setHashtags] = useState(log.hashtags.map((h) => h.name).join(', '));
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export function LogEditModal({
   // Reset form when log changes
   useEffect(() => {
     setContent(log.content);
-    setOutcome(log.outcome);
+    setOutcome(log.outcome ?? 'SUCCESS');
     setHashtags(log.hashtags.map((h) => h.name).join(', '));
     setError(null);
   }, [log]);
