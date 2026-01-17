@@ -14,19 +14,24 @@ const createMockResponse = (overrides: {
   status?: number;
   statusText?: string;
   json?: () => Promise<unknown>;
+  text?: () => Promise<string>;
   contentLength?: string | null;
-}) => ({
-  ok: overrides.ok ?? true,
-  status: overrides.status ?? 200,
-  statusText: overrides.statusText ?? 'OK',
-  json: overrides.json ?? (() => Promise.resolve({})),
-  headers: {
-    get: (name: string) => {
-      if (name === 'content-length') return overrides.contentLength ?? '100';
-      return null;
+}) => {
+  const jsonData = overrides.json ?? (() => Promise.resolve({}));
+  return {
+    ok: overrides.ok ?? true,
+    status: overrides.status ?? 200,
+    statusText: overrides.statusText ?? 'OK',
+    json: jsonData,
+    text: overrides.text ?? (() => jsonData().then(data => JSON.stringify(data))),
+    headers: {
+      get: (name: string) => {
+        if (name === 'content-length') return overrides.contentLength ?? '100';
+        return null;
+      },
     },
-  },
-});
+  };
+};
 
 describe('apiFetch', () => {
   const mockFetch = global.fetch as jest.Mock;
