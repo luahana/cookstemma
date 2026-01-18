@@ -119,7 +119,8 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
                     "Chicken",
                     500.0,
                     MeasurementUnit.G,
-                    IngredientType.MAIN
+                    IngredientType.MAIN,
+                    null
             );
 
             CreateRecipeRequestDto request = createRecipeRequest(List.of(mainIngredient));
@@ -140,7 +141,8 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
                     "Onion",
                     1.0,
                     MeasurementUnit.PIECE,
-                    IngredientType.SECONDARY
+                    IngredientType.SECONDARY,
+                    null
             );
 
             CreateRecipeRequestDto request = createRecipeRequest(List.of(secondaryIngredient));
@@ -161,7 +163,8 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
                     "Salt",
                     1.0,
                     MeasurementUnit.TSP,
-                    IngredientType.SEASONING
+                    IngredientType.SEASONING,
+                    null
             );
 
             CreateRecipeRequestDto request = createRecipeRequest(List.of(seasoningIngredient));
@@ -182,19 +185,22 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
                     "Beef",
                     300.0,
                     MeasurementUnit.G,
-                    IngredientType.MAIN
+                    IngredientType.MAIN,
+                    null
             );
             IngredientDto secondaryIngredient = new IngredientDto(
                     "Carrot",
                     2.0,
                     MeasurementUnit.PIECE,
-                    IngredientType.SECONDARY
+                    IngredientType.SECONDARY,
+                    null
             );
             IngredientDto seasoningIngredient = new IngredientDto(
                     "Pepper",
                     1.0,
                     MeasurementUnit.PINCH,
-                    IngredientType.SEASONING
+                    IngredientType.SEASONING,
+                    null
             );
 
             CreateRecipeRequestDto request = createRecipeRequest(
@@ -241,13 +247,15 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
                     "Salmon",
                     200.0,
                     MeasurementUnit.G,
-                    IngredientType.MAIN
+                    IngredientType.MAIN,
+                    null
             );
             IngredientDto seasoningIngredient = new IngredientDto(
                     "Dill",
                     1.0,
                     MeasurementUnit.TBSP,
-                    IngredientType.SEASONING
+                    IngredientType.SEASONING,
+                    null
             );
 
             CreateRecipeRequestDto request = createRecipeRequest(
@@ -286,7 +294,7 @@ class IngredientTypeMappingTest extends BaseIntegrationTest {
                 testFood.getPublicId(),
                 null, // newFoodName
                 ingredients,
-                List.of(new StepDto(1, "Test step", null, null)),
+                List.of(new StepDto(1, "Test step", null, null, null)),
                 List.of(), // images
                 null, // changeCategory
                 null, // parentPublicId

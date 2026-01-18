@@ -79,7 +79,8 @@ class RecipeMeasurementIntegrationTest extends BaseIntegrationTest {
                     "Flour",
                     2.0,  // quantity
                     MeasurementUnit.CUP, // unit
-                    IngredientType.MAIN
+                    IngredientType.MAIN,
+                    null  // nameTranslations
             );
 
             CreateRecipeRequestDto request = new CreateRecipeRequestDto(
@@ -89,7 +90,7 @@ class RecipeMeasurementIntegrationTest extends BaseIntegrationTest {
                     testFood.getPublicId(),
                     null, // newFoodName
                     List.of(structuredIngredient),
-                    List.of(new StepDto(1, "Mix ingredients", null, null)),
+                    List.of(new StepDto(1, "Mix ingredients", null, null, null)),
                     List.of(), // images
                     null, // changeCategory
                     null, // parentPublicId
@@ -122,14 +123,16 @@ class RecipeMeasurementIntegrationTest extends BaseIntegrationTest {
                     "Sugar",
                     100.0,
                     MeasurementUnit.G,
-                    IngredientType.MAIN
+                    IngredientType.MAIN,
+                    null  // nameTranslations
             );
 
             IngredientDto seasoningIngredient = new IngredientDto(
                     "Vanilla",
                     1.0,
                     MeasurementUnit.TSP,
-                    IngredientType.SEASONING
+                    IngredientType.SEASONING,
+                    null  // nameTranslations
             );
 
             CreateRecipeRequestDto request = new CreateRecipeRequestDto(
@@ -139,7 +142,7 @@ class RecipeMeasurementIntegrationTest extends BaseIntegrationTest {
                     testFood.getPublicId(),
                     null,
                     List.of(mainIngredient, seasoningIngredient),
-                    List.of(new StepDto(1, "Combine", null, null)),
+                    List.of(new StepDto(1, "Combine", null, null, null)),
                     List.of(),
                     null, null, null, null, null, null, null, null
             );
