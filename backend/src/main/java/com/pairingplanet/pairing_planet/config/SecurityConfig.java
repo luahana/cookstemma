@@ -46,6 +46,10 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000",
             "http://localhost:3001",
+            "https://dev.cookstemma.com",
+            "https://staging.cookstemma.com",
+            "https://cookstemma.com",
+            "https://www.cookstemma.com",
             "https://pairingplanet.com",
             "https://www.pairingplanet.com",
             "https://staging.pairingplanet.com"
