@@ -76,6 +76,8 @@ def get_or_create_personas(admin_token: str) -> dict:
 
 
 def main():
+    global BACKEND_BASE_URL
+
     parser = argparse.ArgumentParser(description="Create bot users")
     parser.add_argument(
         "--admin-token",
@@ -93,7 +95,6 @@ def main():
         print("Error: Admin token required. Set ADMIN_TOKEN env var or use --admin-token")
         sys.exit(1)
 
-    global BACKEND_BASE_URL
     BACKEND_BASE_URL = args.base_url
 
     print(f"Backend URL: {BACKEND_BASE_URL}")

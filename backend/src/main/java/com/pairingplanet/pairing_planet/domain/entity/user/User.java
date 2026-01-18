@@ -53,7 +53,8 @@ public class User extends BaseEntity {
     private AccountStatus status;
 
     @Column(name = "marketing_agreed")
-    private boolean marketingAgreed;
+    @Builder.Default
+    private Boolean marketingAgreed = false;
 
     // Legal acceptance tracking
     @Column(name = "terms_accepted_at")
