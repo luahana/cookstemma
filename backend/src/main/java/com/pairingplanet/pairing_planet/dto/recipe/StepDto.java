@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.Map;
 import java.util.UUID;
 
 public record StepDto(
@@ -15,5 +16,9 @@ public record StepDto(
         @Size(max = 500, message = "단계 설명은 500자 이하여야 합니다")
         String description,
         UUID imagePublicId,
-        String imageUrl
+        String imageUrl,
+        /**
+         * Translations of step description by locale (e.g., {"en": "...", "ja": "..."}).
+         */
+        Map<String, String> descriptionTranslations
 ) {}

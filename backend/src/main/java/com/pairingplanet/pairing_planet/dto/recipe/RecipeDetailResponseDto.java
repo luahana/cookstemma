@@ -131,13 +131,13 @@ public record RecipeDetailResponseDto(
                 .rootInfo(rootInfo)
                 .parentInfo(parentInfo)
                 .ingredients(recipe.getIngredients().stream()
-                        .map(i -> new IngredientDto(i.getName(), i.getQuantity(), i.getUnit(), i.getType()))
+                        .map(i -> new IngredientDto(i.getName(), i.getQuantity(), i.getUnit(), i.getType(), i.getNameTranslations()))
                         .toList())
                 .steps(recipe.getSteps().stream()
                         .map(s -> {
                             UUID imgId = (s.getImage() != null) ? s.getImage().getPublicId() : null;
                             String imgUrl = (s.getImage() != null) ? urlPrefix + "/" + s.getImage().getStoredFilename() : null;
-                            return new StepDto(s.getStepNumber(), s.getDescription(), imgId, imgUrl);
+                            return new StepDto(s.getStepNumber(), s.getDescription(), imgId, imgUrl, s.getDescriptionTranslations());
                         })
                         .toList())
                 .images(imageResponses)
