@@ -133,7 +133,7 @@ public class SavedLogService {
         return new LogPostSummaryDto(
                 log.getPublicId(),
                 log.getTitle(),
-                log.getRecipeLog() != null ? log.getRecipeLog().getOutcome() : null,
+                log.getRecipeLog() != null ? log.getRecipeLog().getRating() : null,
                 thumbnailUrl,
                 creatorPublicId,
                 userName,

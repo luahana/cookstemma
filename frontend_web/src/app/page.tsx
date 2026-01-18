@@ -5,7 +5,7 @@ import { getRecipes } from '@/lib/api/recipes';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { AppDownloadCTA } from '@/components/common/AppDownloadCTA';
 import { PopularHashtags } from '@/components/common/PopularHashtags';
-import { OUTCOME_CONFIG } from '@/lib/types';
+import { StarRating } from '@/components/log/StarRating';
 import { getImageUrl } from '@/lib/utils/image';
 
 export default async function Home() {
@@ -104,10 +104,10 @@ export default async function Home() {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[var(--primary)]">
-                        {activity.outcome && <span className="mr-1">{OUTCOME_CONFIG[activity.outcome].label}</span>}
-                        {activity.foodName}
-                      </p>
+                      <div className="flex items-center gap-2 mb-1">
+                        {activity.rating && <StarRating rating={activity.rating} size="sm" />}
+                        <span className="text-sm font-medium text-[var(--primary)]">{activity.foodName}</span>
+                      </div>
                       <p className="font-medium text-[var(--text-primary)] truncate">
                         {activity.recipeTitle}
                       </p>

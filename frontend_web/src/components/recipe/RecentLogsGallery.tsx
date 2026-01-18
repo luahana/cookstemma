@@ -4,11 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getImageUrl } from '@/lib/utils/image';
 import { useDragScroll } from '@/hooks/useDragScroll';
+import { StarRating } from '@/components/log/StarRating';
 
 interface LogSummary {
   publicId: string;
   title: string;
-  outcome: string | null;
+  rating: number | null;
   thumbnailUrl?: string | null;
   userName?: string | null;
 }
@@ -17,12 +18,6 @@ interface RecentLogsGalleryProps {
   logs: LogSummary[];
   recipePublicId: string;
 }
-
-const OUTCOME_CONFIG = {
-  SUCCESS: { emoji: '✓', bgColor: 'bg-green-100', textColor: 'text-green-600' },
-  PARTIAL: { emoji: '~', bgColor: 'bg-amber-100', textColor: 'text-amber-600' },
-  FAILED: { emoji: '✗', bgColor: 'bg-red-100', textColor: 'text-red-600' },
-} as const;
 
 export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryProps) {
   const scrollRef = useDragScroll<HTMLDivElement>();
@@ -120,7 +115,6 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
         >
           {displayLogs.map((log) => {
             const thumbUrl = getImageUrl(log.thumbnailUrl);
-            const outcome = OUTCOME_CONFIG[log.outcome as keyof typeof OUTCOME_CONFIG] || OUTCOME_CONFIG.SUCCESS;
 
             return (
               <Link
@@ -156,12 +150,12 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
                     </div>
                   )}
 
-                  {/* Outcome Badge */}
-                  <div
-                    className={`absolute bottom-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shadow-md ${outcome.bgColor} ${outcome.textColor}`}
-                  >
-                    {outcome.emoji}
-                  </div>
+                  {/* Star Rating Badge */}
+                  {log.rating && (
+                    <div className="absolute bottom-2 right-2 bg-white/90 rounded-full px-1.5 py-0.5 shadow-md">
+                      <StarRating rating={log.rating} size="sm" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Username */}

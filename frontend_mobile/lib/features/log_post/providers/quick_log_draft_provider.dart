@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pairing_planet2_frontend/core/widgets/outcome/outcome_badge.dart';
 
 /// State machine steps for quick log flow
-/// Flow: Outcome (1) → Photo (2) → Notes (3) → Hashtags (4) → Submit
+/// Flow: Rating (1) → Photo (2) → Notes (3) → Hashtags (4) → Submit
 enum QuickLogStep {
   idle,
-  selectingOutcome,
+  selectingRating,
   capturingPhoto,
   addingNotes,
   addingHashtags,
@@ -17,7 +16,7 @@ enum QuickLogStep {
 /// Draft state for quick log in progress
 class QuickLogDraft {
   final QuickLogStep step;
-  final LogOutcome? outcome;
+  final int? rating; // 1-5 star rating
   final List<String> photoPaths;
   final List<String> photoPublicIds;
   final String? recipePublicId;
@@ -30,7 +29,7 @@ class QuickLogDraft {
 
   const QuickLogDraft({
     this.step = QuickLogStep.idle,
-    this.outcome,
+    this.rating,
     this.photoPaths = const [],
     this.photoPublicIds = const [],
     this.recipePublicId,
@@ -44,7 +43,7 @@ class QuickLogDraft {
 
   QuickLogDraft copyWith({
     QuickLogStep? step,
-    LogOutcome? outcome,
+    int? rating,
     List<String>? photoPaths,
     List<String>? photoPublicIds,
     String? recipePublicId,
@@ -56,7 +55,7 @@ class QuickLogDraft {
   }) {
     return QuickLogDraft(
       step: step ?? this.step,
-      outcome: outcome ?? this.outcome,
+      rating: rating ?? this.rating,
       photoPaths: photoPaths ?? this.photoPaths,
       photoPublicIds: photoPublicIds ?? this.photoPublicIds,
       recipePublicId: recipePublicId ?? this.recipePublicId,
@@ -72,18 +71,18 @@ class QuickLogDraft {
   /// Check if draft has minimum required data for submission
   /// Recipe is always pre-selected before reaching quick log sheet
   bool get canSubmit =>
-      outcome != null && photoPaths.isNotEmpty && recipePublicId != null;
+      rating != null && photoPaths.isNotEmpty && recipePublicId != null;
 
   /// Check if draft is in an active flow
   bool get isActive => step != QuickLogStep.idle && step != QuickLogStep.success;
 
   /// Progress percentage (0.0 - 1.0)
-  /// 4 steps: Outcome → Photo → Notes → Hashtags
+  /// 4 steps: Rating → Photo → Notes → Hashtags
   double get progress {
     switch (step) {
       case QuickLogStep.idle:
         return 0.0;
-      case QuickLogStep.selectingOutcome:
+      case QuickLogStep.selectingRating:
         return 0.2;
       case QuickLogStep.capturingPhoto:
         return 0.4;
@@ -119,7 +118,7 @@ class QuickLogDraftNotifier extends Notifier<QuickLogDraft> {
   /// Start a new quick log flow
   void startFlow() {
     state = QuickLogDraft(
-      step: QuickLogStep.selectingOutcome,
+      step: QuickLogStep.selectingRating,
       createdAt: DateTime.now(),
     );
   }
@@ -127,17 +126,17 @@ class QuickLogDraftNotifier extends Notifier<QuickLogDraft> {
   /// Start a new quick log flow with a pre-selected recipe
   void startFlowWithRecipe(String recipePublicId, String recipeTitle) {
     state = QuickLogDraft(
-      step: QuickLogStep.selectingOutcome,
+      step: QuickLogStep.selectingRating,
       recipePublicId: recipePublicId,
       recipeTitle: recipeTitle,
       createdAt: DateTime.now(),
     );
   }
 
-  /// Select the cooking outcome
-  void selectOutcome(LogOutcome outcome) {
+  /// Select the star rating (1-5)
+  void selectRating(int rating) {
     state = state.copyWith(
-      outcome: outcome,
+      rating: rating,
       step: QuickLogStep.capturingPhoto,
     );
   }
@@ -220,11 +219,11 @@ class QuickLogDraftNotifier extends Notifier<QuickLogDraft> {
   }
 
   /// Go back one step
-  /// Flow: Outcome → Photo → Notes → Hashtags
+  /// Flow: Rating → Photo → Notes → Hashtags
   void goBack() {
     switch (state.step) {
       case QuickLogStep.capturingPhoto:
-        state = state.copyWith(step: QuickLogStep.selectingOutcome);
+        state = state.copyWith(step: QuickLogStep.selectingRating);
         break;
       case QuickLogStep.addingNotes:
         state = state.copyWith(step: QuickLogStep.capturingPhoto);

@@ -7,7 +7,7 @@ export interface ViewHistoryItem {
   title: string;
   thumbnail: string | null;
   foodName: string | null;
-  outcome?: string | null;
+  rating?: number | null;
   viewedAt: number;
 }
 

@@ -70,7 +70,7 @@ public class LogPostService {
         RecipeLog recipeLog = RecipeLog.builder()
                 .logPost(logPost)
                 .recipe(recipe)
-                .outcome(req.outcome())
+                .rating(req.rating())
                 .build();
 
         logPost.setRecipeLog(recipeLog);
@@ -103,25 +103,27 @@ public class LogPostService {
     }
 
     /**
-     * 로그 목록 조회 (outcome 필터링)
-     * @param outcomes List of outcome values to filter by (e.g., ["PARTIAL", "FAILED"])
+     * 로그 목록 조회 (rating 범위 필터링)
+     * @param minRating Minimum rating (1-5)
+     * @param maxRating Maximum rating (1-5)
      */
     @Transactional(readOnly = true)
-    public Slice<LogPostSummaryDto> getAllLogsByOutcomes(List<String> outcomes, Pageable pageable) {
-        return logPostRepository.findByOutcomesIn(outcomes, pageable)
+    public Slice<LogPostSummaryDto> getAllLogsByRating(Integer minRating, Integer maxRating, Pageable pageable) {
+        return logPostRepository.findByRatingBetween(minRating, maxRating, pageable)
                 .map(this::convertToLogSummary);
     }
 
     /**
      * 내가 작성한 로그 목록 조회
-     * @param outcome null=all, "SUCCESS", "PARTIAL", "FAILED"
+     * @param minRating null=all, or minimum rating (1-5)
+     * @param maxRating null=all, or maximum rating (1-5)
      */
     @Transactional(readOnly = true)
-    public Slice<LogPostSummaryDto> getMyLogs(Long userId, String outcome, Pageable pageable) {
+    public Slice<LogPostSummaryDto> getMyLogs(Long userId, Integer minRating, Integer maxRating, Pageable pageable) {
         Slice<LogPost> logs;
 
-        if (outcome != null && !outcome.isBlank()) {
-            logs = logPostRepository.findByCreatorIdAndOutcome(userId, outcome.toUpperCase(), pageable);
+        if (minRating != null && maxRating != null) {
+            logs = logPostRepository.findByCreatorIdAndRatingBetween(userId, minRating, maxRating, pageable);
         } else {
             logs = logPostRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
         }
@@ -192,7 +194,7 @@ public class LogPostService {
                 logPost.getPublicId(),
                 logPost.getTitle(),
                 logPost.getContent(),
-                recipeLog.getOutcome(),
+                recipeLog.getRating(),
                 imageResponses,
                 linkedRecipeSummary,
                 logPost.getCreatedAt(),
@@ -233,7 +235,7 @@ public class LogPostService {
         return new LogPostSummaryDto(
                 log.getPublicId(),
                 log.getTitle(),
-                log.getRecipeLog().getOutcome(),
+                log.getRecipeLog().getRating(),
                 thumbnailUrl,
                 creatorPublicId,
                 userName,
@@ -328,18 +330,18 @@ public class LogPostService {
     }
 
     /**
-     * 로그 목록 조회 with outcomes filter (Cursor-based pagination)
+     * 로그 목록 조회 with rating filter (Cursor-based pagination)
      */
     @Transactional(readOnly = true)
-    public CursorPageResponse<LogPostSummaryDto> getAllLogsByOutcomesWithCursor(List<String> outcomes, String cursor, int size) {
+    public CursorPageResponse<LogPostSummaryDto> getAllLogsByRatingWithCursor(Integer minRating, Integer maxRating, String cursor, int size) {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
         Slice<LogPost> logs;
         if (cursorData == null) {
-            logs = logPostRepository.findByOutcomesWithCursorInitial(outcomes, pageable);
+            logs = logPostRepository.findByRatingWithCursorInitial(minRating, maxRating, pageable);
         } else {
-            logs = logPostRepository.findByOutcomesWithCursor(outcomes, cursorData.createdAt(), cursorData.id(), pageable);
+            logs = logPostRepository.findByRatingWithCursor(minRating, maxRating, cursorData.createdAt(), cursorData.id(), pageable);
         }
 
         return buildCursorResponse(logs, size);
@@ -349,16 +351,16 @@ public class LogPostService {
      * 내 로그 조회 (Cursor-based pagination)
      */
     @Transactional(readOnly = true)
-    public CursorPageResponse<LogPostSummaryDto> getMyLogsWithCursor(Long userId, String outcome, String cursor, int size) {
+    public CursorPageResponse<LogPostSummaryDto> getMyLogsWithCursor(Long userId, Integer minRating, Integer maxRating, String cursor, int size) {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
         Slice<LogPost> logs;
-        if (outcome != null && !outcome.isBlank()) {
+        if (minRating != null && maxRating != null) {
             if (cursorData == null) {
-                logs = logPostRepository.findMyLogsByOutcomeWithCursorInitial(userId, outcome.toUpperCase(), pageable);
+                logs = logPostRepository.findMyLogsByRatingWithCursorInitial(userId, minRating, maxRating, pageable);
             } else {
-                logs = logPostRepository.findMyLogsByOutcomeWithCursor(userId, outcome.toUpperCase(), cursorData.createdAt(), cursorData.id(), pageable);
+                logs = logPostRepository.findMyLogsByRatingWithCursor(userId, minRating, maxRating, cursorData.createdAt(), cursorData.id(), pageable);
             }
         } else {
             if (cursorData == null) {
@@ -418,9 +420,9 @@ public class LogPostService {
         }
         logPost.setContent(request.content());
 
-        // Update outcome via RecipeLog
+        // Update rating via RecipeLog
         RecipeLog recipeLog = logPost.getRecipeLog();
-        recipeLog.setOutcome(request.outcome());
+        recipeLog.setRating(request.rating());
 
         // Update hashtags
         if (request.hashtags() != null) {
@@ -474,22 +476,22 @@ public class LogPostService {
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<LogPostSummaryDto> getAllLogsUnified(
-            List<String> outcomes, String sort, String cursor, Integer page, int size) {
+            Integer minRating, Integer maxRating, String sort, String cursor, Integer page, int size) {
 
         // For popular and trending sorts, use offset-based pagination (complex sorting)
         boolean isComplexSort = "popular".equalsIgnoreCase(sort) || "trending".equalsIgnoreCase(sort);
 
         if (isComplexSort) {
             int pageNum = (page != null) ? page : 0;
-            return getAllLogsWithOffsetSorted(outcomes, sort, pageNum, size);
+            return getAllLogsWithOffsetSorted(minRating, maxRating, sort, pageNum, size);
         }
 
         if (cursor != null && !cursor.isEmpty()) {
-            return getAllLogsWithCursorUnified(outcomes, cursor, size);
+            return getAllLogsWithCursorUnified(minRating, maxRating, cursor, size);
         } else if (page != null) {
-            return getAllLogsWithOffset(outcomes, page, size);
+            return getAllLogsWithOffset(minRating, maxRating, page, size);
         } else {
-            return getAllLogsWithCursorUnified(outcomes, null, size);
+            return getAllLogsWithCursorUnified(minRating, maxRating, null, size);
         }
     }
 
@@ -497,14 +499,14 @@ public class LogPostService {
      * Offset-based log list for web clients.
      */
     private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithOffset(
-            List<String> outcomes, int page, int size) {
+            Integer minRating, Integer maxRating, int page, int size) {
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<LogPost> logs;
-        if (outcomes != null && !outcomes.isEmpty()) {
-            logs = logPostRepository.findByOutcomesPage(outcomes, pageable);
+        if (minRating != null && maxRating != null) {
+            logs = logPostRepository.findByRatingPage(minRating, maxRating, pageable);
         } else {
             logs = logPostRepository.findAllLogsPage(pageable);
         }
@@ -515,10 +517,10 @@ public class LogPostService {
 
     /**
      * Offset-based log list with complex sorting (popular, trending).
-     * Note: outcome filters are not combined with complex sorting for simplicity.
+     * Note: rating filters are not combined with complex sorting for simplicity.
      */
     private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithOffsetSorted(
-            List<String> outcomes, String sort, int page, int size) {
+            Integer minRating, Integer maxRating, String sort, int page, int size) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<LogPost> logs;
@@ -542,11 +544,11 @@ public class LogPostService {
      * Cursor-based log list wrapped in UnifiedPageResponse.
      */
     private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithCursorUnified(
-            List<String> outcomes, String cursor, int size) {
+            Integer minRating, Integer maxRating, String cursor, int size) {
 
         CursorPageResponse<LogPostSummaryDto> cursorResponse;
-        if (outcomes != null && !outcomes.isEmpty()) {
-            cursorResponse = getAllLogsByOutcomesWithCursor(outcomes, cursor, size);
+        if (minRating != null && maxRating != null) {
+            cursorResponse = getAllLogsByRatingWithCursor(minRating, maxRating, cursor, size);
         } else {
             cursorResponse = getAllLogsWithCursor(cursor, size);
         }
@@ -563,14 +565,14 @@ public class LogPostService {
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<LogPostSummaryDto> getMyLogsUnified(
-            Long userId, String outcome, String cursor, Integer page, int size) {
+            Long userId, Integer minRating, Integer maxRating, String cursor, Integer page, int size) {
 
         if (cursor != null && !cursor.isEmpty()) {
-            return getMyLogsWithCursorUnified(userId, outcome, cursor, size);
+            return getMyLogsWithCursorUnified(userId, minRating, maxRating, cursor, size);
         } else if (page != null) {
-            return getMyLogsWithOffset(userId, outcome, page, size);
+            return getMyLogsWithOffset(userId, minRating, maxRating, page, size);
         } else {
-            return getMyLogsWithCursorUnified(userId, outcome, null, size);
+            return getMyLogsWithCursorUnified(userId, minRating, maxRating, null, size);
         }
     }
 
@@ -578,14 +580,14 @@ public class LogPostService {
      * Offset-based my logs for web clients.
      */
     private UnifiedPageResponse<LogPostSummaryDto> getMyLogsWithOffset(
-            Long userId, String outcome, int page, int size) {
+            Long userId, Integer minRating, Integer maxRating, int page, int size) {
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<LogPost> logs;
-        if (outcome != null && !outcome.isBlank()) {
-            logs = logPostRepository.findMyLogsByOutcomePage(userId, outcome.toUpperCase(), pageable);
+        if (minRating != null && maxRating != null) {
+            logs = logPostRepository.findMyLogsByRatingPage(userId, minRating, maxRating, pageable);
         } else {
             logs = logPostRepository.findMyLogsPage(userId, pageable);
         }
@@ -598,10 +600,10 @@ public class LogPostService {
      * Cursor-based my logs wrapped in UnifiedPageResponse.
      */
     private UnifiedPageResponse<LogPostSummaryDto> getMyLogsWithCursorUnified(
-            Long userId, String outcome, String cursor, int size) {
+            Long userId, Integer minRating, Integer maxRating, String cursor, int size) {
 
         CursorPageResponse<LogPostSummaryDto> cursorResponse =
-                getMyLogsWithCursor(userId, outcome, cursor, size);
+                getMyLogsWithCursor(userId, minRating, maxRating, cursor, size);
 
         return UnifiedPageResponse.fromCursor(
                 cursorResponse.content(),

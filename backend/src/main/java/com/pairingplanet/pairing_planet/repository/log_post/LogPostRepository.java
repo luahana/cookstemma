@@ -22,19 +22,20 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // 2. 내 로그 목록 (최신순)
     Slice<LogPost> findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long creatorId, Pageable pageable);
 
-    // 2-1. 내 로그 목록 (outcome 필터링)
+    // 2-1. 내 로그 목록 (rating 범위 필터링)
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.creator_id = :creatorId
         AND lp.deleted_at IS NULL
-        AND rl.outcome = :outcome
+        AND rl.rating BETWEEN :minRating AND :maxRating
         ORDER BY lp.created_at DESC
         """,
         nativeQuery = true)
-    Slice<LogPost> findByCreatorIdAndOutcome(
+    Slice<LogPost> findByCreatorIdAndRatingBetween(
             @Param("creatorId") Long creatorId,
-            @Param("outcome") String outcome,
+            @Param("minRating") Integer minRating,
+            @Param("maxRating") Integer maxRating,
             Pageable pageable);
 
     // 3. 특정 지역/언어 기반 최신 로그 피드
@@ -43,16 +44,16 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query("SELECT l FROM LogPost l ORDER BY l.createdAt DESC")
     Slice<LogPost> findAllOrderByCreatedAtDesc(Pageable pageable);
 
-    // Filter by multiple outcomes
+    // Filter by rating range
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL
-        AND rl.outcome IN (:outcomes)
+        AND rl.rating BETWEEN :minRating AND :maxRating
         ORDER BY lp.created_at DESC
         """,
         nativeQuery = true)
-    Slice<LogPost> findByOutcomesIn(@Param("outcomes") List<String> outcomes, Pageable pageable);
+    Slice<LogPost> findByRatingBetween(@Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
 
     // 4. 사용자의 로그 개수 (삭제되지 않은 것만)
     long countByCreatorIdAndDeletedAtIsNull(Long creatorId);
@@ -96,28 +97,28 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
            "ORDER BY l.createdAt DESC, l.id DESC")
     Slice<LogPost> findAllLogsWithCursor(@Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
-    // [Cursor] Logs by outcomes - initial page (native query for JOIN)
+    // [Cursor] Logs by rating range - initial page (native query for JOIN)
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL
-        AND rl.outcome IN (:outcomes)
+        AND rl.rating BETWEEN :minRating AND :maxRating
         ORDER BY lp.created_at DESC, lp.id DESC
         """,
         nativeQuery = true)
-    Slice<LogPost> findByOutcomesWithCursorInitial(@Param("outcomes") List<String> outcomes, Pageable pageable);
+    Slice<LogPost> findByRatingWithCursorInitial(@Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
 
-    // [Cursor] Logs by outcomes - with cursor (native query for JOIN)
+    // [Cursor] Logs by rating range - with cursor (native query for JOIN)
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL
-        AND rl.outcome IN (:outcomes)
+        AND rl.rating BETWEEN :minRating AND :maxRating
         AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
         ORDER BY lp.created_at DESC, lp.id DESC
         """,
         nativeQuery = true)
-    Slice<LogPost> findByOutcomesWithCursor(@Param("outcomes") List<String> outcomes, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    Slice<LogPost> findByRatingWithCursor(@Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] My logs - initial page
     @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.deletedAt IS NULL ORDER BY l.createdAt DESC, l.id DESC")
@@ -129,30 +130,30 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
            "ORDER BY l.createdAt DESC, l.id DESC")
     Slice<LogPost> findMyLogsWithCursor(@Param("creatorId") Long creatorId, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
-    // [Cursor] My logs by outcome - initial page (native query for JOIN)
+    // [Cursor] My logs by rating - initial page (native query for JOIN)
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.creator_id = :creatorId
         AND lp.deleted_at IS NULL
-        AND rl.outcome = :outcome
+        AND rl.rating BETWEEN :minRating AND :maxRating
         ORDER BY lp.created_at DESC, lp.id DESC
         """,
         nativeQuery = true)
-    Slice<LogPost> findMyLogsByOutcomeWithCursorInitial(@Param("creatorId") Long creatorId, @Param("outcome") String outcome, Pageable pageable);
+    Slice<LogPost> findMyLogsByRatingWithCursorInitial(@Param("creatorId") Long creatorId, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
 
-    // [Cursor] My logs by outcome - with cursor (native query for JOIN)
+    // [Cursor] My logs by rating - with cursor (native query for JOIN)
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.creator_id = :creatorId
         AND lp.deleted_at IS NULL
-        AND rl.outcome = :outcome
+        AND rl.rating BETWEEN :minRating AND :maxRating
         AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
         ORDER BY lp.created_at DESC, lp.id DESC
         """,
         nativeQuery = true)
-    Slice<LogPost> findMyLogsByOutcomeWithCursor(@Param("creatorId") Long creatorId, @Param("outcome") String outcome, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    Slice<LogPost> findMyLogsByRatingWithCursor(@Param("creatorId") Long creatorId, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // ==================== OFFSET-BASED PAGINATION (for Web) ====================
 
@@ -189,43 +190,43 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         nativeQuery = true)
     Page<LogPost> findAllLogsOrderByTrending(Pageable pageable);
 
-    // [Offset] Logs by outcomes - page (native query for JOIN)
+    // [Offset] Logs by rating range - page (native query for JOIN)
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL
-        AND rl.outcome IN (:outcomes)
+        AND rl.rating BETWEEN :minRating AND :maxRating
         """,
         countQuery = """
         SELECT COUNT(lp.id) FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL
-        AND rl.outcome IN (:outcomes)
+        AND rl.rating BETWEEN :minRating AND :maxRating
         """,
         nativeQuery = true)
-    Page<LogPost> findByOutcomesPage(@Param("outcomes") List<String> outcomes, Pageable pageable);
+    Page<LogPost> findByRatingPage(@Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
 
     // [Offset] My logs - page
     @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.deletedAt IS NULL")
     Page<LogPost> findMyLogsPage(@Param("creatorId") Long creatorId, Pageable pageable);
 
-    // [Offset] My logs by outcome - page (native query for JOIN)
+    // [Offset] My logs by rating - page (native query for JOIN)
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.creator_id = :creatorId
         AND lp.deleted_at IS NULL
-        AND rl.outcome = :outcome
+        AND rl.rating BETWEEN :minRating AND :maxRating
         """,
         countQuery = """
         SELECT COUNT(lp.id) FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.creator_id = :creatorId
         AND lp.deleted_at IS NULL
-        AND rl.outcome = :outcome
+        AND rl.rating BETWEEN :minRating AND :maxRating
         """,
         nativeQuery = true)
-    Page<LogPost> findMyLogsByOutcomePage(@Param("creatorId") Long creatorId, @Param("outcome") String outcome, Pageable pageable);
+    Page<LogPost> findMyLogsByRatingPage(@Param("creatorId") Long creatorId, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
 
     // [Offset] Search logs - page
     @Query(value = """

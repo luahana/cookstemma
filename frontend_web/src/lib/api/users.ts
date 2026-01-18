@@ -87,3 +87,12 @@ export async function updateUserProfile(
     body: JSON.stringify(data),
   });
 }
+
+/**
+ * Get all user IDs for sitemap generation
+ */
+export async function getAllUserIds(): Promise<string[]> {
+  return apiFetch<string[]>('/users/sitemap', {
+    next: { revalidate: 3600 }, // Cache for 1 hour
+  });
+}

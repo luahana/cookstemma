@@ -6,12 +6,12 @@ import type {
   UpdateLogRequest,
   UnifiedPageResponse,
   PaginationParams,
-  Outcome,
 } from '@/lib/types';
 
 interface LogSearchParams extends PaginationParams {
   q?: string;
-  outcomes?: Outcome[];
+  minRating?: number; // 1-5
+  maxRating?: number; // 1-5
   sort?: 'recent' | 'popular' | 'trending';
 }
 
@@ -25,7 +25,8 @@ export async function getLogs(
     page: params.page ?? 0,
     size: params.size ?? 20,
     q: params.q,
-    outcomes: params.outcomes?.join(','),
+    minRating: params.minRating,
+    maxRating: params.maxRating,
     sort: params.sort,
   });
 

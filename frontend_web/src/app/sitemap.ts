@@ -3,6 +3,7 @@ import { siteConfig } from '@/config/site';
 import { getAllRecipeIds } from '@/lib/api/recipes';
 import { getAllLogIds } from '@/lib/api/logs';
 import { getHashtags } from '@/lib/api/hashtags';
+import { getAllUserIds } from '@/lib/api/users';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url;
@@ -51,6 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let recipePages: MetadataRoute.Sitemap = [];
   let logPages: MetadataRoute.Sitemap = [];
   let hashtagPages: MetadataRoute.Sitemap = [];
+  let userPages: MetadataRoute.Sitemap = [];
 
   try {
     const recipeIds = await getAllRecipeIds();
@@ -88,5 +90,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Failed to fetch hashtags for sitemap');
   }
 
-  return [...staticPages, ...recipePages, ...logPages, ...hashtagPages];
+  try {
+    const userIds = await getAllUserIds();
+    userPages = userIds.map((id) => ({
+      url: `${baseUrl}/users/${id}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.5,
+    }));
+  } catch {
+    console.error('Failed to fetch user IDs for sitemap');
+  }
+
+  return [...staticPages, ...recipePages, ...logPages, ...hashtagPages, ...userPages];
 }

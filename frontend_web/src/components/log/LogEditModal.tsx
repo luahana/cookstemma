@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { updateLog } from '@/lib/api/logs';
 import { getImageUrl } from '@/lib/utils/image';
-import type { LogPostDetail, Outcome } from '@/lib/types';
+import { StarRatingSelector } from './StarRating';
+import type { LogPostDetail, Rating } from '@/lib/types';
 
 interface LogEditModalProps {
   log: LogPostDetail;
@@ -12,12 +13,6 @@ interface LogEditModalProps {
   onClose: () => void;
   onSuccess: (updatedLog: LogPostDetail) => void;
 }
-
-const OUTCOME_OPTIONS: { value: Outcome; label: string; emoji: string }[] = [
-  { value: 'SUCCESS', label: 'Success', emoji: '😊' },
-  { value: 'PARTIAL', label: 'Partial', emoji: '😐' },
-  { value: 'FAILED', label: 'Failed', emoji: '😢' },
-];
 
 export function LogEditModal({
   log,
@@ -27,7 +22,7 @@ export function LogEditModal({
 }: LogEditModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [content, setContent] = useState(log.content);
-  const [outcome, setOutcome] = useState<Outcome>(log.outcome ?? 'SUCCESS');
+  const [rating, setRating] = useState<number>(log.rating ?? 3);
   const [hashtags, setHashtags] = useState(log.hashtags.map((h) => h.name).join(', '));
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +30,7 @@ export function LogEditModal({
   // Reset form when log changes
   useEffect(() => {
     setContent(log.content);
-    setOutcome(log.outcome ?? 'SUCCESS');
+    setRating(log.rating ?? 3);
     setHashtags(log.hashtags.map((h) => h.name).join(', '));
     setError(null);
   }, [log]);
@@ -88,7 +83,7 @@ export function LogEditModal({
 
       const updatedLog = await updateLog(log.publicId, {
         content: content.trim(),
-        outcome,
+        rating: rating as Rating,
         hashtags: hashtagList,
       });
 
@@ -158,34 +153,25 @@ export function LogEditModal({
             </div>
           )}
 
-          {/* Outcome */}
+          {/* Rating */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              Outcome
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-3">
+              Rating
             </label>
-            <div className="flex gap-2">
-              {OUTCOME_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setOutcome(option.value)}
-                  className={`flex-1 py-3 px-4 rounded-xl border-2 transition-colors ${
-                    outcome === option.value
-                      ? option.value === 'SUCCESS'
-                        ? 'border-[var(--success)] bg-[var(--diff-added-bg)]'
-                        : option.value === 'PARTIAL'
-                          ? 'border-[var(--diff-modified)] bg-[var(--diff-modified-bg)]'
-                          : 'border-[var(--error)] bg-[var(--diff-removed-bg)]'
-                      : 'border-[var(--border)] hover:border-[var(--primary-light)]'
-                  }`}
-                >
-                  <span className="text-2xl">{option.emoji}</span>
-                  <span className="block text-sm mt-1 text-[var(--text-primary)]">
-                    {option.label}
-                  </span>
-                </button>
-              ))}
+            <div className="flex justify-center">
+              <StarRatingSelector
+                value={rating}
+                onChange={setRating}
+                size="lg"
+              />
             </div>
+            <p className="text-center text-sm text-[var(--text-secondary)] mt-2">
+              {rating === 5 && 'Excellent!'}
+              {rating === 4 && 'Great'}
+              {rating === 3 && 'Good'}
+              {rating === 2 && 'Fair'}
+              {rating === 1 && 'Poor'}
+            </p>
           </div>
 
           {/* Content */}

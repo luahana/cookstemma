@@ -6,7 +6,7 @@ import { getLogDetail } from '@/lib/api/logs';
 import { LogJsonLd } from '@/components/log/LogJsonLd';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 import { LogDetailClient } from '@/components/log/LogDetailClient';
-import { OUTCOME_CONFIG } from '@/lib/types';
+import { StarRating } from '@/components/log/StarRating';
 import { RecipeCard } from '@/components/recipe/RecipeCard';
 import { ShareButtons } from '@/components/common/ShareButtons';
 import { BookmarkButton } from '@/components/common/BookmarkButton';
@@ -80,7 +80,7 @@ export default async function LogDetailPage({ params }: Props) {
         title={log.title}
         thumbnail={log.images[0]?.imageUrl || null}
         foodName={log.linkedRecipe?.foodName || null}
-        outcome={log.outcome}
+        rating={log.rating}
       />
       <LogJsonLd log={log} />
       <BreadcrumbJsonLd
@@ -117,12 +117,11 @@ export default async function LogDetailPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Food name with outcome emoji */}
+          {/* Food name */}
           {log.linkedRecipe?.foodName && (
-            <p className="text-lg font-medium text-[var(--primary)] mb-2">
-              {log.outcome && <span className="mr-1">{OUTCOME_CONFIG[log.outcome].label}</span>}
-              {log.linkedRecipe.foodName}
-            </p>
+            <div className="mb-2">
+              <span className="text-lg font-medium text-[var(--primary)]">{log.linkedRecipe.foodName}</span>
+            </div>
           )}
 
           <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-4">
@@ -202,6 +201,14 @@ export default async function LogDetailPage({ params }: Props) {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Star Rating */}
+        {log.rating && (
+          <div className="mb-8 flex items-center gap-3">
+            <StarRating rating={log.rating} size="lg" />
+            <span className="text-lg text-[var(--text-secondary)]">{log.rating}/5</span>
           </div>
         )}
 

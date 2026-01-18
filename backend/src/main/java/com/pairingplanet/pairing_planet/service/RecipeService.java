@@ -222,7 +222,7 @@ public class RecipeService {
                     return new LogPostSummaryDto(
                             logPost.getPublicId(),
                             logPost.getTitle(),
-                            rl.getOutcome(),
+                            rl.getRating(),
                             thumbnailUrl,
                             logCreatorPublicId,
                             logCreatorName,
@@ -543,7 +543,7 @@ public class RecipeService {
 
                     return RecentActivityDto.builder()
                             .logPublicId(log.getPublicId())
-                            .outcome(recipeLog.getOutcome())
+                            .rating(recipeLog.getRating())
                             .thumbnailUrl(thumbnailUrl)
                             .userName(userName)
                             .recipeTitle(recipe.getTitle())

@@ -3,7 +3,6 @@ import { getLogs } from '@/lib/api/logs';
 import { LogGrid } from '@/components/log/LogGrid';
 import { LogFilters } from '@/components/common/LogFilters';
 import { Pagination } from '@/components/common/Pagination';
-import type { Outcome } from '@/lib/types';
 import { siteConfig } from '@/config/site';
 
 export const metadata: Metadata = {
@@ -18,7 +17,8 @@ interface Props {
   searchParams: Promise<{
     page?: string;
     sort?: 'recent' | 'popular' | 'trending';
-    outcome?: Outcome;
+    minRating?: string;
+    maxRating?: string;
   }>;
 }
 
@@ -26,19 +26,22 @@ export default async function LogsPage({ searchParams }: Props) {
   const params = await searchParams;
   const page = parseInt(params.page || '0', 10);
   const sort = params.sort || 'recent';
-  const outcome = params.outcome;
+  const minRating = params.minRating ? parseInt(params.minRating, 10) : undefined;
+  const maxRating = params.maxRating ? parseInt(params.maxRating, 10) : undefined;
 
   const logs = await getLogs({
     page,
     size: 12,
     sort,
-    outcomes: outcome ? [outcome] : undefined,
+    minRating,
+    maxRating,
   });
 
   // Build base URL with current filters for pagination
   const filterParams = new URLSearchParams();
   if (sort !== 'recent') filterParams.set('sort', sort);
-  if (outcome) filterParams.set('outcome', outcome);
+  if (minRating) filterParams.set('minRating', String(minRating));
+  if (maxRating) filterParams.set('maxRating', String(maxRating));
   const baseUrl = filterParams.toString()
     ? `/logs?${filterParams.toString()}`
     : '/logs';

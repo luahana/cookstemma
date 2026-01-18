@@ -1,7 +1,9 @@
 package com.pairingplanet.pairing_planet.dto.log_post;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
@@ -12,9 +14,10 @@ public record UpdateLogRequestDto(
         @NotBlank(message = "요리 후기는 필수입니다")
         @Size(max = 500, message = "요리 후기는 500자 이하여야 합니다")
         String content,
-        @NotBlank(message = "요리 결과는 필수입니다")
-        @Pattern(regexp = "SUCCESS|PARTIAL|FAILED", message = "요리 결과는 SUCCESS, PARTIAL, FAILED 중 하나여야 합니다")
-        String outcome,
+        @NotNull(message = "별점은 필수입니다")
+        @Min(value = 1, message = "별점은 1 이상이어야 합니다")
+        @Max(value = 5, message = "별점은 5 이하여야 합니다")
+        Integer rating,
         List<String> hashtags,
         List<UUID> imagePublicIds  // Optional: update images if provided
 ) {}

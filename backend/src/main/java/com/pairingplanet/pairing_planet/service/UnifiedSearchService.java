@@ -329,7 +329,7 @@ public class UnifiedSearchService {
         return new LogPostSummaryDto(
             log.getPublicId(),
             log.getTitle(),
-            recipeLog != null ? recipeLog.getOutcome() : null,
+            recipeLog != null ? recipeLog.getRating() : null,
             thumbnailUrl,
             creatorPublicId,
             userName,

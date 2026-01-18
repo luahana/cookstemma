@@ -554,10 +554,19 @@
         "lessonsFirst": "교훈 먼저"
       }
     },
+    "ratingLabel": {
+      "1": "아쉬워요",
+      "2": "그저 그래요",
+      "3": "괜찮아요",
+      "4": "맛있어요!",
+      "5": "완벽해요!"
+    },
     "quickLog": {
       "fabLabel": "요리 기록",
       "fabHint": "탭하여 요리 기록하기",
       "button": "요리 기록",
+      "howWouldYouRate": "별점을 매겨주세요",
+      "tapToRate": "탭하여 평가",
       "howDidItGo": "어떻게 됐나요?",
       "tapToSelect": "탭하여 선택",
       "step": {

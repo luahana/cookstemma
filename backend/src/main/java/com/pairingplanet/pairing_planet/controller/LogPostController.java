@@ -38,13 +38,14 @@ public class LogPostController {
      * GET /api/v1/log_posts?cursor=xxx&size=10 (mobile)
      * GET /api/v1/log_posts?page=0&size=10 (web)
      * GET /api/v1/log_posts?q=검색어 : 제목/내용/레시피명 검색
-     * GET /api/v1/log_posts?outcomes=PARTIAL,FAILED : outcome 필터링
+     * GET /api/v1/log_posts?minRating=1&maxRating=5 : rating 범위 필터링
      * GET /api/v1/log_posts?sort=recent|popular|trending : 정렬 옵션
      */
     @GetMapping
     public ResponseEntity<UnifiedPageResponse<LogPostSummaryDto>> getAllLogs(
             @RequestParam(name = "q", required = false) String searchKeyword,
-            @RequestParam(name = "outcomes", required = false) String outcomes,
+            @RequestParam(name = "minRating", required = false) Integer minRating,
+            @RequestParam(name = "maxRating", required = false) Integer maxRating,
             @RequestParam(name = "sort", required = false) String sort,
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
@@ -53,27 +54,23 @@ public class LogPostController {
         if (searchKeyword != null && !searchKeyword.isBlank()) {
             return ResponseEntity.ok(logPostService.searchLogPostsUnified(searchKeyword, cursor, page, size));
         }
-        // outcome 필터링
-        java.util.List<String> outcomeList = null;
-        if (outcomes != null && !outcomes.isBlank()) {
-            outcomeList = java.util.Arrays.asList(outcomes.split(","));
-        }
-        return ResponseEntity.ok(logPostService.getAllLogsUnified(outcomeList, sort, cursor, page, size));
+        return ResponseEntity.ok(logPostService.getAllLogsUnified(minRating, maxRating, sort, cursor, page, size));
     }
 
     /**
      * 내 로그 목록 조회 (마이페이지용, Dual pagination: cursor + offset)
-     * GET /api/v1/log_posts/my?cursor=xxx&size=10&outcome=SUCCESS|PARTIAL|FAILED (mobile)
-     * GET /api/v1/log_posts/my?page=0&size=10&outcome=SUCCESS|PARTIAL|FAILED (web)
+     * GET /api/v1/log_posts/my?cursor=xxx&size=10&minRating=1&maxRating=5 (mobile)
+     * GET /api/v1/log_posts/my?page=0&size=10&minRating=1&maxRating=5 (web)
      */
     @GetMapping("/my")
     public ResponseEntity<UnifiedPageResponse<LogPostSummaryDto>> getMyLogs(
             @AuthenticationPrincipal UserPrincipal principal,
-            @RequestParam(name = "outcome", required = false) String outcome,
+            @RequestParam(name = "minRating", required = false) Integer minRating,
+            @RequestParam(name = "maxRating", required = false) Integer maxRating,
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
-        return ResponseEntity.ok(logPostService.getMyLogsUnified(principal.getId(), outcome, cursor, page, size));
+        return ResponseEntity.ok(logPostService.getMyLogsUnified(principal.getId(), minRating, maxRating, cursor, page, size));
     }
 
     /**

@@ -92,7 +92,7 @@ class LogPostControllerTest extends BaseIntegrationTest {
         RecipeLog recipeLog = RecipeLog.builder()
                 .logPost(testLogPost)
                 .recipe(testRecipe)
-                .outcome("SUCCESS")
+                .rating(5)
                 .build();
         testLogPost.setRecipeLog(recipeLog);
 
@@ -124,7 +124,7 @@ class LogPostControllerTest extends BaseIntegrationTest {
             UpdateLogRequestDto request = new UpdateLogRequestDto(
                     "Updated Title",
                     "Updated content",
-                    "PARTIAL",
+                    3,  // 3 stars
                     List.of("tag1", "tag2"),
                     null
             );
@@ -135,7 +135,7 @@ class LogPostControllerTest extends BaseIntegrationTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").value("Updated content"))
-                    .andExpect(jsonPath("$.outcome").value("PARTIAL"));
+                    .andExpect(jsonPath("$.rating").value(3));
 
             // Verify database update
             LogPost updated = logPostRepository.findByPublicId(testLogPost.getPublicId()).orElseThrow();
@@ -148,7 +148,7 @@ class LogPostControllerTest extends BaseIntegrationTest {
             UpdateLogRequestDto request = new UpdateLogRequestDto(
                     "Updated Title",
                     "Updated content",
-                    "PARTIAL",
+                    3,  // 3 stars
                     null,
                     null
             );
@@ -166,7 +166,7 @@ class LogPostControllerTest extends BaseIntegrationTest {
             UpdateLogRequestDto request = new UpdateLogRequestDto(
                     "Updated Title",
                     "Updated content",
-                    "PARTIAL",
+                    3,  // 3 stars
                     null,
                     null
             );
@@ -183,7 +183,7 @@ class LogPostControllerTest extends BaseIntegrationTest {
             UpdateLogRequestDto request = new UpdateLogRequestDto(
                     "Updated Title",
                     "Updated content",
-                    "PARTIAL",
+                    3,  // 3 stars
                     null,
                     null
             );
@@ -201,7 +201,7 @@ class LogPostControllerTest extends BaseIntegrationTest {
             UpdateLogRequestDto request = new UpdateLogRequestDto(
                     "Updated Title",
                     "",  // blank content
-                    "PARTIAL",
+                    3,  // 3 stars
                     null,
                     null
             );
@@ -214,12 +214,12 @@ class LogPostControllerTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should return 400 when outcome is invalid")
-        void updateLog_InvalidOutcome_Returns400() throws Exception {
+        @DisplayName("Should return 400 when rating is invalid (out of range)")
+        void updateLog_InvalidRating_Returns400() throws Exception {
             UpdateLogRequestDto request = new UpdateLogRequestDto(
                     "Updated Title",
                     "Updated content",
-                    "INVALID_OUTCOME",  // invalid outcome
+                    6,  // invalid rating (max is 5)
                     null,
                     null
             );
@@ -285,7 +285,7 @@ class LogPostControllerTest extends BaseIntegrationTest {
                     .andExpect(jsonPath("$.content.length()").value(1))
                     .andExpect(jsonPath("$.content[0].publicId").value(testLogPost.getPublicId().toString()))
                     .andExpect(jsonPath("$.content[0].title").value("Test Log"))
-                    .andExpect(jsonPath("$.content[0].outcome").value("SUCCESS"));
+                    .andExpect(jsonPath("$.content[0].rating").value(5));
         }
 
         @Test
@@ -336,7 +336,7 @@ class LogPostControllerTest extends BaseIntegrationTest {
                 RecipeLog recipeLog = RecipeLog.builder()
                         .logPost(log)
                         .recipe(testRecipe)
-                        .outcome("SUCCESS")
+                        .rating(5)
                         .build();
                 log.setRecipeLog(recipeLog);
                 logPostRepository.save(log);
@@ -388,7 +388,7 @@ class LogPostControllerTest extends BaseIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content[0].publicId").exists())
                     .andExpect(jsonPath("$.content[0].title").exists())
-                    .andExpect(jsonPath("$.content[0].outcome").exists())
+                    .andExpect(jsonPath("$.content[0].rating").exists())
                     .andExpect(jsonPath("$.content[0].userName").value(testUser.getUsername()));
         }
     }
@@ -433,11 +433,11 @@ class LogPostControllerTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should combine sort with outcome filter")
-        void getLogs_SortWithOutcomeFilter_Returns200() throws Exception {
+        @DisplayName("Should combine sort with rating filter")
+        void getLogs_SortWithRatingFilter_Returns200() throws Exception {
             mockMvc.perform(get("/api/v1/log_posts")
                             .param("sort", "popular")
-                            .param("outcomes", "SUCCESS"))
+                            .param("minRating", "4"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray());
         }

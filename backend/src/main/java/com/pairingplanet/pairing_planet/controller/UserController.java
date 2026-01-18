@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -27,6 +28,16 @@ public class UserController {
 
     private final UserService userService;
     private final CookingDnaService cookingDnaService;
+
+    /**
+     * Get all user public IDs for sitemap generation (public endpoint)
+     * Returns only active users, limited to 1000 for performance
+     */
+    @GetMapping("/sitemap")
+    public ResponseEntity<List<UUID>> getUserIdsForSitemap() {
+        List<UUID> userIds = userService.getAllUserIdsForSitemap();
+        return ResponseEntity.ok(userIds);
+    }
 
     /**
      * [TAB 4: PROFILE] 내 정보 조회

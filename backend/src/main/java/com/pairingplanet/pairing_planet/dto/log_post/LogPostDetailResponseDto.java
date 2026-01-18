@@ -13,7 +13,7 @@ public record LogPostDetailResponseDto(
         UUID publicId,
         String title,
         String content,
-        String outcome,  // SUCCESS, PARTIAL, FAILED
+        Integer rating,  // 1-5 star rating
         List<ImageResponseDto> images,
         RecipeSummaryDto linkedRecipe,
         Instant createdAt,

@@ -308,8 +308,8 @@ public class HashtagService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        // 3. Outcome and food name from recipe log
-        String outcome = logPost.getRecipeLog() != null ? logPost.getRecipeLog().getOutcome() : null;
+        // 3. Rating and food name from recipe log
+        Integer rating = logPost.getRecipeLog() != null ? logPost.getRecipeLog().getRating() : null;
         String foodName = null;
         boolean isVariant = false;
 
@@ -328,7 +328,7 @@ public class HashtagService {
         return new LogPostSummaryDto(
                 logPost.getPublicId(),
                 logPost.getTitle(),
-                outcome,
+                rating,
                 thumbnailUrl,
                 creatorPublicId,
                 userName,

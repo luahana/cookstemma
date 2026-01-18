@@ -1,9 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { LogPostSummary } from '@/lib/types';
-import { OUTCOME_CONFIG } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
 import { BookmarkButton } from '@/components/common/BookmarkButton';
+import { StarRating } from './StarRating';
 
 interface LogCardProps {
   log: LogPostSummary;
@@ -75,12 +75,16 @@ export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCard
           </span>
         )}
 
-        {/* Food name with outcome emoji */}
+        {/* Food name with star rating */}
         {log.foodName && (
           <p className="text-sm font-medium text-[var(--primary)]">
-            {log.outcome && <span className="mr-1">{OUTCOME_CONFIG[log.outcome].label}</span>}
             {log.foodName}
           </p>
+        )}
+        {log.rating && (
+          <div className="mt-1">
+            <StarRating rating={log.rating} size="sm" />
+          </div>
         )}
 
         {/* Title */}

@@ -11,7 +11,7 @@ interface ViewTrackerProps {
   title: string;
   thumbnail: string | null;
   foodName: string | null;
-  outcome?: string | null;
+  rating?: number | null;
 }
 
 /**
@@ -24,7 +24,7 @@ export function ViewTracker({
   title,
   thumbnail,
   foodName,
-  outcome,
+  rating,
 }: ViewTrackerProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const hasTrackedLocal = useRef(false);
@@ -41,9 +41,9 @@ export function ViewTracker({
       title,
       thumbnail,
       foodName,
-      outcome,
+      rating,
     });
-  }, [type, publicId, title, thumbnail, foodName, outcome]);
+  }, [type, publicId, title, thumbnail, foodName, rating]);
 
   // Save to backend after auth is determined (only for authenticated users)
   useEffect(() => {

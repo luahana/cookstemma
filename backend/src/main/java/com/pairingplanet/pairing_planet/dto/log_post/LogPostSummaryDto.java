@@ -6,7 +6,7 @@ import java.util.UUID;
 public record LogPostSummaryDto(
         UUID publicId,
         String title,
-        String outcome,  // SUCCESS, PARTIAL, FAILED
+        Integer rating,  // 1-5 star rating
         String thumbnailUrl, // [수정] thumbnail -> thumbnailUrl
         UUID creatorPublicId,  // Creator's publicId for profile navigation
         String userName,

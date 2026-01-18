@@ -24,5 +24,5 @@ public class RecipeLog {
     @JoinColumn(name = "recipe_id")
     private Recipe recipe;
 
-    private String outcome;  // SUCCESS, PARTIAL, FAILED
+    private Integer rating;  // 1-5 star rating
 }

@@ -55,13 +55,13 @@ describe('viewHistory localStorage helpers', () => {
         title: 'My Cooking Log',
         thumbnail: '/images/log.jpg',
         foodName: 'Ramen',
-        outcome: 'SUCCESS',
+        rating: 5,
       });
 
       const history = getViewHistory();
       expect(history).toHaveLength(1);
       expect(history[0].type).toBe('log');
-      expect(history[0].outcome).toBe('SUCCESS');
+      expect(history[0].rating).toBe(5);
     });
 
     it('should add new items to the front', () => {

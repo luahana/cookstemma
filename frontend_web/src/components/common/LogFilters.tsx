@@ -12,7 +12,7 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
   const searchParams = useSearchParams();
 
   const currentSort = searchParams.get('sort') || 'recent';
-  const currentOutcome = searchParams.get('outcome') || 'all';
+  const currentRating = searchParams.get('rating') || 'all';
 
   const updateFilters = useCallback(
     (key: string, value: string) => {
@@ -20,6 +20,17 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
 
       if (value === 'all' || value === 'recent') {
         params.delete(key);
+        // Clear rating range params when 'all' is selected
+        if (key === 'rating') {
+          params.delete('minRating');
+          params.delete('maxRating');
+        }
+      } else if (key === 'rating') {
+        // Set rating range based on selection
+        const [min, max] = value.split('-');
+        params.set('minRating', min);
+        params.set('maxRating', max);
+        params.delete('rating');
       } else {
         params.set(key, value);
       }
@@ -33,7 +44,17 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
     [router, searchParams, baseUrl]
   );
 
-  const hasActiveFilters = currentSort !== 'recent' || currentOutcome !== 'all';
+  // Determine current rating selection from params
+  const getRatingSelection = () => {
+    const minRating = searchParams.get('minRating');
+    const maxRating = searchParams.get('maxRating');
+    if (minRating && maxRating) {
+      return `${minRating}-${maxRating}`;
+    }
+    return 'all';
+  };
+
+  const hasActiveFilters = currentSort !== 'recent' || getRatingSelection() !== 'all';
 
   return (
     <div className="flex flex-wrap items-center gap-4 mb-6">
@@ -54,21 +75,22 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
         </select>
       </div>
 
-      {/* Outcome filter */}
+      {/* Rating filter */}
       <div className="flex items-center gap-2">
-        <label htmlFor="outcome" className="text-sm text-[var(--text-secondary)]">
-          Outcome:
+        <label htmlFor="rating" className="text-sm text-[var(--text-secondary)]">
+          Rating:
         </label>
         <select
-          id="outcome"
-          value={currentOutcome}
-          onChange={(e) => updateFilters('outcome', e.target.value)}
+          id="rating"
+          value={getRatingSelection()}
+          onChange={(e) => updateFilters('rating', e.target.value)}
           className="px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
         >
-          <option value="all">All Outcomes</option>
-          <option value="SUCCESS">Success</option>
-          <option value="PARTIAL">Partial</option>
-          <option value="FAILED">Failed</option>
+          <option value="all">All Ratings</option>
+          <option value="5-5">5 Stars</option>
+          <option value="4-5">4-5 Stars</option>
+          <option value="3-5">3+ Stars</option>
+          <option value="1-2">1-2 Stars</option>
         </select>
       </div>
 

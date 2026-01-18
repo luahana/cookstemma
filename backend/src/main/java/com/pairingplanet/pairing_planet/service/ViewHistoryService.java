@@ -234,7 +234,7 @@ public class ViewHistoryService {
         return new LogPostSummaryDto(
                 logPost.getPublicId(),
                 logPost.getTitle(),
-                recipeLog != null ? recipeLog.getOutcome() : null,
+                recipeLog != null ? recipeLog.getRating() : null,
                 thumbnailUrl,
                 creatorPublicId,
                 userName,

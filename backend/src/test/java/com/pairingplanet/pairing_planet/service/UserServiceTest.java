@@ -121,8 +121,8 @@ class UserServiceTest extends BaseIntegrationTest {
 
             // Create 2 successful logs (2 * 30 = 60 XP)
             // Total: 100 + 60 = 160 XP = Level 2
-            createLogWithOutcome(recipe, "SUCCESS");
-            createLogWithOutcome(recipe2, "SUCCESS");
+            createLogWithRating(recipe, 5);
+            createLogWithRating(recipe2, 5);
 
             UserDto result = userService.getUserProfile(testUser.getPublicId());
 
@@ -147,7 +147,7 @@ class UserServiceTest extends BaseIntegrationTest {
                 recipeRepository.save(recipe);
 
                 if (i < 7) {
-                    createLogWithOutcome(recipe, "SUCCESS");
+                    createLogWithRating(recipe, 5);
                 }
             }
 
@@ -173,7 +173,7 @@ class UserServiceTest extends BaseIntegrationTest {
             assertThat(result.levelName()).isNotNull();
         }
 
-        private void createLogWithOutcome(Recipe recipe, String outcome) {
+        private void createLogWithRating(Recipe recipe, Integer rating) {
             LogPost logPost = LogPost.builder()
                     .title("Log for " + recipe.getTitle())
                     .content("Test content")
@@ -184,7 +184,7 @@ class UserServiceTest extends BaseIntegrationTest {
             RecipeLog recipeLog = RecipeLog.builder()
                     .logPost(logPost)
                     .recipe(recipe)
-                    .outcome(outcome)
+                    .rating(rating)
                     .build();
             logPost.setRecipeLog(recipeLog);
 

@@ -81,18 +81,19 @@ public class UserService {
         long recipeCount = recipeRepository.countByCreatorIdAndDeletedAtIsNull(userId);
         long logCount = logPostRepository.countByCreatorIdAndDeletedAtIsNull(userId);
 
-        // Calculate gamification level
-        List<Object[]> outcomeCounts = recipeLogRepository.countByOutcomeForUser(userId);
-        int successCount = 0, partialCount = 0, failedCount = 0;
-        for (Object[] row : outcomeCounts) {
-            String outcome = (String) row[0];
-            int count = ((Number) row[1]).intValue();
-            if ("SUCCESS".equals(outcome)) successCount = count;
-            else if ("PARTIAL".equals(outcome)) partialCount = count;
-            else if ("FAILED".equals(outcome)) failedCount = count;
+        // Calculate gamification level using rating-based XP
+        List<Object[]> ratingCounts = recipeLogRepository.countByRatingForUser(userId);
+        int totalRatingXp = 0;
+        for (Object[] row : ratingCounts) {
+            Integer rating = (Integer) row[0];
+            Long count = (Long) row[1];
+            if (rating != null && count != null) {
+                // rating * 6 XP per log (1=6, 2=12, 3=18, 4=24, 5=30)
+                totalRatingXp += rating * 6 * count.intValue();
+            }
         }
 
-        int totalXp = cookingDnaService.calculateTotalXp(recipeCount, successCount, partialCount, failedCount);
+        int totalXp = cookingDnaService.calculateTotalXp(recipeCount, totalRatingXp);
         int level = cookingDnaService.calculateLevel(totalXp);
         String levelName = cookingDnaService.getLevelName(level);
 
@@ -406,7 +407,7 @@ public class UserService {
         return new LogPostSummaryDto(
                 log.getPublicId(),
                 log.getTitle(),
-                log.getRecipeLog() != null ? log.getRecipeLog().getOutcome() : null,
+                log.getRecipeLog() != null ? log.getRecipeLog().getRating() : null,
                 thumbnailUrl,
                 creatorPublicId,
                 userName,
@@ -427,5 +428,16 @@ public class UserService {
             return nameMap.get("en-US");
         }
         return nameMap.values().stream().findFirst().orElse("Unknown Food");
+    }
+
+    /**
+     * Get all active user public IDs for sitemap generation
+     * Returns up to 1000 active users, ordered by creation date
+     */
+    public List<UUID> getAllUserIdsForSitemap() {
+        return userRepository.findPublicIdsByStatusOrderByCreatedAtDesc(
+                AccountStatus.ACTIVE,
+                org.springframework.data.domain.PageRequest.of(0, 1000)
+        );
     }
 }

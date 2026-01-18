@@ -558,10 +558,19 @@
         "lessonsFirst": "Lessons First"
       }
     },
+    "ratingLabel": {
+      "1": "Needs work",
+      "2": "It was okay",
+      "3": "Pretty good",
+      "4": "Great!",
+      "5": "Perfect!"
+    },
     "quickLog": {
       "fabLabel": "Cooking Log",
       "fabHint": "Tap to log your cooking",
       "button": "Cooking Log",
+      "howWouldYouRate": "How would you rate it?",
+      "tapToRate": "Tap to rate",
       "howDidItGo": "How did it go?",
       "tapToSelect": "Tap to select",
       "step": {

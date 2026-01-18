@@ -182,7 +182,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
             RecipeLog recipeLog = RecipeLog.builder()
                     .logPost(logPost)
                     .recipe(recipe)
-                    .outcome("SUCCESS")
+                    .rating(5)
                     .build();
             logPost.setRecipeLog(recipeLog);
             logPostRepository.save(logPost);
@@ -419,7 +419,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
             RecipeLog recipeLog = RecipeLog.builder()
                     .logPost(logPost)
                     .recipe(recipe)
-                    .outcome("SUCCESS")
+                    .rating(5)
                     .build();
             logPost.setRecipeLog(recipeLog);
             logPostRepository.save(logPost);

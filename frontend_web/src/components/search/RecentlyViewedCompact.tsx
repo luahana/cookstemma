@@ -9,7 +9,7 @@ import {
   type ViewHistoryItem,
 } from '@/lib/utils/viewHistory';
 import { getImageUrl } from '@/lib/utils/image';
-import { OUTCOME_CONFIG } from '@/lib/types';
+import { StarRating } from '@/components/log/StarRating';
 
 export function RecentlyViewedCompact() {
   // Initialize with null to detect if we've loaded from localStorage yet
@@ -133,11 +133,9 @@ export function RecentlyViewedCompact() {
                       </svg>
                     </div>
                   )}
-                  {/* Log badge with outcome emoji */}
-                  <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[var(--secondary)] text-white text-xs font-medium rounded">
-                    {item.outcome && OUTCOME_CONFIG[item.outcome as keyof typeof OUTCOME_CONFIG]
-                      ? OUTCOME_CONFIG[item.outcome as keyof typeof OUTCOME_CONFIG].label
-                      : ''}{' '}
+                  {/* Log badge with star rating */}
+                  <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[var(--secondary)] text-white text-xs font-medium rounded flex items-center gap-1">
+                    {item.rating && <StarRating rating={item.rating} size="sm" />}
                     Log
                   </span>
                 </div>

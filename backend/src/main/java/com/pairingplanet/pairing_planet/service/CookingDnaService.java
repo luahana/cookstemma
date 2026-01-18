@@ -2,6 +2,7 @@ package com.pairingplanet.pairing_planet.service;
 
 import com.pairingplanet.pairing_planet.dto.user.CookingDnaDto;
 import com.pairingplanet.pairing_planet.dto.user.CuisineStatDto;
+import com.pairingplanet.pairing_planet.dto.user.RatingDistributionDto;
 import com.pairingplanet.pairing_planet.repository.log_post.LogPostRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.RecipeLogRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.RecipeRepository;
@@ -27,9 +28,7 @@ public class CookingDnaService {
 
     // XP Constants
     private static final int XP_RECIPE_CREATED = 50;
-    private static final int XP_LOG_SUCCESS = 30;
-    private static final int XP_LOG_PARTIAL = 15;
-    private static final int XP_LOG_FAILED = 5;
+    private static final int XP_PER_RATING_POINT = 6;  // rating * 6 (1=6, 2=12, 3=18, 4=24, 5=30)
 
     // Level thresholds (cumulative XP required for each level)
     private static final int[] LEVEL_THRESHOLDS = {
@@ -64,28 +63,26 @@ public class CookingDnaService {
     public CookingDnaDto getCookingDna(UserPrincipal principal, String locale) {
         Long userId = principal.getId();
 
-        // 1. Get outcome counts
-        Map<String, Long> outcomeCounts = getOutcomeCounts(userId);
-        int successCount = outcomeCounts.getOrDefault("SUCCESS", 0L).intValue();
-        int partialCount = outcomeCounts.getOrDefault("PARTIAL", 0L).intValue();
-        int failedCount = outcomeCounts.getOrDefault("FAILED", 0L).intValue();
-        int totalLogs = successCount + partialCount + failedCount;
+        // 1. Get rating distribution
+        Map<Integer, Long> ratingCounts = getRatingCounts(userId);
+        int totalLogs = ratingCounts.values().stream().mapToInt(Long::intValue).sum();
 
         // 2. Get recipe count
         long recipeCount = recipeRepository.countByCreatorIdAndDeletedAtIsNull(userId);
 
-        // 3. Calculate XP
-        int totalXp = calculateTotalXp(recipeCount, successCount, partialCount, failedCount);
+        // 3. Calculate average rating
+        Double averageRating = recipeLogRepository.getAverageRatingForUser(userId);
 
-        // 4. Calculate level
+        // 4. Calculate total XP from ratings
+        int totalRatingXp = calculateRatingXp(ratingCounts);
+        int totalXp = (int) (recipeCount * XP_RECIPE_CREATED) + totalRatingXp;
+
+        // 5. Calculate level
         int level = calculateLevel(totalXp);
         String levelName = getLevelName(level);
         int xpForCurrentLevel = level > 1 ? LEVEL_THRESHOLDS[Math.min(level - 1, LEVEL_THRESHOLDS.length - 1)] : 0;
         int xpForNextLevel = LEVEL_THRESHOLDS[Math.min(level, LEVEL_THRESHOLDS.length - 1)];
         double levelProgress = calculateLevelProgress(totalXp, xpForCurrentLevel, xpForNextLevel);
-
-        // 5. Calculate success rate
-        double successRate = totalLogs > 0 ? (double) successCount / totalLogs : 0.0;
 
         // 6. Calculate streaks
         int[] streaks = calculateStreaks(userId);
@@ -98,6 +95,9 @@ public class CookingDnaService {
         // 8. Get saved count
         long savedCount = savedRecipeRepository.countByUserId(userId);
 
+        // 9. Build rating distribution DTOs
+        List<RatingDistributionDto> ratingDistribution = buildRatingDistribution(ratingCounts, totalLogs);
+
         return CookingDnaDto.builder()
                 .totalXp(totalXp)
                 .level(level)
@@ -105,11 +105,9 @@ public class CookingDnaService {
                 .xpForCurrentLevel(xpForCurrentLevel)
                 .xpForNextLevel(xpForNextLevel)
                 .levelProgress(levelProgress)
-                .successRate(successRate)
                 .totalLogs(totalLogs)
-                .successCount(successCount)
-                .partialCount(partialCount)
-                .failedCount(failedCount)
+                .averageRating(averageRating)
+                .ratingDistribution(ratingDistribution)
                 .currentStreak(currentStreak)
                 .longestStreak(longestStreak)
                 .cuisineDistribution(cuisineDistribution)
@@ -119,24 +117,44 @@ public class CookingDnaService {
                 .build();
     }
 
-    private Map<String, Long> getOutcomeCounts(Long userId) {
-        List<Object[]> results = recipeLogRepository.countByOutcomeForUser(userId);
-        Map<String, Long> counts = new HashMap<>();
+    private Map<Integer, Long> getRatingCounts(Long userId) {
+        List<Object[]> results = recipeLogRepository.countByRatingForUser(userId);
+        Map<Integer, Long> counts = new HashMap<>();
         for (Object[] row : results) {
-            String outcome = (String) row[0];
+            Integer rating = (Integer) row[0];
             Long count = (Long) row[1];
-            if (outcome != null) {
-                counts.put(outcome, count);
+            if (rating != null) {
+                counts.put(rating, count);
             }
         }
         return counts;
     }
 
-    public int calculateTotalXp(long recipeCount, int successCount, int partialCount, int failedCount) {
-        return (int) (recipeCount * XP_RECIPE_CREATED)
-                + (successCount * XP_LOG_SUCCESS)
-                + (partialCount * XP_LOG_PARTIAL)
-                + (failedCount * XP_LOG_FAILED);
+    private int calculateRatingXp(Map<Integer, Long> ratingCounts) {
+        int totalXp = 0;
+        for (Map.Entry<Integer, Long> entry : ratingCounts.entrySet()) {
+            // rating * 6 XP per log (1=6, 2=12, 3=18, 4=24, 5=30)
+            totalXp += entry.getKey() * XP_PER_RATING_POINT * entry.getValue().intValue();
+        }
+        return totalXp;
+    }
+
+    private List<RatingDistributionDto> buildRatingDistribution(Map<Integer, Long> ratingCounts, int totalLogs) {
+        List<RatingDistributionDto> distribution = new ArrayList<>();
+        for (int rating = 1; rating <= 5; rating++) {
+            int count = ratingCounts.getOrDefault(rating, 0L).intValue();
+            double percentage = totalLogs > 0 ? Math.round((double) count / totalLogs * 1000) / 10.0 : 0.0;
+            distribution.add(RatingDistributionDto.builder()
+                    .rating(rating)
+                    .count(count)
+                    .percentage(percentage)
+                    .build());
+        }
+        return distribution;
+    }
+
+    public int calculateTotalXp(long recipeCount, int totalRatingXp) {
+        return (int) (recipeCount * XP_RECIPE_CREATED) + totalRatingXp;
     }
 
     public int calculateLevel(int totalXp) {

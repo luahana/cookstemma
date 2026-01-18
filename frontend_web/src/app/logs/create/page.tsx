@@ -9,18 +9,22 @@ import { createLog } from '@/lib/api/logs';
 import { getRecipes, getRecipeDetail } from '@/lib/api/recipes';
 import { uploadImage } from '@/lib/api/images';
 import { getImageUrl } from '@/lib/utils/image';
-import type { Outcome, RecipeSummary, RecipeDetail } from '@/lib/types';
+import { StarRatingSelector } from '@/components/log/StarRating';
+import type { Rating, RecipeSummary, RecipeDetail } from '@/lib/types';
 
 // Constants matching Flutter app
 const MAX_CONTENT_LENGTH = 500;
 const MAX_HASHTAGS = 5;
 const MAX_HASHTAG_LENGTH = 30;
 
-const OUTCOME_OPTIONS: { value: Outcome; label: string; emoji: string }[] = [
-  { value: 'SUCCESS', label: 'Nailed it', emoji: '😊' },
-  { value: 'PARTIAL', label: 'Learning', emoji: '🌱' },
-  { value: 'FAILED', label: 'Lesson learned', emoji: '🌀' },
-];
+// Rating labels for feedback
+const RATING_LABELS: Record<number, string> = {
+  1: 'Poor - Lesson learned',
+  2: 'Fair - Needs work',
+  3: 'Good - Decent result',
+  4: 'Great - Almost perfect',
+  5: 'Excellent - Nailed it!',
+};
 
 interface UploadedImage {
   file: File;
@@ -53,7 +57,7 @@ function CreateLogPageContent() {
   // Form state
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeDetail | null>(null);
   const [content, setContent] = useState('');
-  const [outcome, setOutcome] = useState<Outcome>('SUCCESS');
+  const [rating, setRating] = useState<number>(5);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
   const [images, setImages] = useState<UploadedImage[]>([]);
@@ -258,7 +262,7 @@ function CreateLogPageContent() {
       const log = await createLog({
         recipePublicId: selectedRecipe.publicId,
         content: content.trim(),
-        outcome,
+        rating: rating as Rating,
         imagePublicIds,
         hashtags: hashtags.length > 0 ? hashtags : undefined,
       });
@@ -442,33 +446,20 @@ function CreateLogPageContent() {
             )}
           </div>
 
-          {/* Outcome Selection */}
+          {/* Rating Selection */}
           <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-3">
               How did it go? <span className="text-[var(--error)]">*</span>
             </label>
-            <div className="flex gap-2">
-              {OUTCOME_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setOutcome(option.value)}
-                  className={`flex-1 py-3 px-4 rounded-xl border-2 transition-colors ${
-                    outcome === option.value
-                      ? option.value === 'SUCCESS'
-                        ? 'border-[var(--success)] bg-[var(--diff-added-bg)]'
-                        : option.value === 'PARTIAL'
-                          ? 'border-[var(--diff-modified)] bg-[var(--diff-modified-bg)]'
-                          : 'border-[var(--error)] bg-[var(--diff-removed-bg)]'
-                      : 'border-[var(--border)] hover:border-[var(--primary-light)]'
-                  }`}
-                >
-                  <span className="text-2xl">{option.emoji}</span>
-                  <span className="block text-sm mt-1 text-[var(--text-primary)]">
-                    {option.label}
-                  </span>
-                </button>
-              ))}
+            <div className="flex flex-col items-center gap-3 p-4 bg-[var(--surface)] rounded-xl border border-[var(--border)]">
+              <StarRatingSelector
+                value={rating}
+                onChange={setRating}
+                size="lg"
+              />
+              <p className="text-sm text-[var(--text-secondary)]">
+                {RATING_LABELS[rating]}
+              </p>
             </div>
           </div>
 

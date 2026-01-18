@@ -78,7 +78,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
         RecipeLog recipeLog = RecipeLog.builder()
                 .logPost(testLogPost)
                 .recipe(testRecipe)
-                .outcome("SUCCESS")
+                .rating(5)
                 .build();
         testLogPost.setRecipeLog(recipeLog);
 
@@ -95,7 +95,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
             UpdateLogRequestDto request = new UpdateLogRequestDto(
                     "Updated Title",
                     "Updated content",
-                    "PARTIAL",
+                    3,  // 3 stars (equivalent to PARTIAL)
                     List.of("tag1", "tag2"),
                     null
             );
@@ -107,12 +107,12 @@ class LogPostServiceTest extends BaseIntegrationTest {
             );
 
             assertThat(result.content()).isEqualTo("Updated content");
-            assertThat(result.outcome()).isEqualTo("PARTIAL");
+            assertThat(result.rating()).isEqualTo(3);
 
             // Verify in database
             LogPost updated = logPostRepository.findByPublicId(testLogPost.getPublicId()).orElseThrow();
             assertThat(updated.getContent()).isEqualTo("Updated content");
-            assertThat(updated.getRecipeLog().getOutcome()).isEqualTo("PARTIAL");
+            assertThat(updated.getRecipeLog().getRating()).isEqualTo(3);
         }
 
         @Test
@@ -121,7 +121,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
             UpdateLogRequestDto request = new UpdateLogRequestDto(
                     "Updated Title",
                     "Updated content",
-                    "PARTIAL",
+                    3,  // 3 stars
                     null,
                     null
             );
@@ -140,7 +140,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
             UpdateLogRequestDto request = new UpdateLogRequestDto(
                     "Updated Title",
                     "Updated content",
-                    "PARTIAL",
+                    3,  // 3 stars
                     null,
                     null
             );
@@ -160,7 +160,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
             UpdateLogRequestDto addTagsRequest = new UpdateLogRequestDto(
                     null,
                     "Content with tags",
-                    "SUCCESS",
+                    5,  // 5 stars
                     List.of("tag1", "tag2"),
                     null
             );
@@ -170,7 +170,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
             UpdateLogRequestDto clearTagsRequest = new UpdateLogRequestDto(
                     null,
                     "Content without tags",
-                    "SUCCESS",
+                    5,  // 5 stars
                     null,
                     null
             );
@@ -310,7 +310,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
                 RecipeLog recipeLog = RecipeLog.builder()
                         .logPost(log)
                         .recipe(testRecipe)
-                        .outcome("SUCCESS")
+                        .rating(5)
                         .build();
                 log.setRecipeLog(recipeLog);
                 logPostRepository.save(log);
@@ -345,7 +345,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
             RecipeLog recipeLog = RecipeLog.builder()
                     .logPost(newerLog)
                     .recipe(testRecipe)
-                    .outcome("PARTIAL")
+                    .rating(3)
                     .build();
             newerLog.setRecipeLog(recipeLog);
             logPostRepository.save(newerLog);

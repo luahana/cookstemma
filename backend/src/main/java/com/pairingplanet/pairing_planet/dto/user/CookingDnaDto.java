@@ -15,11 +15,9 @@ public record CookingDnaDto(
         double levelProgress,     // Progress within current level (0.0 - 1.0)
 
         // Cooking Stats
-        double successRate,       // Success rate (0.0 - 1.0)
         int totalLogs,            // Total number of cooking logs
-        int successCount,         // Logs with SUCCESS outcome
-        int partialCount,         // Logs with PARTIAL outcome
-        int failedCount,          // Logs with FAILED outcome
+        Double averageRating,     // Average rating (1.0 - 5.0), null if no logs
+        List<RatingDistributionDto> ratingDistribution,  // Distribution of ratings (1-5)
 
         // Streak
         int currentStreak,        // Current consecutive cooking days

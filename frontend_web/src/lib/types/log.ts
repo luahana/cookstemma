@@ -2,9 +2,10 @@ import type { RecipeSummary } from './recipe';
 import type { HashtagDto, ImageResponseDto } from './common';
 
 /**
- * Cooking outcome types
+ * Star rating (1-5)
+ * Replaces the old Outcome type (SUCCESS/PARTIAL/FAILED)
  */
-export type Outcome = 'SUCCESS' | 'PARTIAL' | 'FAILED';
+export type Rating = 1 | 2 | 3 | 4 | 5;
 
 /**
  * Log post summary for list/card views
@@ -12,7 +13,7 @@ export type Outcome = 'SUCCESS' | 'PARTIAL' | 'FAILED';
 export interface LogPostSummary {
   publicId: string;
   title: string;
-  outcome: Outcome | null;
+  rating: number | null; // 1-5 star rating
   thumbnailUrl: string | null;
   creatorPublicId: string | null;
   userName: string | null;
@@ -28,7 +29,7 @@ export interface LogPostDetail {
   publicId: string;
   title: string;
   content: string;
-  outcome: Outcome | null;
+  rating: number | null; // 1-5 star rating
   images: ImageResponseDto[];
   linkedRecipe: RecipeSummary | null;
   createdAt: string; // ISO date string
@@ -43,7 +44,7 @@ export interface LogPostDetail {
  */
 export interface RecentActivity {
   logPublicId: string;
-  outcome: Outcome | null;
+  rating: number | null; // 1-5 star rating
   thumbnailUrl: string | null;
   userName: string | null;
   recipeTitle: string;
@@ -54,25 +55,14 @@ export interface RecentActivity {
 }
 
 /**
- * Outcome display labels and colors
+ * Rating display configuration
+ * Star color based on rating value
  */
-export const OUTCOME_CONFIG = {
-  SUCCESS: {
-    label: '😊',
-    color: 'var(--success)',
-    bgColor: 'var(--diff-added-bg)',
-  },
-  PARTIAL: {
-    label: '🌱',
-    color: 'var(--diff-modified)',
-    bgColor: 'var(--diff-modified-bg)',
-  },
-  FAILED: {
-    label: '🌀',
-    color: 'var(--error)',
-    bgColor: 'var(--diff-removed-bg)',
-  },
-} as const;
+export function getRatingColor(rating: number): string {
+  if (rating >= 4) return 'var(--success)';
+  if (rating >= 3) return 'var(--diff-modified)';
+  return 'var(--error)';
+}
 
 /**
  * Log update request
@@ -80,7 +70,7 @@ export const OUTCOME_CONFIG = {
  */
 export interface UpdateLogRequest {
   content: string;
-  outcome: Outcome;
+  rating: Rating;
   hashtags?: string[];
   // Note: images are read-only after creation
 }
@@ -93,7 +83,7 @@ export interface CreateLogRequest {
   recipePublicId: string;
   title?: string;
   content: string;
-  outcome: Outcome;
+  rating: Rating;
   imagePublicIds: string[];
   hashtags?: string[];
 }

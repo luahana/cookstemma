@@ -29,16 +29,22 @@ public interface RecipeLogRepository extends JpaRepository<RecipeLog, Long> {
     // ===== Cooking DNA Stats Queries =====
 
     /**
-     * Count logs by outcome for a user
+     * Count logs by rating for a user (1-5 stars)
      */
     @Query("""
-        SELECT rl.outcome, COUNT(rl)
+        SELECT rl.rating, COUNT(rl)
         FROM RecipeLog rl
         JOIN rl.logPost lp
         WHERE lp.creatorId = :userId AND lp.deletedAt IS NULL
-        GROUP BY rl.outcome
+        GROUP BY rl.rating
         """)
-    List<Object[]> countByOutcomeForUser(@Param("userId") Long userId);
+    List<Object[]> countByRatingForUser(@Param("userId") Long userId);
+
+    /**
+     * Get average rating for a user
+     */
+    @Query("SELECT AVG(CAST(rl.rating AS double)) FROM RecipeLog rl JOIN rl.logPost lp WHERE lp.creatorId = :userId AND lp.deletedAt IS NULL")
+    Double getAverageRatingForUser(@Param("userId") Long userId);
 
     /**
      * Get cuisine distribution for a user (category code and count)

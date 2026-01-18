@@ -13,7 +13,7 @@ import java.util.UUID;
 @Builder
 public record RecentActivityDto(
         UUID logPublicId,
-        String outcome,           // SUCCESS, PARTIAL, FAILED
+        Integer rating,           // 1-5 star rating
         String thumbnailUrl,      // Log's first image
         String userName,       // Who cooked
         String recipeTitle,       // What recipe was followed
