@@ -36,7 +36,7 @@ spring:
         auto: false
 
   flyway:
-    enabled: false  # Disabled until flyway_schema_history is fixed
+    enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
     baseline-version: 27
