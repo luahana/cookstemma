@@ -59,24 +59,43 @@ public class ImageProcessingService {
      */
     @Transactional
     public void generateVariantsSync(Long originalImageId) {
+        generateVariantsSyncWithResult(originalImageId);
+    }
+
+    /**
+     * Synchronous variant generation with detailed result for debugging.
+     */
+    @Transactional
+    public String generateVariantsSyncWithResult(Long originalImageId) {
+        StringBuilder result = new StringBuilder();
+        result.append("Processing image ID: ").append(originalImageId).append("\n");
+
         try {
             Image original = imageRepository.findById(originalImageId)
                     .orElseThrow(() -> new IllegalArgumentException("Image not found: " + originalImageId));
 
+            result.append("Found image: ").append(original.getStoredFilename()).append("\n");
+
             // Skip if already has variants or is a variant itself
             if (original.getOriginalImage() != null || original.hasVariants()) {
-                log.debug("Skipping variant generation for image {}: already processed", originalImageId);
-                return;
+                result.append("SKIPPED: Image already has variants or is a variant itself\n");
+                return result.toString();
             }
 
             // Download original from S3
+            result.append("Downloading from S3...\n");
             byte[] originalBytes = downloadFromS3(original.getStoredFilename());
+            result.append("Downloaded ").append(originalBytes.length).append(" bytes\n");
+
             BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(originalBytes));
 
             if (originalImage == null) {
-                log.error("Failed to read image: {}", original.getStoredFilename());
-                return;
+                result.append("ERROR: Failed to read image as BufferedImage\n");
+                return result.toString();
             }
+
+            result.append("Image dimensions: ").append(originalImage.getWidth())
+                  .append("x").append(originalImage.getHeight()).append("\n");
 
             // Update original with metadata
             original.setVariantType(ImageVariant.ORIGINAL);
@@ -85,23 +104,88 @@ public class ImageProcessingService {
             original.setFileSize((long) originalBytes.length);
             original.setFormat(getFormatFromFilename(original.getStoredFilename()));
 
+            int generated = 0;
+            int skipped = 0;
+
             // Generate each variant
             for (ImageVariant variant : ImageVariant.values()) {
                 if (variant == ImageVariant.ORIGINAL) continue;
 
                 try {
-                    generateVariant(original, originalImage, variant);
+                    boolean created = generateVariantWithResult(original, originalImage, variant, result);
+                    if (created) generated++;
+                    else skipped++;
                 } catch (Exception e) {
-                    log.error("Failed to generate {} variant for image {}", variant, originalImageId, e);
+                    result.append("ERROR generating ").append(variant).append(": ").append(e.getMessage()).append("\n");
                 }
             }
 
             imageRepository.save(original);
-            log.info("Successfully generated variants for image {}", originalImageId);
+            result.append("\nSUMMARY: Generated ").append(generated).append(" variants, skipped ").append(skipped).append("\n");
+            result.append("Variants in DB: ").append(original.getVariants().size()).append("\n");
 
         } catch (Exception e) {
-            log.error("Failed to generate variants for image {}", originalImageId, e);
+            result.append("FATAL ERROR: ").append(e.getMessage()).append("\n");
         }
+
+        return result.toString();
+    }
+
+    private boolean generateVariantWithResult(Image original, BufferedImage sourceImage, ImageVariant variant, StringBuilder result) throws IOException {
+        int originalWidth = sourceImage.getWidth();
+        int originalHeight = sourceImage.getHeight();
+        int maxDim = variant.getMaxDimension();
+
+        // Skip if image is smaller than target
+        if (originalWidth <= maxDim && originalHeight <= maxDim) {
+            result.append("  ").append(variant).append(": SKIPPED (").append(originalWidth).append(" <= ").append(maxDim).append(")\n");
+            return false;
+        }
+
+        // Calculate new dimensions maintaining aspect ratio
+        double scale = Math.min((double) maxDim / originalWidth, (double) maxDim / originalHeight);
+        int newWidth = (int) (originalWidth * scale);
+        int newHeight = (int) (originalHeight * scale);
+
+        // Generate resized image
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Thumbnails.of(sourceImage)
+                .size(newWidth, newHeight)
+                .outputQuality(variant.getQuality() / 100.0)
+                .outputFormat("jpg")
+                .toOutputStream(baos);
+
+        byte[] resizedBytes = baos.toByteArray();
+
+        // Generate new filename
+        String originalKey = original.getStoredFilename();
+        String baseName = originalKey.substring(originalKey.lastIndexOf('/') + 1);
+        String nameWithoutExt = baseName.contains(".") ? baseName.substring(0, baseName.lastIndexOf('.')) : baseName;
+        String newKey = variant.getPathPrefix() + "/" + nameWithoutExt + "_" + variant.name().toLowerCase() + ".jpg";
+
+        // Upload to S3
+        uploadToS3(newKey, resizedBytes, "image/jpeg");
+
+        // Save variant record
+        Image variantImage = Image.builder()
+                .storedFilename(newKey)
+                .originalFilename(original.getOriginalFilename())
+                .status(ImageStatus.ACTIVE)
+                .type(original.getType())
+                .displayOrder(original.getDisplayOrder())
+                .uploaderId(original.getUploaderId())
+                .variantType(variant)
+                .originalImage(original)
+                .width(newWidth)
+                .height(newHeight)
+                .fileSize((long) resizedBytes.length)
+                .format("jpg")
+                .build();
+
+        original.getVariants().add(variantImage);
+        result.append("  ").append(variant).append(": CREATED ").append(newWidth).append("x").append(newHeight)
+              .append(" (").append(resizedBytes.length).append(" bytes) -> ").append(newKey).append("\n");
+        return true;
     }
 
     private void generateVariant(Image original, BufferedImage sourceImage, ImageVariant variant) throws IOException {

@@ -147,9 +147,12 @@ public class BotAdminController {
         Image image = imageRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("Image not found: " + publicId));
 
-        // Call synchronously (not the async version) for debugging
-        imageProcessingService.generateVariantsSync(image.getId());
-
-        return ResponseEntity.ok("Variant generation triggered for image: " + publicId);
+        try {
+            // Call synchronously (not the async version) for debugging
+            String result = imageProcessingService.generateVariantsSyncWithResult(image.getId());
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
     }
 }
