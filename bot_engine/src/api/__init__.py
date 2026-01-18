@@ -3,6 +3,7 @@
 from .client import PairingPlanetClient
 from .models import (
     Recipe,
+    RecipeSummary,
     RecipeIngredient,
     RecipeStep,
     LogPost,
@@ -12,6 +13,7 @@ from .models import (
 __all__ = [
     "PairingPlanetClient",
     "Recipe",
+    "RecipeSummary",
     "RecipeIngredient",
     "RecipeStep",
     "LogPost",

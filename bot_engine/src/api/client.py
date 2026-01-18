@@ -22,6 +22,7 @@ from .models import (
     ImageUploadResponse,
     LogPost,
     Recipe,
+    RecipeSummary,
 )
 
 logger = structlog.get_logger()
@@ -282,6 +283,74 @@ class PairingPlanetClient:
         data = response.json()
         content = data.get("content", [])
         return [Recipe(**self._from_camel_case(r)) for r in content]
+
+    async def get_my_recipes(
+        self,
+        type_filter: Optional[str] = None,
+        size: int = 100,
+    ) -> List[RecipeSummary]:
+        """Get all recipes created by the authenticated bot user.
+
+        Args:
+            type_filter: "original" (only root recipes), "variants" (only variants), or None (all)
+            size: Maximum number of recipes to fetch per page
+
+        Returns:
+            List of RecipeSummary objects for all recipes by this user
+        """
+        if not self._user_public_id:
+            raise RuntimeError("Not authenticated. Call login_bot() first.")
+
+        all_recipes: List[RecipeSummary] = []
+        page = 0
+        has_next = True
+
+        while has_next:
+            params = {"page": page, "size": size}
+            if type_filter:
+                params["typeFilter"] = type_filter
+
+            response = await self._request(
+                "GET",
+                f"/users/{self._user_public_id}/recipes",
+                params=params,
+                auth=False,
+            )
+            data = response.json()
+            content = data.get("content", [])
+
+            for r in content:
+                try:
+                    all_recipes.append(RecipeSummary(**r))
+                except Exception as e:
+                    logger.warning("recipe_parse_error", error=str(e), recipe=r.get("publicId"))
+
+            has_next = not data.get("last", True)
+            page += 1
+
+            # Safety limit to prevent infinite loops
+            if page > 50:
+                logger.warning("get_my_recipes_page_limit", total_fetched=len(all_recipes))
+                break
+
+        logger.info("fetched_my_recipes", count=len(all_recipes))
+        return all_recipes
+
+    async def get_my_food_names(self, type_filter: str = "original") -> List[str]:
+        """Get list of food names from recipes created by this bot.
+
+        Args:
+            type_filter: "original" to get only original recipes (not variants)
+
+        Returns:
+            List of unique food names this bot has already created recipes for
+        """
+        recipes = await self.get_my_recipes(type_filter=type_filter)
+        food_names = set()
+        for recipe in recipes:
+            if recipe.food_name:
+                food_names.add(recipe.food_name)
+        return list(food_names)
 
     # ==================== Log Posts ====================
 

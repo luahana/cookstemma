@@ -125,6 +125,28 @@ class RecipeImage(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class RecipeSummary(BaseModel):
+    """Recipe summary from list API."""
+
+    public_id: str = Field(alias="publicId")
+    food_name: str = Field(alias="foodName")
+    title: str
+    description: Optional[str] = None
+    cooking_style: Optional[str] = Field(default=None, alias="cookingStyle")
+    creator_public_id: Optional[str] = Field(default=None, alias="creatorPublicId")
+    user_name: Optional[str] = Field(default=None, alias="userName")
+    thumbnail: Optional[str] = None
+    variant_count: int = Field(default=0, alias="variantCount")
+    log_count: int = Field(default=0, alias="logCount")
+    parent_public_id: Optional[str] = Field(default=None, alias="parentPublicId")
+    root_public_id: Optional[str] = Field(default=None, alias="rootPublicId")
+    servings: Optional[int] = None
+    cooking_time_range: Optional[str] = Field(default=None, alias="cookingTimeRange")
+    hashtags: List[str] = Field(default_factory=list)
+
+    model_config = {"populate_by_name": True, "extra": "ignore"}
+
+
 class Recipe(BaseModel):
     """Recipe response from API."""
 
@@ -133,6 +155,7 @@ class Recipe(BaseModel):
     description: Optional[str] = None
     locale: Optional[str] = None
     cooking_style: Optional[str] = Field(default=None, alias="cookingStyle")
+    food_name: Optional[str] = Field(default=None, alias="foodName")
     creator_public_id: Optional[str] = Field(default=None, alias="creatorPublicId")
     creator_username: Optional[str] = Field(default=None, alias="creatorUsername")
     ingredients: List[RecipeIngredient] = Field(default_factory=list)

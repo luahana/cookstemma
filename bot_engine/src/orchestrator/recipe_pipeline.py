@@ -274,13 +274,37 @@ class RecipePipeline:
         variant_count = int(count * variant_ratio)
         original_count = count - variant_count
 
-        # Generate originals first
+        # Fetch existing food names to avoid duplicates
+        existing_food_names: List[str] = []
+        try:
+            existing_food_names = await self.api.get_my_food_names(type_filter="original")
+            logger.info(
+                "fetched_existing_foods",
+                persona=persona.name,
+                count=len(existing_food_names),
+                foods=existing_food_names[:10],  # Log first 10 for debugging
+            )
+        except Exception as e:
+            logger.warning(
+                "failed_to_fetch_existing_foods",
+                persona=persona.name,
+                error=str(e),
+            )
+
+        # Generate originals first, excluding existing foods
         food_suggestions = await self.text_gen.suggest_food_names(
             persona=persona,
-            count=original_count,
+            count=original_count + 5,  # Request extra in case some are duplicates
+            exclude=existing_food_names,
         )
 
-        for food_name in food_suggestions[:original_count]:
+        # Filter out any foods that might still be in existing list (extra safety)
+        filtered_suggestions = [
+            f for f in food_suggestions
+            if f.lower() not in [e.lower() for e in existing_food_names]
+        ]
+
+        for food_name in filtered_suggestions[:original_count]:
             try:
                 recipe = await self.generate_original_recipe(
                     persona=persona,
@@ -288,6 +312,8 @@ class RecipePipeline:
                     generate_images=generate_images,
                 )
                 recipes.append(recipe)
+                # Add to existing list to prevent duplicates within the same batch
+                existing_food_names.append(food_name)
             except Exception as e:
                 logger.error(
                     "batch_recipe_failed",
