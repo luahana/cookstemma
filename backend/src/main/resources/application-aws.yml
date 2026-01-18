@@ -34,7 +34,8 @@ spring:
         auto: false
 
   flyway:
-    enabled: false  # Temporarily disabled - run migrations manually
+    enabled: true
+    locations: classpath:db/migration
 
   sql:
     init:
