@@ -67,13 +67,13 @@ describe('getLogs', () => {
       );
     });
 
-    it('should combine sort with outcomes filter', async () => {
-      await getLogs({ sort: 'popular', outcomes: ['SUCCESS', 'PARTIAL'] });
+    it('should combine sort with rating filter', async () => {
+      await getLogs({ sort: 'popular', minRating: 4 });
 
       expect(mockBuildQueryString).toHaveBeenCalledWith(
         expect.objectContaining({
           sort: 'popular',
-          outcomes: 'SUCCESS,PARTIAL',
+          minRating: 4,
         })
       );
     });
