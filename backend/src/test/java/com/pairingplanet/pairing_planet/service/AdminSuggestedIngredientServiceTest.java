@@ -2,14 +2,18 @@ package com.pairingplanet.pairing_planet.service;
 
 import com.pairingplanet.pairing_planet.domain.entity.autocomplete.AutocompleteItem;
 import com.pairingplanet.pairing_planet.domain.entity.ingredient.UserSuggestedIngredient;
+import com.pairingplanet.pairing_planet.domain.entity.translation.TranslationEvent;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
 import com.pairingplanet.pairing_planet.domain.enums.AutocompleteType;
 import com.pairingplanet.pairing_planet.domain.enums.IngredientType;
 import com.pairingplanet.pairing_planet.domain.enums.SuggestionStatus;
+import com.pairingplanet.pairing_planet.domain.enums.TranslatableEntity;
+import com.pairingplanet.pairing_planet.domain.enums.TranslationStatus;
 import com.pairingplanet.pairing_planet.dto.admin.SuggestedIngredientAdminDto;
 import com.pairingplanet.pairing_planet.dto.admin.SuggestedIngredientFilterDto;
 import com.pairingplanet.pairing_planet.repository.autocomplete.AutocompleteItemRepository;
 import com.pairingplanet.pairing_planet.repository.ingredient.UserSuggestedIngredientRepository;
+import com.pairingplanet.pairing_planet.repository.translation.TranslationEventRepository;
 import com.pairingplanet.pairing_planet.support.BaseIntegrationTest;
 import com.pairingplanet.pairing_planet.support.TestUserFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +36,9 @@ class AdminSuggestedIngredientServiceTest extends BaseIntegrationTest {
 
     @Autowired
     private AutocompleteItemRepository autocompleteItemRepository;
+
+    @Autowired
+    private TranslationEventRepository translationEventRepository;
 
     @Autowired
     private TestUserFactory testUserFactory;
@@ -128,8 +135,8 @@ class AdminSuggestedIngredientServiceTest extends BaseIntegrationTest {
     class ApprovalFlowTests {
 
         @Test
-        @DisplayName("Should create AutocompleteItem when suggestion is approved")
-        void approveSuggestion_CreatesAutocompleteItem() {
+        @DisplayName("Should create AutocompleteItem and queue translation when suggestion is approved")
+        void approveSuggestion_CreatesAutocompleteItemAndQueuesTranslation() {
             SuggestedIngredientAdminDto result = adminSuggestedIngredientService.updateStatus(
                     pendingSuggestion.getPublicId(),
                     SuggestionStatus.APPROVED
@@ -147,6 +154,16 @@ class AdminSuggestedIngredientServiceTest extends BaseIntegrationTest {
             assertThat(autocompleteItem.getType()).isEqualTo(AutocompleteType.SEASONING);
             assertThat(autocompleteItem.getName()).containsKey("ko-KR");
             assertThat(autocompleteItem.getName().get("ko-KR")).isEqualTo("고춧가루");
+
+            // Verify translation event was queued
+            TranslationEvent translationEvent = translationEventRepository
+                    .findByEntityTypeAndEntityId(TranslatableEntity.AUTOCOMPLETE_ITEM, autocompleteItem.getId())
+                    .orElseThrow(() -> new AssertionError("Translation event should be created"));
+
+            assertThat(translationEvent.getStatus()).isEqualTo(TranslationStatus.PENDING);
+            assertThat(translationEvent.getSourceLocale()).isEqualTo("ko");
+            assertThat(translationEvent.getTargetLocales()).hasSize(11); // All locales except source
+            assertThat(translationEvent.getTargetLocales()).doesNotContain("ko");
         }
 
         @Test

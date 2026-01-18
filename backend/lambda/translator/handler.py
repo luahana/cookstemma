@@ -173,14 +173,20 @@ def run_migrations(conn):
         """)
         cur.execute("""
             DO $$ BEGIN
-                CREATE TYPE translatable_entity AS ENUM ('RECIPE', 'RECIPE_STEP', 'RECIPE_INGREDIENT', 'LOG_POST', 'FOOD_MASTER');
+                CREATE TYPE translatable_entity AS ENUM ('RECIPE', 'RECIPE_STEP', 'RECIPE_INGREDIENT', 'LOG_POST', 'FOOD_MASTER', 'AUTOCOMPLETE_ITEM');
             EXCEPTION WHEN duplicate_object THEN null;
             END $$
         """)
-        # Add FOOD_MASTER to existing enum if it exists but doesn't have FOOD_MASTER
+        # Add FOOD_MASTER and AUTOCOMPLETE_ITEM to existing enum if they don't exist
         cur.execute("""
             DO $$ BEGIN
                 ALTER TYPE translatable_entity ADD VALUE IF NOT EXISTS 'FOOD_MASTER';
+            EXCEPTION WHEN duplicate_object THEN null;
+            END $$
+        """)
+        cur.execute("""
+            DO $$ BEGIN
+                ALTER TYPE translatable_entity ADD VALUE IF NOT EXISTS 'AUTOCOMPLETE_ITEM';
             EXCEPTION WHEN duplicate_object THEN null;
             END $$
         """)
@@ -317,6 +323,11 @@ def fetch_entity_content(conn, entity_type: str, entity_id: int) -> dict | None:
                 SELECT id, name, description
                 FROM foods_master WHERE id = %s
             """, (entity_id,))
+        elif entity_type == 'AUTOCOMPLETE_ITEM':
+            cur.execute("""
+                SELECT id, name
+                FROM autocomplete_items WHERE id = %s
+            """, (entity_id,))
         else:
             return None
 
@@ -370,6 +381,13 @@ def save_translations(conn, entity_type: str, entity_id: int, translations: dict
                 json.dumps(translations.get('description', {})),
                 entity_id
             ))
+        elif entity_type == 'AUTOCOMPLETE_ITEM':
+            # Merge new translations into existing JSONB name
+            cur.execute("""
+                UPDATE autocomplete_items
+                SET name = name || %s
+                WHERE id = %s
+            """, (json.dumps(translations.get('name', {})), entity_id))
 
 
 def process_event(conn, translator: OpenAITranslator, event: dict) -> bool:
@@ -444,6 +462,24 @@ def process_event(conn, translator: OpenAITranslator, event: dict) -> bool:
             'name': {},
             'description': {}
         }
+    elif entity_type == 'AUTOCOMPLETE_ITEM':
+        # AutocompleteItem stores translations directly in name JSONB
+        name_json = entity['name'] or {}
+
+        # Convert source_locale to BCP47 format to find source content
+        source_bcp47 = LOCALE_MAP.get(source_locale, f"{source_locale}-{source_locale.upper()}")
+
+        source_name = name_json.get(source_bcp47) or name_json.get(source_locale)
+        if not source_name and name_json:
+            # Fallback: use first available name
+            source_name = next(iter(name_json.values()))
+
+        if not source_name:
+            logger.warning(f"No source name found for autocomplete item {entity_id} in locale {source_locale}")
+            return False
+
+        content_to_translate = {'name': source_name}
+        existing_translations = {'name': {}}
 
     # Translate to each pending locale
     new_completed = list(completed_locales)
@@ -453,7 +489,7 @@ def process_event(conn, translator: OpenAITranslator, event: dict) -> bool:
             # Determine appropriate context for translation
             if entity_type == 'RECIPE_STEP':
                 context = "cooking recipe step"
-            elif entity_type == 'FOOD_MASTER':
+            elif entity_type in ('FOOD_MASTER', 'AUTOCOMPLETE_ITEM'):
                 context = "food ingredient name for a cooking recipe app"
             else:
                 context = "cooking recipe content"
@@ -466,9 +502,9 @@ def process_event(conn, translator: OpenAITranslator, event: dict) -> bool:
             )
 
             # Merge translations
-            # For FOOD_MASTER, use BCP47 locale keys (ko-KR, en-US, etc.)
+            # For FOOD_MASTER and AUTOCOMPLETE_ITEM, use BCP47 locale keys (ko-KR, en-US, etc.)
             translation_key = target_locale
-            if entity_type == 'FOOD_MASTER':
+            if entity_type in ('FOOD_MASTER', 'AUTOCOMPLETE_ITEM'):
                 translation_key = LOCALE_MAP.get(target_locale, f"{target_locale}-{target_locale.upper()}")
 
             for field, value in translated.items():

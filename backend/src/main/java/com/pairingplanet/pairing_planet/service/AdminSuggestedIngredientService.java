@@ -30,6 +30,7 @@ public class AdminSuggestedIngredientService {
 
     private final UserSuggestedIngredientRepository repository;
     private final AutocompleteItemRepository autocompleteItemRepository;
+    private final TranslationEventService translationEventService;
 
     private static final Map<String, String> LOCALE_TO_BCP47 = Map.ofEntries(
             Map.entry("ko", "ko-KR"),
@@ -71,7 +72,9 @@ public class AdminSuggestedIngredientService {
         if (status == SuggestionStatus.APPROVED) {
             AutocompleteItem autocompleteItem = createAutocompleteItemFromSuggestion(entity);
             entity.linkToAutocompleteItem(autocompleteItem);
-            log.info("Created AutocompleteItem {} from approved ingredient suggestion {}",
+            translationEventService.queueAutocompleteItemTranslation(
+                    autocompleteItem, entity.getLocaleCode());
+            log.info("Created AutocompleteItem {} from approved ingredient suggestion {} and queued translation",
                     autocompleteItem.getId(), publicId);
         }
 

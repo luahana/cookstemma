@@ -5,5 +5,6 @@ public enum TranslatableEntity {
     RECIPE_STEP,
     RECIPE_INGREDIENT,
     LOG_POST,
-    FOOD_MASTER
+    FOOD_MASTER,
+    AUTOCOMPLETE_ITEM
 }

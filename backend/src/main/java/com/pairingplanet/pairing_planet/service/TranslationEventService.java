@@ -1,5 +1,6 @@
 package com.pairingplanet.pairing_planet.service;
 
+import com.pairingplanet.pairing_planet.domain.entity.autocomplete.AutocompleteItem;
 import com.pairingplanet.pairing_planet.domain.entity.food.FoodMaster;
 import com.pairingplanet.pairing_planet.domain.entity.log_post.LogPost;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
@@ -163,6 +164,34 @@ public class TranslationEventService {
         translationEventRepository.save(event);
         log.info("Queued translation for food master {} (source: {}, targets: {})",
                 foodMaster.getId(), normalized, targetLocales.size());
+    }
+
+    @Transactional
+    public void queueAutocompleteItemTranslation(AutocompleteItem autocompleteItem, String sourceLocale) {
+        String normalized = normalizeLocale(sourceLocale);
+        List<String> targetLocales = getTargetLocales(normalized);
+
+        if (targetLocales.isEmpty()) {
+            log.debug("No target locales for autocomplete item {} (source: {})",
+                    autocompleteItem.getId(), normalized);
+            return;
+        }
+
+        if (isTranslationPending(TranslatableEntity.AUTOCOMPLETE_ITEM, autocompleteItem.getId())) {
+            log.debug("Translation already pending for autocomplete item {}", autocompleteItem.getId());
+            return;
+        }
+
+        TranslationEvent event = TranslationEvent.builder()
+                .entityType(TranslatableEntity.AUTOCOMPLETE_ITEM)
+                .entityId(autocompleteItem.getId())
+                .sourceLocale(normalized)
+                .targetLocales(targetLocales)
+                .build();
+
+        translationEventRepository.save(event);
+        log.info("Queued translation for autocomplete item {} (source: {}, targets: {})",
+                autocompleteItem.getId(), normalized, targetLocales.size());
     }
 
     @Transactional(readOnly = true)
