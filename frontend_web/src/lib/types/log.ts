@@ -37,6 +37,8 @@ export interface LogPostDetail {
   isSavedByCurrentUser: boolean | null;
   creatorPublicId: string | null;
   userName: string | null;
+  titleTranslations: Record<string, string> | null;
+  contentTranslations: Record<string, string> | null;
 }
 
 /**

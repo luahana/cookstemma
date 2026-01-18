@@ -101,6 +101,8 @@ export interface RecipeDetail {
   changeReason: string | null;
   servings: number;
   cookingTimeRange: string;
+  titleTranslations: Record<string, string> | null;
+  descriptionTranslations: Record<string, string> | null;
 }
 
 /**
