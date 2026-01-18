@@ -80,7 +80,7 @@ public record UserDto(
                 .termsVersion(user.getTermsVersion())
                 .privacyAcceptedAt(user.getPrivacyAcceptedAt())
                 .privacyVersion(user.getPrivacyVersion())
-                .marketingAgreed(user.isMarketingAgreed())
+                .marketingAgreed(user.getMarketingAgreed())
                 .build();
     }
 }
