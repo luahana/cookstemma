@@ -274,13 +274,33 @@ class RecipePipeline:
         variant_count = int(count * variant_ratio)
         original_count = count - variant_count
 
-        # Generate originals first
+        # Fetch foods this bot has already created
+        existing_foods: List[str] = []
+        try:
+            existing_foods = await self.api.get_created_foods()
+            logger.info(
+                "fetched_existing_foods",
+                persona=persona.name,
+                count=len(existing_foods),
+            )
+        except Exception as e:
+            logger.warning("failed_to_fetch_existing_foods", error=str(e))
+
+        # Generate originals, excluding existing foods
         food_suggestions = await self.text_gen.suggest_food_names(
             persona=persona,
-            count=original_count,
+            count=original_count + 5,  # Request extra in case some are filtered
+            exclude=existing_foods,
         )
 
-        for food_name in food_suggestions[:original_count]:
+        # Filter suggestions (case-insensitive)
+        existing_lower = {f.lower() for f in existing_foods}
+        filtered_suggestions = [
+            f for f in food_suggestions
+            if f.lower() not in existing_lower
+        ]
+
+        for food_name in filtered_suggestions[:original_count]:
             try:
                 recipe = await self.generate_original_recipe(
                     persona=persona,
@@ -288,6 +308,16 @@ class RecipePipeline:
                     generate_images=generate_images,
                 )
                 recipes.append(recipe)
+
+                # Record this food in bot memory
+                try:
+                    await self.api.record_created_food(food_name, recipe.public_id)
+                except Exception as e:
+                    logger.warning("failed_to_record_food", food=food_name, error=str(e))
+
+                # Add to local list to prevent duplicates in same batch
+                existing_lower.add(food_name.lower())
+
             except Exception as e:
                 logger.error(
                     "batch_recipe_failed",

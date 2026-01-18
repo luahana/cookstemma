@@ -283,6 +283,37 @@ class PairingPlanetClient:
         content = data.get("content", [])
         return [Recipe(**self._from_camel_case(r)) for r in content]
 
+    # ==================== Bot Memory ====================
+
+    async def get_created_foods(self) -> List[str]:
+        """Get list of food names this bot has already created recipes for."""
+        response = await self._request("GET", "/bot/created-foods")
+        return response.json()
+
+    async def record_created_food(self, food_name: str, recipe_public_id: Optional[str] = None) -> bool:
+        """Record that this bot created a recipe for a food.
+
+        Returns:
+            True if newly recorded, False if already existed
+        """
+        payload = {"foodName": food_name}
+        if recipe_public_id:
+            payload["recipePublicId"] = recipe_public_id
+
+        response = await self._request("POST", "/bot/created-foods", json=payload)
+        data = response.json()
+        return data.get("recorded", False)
+
+    async def has_created_food(self, food_name: str) -> bool:
+        """Check if this bot has already created a recipe for a specific food."""
+        response = await self._request(
+            "GET",
+            "/bot/created-foods/check",
+            params={"foodName": food_name},
+        )
+        data = response.json()
+        return data.get("exists", False)
+
     # ==================== Log Posts ====================
 
     async def create_log(self, request: CreateLogRequest) -> LogPost:
