@@ -25,9 +25,10 @@ public class TranslationEventService {
 
     private final TranslationEventRepository translationEventRepository;
 
-    // All supported languages (12 total)
+    // All supported languages (20 total)
     private static final List<String> ALL_LOCALES = List.of(
-            "ko", "en", "ja", "zh", "fr", "es", "it", "de", "ru", "pt", "el", "ar"
+            "en", "zh", "es", "ja", "de", "fr", "pt", "ko", "it", "ar",
+            "ru", "id", "vi", "hi", "th", "pl", "tr", "nl", "sv", "fa"
     );
 
     @Transactional

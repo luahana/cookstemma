@@ -17,12 +17,13 @@ from openai_translator import OpenAITranslator
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Locale mapping: short code -> BCP47 format
+# Locale mapping: short code -> BCP47 format (20 languages)
 LOCALE_MAP = {
-    'ko': 'ko-KR', 'en': 'en-US', 'ja': 'ja-JP',
-    'zh': 'zh-CN', 'fr': 'fr-FR', 'es': 'es-ES',
-    'it': 'it-IT', 'de': 'de-DE', 'ru': 'ru-RU',
-    'pt': 'pt-BR', 'el': 'el-GR', 'ar': 'ar-SA'
+    'en': 'en-US', 'zh': 'zh-CN', 'es': 'es-ES', 'ja': 'ja-JP',
+    'de': 'de-DE', 'fr': 'fr-FR', 'pt': 'pt-BR', 'ko': 'ko-KR',
+    'it': 'it-IT', 'ar': 'ar-SA', 'ru': 'ru-RU', 'id': 'id-ID',
+    'vi': 'vi-VN', 'hi': 'hi-IN', 'th': 'th-TH', 'pl': 'pl-PL',
+    'tr': 'tr-TR', 'nl': 'nl-NL', 'sv': 'sv-SE', 'fa': 'fa-IR'
 }
 
 # Initialize AWS clients
