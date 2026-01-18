@@ -14,8 +14,8 @@ export default function LegalPageLayout({ title, lastUpdated, children }: LegalP
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo-icon.svg" alt="Pairing Planet" width={32} height={32} />
-            <span className="font-bold text-xl text-gray-900">Pairing Planet</span>
+            <Image src="/logo-icon.svg" alt="Cookstemma" width={32} height={32} />
+            <span className="font-bold text-xl text-gray-900">Cookstemma</span>
           </Link>
           <nav className="flex gap-4 text-sm">
             <Link href="/terms" className="text-gray-600 hover:text-gray-900">
@@ -43,7 +43,7 @@ export default function LegalPageLayout({ title, lastUpdated, children }: LegalP
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="max-w-4xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Pairing Planet. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Cookstemma. All rights reserved.</p>
           <div className="mt-2 flex justify-center gap-4">
             <Link href="/terms" className="hover:text-gray-700">Terms of Service</Link>
             <Link href="/privacy" className="hover:text-gray-700">Privacy Policy</Link>

@@ -23,13 +23,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     return {
       title: user.username,
-      description: user.bio || `${user.username}'s recipes and cooking logs on Pairing Planet`,
+      description: user.bio || `${user.username}'s recipes and cooking logs on Cookstemma`,
       alternates: {
         canonical: `${siteConfig.url}/users/${publicId}`,
       },
       openGraph: {
         title: user.username,
-        description: user.bio || `${user.username}'s recipes and cooking logs on Pairing Planet`,
+        description: user.bio || `${user.username}'s recipes and cooking logs on Cookstemma`,
         type: 'profile',
         ...(user.profileImageUrl && {
           images: [{ url: user.profileImageUrl }],

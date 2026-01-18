@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import LegalPageLayout from '@/components/LegalPageLayout';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service - Pairing Planet',
-  description: 'Terms of Service for Pairing Planet recipe sharing platform',
+  title: 'Terms of Service - Cookstemma',
+  description: 'Terms of Service for Cookstemma recipe sharing platform',
 };
 
 export default function TermsOfServicePage() {
@@ -12,7 +12,7 @@ export default function TermsOfServicePage() {
       <section className="mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
         <p className="text-gray-700 mb-4">
-          Welcome to Pairing Planet. By accessing or using our mobile application and website
+          Welcome to Cookstemma. By accessing or using our mobile application and website
           (collectively, the &quot;Service&quot;), you agree to be bound by these Terms of Service
           (&quot;Terms&quot;). If you do not agree to these Terms, please do not use the Service.
         </p>
@@ -113,7 +113,7 @@ export default function TermsOfServicePage() {
         <h2 className="text-xl font-semibold text-gray-900 mb-4">7. Intellectual Property</h2>
         <p className="text-gray-700 mb-4">
           The Service and its original content (excluding User Content), features, and
-          functionality are owned by Pairing Planet and are protected by international
+          functionality are owned by Cookstemma and are protected by international
           copyright, trademark, and other intellectual property laws.
         </p>
         <p className="text-gray-700">
@@ -153,7 +153,7 @@ export default function TermsOfServicePage() {
       <section className="mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">10. Limitation of Liability</h2>
         <p className="text-gray-700">
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, PAIRING PLANET SHALL NOT BE LIABLE FOR ANY
+          TO THE MAXIMUM EXTENT PERMITTED BY LAW, COOKSTEMMA SHALL NOT BE LIABLE FOR ANY
           INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT
           NOT LIMITED TO LOSS OF PROFITS, DATA, OR USE, ARISING OUT OF OR IN CONNECTION WITH
           YOUR USE OF THE SERVICE.
@@ -163,7 +163,7 @@ export default function TermsOfServicePage() {
       <section className="mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">11. Indemnification</h2>
         <p className="text-gray-700">
-          You agree to indemnify and hold harmless Pairing Planet and its officers, directors,
+          You agree to indemnify and hold harmless Cookstemma and its officers, directors,
           employees, and agents from any claims, damages, losses, or expenses arising out of
           your use of the Service, your User Content, or your violation of these Terms.
         </p>
@@ -207,7 +207,7 @@ export default function TermsOfServicePage() {
           If you have any questions about these Terms, please contact us at:
         </p>
         <p className="text-gray-700 mt-2">
-          <strong>Email:</strong> support@pairingplanet.com
+          <strong>Email:</strong> support@cookstemma.com
         </p>
       </section>
     </LegalPageLayout>

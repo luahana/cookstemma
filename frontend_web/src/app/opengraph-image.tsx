@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
 
-export const alt = 'Pairing Planet - Share recipes, create variations, and track your cooking journey';
+export const alt = 'Cookstemma - Share recipes, create variations, and track your cooking journey';
 export const size = {
   width: 1200,
   height: 630,
@@ -57,7 +57,7 @@ export default async function Image() {
             textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
           }}
         >
-          Pairing Planet
+          Cookstemma
         </div>
 
         {/* Tagline */}

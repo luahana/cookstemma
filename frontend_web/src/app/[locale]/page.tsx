@@ -127,7 +127,7 @@ export default async function Home() {
       <section className="py-16 bg-[var(--background)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] text-center mb-12">
-            Why Pairing Planet?
+            Why Cookstemma?
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-[var(--surface)] p-6 rounded-2xl shadow-sm border border-[var(--border)]">

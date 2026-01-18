@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import LegalPageLayout from '@/components/LegalPageLayout';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy - Pairing Planet',
-  description: 'Privacy Policy for Pairing Planet recipe sharing platform',
+  title: 'Privacy Policy - Cookstemma',
+  description: 'Privacy Policy for Cookstemma recipe sharing platform',
 };
 
 export default function PrivacyPolicyPage() {
@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
       <section className="mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
         <p className="text-gray-700 mb-4">
-          Pairing Planet (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) respects your privacy and is committed to
+          Cookstemma (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) respects your privacy and is committed to
           protecting your personal data. This Privacy Policy explains how we collect, use,
           disclose, and safeguard your information when you use our mobile application and
           website (the &quot;Service&quot;).
@@ -206,7 +206,7 @@ export default function PrivacyPolicyPage() {
           contact us at:
         </p>
         <p className="text-gray-700">
-          <strong>Email:</strong> privacy@pairingplanet.com
+          <strong>Email:</strong> privacy@cookstemma.com
         </p>
       </section>
 

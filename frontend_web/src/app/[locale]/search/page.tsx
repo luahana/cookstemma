@@ -18,7 +18,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   if (query) {
     return {
       title: `Search: ${query}`,
-      description: `Search results for "${query}" - find recipes, cooking logs, and hashtags on Pairing Planet`,
+      description: `Search results for "${query}" - find recipes, cooking logs, and hashtags on Cookstemma`,
       robots: {
         index: false, // Don't index search result pages
       },
@@ -27,7 +27,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
   return {
     title: 'Search',
-    description: 'Search for recipes, cooking logs, and hashtags on Pairing Planet',
+    description: 'Search for recipes, cooking logs, and hashtags on Cookstemma',
   };
 }
 

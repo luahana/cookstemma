@@ -18,12 +18,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `#${decodedName}`,
-    description: `Recipes and cooking logs tagged with #${decodedName} on Pairing Planet`,
+    description: `Recipes and cooking logs tagged with #${decodedName} on Cookstemma`,
     alternates: {
       canonical: `${siteConfig.url}/hashtags/${encodeURIComponent(decodedName)}`,
     },
     openGraph: {
-      title: `#${decodedName} | Pairing Planet`,
+      title: `#${decodedName} | Cookstemma`,
       description: `Recipes and cooking logs tagged with #${decodedName}`,
       type: 'website',
     },

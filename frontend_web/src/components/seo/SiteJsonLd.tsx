@@ -26,8 +26,8 @@ export function SiteJsonLd() {
     logo: `${siteConfig.url}/logo.png`,
     sameAs: [
       // Add social media URLs when available
-      // 'https://twitter.com/pairingplanet',
-      // 'https://instagram.com/pairingplanet',
+      // 'https://twitter.com/cookstemma',
+      // 'https://instagram.com/cookstemma',
     ].filter(Boolean),
   };
 
