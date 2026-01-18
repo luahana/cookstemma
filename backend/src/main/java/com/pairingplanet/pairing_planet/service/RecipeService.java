@@ -72,6 +72,7 @@ public class RecipeService {
     private final HashtagService hashtagService;
     private final NotificationService notificationService;
     private final TranslationEventService translationEventService;
+    private final ImageProcessingService imageProcessingService;
 
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
@@ -377,6 +378,9 @@ public class RecipeService {
                     stepImage.setType(com.pairingplanet.pairing_planet.domain.enums.ImageType.STEP);
                     stepImage.setStatus(com.pairingplanet.pairing_planet.domain.enums.ImageStatus.ACTIVE);
                     imageRepository.save(stepImage);
+
+                    // Trigger async variant generation for step images
+                    imageProcessingService.generateVariantsAsync(stepImage.getId());
                 }
 
                 RecipeStep step = RecipeStep.builder()
@@ -756,6 +760,9 @@ public class RecipeService {
                     stepImage.setType(com.pairingplanet.pairing_planet.domain.enums.ImageType.STEP);
                     stepImage.setStatus(com.pairingplanet.pairing_planet.domain.enums.ImageStatus.ACTIVE);
                     imageRepository.save(stepImage);
+
+                    // Trigger async variant generation for step images
+                    imageProcessingService.generateVariantsAsync(stepImage.getId());
                 }
 
                 RecipeStep step = RecipeStep.builder()
