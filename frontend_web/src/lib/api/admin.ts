@@ -6,6 +6,9 @@ import type {
   SuggestionStatus,
   AdminUser,
   UserRole,
+  UserSuggestedIngredient,
+  SuggestedIngredientFilter,
+  IngredientType,
 } from '@/lib/types/admin';
 
 /**
@@ -84,4 +87,43 @@ export async function updateUserRole(
     method: 'PATCH',
     body: JSON.stringify({ role }),
   });
+}
+
+/**
+ * Get paginated list of suggested ingredients with filters
+ */
+export async function getSuggestedIngredients(
+  params: SuggestedIngredientFilter & { page?: number; size?: number } = {},
+): Promise<PageResponse<UserSuggestedIngredient>> {
+  const queryString = buildQueryString({
+    page: params.page ?? 0,
+    size: params.size ?? 20,
+    suggestedName: params.suggestedName,
+    ingredientType: params.ingredientType,
+    localeCode: params.localeCode,
+    status: params.status,
+    username: params.username,
+    sortBy: params.sortBy ?? 'createdAt',
+    sortOrder: params.sortOrder ?? 'desc',
+  });
+
+  return apiFetch<PageResponse<UserSuggestedIngredient>>(
+    `/admin/suggested-ingredients${queryString}`,
+  );
+}
+
+/**
+ * Update the status of a suggested ingredient
+ */
+export async function updateSuggestedIngredientStatus(
+  publicId: string,
+  status: SuggestionStatus,
+): Promise<UserSuggestedIngredient> {
+  return apiFetch<UserSuggestedIngredient>(
+    `/admin/suggested-ingredients/${publicId}/status`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    },
+  );
 }

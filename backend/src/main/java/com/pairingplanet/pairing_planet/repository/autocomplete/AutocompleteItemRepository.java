@@ -77,4 +77,18 @@ public interface AutocompleteItemRepository extends JpaRepository<AutocompleteIt
             @Param("pattern") String pattern,
             @Param("locale") String locale,
             Pageable pageable);
+
+    /**
+     * Check if an autocomplete item exists by exact name (case-insensitive) and type in a locale
+     */
+    @Query(value = "SELECT EXISTS(" +
+            "SELECT 1 FROM autocomplete_items " +
+            "WHERE type::text = :type " +
+            "AND LOWER(name ->> :locale) = LOWER(:name))",
+            nativeQuery = true)
+    boolean existsByNameIgnoreCaseAndTypeAndLocale(
+            @Param("name") String name,
+            @Param("type") String type,
+            @Param("locale") String locale
+    );
 }

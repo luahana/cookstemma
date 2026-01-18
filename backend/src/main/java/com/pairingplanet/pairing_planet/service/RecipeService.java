@@ -3,11 +3,14 @@ package com.pairingplanet.pairing_planet.service;
 import com.pairingplanet.pairing_planet.domain.entity.food.FoodMaster;
 import com.pairingplanet.pairing_planet.domain.entity.food.UserSuggestedFood;
 import com.pairingplanet.pairing_planet.domain.entity.image.Image;
+import com.pairingplanet.pairing_planet.domain.entity.ingredient.UserSuggestedIngredient;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.Recipe;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.RecipeIngredient;
 import com.pairingplanet.pairing_planet.domain.entity.recipe.RecipeStep;
 import com.pairingplanet.pairing_planet.domain.entity.user.User;
+import com.pairingplanet.pairing_planet.domain.enums.AutocompleteType;
 import com.pairingplanet.pairing_planet.domain.enums.CookingTimeRange;
+import com.pairingplanet.pairing_planet.domain.enums.IngredientType;
 import com.pairingplanet.pairing_planet.domain.enums.SuggestionStatus;
 import com.pairingplanet.pairing_planet.dto.common.CursorPageResponse;
 import com.pairingplanet.pairing_planet.dto.common.UnifiedPageResponse;
@@ -17,10 +20,12 @@ import com.pairingplanet.pairing_planet.dto.log_post.LogPostSummaryDto;
 import com.pairingplanet.pairing_planet.dto.log_post.RecentActivityDto;
 import com.pairingplanet.pairing_planet.dto.recipe.*;
 import com.pairingplanet.pairing_planet.util.CursorUtil;
+import com.pairingplanet.pairing_planet.repository.autocomplete.AutocompleteItemRepository;
 import com.pairingplanet.pairing_planet.repository.food.FoodMasterRepository;
 import com.pairingplanet.pairing_planet.repository.log_post.LogPostRepository;
 import com.pairingplanet.pairing_planet.repository.food.UserSuggestedFoodRepository;
 import com.pairingplanet.pairing_planet.repository.image.ImageRepository;
+import com.pairingplanet.pairing_planet.repository.ingredient.UserSuggestedIngredientRepository;
 import com.pairingplanet.pairing_planet.repository.recipe.*;
 import com.pairingplanet.pairing_planet.repository.specification.RecipeSpecification;
 import com.pairingplanet.pairing_planet.repository.user.UserRepository;
@@ -60,6 +65,8 @@ public class RecipeService {
 
     private final FoodMasterRepository foodMasterRepository;
     private final UserSuggestedFoodRepository suggestedFoodRepository;
+    private final AutocompleteItemRepository autocompleteItemRepository;
+    private final UserSuggestedIngredientRepository suggestedIngredientRepository;
     private final RecipeCategoryDetectionService categoryDetectionService;
     private final SavedRecipeRepository savedRecipeRepository;
     private final HashtagService hashtagService;
@@ -138,7 +145,7 @@ public class RecipeService {
             Set<Hashtag> hashtags = hashtagService.getOrCreateHashtags(req.hashtags());
             recipe.setHashtags(hashtags);
         }
-        saveIngredientsAndSteps(recipe, req);
+        saveIngredientsAndSteps(recipe, req, creatorId, finalLocale);
         imageService.activateImages(req.imagePublicIds(), recipe);
 
         // Flush to ensure images are persisted before fetching recipe detail
@@ -325,7 +332,12 @@ public class RecipeService {
         return newFood;
     }
 
-    private void saveIngredientsAndSteps(Recipe recipe, CreateRecipeRequestDto req) {
+    private void saveIngredientsAndSteps(
+            Recipe recipe,
+            CreateRecipeRequestDto req,
+            Long userId,
+            String locale
+    ) {
         // 1. 재료 저장
         if (req.ingredients() != null) {
             var ingredientList = req.ingredients();
@@ -340,6 +352,11 @@ public class RecipeService {
                         .type(dto.type())
                         .displayOrder(i + 1)
                         .build());
+
+                // Capture suggested ingredient if not in autocomplete
+                if (dto.name() != null && dto.type() != null) {
+                    captureSuggestedIngredientIfNotExists(dto.name(), dto.type(), locale, userId);
+                }
             }
             ingredientRepository.saveAll(ingredients);
             // Maintain bidirectional relationship for proper lazy loading in same transaction
@@ -373,6 +390,68 @@ public class RecipeService {
                 recipe.getSteps().add(step);
             }
         }
+    }
+
+    /**
+     * Captures ingredient name as a suggestion if it doesn't exist in AutocompleteItem.
+     * This allows admins to review and approve new ingredients.
+     */
+    private void captureSuggestedIngredientIfNotExists(
+            String ingredientName,
+            IngredientType ingredientType,
+            String localeCode,
+            Long userId
+    ) {
+        if (ingredientName == null || ingredientName.isBlank()) {
+            return;
+        }
+
+        String normalizedLocale = localeCode != null ? localeCode.replace("_", "-") : "ko-KR";
+        AutocompleteType autocompleteType = mapIngredientTypeToAutocompleteType(ingredientType);
+
+        // Check if ingredient exists in AutocompleteItem
+        boolean existsInAutocomplete = autocompleteItemRepository.existsByNameIgnoreCaseAndTypeAndLocale(
+                ingredientName.trim(),
+                autocompleteType.name(),
+                normalizedLocale
+        );
+
+        if (existsInAutocomplete) {
+            return;
+        }
+
+        // Check if already suggested
+        boolean alreadySuggested = suggestedIngredientRepository
+                .existsBySuggestedNameIgnoreCaseAndIngredientTypeAndLocaleCode(
+                        ingredientName.trim(),
+                        ingredientType,
+                        normalizedLocale
+                );
+
+        if (alreadySuggested) {
+            return;
+        }
+
+        // Create suggestion record for admin review
+        UserSuggestedIngredient suggestion = UserSuggestedIngredient.builder()
+                .suggestedName(ingredientName.trim())
+                .ingredientType(ingredientType)
+                .localeCode(normalizedLocale)
+                .user(userRepository.getReferenceById(userId))
+                .status(SuggestionStatus.PENDING)
+                .build();
+        suggestedIngredientRepository.save(suggestion);
+
+        log.debug("Created suggested ingredient: {} ({}) for locale {}",
+                ingredientName, ingredientType, normalizedLocale);
+    }
+
+    private AutocompleteType mapIngredientTypeToAutocompleteType(IngredientType ingredientType) {
+        return switch (ingredientType) {
+            case MAIN -> AutocompleteType.MAIN_INGREDIENT;
+            case SECONDARY -> AutocompleteType.SECONDARY_INGREDIENT;
+            case SEASONING -> AutocompleteType.SEASONING;
+        };
     }
 
     private String getFoodName(Recipe recipe) {

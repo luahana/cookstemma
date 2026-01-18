@@ -43,3 +43,28 @@ export interface PageResponse<T> {
   last: boolean;
   empty: boolean;
 }
+
+export type IngredientType = 'MAIN' | 'SECONDARY' | 'SEASONING';
+
+export interface UserSuggestedIngredient {
+  publicId: string;
+  suggestedName: string;
+  ingredientType: IngredientType;
+  localeCode: string;
+  status: SuggestionStatus;
+  userPublicId: string | null;
+  username: string | null;
+  autocompleteItemPublicId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SuggestedIngredientFilter {
+  suggestedName?: string;
+  ingredientType?: IngredientType;
+  localeCode?: string;
+  status?: SuggestionStatus;
+  username?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
