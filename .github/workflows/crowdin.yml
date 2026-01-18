@@ -16,10 +16,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Crowdin Sync
+      - name: Upload sources to Crowdin
         uses: crowdin/github-action@v2
         with:
           upload_sources: true
+          upload_translations: false
+          download_translations: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+      - name: Download translations from Crowdin
+        uses: crowdin/github-action@v2
+        continue-on-error: true  # Don't fail if no translations yet
+        with:
+          upload_sources: false
           upload_translations: false
           download_translations: true
           localization_branch_name: l10n_crowdin_translations
