@@ -5,10 +5,18 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public code?: string,
   ) {
     super(message);
     this.name = 'ApiError';
   }
+}
+
+// Backend error response structure
+interface BackendErrorResponse {
+  code: string;
+  message: string;
+  errors?: Record<string, string>;
 }
 
 interface FetchOptions extends RequestInit {
@@ -95,15 +103,40 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     let errorMessage = `API Error ${response.status}`;
+    let errorCode: string | undefined;
+
     try {
       const errorBody = await response.text();
       if (errorBody) {
-        errorMessage += `: ${errorBody}`;
+        try {
+          // Try to parse as JSON (backend returns { code, message })
+          const parsed: BackendErrorResponse = JSON.parse(errorBody);
+          errorMessage = parsed.message || errorMessage;
+          errorCode = parsed.code;
+        } catch {
+          // If not valid JSON, use raw text (but clean it up)
+          errorMessage = errorBody;
+        }
       }
     } catch {
       // Ignore error reading body
     }
-    throw new ApiError(response.status, errorMessage);
+
+    const error = new ApiError(response.status, errorMessage, errorCode);
+
+    // Log server errors (5xx) for debugging
+    // Note: Sentry capture disabled until @sentry/nextjs supports Next.js 16
+    if (response.status >= 500) {
+      console.error('[API Error]', {
+        endpoint,
+        method: fetchOptions.method || 'GET',
+        status: response.status,
+        code: errorCode,
+        message: errorMessage,
+      });
+    }
+
+    throw error;
   }
 
   // Handle empty responses (204 No Content or empty body)

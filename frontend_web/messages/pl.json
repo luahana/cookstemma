@@ -1,0 +1,145 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "submit": "Submit",
+    "search": "Search",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "viewAll": "View all",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signedIn": "Signed in",
+    "error": "Error",
+    "success": "Success",
+    "noResults": "No results found",
+    "by": "by",
+    "anonymous": "Anonymous"
+  },
+  "nav": {
+    "recipes": "Recipes",
+    "cookingLogs": "Cooking Logs",
+    "search": "Search",
+    "searchPlaceholder": "Search recipes...",
+    "myProfile": "My Profile",
+    "saved": "Saved",
+    "createRecipe": "Create Recipe",
+    "newCookingLog": "New Cooking Log",
+    "adminDashboard": "Admin Dashboard",
+    "language": "Language",
+    "measurementUnits": "Measurement Units",
+    "settings": "Settings",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "measurement": {
+    "original": "Original",
+    "metric": "Metric",
+    "us": "US"
+  },
+  "home": {
+    "heroTitle": "Your Recipes, {highlight}",
+    "heroHighlight": "Evolved",
+    "heroSubtitle": "Share your recipes, create variations, and track your cooking journey. Join a community of home cooks discovering new flavors together.",
+    "featuredRecipes": "Featured Recipes",
+    "recentCookingLogs": "Recent Cooking Logs",
+    "whyPairingPlanet": "Why Pairing Planet?",
+    "shareRecipes": "Share Recipes",
+    "shareRecipesDesc": "Create and share your favorite recipes with photos and step-by-step instructions.",
+    "createVariations": "Create Variations",
+    "createVariationsDesc": "Put your own spin on recipes and see how dishes evolve across the community.",
+    "trackCooking": "Track Your Cooking",
+    "trackCookingDesc": "Log your cooking sessions, note what worked, and improve over time.",
+    "startJourney": "Start Your Cooking Journey",
+    "startJourneyDesc": "Download the app and join thousands of home cooks sharing their culinary adventures.",
+    "browseRecipes": "Browse Recipes"
+  },
+  "footer": {
+    "explore": "Explore",
+    "legal": "Legal",
+    "copyright": "All rights reserved."
+  },
+  "recipes": {
+    "title": "Recipes",
+    "create": "Create Recipe",
+    "edit": "Edit Recipe",
+    "noRecipes": "No recipes found",
+    "ingredients": "Ingredients",
+    "instructions": "Instructions",
+    "servings": "Servings",
+    "prepTime": "Prep Time",
+    "cookTime": "Cook Time",
+    "totalTime": "Total Time",
+    "difficulty": "Difficulty",
+    "cuisine": "Cuisine",
+    "category": "Category",
+    "tags": "Tags",
+    "notes": "Notes",
+    "minutes": "minutes",
+    "hours": "hours"
+  },
+  "logs": {
+    "title": "Cooking Logs",
+    "create": "New Cooking Log",
+    "noLogs": "No cooking logs found",
+    "rating": "Rating",
+    "notes": "Notes",
+    "photos": "Photos",
+    "cookedOn": "Cooked on"
+  },
+  "profile": {
+    "followers": "Followers",
+    "following": "Following",
+    "recipes": "Recipes",
+    "logs": "Logs",
+    "editProfile": "Edit Profile",
+    "follow": "Follow",
+    "unfollow": "Unfollow"
+  },
+  "auth": {
+    "signInTitle": "Sign In",
+    "signInWith": "Sign in with {provider}",
+    "continueWith": "Continue with {provider}",
+    "signInDescription": "Sign in to create recipes, log your cooking, and save your favorites.",
+    "redirecting": "Redirecting..."
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search for recipes, ingredients, or users...",
+    "recipes": "Recipes",
+    "users": "Users",
+    "hashtags": "Hashtags"
+  },
+  "saved": {
+    "title": "Saved",
+    "noSaved": "No saved items yet",
+    "savedRecipes": "Saved Recipes"
+  },
+  "errors": {
+    "notFound": "Page not found",
+    "serverError": "Something went wrong",
+    "unauthorized": "Please sign in to continue",
+    "forbidden": "You don't have permission to access this",
+    "networkError": "Unable to connect. Please check your internet connection.",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "validationError": "Please check your input and try again.",
+    "fileTooLarge": "File is too large. Maximum size is 10MB.",
+    "invalidFileType": "Invalid file type. Please upload an image.",
+    "rateLimited": "Too many requests. Please wait a moment.",
+    "deleteFailed": "Failed to delete. Please try again.",
+    "saveFailed": "Failed to save. Please try again.",
+    "loadFailed": "Failed to load data. Please refresh the page.",
+    "tryAgain": "Please try again.",
+    "cannotModify": "Cannot modify this item",
+    "unknownError": "An unexpected error occurred",
+    "title": "Error"
+  },
+  "metadata": {
+    "siteDescription": "Share your recipes, create variations, and track your cooking journey"
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "common": {
+    "loading": "جار التحميل...",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "submit": "إرسال",
+    "search": "بحث",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "viewAll": "عرض الكل",
+    "signIn": "تسجيل الدخول",
+    "signOut": "تسجيل الخروج",
+    "signedIn": "مسجل الدخول",
+    "error": "خطأ",
+    "success": "نجاح",
+    "noResults": "لم يتم العثور على نتائج",
+    "by": "بواسطة",
+    "anonymous": "مجهول"
+  },
+  "nav": {
+    "recipes": "الوصفات",
+    "cookingLogs": "سجلات الطبخ",
+    "search": "بحث",
+    "searchPlaceholder": "ابحث عن وصفات...",
+    "myProfile": "ملفي الشخصي",
+    "saved": "المحفوظات",
+    "createRecipe": "إنشاء وصفة",
+    "newCookingLog": "سجل طبخ جديد",
+    "adminDashboard": "لوحة الإدارة",
+    "language": "اللغة",
+    "measurementUnits": "وحدات القياس",
+    "settings": "الإعدادات",
+    "termsOfService": "شروط الخدمة",
+    "privacyPolicy": "سياسة الخصوصية"
+  },
+  "measurement": {
+    "original": "الأصلي",
+    "metric": "متري",
+    "us": "أمريكي"
+  },
+  "home": {
+    "heroTitle": "وصفاتك، {highlight}",
+    "heroHighlight": "متطورة",
+    "heroSubtitle": "شارك وصفاتك، أنشئ تنويعات، وتتبع رحلتك في الطبخ. انضم إلى مجتمع من الطهاة المنزليين يكتشفون نكهات جديدة معاً.",
+    "featuredRecipes": "الوصفات المميزة",
+    "recentCookingLogs": "سجلات الطبخ الأخيرة",
+    "whyPairingPlanet": "لماذا Pairing Planet؟",
+    "shareRecipes": "شارك الوصفات",
+    "shareRecipesDesc": "أنشئ وشارك وصفاتك المفضلة مع الصور والتعليمات خطوة بخطوة.",
+    "createVariations": "أنشئ تنويعات",
+    "createVariationsDesc": "أضف لمستك الخاصة على الوصفات وشاهد كيف تتطور الأطباق عبر المجتمع.",
+    "trackCooking": "تتبع طبخك",
+    "trackCookingDesc": "سجل جلسات الطبخ الخاصة بك، دوّن ما نجح، وتحسّن بمرور الوقت.",
+    "startJourney": "ابدأ رحلتك في الطبخ",
+    "startJourneyDesc": "حمّل التطبيق وانضم إلى آلاف الطهاة المنزليين الذين يشاركون مغامراتهم في الطهي.",
+    "browseRecipes": "تصفح الوصفات"
+  },
+  "footer": {
+    "explore": "استكشف",
+    "legal": "قانوني",
+    "copyright": "جميع الحقوق محفوظة."
+  },
+  "recipes": {
+    "title": "الوصفات",
+    "create": "إنشاء وصفة",
+    "edit": "تعديل الوصفة",
+    "noRecipes": "لم يتم العثور على وصفات",
+    "ingredients": "المكونات",
+    "instructions": "التعليمات",
+    "servings": "الحصص",
+    "prepTime": "وقت التحضير",
+    "cookTime": "وقت الطبخ",
+    "totalTime": "الوقت الإجمالي",
+    "difficulty": "الصعوبة",
+    "cuisine": "المطبخ",
+    "category": "الفئة",
+    "tags": "الوسوم",
+    "notes": "ملاحظات",
+    "minutes": "دقائق",
+    "hours": "ساعات"
+  },
+  "logs": {
+    "title": "سجلات الطبخ",
+    "create": "سجل طبخ جديد",
+    "noLogs": "لم يتم العثور على سجلات طبخ",
+    "rating": "التقييم",
+    "notes": "ملاحظات",
+    "photos": "الصور",
+    "cookedOn": "تم الطبخ في"
+  },
+  "profile": {
+    "followers": "المتابعون",
+    "following": "يتابع",
+    "recipes": "الوصفات",
+    "logs": "السجلات",
+    "editProfile": "تعديل الملف الشخصي",
+    "follow": "متابعة",
+    "unfollow": "إلغاء المتابعة"
+  },
+  "auth": {
+    "signInTitle": "تسجيل الدخول",
+    "signInWith": "تسجيل الدخول باستخدام {provider}",
+    "continueWith": "المتابعة باستخدام {provider}",
+    "signInDescription": "سجل الدخول لإنشاء الوصفات وتسجيل طبخك وحفظ مفضلاتك.",
+    "redirecting": "جار إعادة التوجيه..."
+  },
+  "search": {
+    "title": "بحث",
+    "placeholder": "ابحث عن وصفات أو مكونات أو مستخدمين...",
+    "recipes": "الوصفات",
+    "users": "المستخدمون",
+    "hashtags": "الوسوم"
+  },
+  "saved": {
+    "title": "المحفوظات",
+    "noSaved": "لا توجد عناصر محفوظة بعد",
+    "savedRecipes": "الوصفات المحفوظة"
+  },
+  "errors": {
+    "notFound": "الصفحة غير موجودة",
+    "serverError": "حدث خطأ ما",
+    "unauthorized": "يرجى تسجيل الدخول للمتابعة",
+    "forbidden": "ليس لديك صلاحية للوصول إلى هذا",
+    "networkError": "تعذر الاتصال. يرجى التحقق من اتصالك بالإنترنت.",
+    "sessionExpired": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+    "validationError": "يرجى التحقق من المدخلات والمحاولة مرة أخرى.",
+    "fileTooLarge": "الملف كبير جداً. الحد الأقصى 10 ميجابايت.",
+    "invalidFileType": "نوع الملف غير صالح. يرجى رفع صورة.",
+    "rateLimited": "طلبات كثيرة جداً. يرجى الانتظار لحظة.",
+    "deleteFailed": "فشل الحذف. يرجى المحاولة مرة أخرى.",
+    "saveFailed": "فشل الحفظ. يرجى المحاولة مرة أخرى.",
+    "loadFailed": "فشل تحميل البيانات. يرجى تحديث الصفحة.",
+    "tryAgain": "يرجى المحاولة مرة أخرى.",
+    "cannotModify": "لا يمكن تعديل هذا العنصر",
+    "unknownError": "حدث خطأ غير متوقع",
+    "title": "خطأ"
+  },
+  "metadata": {
+    "siteDescription": "شارك وصفاتك، أنشئ تنويعات، وتتبع رحلتك في الطبخ"
+  }
+}

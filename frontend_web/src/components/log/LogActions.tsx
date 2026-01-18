@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { ActionMenu, ActionMenuIcons } from '@/components/shared/ActionMenu';
 import { DeleteConfirmDialog } from '@/components/shared/DeleteConfirmDialog';
 import { deleteLog } from '@/lib/api/logs';
+import { getErrorMessage } from '@/lib/utils/errors';
 import type { LogPostDetail } from '@/lib/types';
 
 interface LogActionsProps {
@@ -16,6 +18,7 @@ interface LogActionsProps {
 export function LogActions({ log, onEditClick }: LogActionsProps) {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
+  const t = useTranslations('errors');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +39,7 @@ export function LogActions({ log, onEditClick }: LogActionsProps) {
       router.refresh();
     } catch (err) {
       console.error('Failed to delete log:', err);
-      setError('Failed to delete log. Please try again.');
+      setError(getErrorMessage(err));
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
@@ -78,7 +81,7 @@ export function LogActions({ log, onEditClick }: LogActionsProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div className="flex-1">
-              <p className="font-medium">Error</p>
+              <p className="font-medium">{t('title')}</p>
               <p className="text-sm opacity-90">{error}</p>
             </div>
             <button
