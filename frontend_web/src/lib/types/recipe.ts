@@ -62,6 +62,7 @@ export interface IngredientDto {
   quantity: number | null; // Numeric quantity
   unit: MeasurementUnit | null; // Standardized unit
   type: IngredientType;
+  nameTranslations: Record<string, string> | null; // Translations by locale
 }
 
 /**
@@ -72,6 +73,7 @@ export interface StepDto {
   description: string;
   imagePublicId: string | null;
   imageUrl: string | null;
+  descriptionTranslations: Record<string, string> | null; // Translations by locale
 }
 
 /**

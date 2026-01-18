@@ -227,7 +227,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         )}
 
         {/* Ingredients */}
-        <IngredientsSection ingredients={recipe.ingredients} />
+        <IngredientsSection ingredients={recipe.ingredients} locale={locale} />
 
         {/* Steps */}
         <section className="mb-8">
@@ -241,7 +241,7 @@ export default async function RecipeDetailPage({ params }: Props) {
                   {step.stepNumber}
                 </span>
                 <div className="flex-1">
-                  <p className="text-[var(--text-primary)]">{step.description}</p>
+                  <p className="text-[var(--text-primary)]">{getLocalizedContent(step.descriptionTranslations, locale, step.description)}</p>
                   {getImageUrl(step.imageUrl) && (
                     <div className="relative aspect-video rounded-lg overflow-hidden mt-3 max-w-md">
                       <Image

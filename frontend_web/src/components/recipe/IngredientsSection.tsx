@@ -9,9 +9,11 @@ import {
   getMeasurementPreference,
   MEASUREMENT_STORAGE_KEY,
 } from '@/lib/utils/measurement';
+import { getLocalizedContent } from '@/lib/utils/localization';
 
 interface IngredientsSectionProps {
   ingredients: IngredientDto[];
+  locale: string;
 }
 
 const INGREDIENT_CATEGORIES: {
@@ -52,7 +54,7 @@ const INGREDIENT_CATEGORIES: {
   },
 ];
 
-export function IngredientsSection({ ingredients }: IngredientsSectionProps) {
+export function IngredientsSection({ ingredients, locale }: IngredientsSectionProps) {
   const [preference, setPreference] = useState<MeasurementPreference>('ORIGINAL');
 
   // Debug: log ingredients structure on mount
@@ -182,7 +184,7 @@ export function IngredientsSection({ ingredients }: IngredientsSectionProps) {
                             {amount}{' '}
                           </span>
                         )}
-                        {ing.name}
+                        {getLocalizedContent(ing.nameTranslations, locale, ing.name)}
                       </span>
                     </li>
                   );
