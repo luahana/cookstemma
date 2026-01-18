@@ -1,3 +1,5 @@
+# AWS Profile Configuration
+# Last credential rotation: 2026-01-18
 spring:
   config:
     activate:
