@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { RecipeSummary } from '@/lib/types';
 import { COOKING_TIME_RANGES, type CookingTimeRange } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
+import { getLocalizedContent } from '@/lib/utils/localization';
 import { CookingStyleBadge } from '@/components/common/CookingStyleBadge';
 import { BookmarkButton } from '@/components/common/BookmarkButton';
 
@@ -10,9 +11,12 @@ interface RecipeCardProps {
   recipe: RecipeSummary;
   isSaved?: boolean;
   showTypeLabel?: boolean;
+  locale?: string;
 }
 
-export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false }: RecipeCardProps) {
+export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false, locale = 'ko' }: RecipeCardProps) {
+  const localizedTitle = getLocalizedContent(recipe.titleTranslations, locale, recipe.title);
+  const localizedDescription = getLocalizedContent(recipe.descriptionTranslations, locale, recipe.description);
   const cookingTime =
     COOKING_TIME_RANGES[recipe.cookingTimeRange as CookingTimeRange] ||
     recipe.cookingTimeRange;
@@ -27,7 +31,7 @@ export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false }: R
         {getImageUrl(recipe.thumbnail) ? (
           <Image
             src={getImageUrl(recipe.thumbnail)!}
-            alt={recipe.title}
+            alt={localizedTitle}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -75,12 +79,12 @@ export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false }: R
 
         {/* Title */}
         <h3 className="font-semibold text-[var(--text-primary)] mt-1 line-clamp-1 group-hover:text-[var(--primary)] transition-colors">
-          {recipe.title}
+          {localizedTitle}
         </h3>
 
         {/* Description */}
         <p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2">
-          {recipe.description}
+          {localizedDescription}
         </p>
 
         {/* Meta info */}

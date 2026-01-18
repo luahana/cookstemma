@@ -119,7 +119,9 @@ public class SavedRecipeService {
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
                 recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-                hashtags
+                hashtags,
+                recipe.getTitleTranslations(),
+                recipe.getDescriptionTranslations()
         );
     }
 

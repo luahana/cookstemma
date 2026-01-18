@@ -78,7 +78,9 @@ public record RecipeDetailResponseDto(
                 null, // 14. rootTitle (root itself has no root)
                 root.getServings() != null ? root.getServings() : 2, // 15. servings
                 root.getCookingTimeRange() != null ? root.getCookingTimeRange().name() : "MIN_30_TO_60", // 16. cookingTimeRange
-                List.of() // 17. hashtags (상세 카드 내 생략)
+                List.of(), // 17. hashtags (상세 카드 내 생략)
+                root.getTitleTranslations(), // 18. titleTranslations
+                root.getDescriptionTranslations() // 19. descriptionTranslations
         ) : null;
 
         // 3. 부모 레시피 정보 생성 (17개 필드 생성자 대응)
@@ -99,7 +101,9 @@ public record RecipeDetailResponseDto(
                 null, // rootTitle
                 parent.getServings() != null ? parent.getServings() : 2, // servings
                 parent.getCookingTimeRange() != null ? parent.getCookingTimeRange().name() : "MIN_30_TO_60", // cookingTimeRange
-                List.of() // hashtags (상세 카드 내 생략)
+                List.of(), // hashtags (상세 카드 내 생략)
+                parent.getTitleTranslations(), // titleTranslations
+                parent.getDescriptionTranslations() // descriptionTranslations
         ) : null;
 
         // 4. 이미지 리스트 변환 (COVER 타입만 반환, STEP 이미지는 steps[].imageUrl로 반환됨)

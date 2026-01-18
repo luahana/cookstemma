@@ -1,6 +1,7 @@
 package com.pairingplanet.pairing_planet.dto.recipe;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public record RecipeSummaryDto(
@@ -20,5 +21,7 @@ public record RecipeSummaryDto(
         String rootTitle,      // Root recipe title for variants (lineage display)
         Integer servings,      // Number of servings
         String cookingTimeRange, // Cooking time range enum
-        List<String> hashtags  // Hashtag names (first 3)
+        List<String> hashtags,  // Hashtag names (first 3)
+        Map<String, String> titleTranslations,       // Translations by locale
+        Map<String, String> descriptionTranslations  // Translations by locale
 ) {}

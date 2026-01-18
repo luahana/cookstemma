@@ -22,6 +22,8 @@ export interface RecipeSummary {
   servings: number;
   cookingTimeRange: string;
   hashtags: string[];
+  titleTranslations?: Record<string, string> | null;
+  descriptionTranslations?: Record<string, string> | null;
 }
 
 /**

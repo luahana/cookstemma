@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 interface Props {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{
     page?: string;
     sort?: 'recent' | 'popular' | 'trending' | 'mostForked';
@@ -26,27 +27,28 @@ interface Props {
   }>;
 }
 
-export default async function RecipesPage({ searchParams }: Props) {
-  const params = await searchParams;
-  const page = parseInt(params.page || '0', 10);
-  const sort = params.sort || 'recent';
-  const typeFilter = params.type === 'original' || params.type === 'variants'
-    ? params.type
+export default async function RecipesPage({ params, searchParams }: Props) {
+  const { locale: pageLocale } = await params;
+  const queryParams = await searchParams;
+  const page = parseInt(queryParams.page || '0', 10);
+  const sort = queryParams.sort || 'recent';
+  const typeFilter = queryParams.type === 'original' || queryParams.type === 'variants'
+    ? queryParams.type
     : undefined;
 
   // Parse cooking style filter (maps to backend locale parameter)
-  const locale = params.style && params.style !== 'any'
-    ? params.style
+  const locale = queryParams.style && queryParams.style !== 'any'
+    ? queryParams.style
     : undefined;
 
   // Parse cooking time filter
-  const cookingTime = params.cookingTime && params.cookingTime !== 'any'
-    ? [params.cookingTime as CookingTimeFilter]
+  const cookingTime = queryParams.cookingTime && queryParams.cookingTime !== 'any'
+    ? [queryParams.cookingTime as CookingTimeFilter]
     : undefined;
 
   // Parse servings filter
-  const minServings = params.minServings ? parseInt(params.minServings, 10) : undefined;
-  const maxServings = params.maxServings ? parseInt(params.maxServings, 10) : undefined;
+  const minServings = queryParams.minServings ? parseInt(queryParams.minServings, 10) : undefined;
+  const maxServings = queryParams.maxServings ? parseInt(queryParams.maxServings, 10) : undefined;
 
   const recipes = await getRecipes({
     page,
@@ -54,7 +56,7 @@ export default async function RecipesPage({ searchParams }: Props) {
     sort,
     typeFilter,
     locale,
-    onlyRoot: params.type === 'original' ? true : undefined,
+    onlyRoot: queryParams.type === 'original' ? true : undefined,
     cookingTime,
     minServings,
     maxServings,
@@ -63,12 +65,12 @@ export default async function RecipesPage({ searchParams }: Props) {
   // Build base URL with current filters for pagination
   const filterParams = new URLSearchParams();
   if (sort !== 'recent') filterParams.set('sort', sort);
-  if (params.type && params.type !== 'all') filterParams.set('type', params.type);
-  if (params.style && params.style !== 'any') filterParams.set('style', params.style);
-  if (params.cookingTime && params.cookingTime !== 'any') filterParams.set('cookingTime', params.cookingTime);
-  if (params.servings && params.servings !== 'any') filterParams.set('servings', params.servings);
-  if (params.minServings) filterParams.set('minServings', params.minServings);
-  if (params.maxServings) filterParams.set('maxServings', params.maxServings);
+  if (queryParams.type && queryParams.type !== 'all') filterParams.set('type', queryParams.type);
+  if (queryParams.style && queryParams.style !== 'any') filterParams.set('style', queryParams.style);
+  if (queryParams.cookingTime && queryParams.cookingTime !== 'any') filterParams.set('cookingTime', queryParams.cookingTime);
+  if (queryParams.servings && queryParams.servings !== 'any') filterParams.set('servings', queryParams.servings);
+  if (queryParams.minServings) filterParams.set('minServings', queryParams.minServings);
+  if (queryParams.maxServings) filterParams.set('maxServings', queryParams.maxServings);
   const baseUrl = filterParams.toString()
     ? `/recipes?${filterParams.toString()}`
     : '/recipes';
@@ -96,7 +98,7 @@ export default async function RecipesPage({ searchParams }: Props) {
       )}
 
       {/* Recipe grid */}
-      <RecipeGrid recipes={recipes.content} />
+      <RecipeGrid recipes={recipes.content} locale={pageLocale} />
 
       {/* Pagination */}
       {recipes.totalPages !== null && recipes.totalPages > 1 && (

@@ -8,7 +8,12 @@ import { PopularHashtags } from '@/components/common/PopularHashtags';
 import { StarRating } from '@/components/log/StarRating';
 import { getImageUrl } from '@/lib/utils/image';
 
-export default async function Home() {
+interface Props {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function Home({ params }: Props) {
+  const { locale } = await params;
   let homeFeed;
   let featuredRecipes;
 
@@ -57,7 +62,7 @@ export default async function Home() {
                 View all
               </Link>
             </div>
-            <RecipeGrid recipes={featuredRecipes.content} />
+            <RecipeGrid recipes={featuredRecipes.content} locale={locale} />
           </div>
         </section>
       )}
