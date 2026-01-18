@@ -22,9 +22,9 @@ import sys
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Load .env file
+# Load .env.dev file for dev environment
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv('.env.dev')
 
 from src.api import PairingPlanetClient
 from src.api.models import (
@@ -86,16 +86,16 @@ async def main() -> None:
         print(f"Steps: {len(recipe_data.get('steps', []))} steps")
 
         # 5. Generate and upload COVER images (3)
-        print("\n--- Generating 3 Cover Images ---")
+        print("\n--- Generating 2 Cover Images ---")
         cover_image_ids = []
         cover_images = await image_gen.generate_recipe_images(
             dish_name=food_name,
             persona=persona,
-            cover_count=3,
+            cover_count=2,
         )
 
         for i, img_bytes in enumerate(cover_images.get("cover_images", []), 1):
-            print(f"Uploading cover image {i}/3 ({len(img_bytes)} bytes)...")
+            print(f"Uploading cover image {i}/2 ({len(img_bytes)} bytes)...")
             optimized = image_gen.optimize_image(img_bytes)
             upload = await api_client.upload_image_bytes(
                 optimized,

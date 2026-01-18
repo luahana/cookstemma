@@ -50,6 +50,15 @@ public class ImageProcessingService {
             return;
         }
 
+        generateVariantsSync(originalImageId);
+    }
+
+    /**
+     * Synchronous variant generation for debugging.
+     * Call this directly to test if the processing logic works.
+     */
+    @Transactional
+    public void generateVariantsSync(Long originalImageId) {
         try {
             Image original = imageRepository.findById(originalImageId)
                     .orElseThrow(() -> new IllegalArgumentException("Image not found: " + originalImageId));

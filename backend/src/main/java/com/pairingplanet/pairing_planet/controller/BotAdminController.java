@@ -3,6 +3,9 @@ package com.pairingplanet.pairing_planet.controller;
 import com.pairingplanet.pairing_planet.dto.bot.*;
 import com.pairingplanet.pairing_planet.service.BotPersonaService;
 import com.pairingplanet.pairing_planet.service.BotUserService;
+import com.pairingplanet.pairing_planet.service.ImageProcessingService;
+import com.pairingplanet.pairing_planet.repository.image.ImageRepository;
+import com.pairingplanet.pairing_planet.domain.entity.image.Image;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +28,8 @@ public class BotAdminController {
 
     private final BotUserService botUserService;
     private final BotPersonaService botPersonaService;
+    private final ImageProcessingService imageProcessingService;
+    private final ImageRepository imageRepository;
 
     // ==================== Bot Users ====================
 
@@ -127,5 +132,24 @@ public class BotAdminController {
     public ResponseEntity<Void> deactivatePersona(@PathVariable UUID publicId) {
         botPersonaService.setPersonaActive(publicId, false);
         return ResponseEntity.ok().build();
+    }
+
+    // ==================== Image Variants (Debug) ====================
+
+    /**
+     * Manually trigger variant generation for an image (synchronous, for debugging).
+     * This bypasses the async mechanism to test if processing logic works.
+     *
+     * POST /api/v1/admin/bots/images/{publicId}/generate-variants
+     */
+    @PostMapping("/images/{publicId}/generate-variants")
+    public ResponseEntity<String> generateImageVariants(@PathVariable UUID publicId) {
+        Image image = imageRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("Image not found: " + publicId));
+
+        // Call synchronously (not the async version) for debugging
+        imageProcessingService.generateVariantsSync(image.getId());
+
+        return ResponseEntity.ok("Variant generation triggered for image: " + publicId);
     }
 }
