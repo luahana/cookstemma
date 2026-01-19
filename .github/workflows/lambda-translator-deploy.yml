@@ -47,7 +47,7 @@ jobs:
         working-directory: ./backend/lambda/translator
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPO: ${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment }}-translator
+          ECR_REPO: ${{ env.PROJECT_NAME }}-translator
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPO:latest .
           docker push $ECR_REGISTRY/$ECR_REPO:latest
@@ -56,7 +56,7 @@ jobs:
       - name: Update Lambda function
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPO: ${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment }}-translator
+          ECR_REPO: ${{ env.PROJECT_NAME }}-translator
           LAMBDA_NAME: ${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment }}-translator
         run: |
           aws lambda update-function-code \
