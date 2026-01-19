@@ -35,7 +35,7 @@ export default async function Home({ params }: Props) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--text-primary)] mb-6">
-              Your Recipes, <span className="text-[var(--primary)]">Evolved</span>
+              Your Recipes, <span className="text-[#E67E22]">Evolved</span>
             </h1>
             <p className="text-lg sm:text-xl text-[var(--text-secondary)] max-w-2xl mx-auto mb-10">
               Share your recipes, create variations, and track your cooking journey.
@@ -173,7 +173,7 @@ export default async function Home({ params }: Props) {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-[var(--secondary)]">
+      <section className="py-16 bg-[var(--secondary)] dark:bg-[#2D2D2D]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
             Start Your Cooking Journey
@@ -190,9 +190,9 @@ export default async function Home({ params }: Props) {
             </Link>
             <Link
               href="/search"
-              className="px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--primary-dark)] hover:scale-105 transition-all"
+              className="px-6 py-3 bg-[var(--primary)] dark:bg-[var(--secondary)] font-semibold rounded-xl hover:bg-[var(--primary-dark)] dark:hover:bg-[#6D4C41] hover:scale-105 transition-all"
             >
-              Search
+              <span className="text-white">Search</span>
             </Link>
           </div>
         </div>

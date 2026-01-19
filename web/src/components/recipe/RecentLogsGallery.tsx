@@ -54,7 +54,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
           </p>
           <Link
             href={`/logs/create?recipe=${recipePublicId}`}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)] dark:bg-[var(--secondary)] text-white rounded-lg hover:bg-[var(--primary-dark)] dark:hover:bg-[#6D4C41] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)] dark:bg-[var(--secondary)] text-white [&>*]:text-white rounded-lg hover:bg-[var(--primary-dark)] dark:hover:bg-[#6D4C41] transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -69,7 +69,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Cooking Log
+            <span className="text-white">Cooking Log</span>
           </Link>
         </div>
       </section>
@@ -195,7 +195,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
             <p className="font-semibold text-[var(--text-primary)]">Made this recipe?</p>
             <p className="text-sm text-[var(--text-secondary)]">Share your cooking experience with others</p>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] dark:bg-[var(--secondary)] text-white font-medium rounded-lg shrink-0 text-sm">
+          <div className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] dark:bg-[var(--secondary)] font-medium rounded-lg shrink-0 text-sm text-white [&>*]:text-white">
             <svg
               className="w-4 h-4"
               fill="none"
@@ -209,7 +209,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span className="hidden sm:inline">Cooking Log</span>
+            <span className="hidden sm:inline text-white">Cooking Log</span>
           </div>
         </Link>
       </div>
