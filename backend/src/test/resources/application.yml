@@ -53,3 +53,6 @@ logging:
 internal:
   api:
     key: test-internal-api-key
+
+bot:
+  internal-secret: test-bot-internal-secret
