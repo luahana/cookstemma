@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { getCookingStyleDisplay } from '@/lib/utils/cookingStyle';
 
 interface CookingStyleBadgeProps {
@@ -14,9 +15,11 @@ export function CookingStyleBadge({
   size = 'sm',
   showLabel = true,
 }: CookingStyleBadgeProps) {
+  const t = useTranslations('cookingStyles');
+
   if (!localeCode) return null;
 
-  const { flagUrl, name } = getCookingStyleDisplay(localeCode);
+  const { flagUrl, name } = getCookingStyleDisplay(localeCode, t);
 
   const sizeClasses = {
     sm: 'text-xs px-2 py-0.5',

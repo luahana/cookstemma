@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getMyProfile, updateUserProfile } from '@/lib/api/users';
 import {
   CookingStyleSelect,
-  COOKING_STYLE_OPTIONS,
+  useCookingStyleOptions,
 } from '@/components/common/CookingStyleSelect';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import type { MeasurementPreference, UpdateProfileRequest } from '@/lib/types';
@@ -73,6 +73,7 @@ function validateInstagramHandle(value: string): string | null {
 export default function ProfileEditPage() {
   const router = useRouter();
   const { user: authUser, isLoading: authLoading } = useAuth();
+  const cookingStyleOptions = useCookingStyleOptions();
 
   // Form state
   const [username, setUsername] = useState('');
@@ -417,7 +418,7 @@ export default function ProfileEditPage() {
           <CookingStyleSelect
             value={foodStyle}
             onChange={setFoodStyle}
-            options={COOKING_STYLE_OPTIONS}
+            options={cookingStyleOptions}
             placeholder="Select food style"
           />
           <p className="text-xs text-[var(--text-secondary)] mt-1">

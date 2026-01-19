@@ -13,8 +13,8 @@ export function getFlagImageUrl(countryCode: string, size: number = 24): string 
   return `https://flagcdn.com/w${size}/${countryCode.toLowerCase()}.png`;
 }
 
-// Country code to display name mapping
-const COUNTRY_NAMES: Record<string, string> = {
+// Fallback country code to display name mapping (used when translations aren't available)
+const COUNTRY_NAMES_FALLBACK: Record<string, string> = {
   KR: 'Korean',
   JP: 'Japanese',
   CN: 'Chinese',
@@ -88,17 +88,38 @@ export function normalizeLocaleCode(code: string | null | undefined): string {
 }
 
 /**
- * Get display name for a culinary locale code
+ * Translation function type for cooking style names
  */
-export function getCookingStyleName(code: string | null | undefined): string {
+export type CookingStyleTranslator = (key: string) => string;
+
+/**
+ * Get display name for a culinary locale code
+ * @param code - The country code or locale code
+ * @param translator - Optional translation function (from useTranslations('cookingStyles'))
+ */
+export function getCookingStyleName(
+  code: string | null | undefined,
+  translator?: CookingStyleTranslator
+): string {
   const normalized = normalizeLocaleCode(code);
-  return COUNTRY_NAMES[normalized] || 'International';
+
+  // Use translator if provided, otherwise fall back to English
+  if (translator) {
+    return translator(normalized);
+  }
+
+  return COUNTRY_NAMES_FALLBACK[normalized] || normalized || 'International';
 }
 
 /**
  * Get cooking style display data including flag image URL and name
+ * @param code - The country code or locale code
+ * @param translator - Optional translation function (from useTranslations('cookingStyles'))
  */
-export function getCookingStyleDisplay(code: string | null | undefined): {
+export function getCookingStyleDisplay(
+  code: string | null | undefined,
+  translator?: CookingStyleTranslator
+): {
   flagUrl: string;
   name: string;
   countryCode: string;
@@ -106,7 +127,7 @@ export function getCookingStyleDisplay(code: string | null | undefined): {
   const normalized = normalizeLocaleCode(code);
   return {
     flagUrl: getFlagImageUrl(normalized, 40),
-    name: getCookingStyleName(code),
+    name: getCookingStyleName(code, translator),
     countryCode: normalized,
   };
 }
@@ -121,7 +142,7 @@ export function getDefaultCookingStyle(): string {
   const normalized = normalizeLocaleCode(browserLocale);
 
   // If we got a valid country code, use it
-  if (normalized !== 'international' && COUNTRY_NAMES[normalized]) {
+  if (normalized !== 'international' && COUNTRY_NAMES_FALLBACK[normalized]) {
     return normalized;
   }
 

@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { CookingStyleSelect, COOKING_STYLE_FILTER_OPTIONS } from './CookingStyleSelect';
+import { CookingStyleSelect, useCookingStyleFilterOptions } from './CookingStyleSelect';
 
 interface RecipeFiltersProps {
   baseUrl: string;
@@ -21,6 +21,7 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
   const t = useTranslations('filters');
   const router = useRouter();
   const searchParams = useSearchParams();
+  const cookingStyleOptions = useCookingStyleFilterOptions();
 
   const currentSort = searchParams.get('sort') || 'recent';
   const currentType = searchParams.get('type') || 'all';
@@ -120,7 +121,7 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
         <CookingStyleSelect
           value={currentCookingStyle}
           onChange={(value) => updateFilters('style', value)}
-          options={COOKING_STYLE_FILTER_OPTIONS}
+          options={cookingStyleOptions}
           className="w-44"
         />
       </div>

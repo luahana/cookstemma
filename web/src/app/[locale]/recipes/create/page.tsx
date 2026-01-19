@@ -11,7 +11,7 @@ import { uploadImage } from '@/lib/api/images';
 import type { IngredientType, CookingTimeRange, IngredientDto, MeasurementUnit } from '@/lib/types';
 import { COOKING_TIME_RANGES } from '@/lib/types';
 import { getDefaultCookingStyle } from '@/lib/utils/cookingStyle';
-import { CookingStyleSelect, COOKING_STYLE_OPTIONS } from '@/components/common/CookingStyleSelect';
+import { CookingStyleSelect, useCookingStyleOptions, COOKING_STYLE_CODES } from '@/components/common/CookingStyleSelect';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { getImageUrl } from '@/lib/utils/image';
 
@@ -155,6 +155,7 @@ function CreateRecipeContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const cookingStyleOptions = useCookingStyleOptions();
   const recipeImageInputRef = useRef<HTMLInputElement>(null);
   const stepImageInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
@@ -271,7 +272,7 @@ function CreateRecipeContent() {
     if (!cookingStyle && !parentPublicId) {
       const defaultStyle = getDefaultCookingStyle();
       // Check if the detected style is in our list, otherwise use 'international'
-      const isValid = COOKING_STYLE_OPTIONS.some((l) => l.value === defaultStyle);
+      const isValid = COOKING_STYLE_CODES.includes(defaultStyle as typeof COOKING_STYLE_CODES[number]);
       setCookingStyle(isValid ? defaultStyle : 'international');
     }
   }, [cookingStyle, parentPublicId]);
@@ -1106,7 +1107,7 @@ function CreateRecipeContent() {
                   <CookingStyleSelect
                     value={cookingStyle}
                     onChange={setCookingStyle}
-                    options={COOKING_STYLE_OPTIONS}
+                    options={cookingStyleOptions}
                     placeholder="Select cooking style"
                   />
                 </div>
