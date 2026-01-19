@@ -2,12 +2,14 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface LogFiltersProps {
   baseUrl: string;
 }
 
 export function LogFilters({ baseUrl }: LogFiltersProps) {
+  const t = useTranslations('filters');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -61,7 +63,7 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
       {/* Sort */}
       <div className="flex items-center gap-2">
         <label htmlFor="sort" className="text-sm text-[var(--text-secondary)]">
-          Sort:
+          {t('sort')}
         </label>
         <select
           id="sort"
@@ -69,16 +71,16 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
           onChange={(e) => updateFilters('sort', e.target.value)}
           className="px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
         >
-          <option value="recent">Most Recent</option>
-          <option value="popular">Most Popular</option>
-          <option value="trending">Trending</option>
+          <option value="recent">{t('sortRecent')}</option>
+          <option value="popular">{t('sortPopular')}</option>
+          <option value="trending">{t('sortTrending')}</option>
         </select>
       </div>
 
       {/* Rating filter */}
       <div className="flex items-center gap-2">
         <label htmlFor="rating" className="text-sm text-[var(--text-secondary)]">
-          Rating:
+          {t('rating')}
         </label>
         <select
           id="rating"
@@ -86,11 +88,11 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
           onChange={(e) => updateFilters('rating', e.target.value)}
           className="px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
         >
-          <option value="all">All Ratings</option>
-          <option value="5-5">5 Stars</option>
-          <option value="4-5">4-5 Stars</option>
-          <option value="3-5">3+ Stars</option>
-          <option value="1-2">1-2 Stars</option>
+          <option value="all">{t('ratingAll')}</option>
+          <option value="5-5">{t('rating5Stars')}</option>
+          <option value="4-5">{t('rating4to5Stars')}</option>
+          <option value="3-5">{t('rating3PlusStars')}</option>
+          <option value="1-2">{t('rating1to2Stars')}</option>
         </select>
       </div>
 
@@ -102,7 +104,7 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
           }}
           className="text-sm text-[var(--primary)] hover:underline"
         >
-          Clear filters
+          {t('clearFilters')}
         </button>
       )}
     </div>

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { getTranslations } from 'next-intl/server';
 import { getHomeFeed } from '@/lib/api/home';
 import { getRecipes } from '@/lib/api/recipes';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
@@ -14,6 +15,8 @@ interface Props {
 
 export default async function Home({ params }: Props) {
   const { locale } = await params;
+  const t = await getTranslations('home');
+  const tCommon = await getTranslations('common');
   let homeFeed;
   let featuredRecipes;
 
@@ -35,11 +38,12 @@ export default async function Home({ params }: Props) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--text-primary)] mb-6">
-              Your Recipes, <span className="text-[#E67E22]">Evolved</span>
+              {t.rich('heroTitle', {
+                highlight: (chunks) => <span className="text-[#E67E22]">{chunks}</span>,
+              })}
             </h1>
             <p className="text-lg sm:text-xl text-[var(--text-secondary)] max-w-2xl mx-auto mb-10">
-              Share your recipes, create variations, and track your cooking journey.
-              Join a community of home cooks discovering new flavors together.
+              {t('heroSubtitle')}
             </p>
 
             <AppDownloadCTA />
@@ -53,13 +57,13 @@ export default async function Home({ params }: Props) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
-                Featured Recipes
+                {t('featuredRecipes')}
               </h2>
               <Link
                 href="/recipes"
                 className="text-[var(--primary)] hover:underline font-medium"
               >
-                View all
+                {tCommon('viewAll')}
               </Link>
             </div>
             <RecipeGrid recipes={featuredRecipes.content} locale={locale} />
@@ -80,13 +84,13 @@ export default async function Home({ params }: Props) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
-                Recent Cooking Logs
+                {t('recentCookingLogs')}
               </h2>
               <Link
                 href="/logs"
                 className="text-[var(--primary)] hover:underline font-medium"
               >
-                View all
+                {tCommon('viewAll')}
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -117,7 +121,7 @@ export default async function Home({ params }: Props) {
                         {activity.recipeTitle}
                       </p>
                       <p className="text-sm text-[var(--text-secondary)]">
-                        by {activity.userName || 'Anonymous'}
+                        {tCommon('by')} {activity.userName || tCommon('anonymous')}
                       </p>
                     </div>
                   </div>
@@ -132,7 +136,7 @@ export default async function Home({ params }: Props) {
       <section className="py-16 bg-[var(--background)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] text-center mb-12">
-            Why Cookstemma?
+            {t('whyCookstemma')}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-[var(--surface)] p-6 rounded-2xl shadow-sm border border-[var(--border)]">
@@ -141,9 +145,9 @@ export default async function Home({ params }: Props) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Share Recipes</h3>
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{t('shareRecipes')}</h3>
               <p className="text-[var(--text-secondary)]">
-                Create and share your favorite recipes with photos and step-by-step instructions.
+                {t('shareRecipesDesc')}
               </p>
             </div>
             <div className="bg-[var(--surface)] p-6 rounded-2xl shadow-sm border border-[var(--border)]">
@@ -152,9 +156,9 @@ export default async function Home({ params }: Props) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Create Variations</h3>
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{t('createVariations')}</h3>
               <p className="text-[var(--text-secondary)]">
-                Put your own spin on recipes and see how dishes evolve across the community.
+                {t('createVariationsDesc')}
               </p>
             </div>
             <div className="bg-[var(--surface)] p-6 rounded-2xl shadow-sm border border-[var(--border)]">
@@ -163,9 +167,9 @@ export default async function Home({ params }: Props) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Track Your Cooking</h3>
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{t('trackCooking')}</h3>
               <p className="text-[var(--text-secondary)]">
-                Log your cooking sessions, note what worked, and improve over time.
+                {t('trackCookingDesc')}
               </p>
             </div>
           </div>
@@ -176,23 +180,23 @@ export default async function Home({ params }: Props) {
       <section className="py-16 bg-[var(--secondary)] dark:bg-[#2D2D2D]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-            Start Your Cooking Journey
+            {t('startJourney')}
           </h2>
           <p className="text-white/80 mb-8 max-w-2xl mx-auto">
-            Download the app and join thousands of home cooks sharing their culinary adventures.
+            {t('startJourneyDesc')}
           </p>
           <div className="flex justify-center gap-4">
             <Link
               href="/recipes"
               className="px-6 py-3 bg-white !text-gray-800 font-semibold rounded-xl hover:bg-gray-200 hover:scale-105 transition-all"
             >
-              Browse Recipes
+              {t('browseRecipes')}
             </Link>
             <Link
               href="/search"
               className="px-6 py-3 bg-[var(--primary)] dark:bg-[var(--secondary)] font-semibold rounded-xl hover:bg-[var(--primary-dark)] dark:hover:bg-[#6D4C41] hover:scale-105 transition-all"
             >
-              <span className="text-white">Search</span>
+              <span className="text-white">{tCommon('search')}</span>
             </Link>
           </div>
         </div>

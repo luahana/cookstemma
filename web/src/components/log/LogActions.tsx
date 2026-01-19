@@ -18,7 +18,8 @@ interface LogActionsProps {
 export function LogActions({ log, onEditClick }: LogActionsProps) {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
-  const t = useTranslations('errors');
+  const t = useTranslations('logs');
+  const tErrors = useTranslations('errors');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,12 +49,12 @@ export function LogActions({ log, onEditClick }: LogActionsProps) {
 
   const menuItems = [
     {
-      label: 'Edit',
+      label: t('edit'),
       onClick: onEditClick,
       icon: ActionMenuIcons.edit,
     },
     {
-      label: 'Delete',
+      label: t('delete'),
       onClick: () => setShowDeleteDialog(true),
       icon: ActionMenuIcons.delete,
       isDestructive: true,
@@ -66,8 +67,8 @@ export function LogActions({ log, onEditClick }: LogActionsProps) {
 
       <DeleteConfirmDialog
         isOpen={showDeleteDialog}
-        title="Delete Cooking Log"
-        message={`Are you sure you want to delete "${log.title}"? This action cannot be undone.`}
+        title={t('deleteTitle')}
+        message={t('deleteMessage', { title: log.title })}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setShowDeleteDialog(false)}
         isDeleting={isDeleting}
@@ -81,7 +82,7 @@ export function LogActions({ log, onEditClick }: LogActionsProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div className="flex-1">
-              <p className="font-medium">{t('title')}</p>
+              <p className="font-medium">{tErrors('title')}</p>
               <p className="text-sm opacity-90">{error}</p>
             </div>
             <button

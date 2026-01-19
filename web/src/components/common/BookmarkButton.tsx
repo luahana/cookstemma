@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   saveRecipe,
@@ -29,6 +30,7 @@ export function BookmarkButton({
   className = '',
   onSaveChange,
 }: BookmarkButtonProps) {
+  const t = useTranslations('bookmark');
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const [isSaved, setIsSaved] = useState(initialSaved);
@@ -118,7 +120,7 @@ export function BookmarkButton({
         disabled:opacity-50 disabled:cursor-not-allowed
         ${className}
       `}
-      aria-label={isSaved ? 'Remove bookmark' : 'Add bookmark'}
+      aria-label={isSaved ? t('remove') : t('add')}
     >
       <svg
         className={`${iconSizeClasses[size]} transition-colors duration-200 ${

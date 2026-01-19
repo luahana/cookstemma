@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { getRecipeDetail } from '@/lib/api/recipes';
 import { RecipeJsonLd } from '@/components/recipe/RecipeJsonLd';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
@@ -83,6 +84,9 @@ export default async function RecipeDetailPage({ params }: Props) {
   const localizedTitle = getLocalizedContent(recipe.titleTranslations, locale, recipe.title);
   const localizedDescription = getLocalizedContent(recipe.descriptionTranslations, locale, recipe.description);
 
+  const t = await getTranslations('recipes');
+  const tNav = await getTranslations('nav');
+
   return (
     <>
       <ViewTracker
@@ -105,7 +109,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         {/* Breadcrumb */}
         <nav className="text-sm text-[var(--text-secondary)] mb-6">
           <Link href="/recipes" className="hover:text-[var(--primary)]">
-            Recipes
+            {tNav('recipes')}
           </Link>
           <span className="mx-2">/</span>
           <span className="text-[var(--text-primary)]">{recipe.foodName}</span>
@@ -166,7 +170,7 @@ export default async function RecipeDetailPage({ params }: Props) {
             <CookingStyleBadge localeCode={recipe.cookingStyle} size="md" />
             <span className="text-[var(--text-secondary)]">{cookingTime}</span>
             <span className="text-[var(--text-secondary)]">
-              {recipe.servings} servings
+              {t('servingsCount', { count: recipe.servings })}
             </span>
           </div>
 
@@ -216,7 +220,7 @@ export default async function RecipeDetailPage({ params }: Props) {
               return (
                 <div className="bg-[var(--highlight-bg)] border border-[var(--primary-light)] rounded-xl p-4">
                   <p className="text-sm text-[var(--text-secondary)] mb-2">
-                    This is a variant of:
+                    {t('variantOf')}
                   </p>
                   <Link
                     href={`/recipes/${baseRecipe.publicId}`}
@@ -239,7 +243,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         {/* Steps */}
         <section className="mb-8">
           <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">
-            Instructions
+            {t('instructions')}
           </h2>
           <ol className="space-y-6">
             {recipe.steps.map((step) => (
@@ -253,7 +257,7 @@ export default async function RecipeDetailPage({ params }: Props) {
                     <div className="relative aspect-video rounded-lg overflow-hidden mt-3 max-w-md">
                       <Image
                         src={getImageUrl(step.imageUrl)!}
-                        alt={`Step ${step.stepNumber}`}
+                        alt={t('step', { number: step.stepNumber })}
                         fill
                         className="object-cover"
                         sizes="(max-width: 448px) 100vw, 448px"

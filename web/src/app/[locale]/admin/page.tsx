@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useFormatter } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { DataTable, Column } from '@/components/admin/DataTable';
 import {
@@ -46,23 +47,27 @@ const INGREDIENT_TYPE_OPTIONS = [
   { value: 'SEASONING', label: 'Seasoning' },
 ];
 
-function formatDate(dateString: string | null): string {
-  if (!dateString) return '-';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+// formatDate is now a hook-based function created inside the component
 
 type TabType = 'suggested-foods' | 'suggested-ingredients' | 'users';
 
 export default function AdminPage() {
   const { user, isLoading: authLoading, isAdmin } = useAuth();
   const router = useRouter();
+  const format = useFormatter();
+
+  // Locale-aware date formatting
+  const formatDate = useCallback((dateString: string | null): string => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return format.dateTime(date, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }, [format]);
 
   const [activeTab, setActiveTab] = useState<TabType>('suggested-foods');
 

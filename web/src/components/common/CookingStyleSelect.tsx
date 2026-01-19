@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 export interface CookingStyleOption {
   value: string;
@@ -30,6 +31,7 @@ export function CookingStyleSelect({
   placeholder = 'Select...',
   className = '',
 }: CookingStyleSelectProps) {
+  const t = useTranslations('common');
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -115,7 +117,7 @@ export function CookingStyleSelect({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search..."
+              placeholder={t('searchPlaceholder')}
               className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-md text-sm focus:outline-none focus:border-[var(--primary)]"
             />
           </div>
@@ -124,7 +126,7 @@ export function CookingStyleSelect({
           <div className="max-h-60 overflow-y-auto">
             {filteredOptions.length === 0 ? (
               <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">
-                No results found
+                {t('noResults')}
               </div>
             ) : (
               filteredOptions.map((option) => (

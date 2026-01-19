@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 export interface PaginationProps {
   currentPage: number;
@@ -63,6 +64,8 @@ function buildPageUrl(baseUrl: string, page: number): string {
 }
 
 export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: PaginationProps) {
+  const t = useTranslations('accessibility');
+
   if (totalPages <= 1) {
     return null;
   }
@@ -79,7 +82,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
   return (
     <nav
       className="flex justify-center items-center gap-1 mt-8"
-      aria-label="Pagination"
+      aria-label={t('pagination')}
     >
       {/* Previous button */}
       {currentPage > 0 ? (
@@ -87,7 +90,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
           href={buildPageUrl(baseUrl, currentPage - 1)}
           onClick={(e) => handleClick(currentPage - 1, e)}
           className="px-3 py-2 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--primary-light)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
-          aria-label="Previous page"
+          aria-label={t('previousPage')}
         >
           <svg
             className="w-5 h-5"
@@ -140,7 +143,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
                 ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
                 : 'border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--primary-light)] hover:border-[var(--primary)] hover:text-[var(--primary)]'
             }`}
-            aria-label={`Page ${page + 1}`}
+            aria-label={t('page', { number: page + 1 })}
             aria-current={page === currentPage ? 'page' : undefined}
           >
             {page + 1}
@@ -154,7 +157,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
           href={buildPageUrl(baseUrl, currentPage + 1)}
           onClick={(e) => handleClick(currentPage + 1, e)}
           className="px-3 py-2 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--primary-light)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
-          aria-label="Next page"
+          aria-label={t('nextPage')}
         >
           <svg
             className="w-5 h-5"

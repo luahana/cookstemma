@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;
@@ -19,6 +20,8 @@ export function DeleteConfirmDialog({
   onCancel,
   isDeleting = false,
 }: DeleteConfirmDialogProps) {
+  const t = useTranslations('common');
+  const tDialog = useTranslations('dialog');
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -71,7 +74,7 @@ export function DeleteConfirmDialog({
             disabled={isDeleting}
             className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--background)] rounded-lg transition-colors disabled:opacity-50"
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             onClick={onConfirm}
@@ -84,10 +87,10 @@ export function DeleteConfirmDialog({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Deleting...
+                {tDialog('deleting')}
               </>
             ) : (
-              'Delete'
+              t('delete')
             )}
           </button>
         </div>

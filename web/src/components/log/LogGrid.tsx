@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import type { LogPostSummary } from '@/lib/types';
 import { LogCard } from './LogCard';
 
@@ -8,12 +11,14 @@ interface LogGridProps {
 
 export function LogGrid({
   logs,
-  emptyMessage = 'No cooking logs found',
+  emptyMessage,
 }: LogGridProps) {
+  const t = useTranslations('logs');
+  const finalEmptyMessage = emptyMessage ?? t('noLogs');
   if (logs.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-[var(--text-secondary)]">{emptyMessage}</p>
+        <p className="text-[var(--text-secondary)]">{finalEmptyMessage}</p>
       </div>
     );
   }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { getImageUrl } from '@/lib/utils/image';
 
 interface ImageItem {
@@ -15,6 +16,7 @@ interface ImageCarouselProps {
 }
 
 export function ImageCarousel({ images, alt }: ImageCarouselProps) {
+  const t = useTranslations('accessibility');
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (images.length === 0) return null;
@@ -71,7 +73,7 @@ export function ImageCarousel({ images, alt }: ImageCarouselProps) {
         <button
           onClick={goToPrevious}
           className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-colors"
-          aria-label="Previous image"
+          aria-label={t('previousImage')}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -91,7 +93,7 @@ export function ImageCarousel({ images, alt }: ImageCarouselProps) {
         <button
           onClick={goToNext}
           className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-colors"
-          aria-label="Next image"
+          aria-label={t('nextImage')}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -126,7 +128,7 @@ export function ImageCarousel({ images, alt }: ImageCarouselProps) {
                 ? 'bg-[var(--primary)]'
                 : 'bg-[var(--border)] hover:bg-[var(--text-secondary)]'
             }`}
-            aria-label={`Go to image ${index + 1}`}
+            aria-label={t('goToImage', { number: index + 1 })}
           />
         ))}
       </div>

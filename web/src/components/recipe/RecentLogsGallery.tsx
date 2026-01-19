@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { getImageUrl } from '@/lib/utils/image';
 import { useDragScroll } from '@/hooks/useDragScroll';
 import { StarRating } from '@/components/log/StarRating';
@@ -20,6 +21,8 @@ interface RecentLogsGalleryProps {
 }
 
 export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryProps) {
+  const t = useTranslations('logs');
+  const tCommon = useTranslations('common');
   const scrollRef = useDragScroll<HTMLDivElement>();
   const displayLogs = logs.slice(0, 8);
   const hasMore = logs.length > 8;
@@ -28,7 +31,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
     return (
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">
-          Cooking Logs
+          {t('title')}
         </h2>
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-8 text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--primary-light)] flex items-center justify-center">
@@ -47,10 +50,10 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
             </svg>
           </div>
           <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">
-            No cooking logs yet
+            {t('noCookingLogs')}
           </h3>
           <p className="text-[var(--text-secondary)] mb-4">
-            Be the first to share your cooking experience!
+            {t('beFirst')}
           </p>
           <Link
             href={`/logs/create?recipe=${recipePublicId}`}
@@ -69,7 +72,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span className="text-white">Cooking Log</span>
+            <span className="text-white">{t('cookingLog')}</span>
           </Link>
         </div>
       </section>
@@ -81,14 +84,14 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold text-[var(--text-primary)]">
-          Cooking Logs ({logs.length})
+          {t('title')} ({logs.length})
         </h2>
         {hasMore && (
           <Link
             href={`/search?type=logs&recipe=${recipePublicId}`}
             className="text-sm text-[var(--primary)] hover:underline flex items-center gap-1"
           >
-            View More
+            {t('viewMore')}
             <svg
               className="w-4 h-4"
               fill="none"
@@ -160,7 +163,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
 
                 {/* Username */}
                 <p className="mt-2 text-xs text-[var(--text-secondary)] truncate w-28 text-center">
-                  @{log.userName || 'anonymous'}
+                  @{log.userName || tCommon('anonymous')}
                 </p>
               </Link>
             );
@@ -177,7 +180,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
                   +{logs.length - 8}
                 </span>
                 <span className="text-xs text-[var(--text-secondary)]">
-                  more logs
+                  {t('moreLogs', { count: logs.length - 8 })}
                 </span>
               </div>
             </Link>
@@ -192,8 +195,8 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
           className="flex items-center justify-between gap-4 px-5 py-4 bg-[var(--surface)] border border-[var(--border)] border-l-4 border-l-[var(--primary)] dark:border-l-[var(--secondary)] rounded-xl hover:bg-[var(--background)] transition-colors"
         >
           <div>
-            <p className="font-semibold text-[var(--text-primary)]">Made this recipe?</p>
-            <p className="text-sm text-[var(--text-secondary)]">Share your cooking experience with others</p>
+            <p className="font-semibold text-[var(--text-primary)]">{t('madeRecipe')}</p>
+            <p className="text-sm text-[var(--text-secondary)]">{t('shareExperience')}</p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] dark:bg-[var(--secondary)] font-medium rounded-lg shrink-0 text-sm text-white [&>*]:text-white">
             <svg
@@ -209,7 +212,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span className="hidden sm:inline text-white">Cooking Log</span>
+            <span className="hidden sm:inline text-white">{t('cookingLog')}</span>
           </div>
         </Link>
       </div>

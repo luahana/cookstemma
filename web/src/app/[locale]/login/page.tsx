@@ -3,12 +3,15 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import type { SocialProvider } from '@/lib/firebase/providers';
 
 function LoginContent() {
+  const t = useTranslations('auth');
+  const tNav = useTranslations('nav');
   const { signIn, isLoading, isAuthenticated, refreshSession } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,21 +77,21 @@ function LoginContent() {
             </h1>
           </Link>
           <p className="text-[var(--text-secondary)] mt-2">
-            Sign in to share recipes and track your cooking journey
+            {t('signInSubtitle')}
           </p>
         </div>
 
         {/* Login Card */}
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 shadow-sm">
           <h2 className="text-xl font-semibold text-[var(--text-primary)] text-center mb-6">
-            Welcome Back
+            {t('welcomeBack')}
           </h2>
 
           {!isFirebaseConfigured && (
             <div className="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm">
-              <p className="font-medium mb-1">Firebase Not Configured</p>
+              <p className="font-medium mb-1">{t('firebaseNotConfigured')}</p>
               <p className="text-xs">
-                To enable authentication, set the following environment variables in <code className="bg-amber-100 px-1 rounded">.env.local</code>:
+                {t('firebaseConfigMessage')}
               </p>
               <ul className="text-xs mt-2 space-y-0.5 font-mono">
                 <li>NEXT_PUBLIC_FIREBASE_API_KEY</li>
@@ -131,7 +134,7 @@ function LoginContent() {
                 />
               </svg>
               <span className="text-[var(--text-primary)] font-medium">
-                {signingInWith === 'google' ? 'Signing in...' : 'Continue with Google'}
+                {signingInWith === 'google' ? t('signingIn') : t('continueWithGoogle')}
               </span>
             </button>
 
@@ -145,20 +148,20 @@ function LoginContent() {
                 <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
               </svg>
               <span className="font-medium">
-                {signingInWith === 'apple' ? 'Signing in...' : 'Continue with Apple'}
+                {signingInWith === 'apple' ? t('signingIn') : t('continueWithApple')}
               </span>
             </button>
           </div>
 
           {/* Terms */}
           <p className="mt-6 text-xs text-center text-[var(--text-secondary)]">
-            By signing in, you agree to our{' '}
+            {t('termsAgree')}{' '}
             <Link href="/terms" className="text-[var(--primary)] hover:underline">
-              Terms of Service
+              {tNav('termsOfService')}
             </Link>{' '}
-            and{' '}
+            {t('and')}{' '}
             <Link href="/privacy" className="text-[var(--primary)] hover:underline">
-              Privacy Policy
+              {tNav('privacyPolicy')}
             </Link>
           </p>
         </div>
@@ -169,7 +172,7 @@ function LoginContent() {
             href="/"
             className="text-[var(--text-secondary)] hover:text-[var(--primary)] text-sm"
           >
-            Back to home
+            {t('backToHome')}
           </Link>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import type { UserProfile } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
 import { getAvatarInitial } from '@/lib/utils/string';
@@ -16,6 +17,7 @@ interface UserProfileHeaderProps {
 }
 
 export function UserProfileHeader({ user, publicId }: UserProfileHeaderProps) {
+  const t = useTranslations('profile');
   const { user: currentUser } = useAuth();
   const [followerCount, setFollowerCount] = useState(user.followerCount);
   const [imageError, setImageError] = useState(false);
@@ -61,7 +63,7 @@ export function UserProfileHeader({ user, publicId }: UserProfileHeaderProps) {
                 href="/profile/edit"
                 className="px-4 py-2 bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] rounded-xl font-medium hover:bg-[var(--highlight-bg)] transition-colors text-sm"
               >
-                Edit Profile
+                {t('editProfile')}
               </Link>
             ) : (
               <div className="flex items-center gap-2">
@@ -81,7 +83,7 @@ export function UserProfileHeader({ user, publicId }: UserProfileHeaderProps) {
             <span className="px-3 py-1 bg-[var(--primary-light)] text-[var(--primary)] text-sm font-medium rounded-full">
               {user.levelName}
             </span>
-            <span className="text-[var(--text-secondary)]">Level {user.level}</span>
+            <span className="text-[var(--text-secondary)]">{t('level', { level: user.level })}</span>
             {/* Social links */}
             {user.youtubeUrl && (
               <a
@@ -119,13 +121,13 @@ export function UserProfileHeader({ user, publicId }: UserProfileHeaderProps) {
               <p className="text-xl font-bold text-[var(--text-primary)]">
                 {user.recipeCount}
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">Recipes</p>
+              <p className="text-sm text-[var(--text-secondary)]">{t('recipes')}</p>
             </div>
             <div className="text-center">
               <p className="text-xl font-bold text-[var(--text-primary)]">
                 {user.logCount}
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">Logs</p>
+              <p className="text-sm text-[var(--text-secondary)]">{t('logs')}</p>
             </div>
             <Link
               href={`/users/${publicId}/followers`}
@@ -134,7 +136,7 @@ export function UserProfileHeader({ user, publicId }: UserProfileHeaderProps) {
               <p className="text-xl font-bold text-[var(--text-primary)]">
                 {followerCount}
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">Followers</p>
+              <p className="text-sm text-[var(--text-secondary)]">{t('followers')}</p>
             </Link>
             <Link
               href={`/users/${publicId}/following`}
@@ -143,7 +145,7 @@ export function UserProfileHeader({ user, publicId }: UserProfileHeaderProps) {
               <p className="text-xl font-bold text-[var(--text-primary)]">
                 {user.followingCount}
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">Following</p>
+              <p className="text-sm text-[var(--text-secondary)]">{t('following')}</p>
             </Link>
           </div>
         </div>

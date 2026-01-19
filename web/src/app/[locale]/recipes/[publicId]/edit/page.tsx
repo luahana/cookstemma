@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { getRecipeDetail, getRecipeModifiable, updateRecipe } from '@/lib/api/recipes';
 import { uploadImage } from '@/lib/api/images';
@@ -139,6 +140,7 @@ export default function RecipeEditPage() {
   const { publicId } = useParams<{ publicId: string }>();
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const t = useTranslations('recipeEdit');
   const recipeImageInputRef = useRef<HTMLInputElement>(null);
   const stepImageInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
@@ -522,29 +524,29 @@ export default function RecipeEditPage() {
     e.preventDefault();
 
     if (!title.trim()) {
-      setError('Title is required');
+      setError(t('errorTitle'));
       return;
     }
 
     const activeIngredients = ingredients.filter((i) => !i.isDeleted && i.name.trim());
     if (activeIngredients.length === 0) {
-      setError('At least one ingredient is required');
+      setError(t('errorIngredients'));
       return;
     }
 
     const activeSteps = steps.filter((s) => !s.isDeleted && s.description.trim());
     if (activeSteps.length === 0) {
-      setError('At least one step is required');
+      setError(t('errorSteps'));
       return;
     }
 
     if (photos.length === 0) {
-      setError('At least one photo is required');
+      setError(t('errorPhoto'));
       return;
     }
 
     if (photos.some((p) => p.type === 'uploaded' && p.uploadedImage?.uploading)) {
-      setError('Please wait for images to finish uploading');
+      setError(t('errorUploading'));
       return;
     }
 
@@ -589,7 +591,7 @@ export default function RecipeEditPage() {
       router.refresh();
     } catch (err) {
       console.error('Failed to update recipe:', err);
-      setError('Failed to save changes. Please try again.');
+      setError(t('errorSave'));
     } finally {
       setIsSaving(false);
     }
@@ -607,14 +609,14 @@ export default function RecipeEditPage() {
             <span className="text-6xl">🔒</span>
           </div>
           <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-4">
-            Cannot Edit Recipe
+            {t('cannotEdit')}
           </h1>
           <p className="text-[var(--text-secondary)] mb-8">{error}</p>
           <Link
             href={`/recipes/${publicId}`}
             className="px-6 py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary-dark)] transition-colors"
           >
-            Back to Recipe
+            {t('backToRecipe')}
           </Link>
         </div>
       </main>
@@ -636,9 +638,9 @@ export default function RecipeEditPage() {
               href={`/recipes/${publicId}`}
               className="text-sm text-[var(--text-secondary)] hover:text-[var(--primary)] mb-2 inline-block"
             >
-              ← Back to recipe
+              ← {t('backToRecipe')}
             </Link>
-            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Edit Recipe</h1>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('title')}</h1>
           </div>
         </div>
 
@@ -646,10 +648,10 @@ export default function RecipeEditPage() {
           {/* Photos Section */}
           <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Photos <span className="text-[var(--error)]">*</span>
+              {t('photos')} <span className="text-[var(--error)]">*</span>
             </h2>
             <p className="text-sm text-[var(--text-secondary)] mb-4">
-              {photos.length}/{MAX_RECIPE_PHOTOS} photos
+              {t('photosCount', { count: photos.length, max: MAX_RECIPE_PHOTOS })}
             </p>
 
             <div className="flex gap-3 flex-wrap">
@@ -671,7 +673,7 @@ export default function RecipeEditPage() {
                   />
                   {photo.type === 'original' && (
                     <span className="absolute bottom-1 left-1 text-[8px] px-1 py-0.5 bg-black/60 text-white rounded">
-                      original
+                      {t('original')}
                     </span>
                   )}
                   {photo.type === 'uploaded' && photo.uploadedImage?.uploading && (
@@ -715,13 +717,13 @@ export default function RecipeEditPage() {
           {/* Basic Info */}
           <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Basic Information
+              {t('basicInfo')}
             </h2>
 
             <div className="space-y-4">
               <div>
                 <label htmlFor="title" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                  Title <span className="text-[var(--error)]">*</span>
+                  {t('titleLabel')} <span className="text-[var(--error)]">*</span>
                 </label>
                 <input
                   id="title"
@@ -729,13 +731,13 @@ export default function RecipeEditPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
-                  placeholder="Give your recipe a name"
+                  placeholder={t('titlePlaceholder')}
                 />
               </div>
 
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                  Description
+                  {t('descriptionLabel')}
                 </label>
                 <textarea
                   id="description"
@@ -743,14 +745,14 @@ export default function RecipeEditPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
                   className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)] resize-none"
-                  placeholder="Describe your recipe"
+                  placeholder={t('descriptionPlaceholder')}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="servings" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                    Servings
+                    {t('servings')}
                   </label>
                   <input
                     id="servings"
@@ -765,7 +767,7 @@ export default function RecipeEditPage() {
 
                 <div>
                   <label htmlFor="cookingTime" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                    Cooking Time
+                    {t('cookingTime')}
                   </label>
                   <select
                     id="cookingTime"
@@ -787,10 +789,10 @@ export default function RecipeEditPage() {
           {/* Ingredients */}
           <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Ingredients <span className="text-[var(--error)]">*</span>
+              {t('ingredients')} <span className="text-[var(--error)]">*</span>
             </h2>
             <p className="text-sm text-[var(--text-secondary)] mb-4">
-              Add ingredients by category.
+              {t('ingredientsHelp')}
             </p>
 
             <div className="space-y-6">
@@ -838,14 +840,14 @@ export default function RecipeEditPage() {
                           </span>
                           {ing.isOriginal && (
                             <span className="text-[10px] px-1.5 py-0.5 bg-[var(--primary-light)]/20 text-[var(--primary)] rounded">
-                              original
+                              {t('original')}
                             </span>
                           )}
                           <input
                             type="text"
                             value={ing.name}
                             onChange={(e) => updateIngredient(ing.id, 'name', e.target.value)}
-                            placeholder="Ingredient name"
+                            placeholder={t('ingredientPlaceholder')}
                             className="flex-1 px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm"
                           />
                           <input
@@ -853,7 +855,7 @@ export default function RecipeEditPage() {
                             inputMode="decimal"
                             value={ing.quantity}
                             onChange={(e) => updateIngredient(ing.id, 'quantity', e.target.value)}
-                            placeholder="Qty"
+                            placeholder={t('qty')}
                             className="w-16 px-2 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm text-center"
                           />
                           <select
@@ -887,7 +889,7 @@ export default function RecipeEditPage() {
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
-                          <span>Removed ({deletedIngredients.length})</span>
+                          <span>{t('removed')} ({deletedIngredients.length})</span>
                         </div>
                         <div className="space-y-1.5">
                           {deletedIngredients.map((ing) => {
@@ -906,7 +908,7 @@ export default function RecipeEditPage() {
                                   onClick={() => restoreIngredient(ing.id)}
                                   className="text-xs text-[var(--primary)] hover:underline"
                                 >
-                                  Restore
+                                  {t('restore')}
                                 </button>
                               </div>
                             );
@@ -921,7 +923,7 @@ export default function RecipeEditPage() {
                         onClick={() => addIngredient(category.value)}
                         className="mt-3 w-full py-2 border border-dashed border-[var(--border)] rounded-lg text-sm text-[var(--text-secondary)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
                       >
-                        + Add {category.label.toLowerCase()}
+                        + {t('addIngredient', { category: category.label })}
                       </button>
                     )}
                   </div>
@@ -934,14 +936,14 @@ export default function RecipeEditPage() {
           <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                Instructions <span className="text-[var(--error)]">*</span>
+                {t('instructions')} <span className="text-[var(--error)]">*</span>
               </h2>
               <button
                 type="button"
                 onClick={addStep}
                 className="text-sm text-[var(--primary)] hover:underline"
               >
-                + Add step
+                + {t('addStep')}
               </button>
             </div>
 
@@ -963,13 +965,13 @@ export default function RecipeEditPage() {
                     <div className="flex-1">
                       {step.isOriginal && (
                         <span className="inline-block text-[10px] px-1.5 py-0.5 bg-[var(--primary-light)]/20 text-[var(--primary)] rounded mb-2">
-                          original
+                          {t('original')}
                         </span>
                       )}
                       <textarea
                         value={step.description}
                         onChange={(e) => updateStep(step.id, e.target.value)}
-                        placeholder={`Step ${index + 1}`}
+                        placeholder={t('stepPlaceholder', { number: index + 1 })}
                         rows={2}
                         className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)] text-sm resize-none"
                       />
@@ -992,7 +994,7 @@ export default function RecipeEditPage() {
                             )}
                             {step.originalImageUrl && !step.image && (
                               <span className="absolute bottom-0.5 left-0.5 text-[7px] px-1 py-0.5 bg-black/60 text-white rounded">
-                                original
+                                {t('original')}
                               </span>
                             )}
                             <button
@@ -1014,7 +1016,7 @@ export default function RecipeEditPage() {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            Add photo
+                            {t('addPhoto')}
                           </button>
                         )}
                         <input
@@ -1049,7 +1051,7 @@ export default function RecipeEditPage() {
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  <span>Removed Steps ({deletedSteps.length})</span>
+                  <span>{t('removedSteps')} ({deletedSteps.length})</span>
                 </div>
                 <div className="space-y-1.5">
                   {deletedSteps.map((step) => (
@@ -1065,7 +1067,7 @@ export default function RecipeEditPage() {
                         onClick={() => restoreStep(step.id)}
                         className="text-xs text-[var(--primary)] hover:underline"
                       >
-                        Restore
+                        {t('restore')}
                       </button>
                     </div>
                   ))}
@@ -1077,7 +1079,7 @@ export default function RecipeEditPage() {
           {/* Hashtags */}
           <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">Hashtags</h2>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">{t('hashtags')}</h2>
               <span className="text-xs text-[var(--text-secondary)]">
                 {activeHashtags.length}/{MAX_HASHTAGS}
               </span>
@@ -1099,7 +1101,7 @@ export default function RecipeEditPage() {
                         className="text-[10px] px-1 py-0.5 rounded mr-1 text-hashtag"
                         style={{ backgroundColor: 'rgba(76, 175, 80, 0.1)' }}
                       >
-                        original
+                        {t('original')}
                       </span>
                     )}
                     #{hashtag.name}
@@ -1124,7 +1126,7 @@ export default function RecipeEditPage() {
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  <span>Removed ({deletedHashtags.length})</span>
+                  <span>{t('removed')} ({deletedHashtags.length})</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {deletedHashtags.map((hashtag) => (
@@ -1140,7 +1142,7 @@ export default function RecipeEditPage() {
                         onClick={() => restoreHashtag(hashtag.id)}
                         className="text-xs text-hashtag hover:underline"
                       >
-                        Restore
+                        {t('restore')}
                       </button>
                     </span>
                   ))}
@@ -1158,7 +1160,7 @@ export default function RecipeEditPage() {
                   onKeyDown={handleHashtagKeyDown}
                   maxLength={MAX_HASHTAG_LENGTH}
                   className="flex-1 px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
-                  placeholder="Add a hashtag..."
+                  placeholder={t('hashtagPlaceholder')}
                 />
                 <button
                   type="button"
@@ -1166,7 +1168,7 @@ export default function RecipeEditPage() {
                   disabled={!hashtagInput.trim()}
                   className="px-4 py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Add
+                  {t('add')}
                 </button>
               </div>
             )}
@@ -1185,7 +1187,7 @@ export default function RecipeEditPage() {
               href={`/recipes/${publicId}`}
               className="px-6 py-3 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface)] rounded-xl transition-colors"
             >
-              Cancel
+              {t('cancel')}
             </Link>
             <button
               type="submit"
@@ -1198,10 +1200,10 @@ export default function RecipeEditPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Saving...
+                  {t('saving')}
                 </>
               ) : (
-                'Save Changes'
+                t('saveChanges')
               )}
             </button>
           </div>

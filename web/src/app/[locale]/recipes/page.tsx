@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { getRecipes, type CookingTimeFilter } from '@/lib/api/recipes';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { RecipeFilters } from '@/components/common/RecipeFilters';
@@ -30,6 +31,7 @@ interface Props {
 export default async function RecipesPage({ params, searchParams }: Props) {
   const { locale: pageLocale } = await params;
   const queryParams = await searchParams;
+  const t = await getTranslations('recipes');
   const page = parseInt(queryParams.page || '0', 10);
   const sort = queryParams.sort || 'recent';
   const typeFilter = queryParams.type === 'original' || queryParams.type === 'variants'
@@ -80,10 +82,10 @@ export default async function RecipesPage({ params, searchParams }: Props) {
       {/* Page header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-[var(--text-primary)]">
-          Recipes
+          {t('title')}
         </h1>
         <p className="text-[var(--text-secondary)] mt-2">
-          Discover recipes from our community of home cooks
+          {t('subtitle')}
         </p>
       </div>
 
@@ -93,7 +95,7 @@ export default async function RecipesPage({ params, searchParams }: Props) {
       {/* Results count */}
       {recipes.totalElements !== null && recipes.totalElements > 0 && (
         <p className="text-sm text-[var(--text-secondary)] mb-4">
-          {recipes.totalElements.toLocaleString()} recipes found
+          {t('found', { count: recipes.totalElements.toLocaleString() })}
         </p>
       )}
 

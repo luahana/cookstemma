@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { followUser, unfollowUser, getFollowStatus } from '@/lib/api/follows';
 
@@ -17,6 +18,8 @@ export function FollowButton({
   onFollowChange,
   className = '',
 }: FollowButtonProps) {
+  const t = useTranslations('profile');
+  const tCommon = useTranslations('common');
   const { user, isAuthenticated } = useAuth();
   const [isFollowing, setIsFollowing] = useState(initialFollowing ?? false);
   const [isLoading, setIsLoading] = useState(initialFollowing === undefined);
@@ -66,7 +69,7 @@ export function FollowButton({
         disabled
         className={`px-4 py-2 rounded-lg text-sm font-medium bg-[var(--background)] text-[var(--text-secondary)] ${className}`}
       >
-        Loading...
+        {tCommon('loading')}
       </button>
     );
   }
@@ -104,12 +107,12 @@ export function FollowButton({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             />
           </svg>
-          {isFollowing ? 'Unfollowing...' : 'Following...'}
+          {isFollowing ? t('unfollow') + '...' : t('follow') + '...'}
         </span>
       ) : isFollowing ? (
-        'Following'
+        t('following')
       ) : (
-        'Follow'
+        t('follow')
       )}
     </button>
   );

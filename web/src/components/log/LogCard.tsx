@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import type { LogPostSummary } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
 import { BookmarkButton } from '@/components/common/BookmarkButton';
@@ -12,6 +15,9 @@ interface LogCardProps {
 }
 
 export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCardProps) {
+  const tCommon = useTranslations('common');
+  const tCard = useTranslations('card');
+
   return (
     <Link
       href={`/logs/${log.publicId}`}
@@ -48,7 +54,7 @@ export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCard
         {/* Variant indicator - shift left if bookmark button is present */}
         {log.isVariant && (
           <span className="absolute top-3 right-12 px-2 py-1 bg-[var(--secondary)] text-white text-xs font-medium rounded-full">
-            Variant
+            {tCard('variant')}
           </span>
         )}
 
@@ -71,7 +77,7 @@ export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCard
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            Cooking Log
+            {tCard('cookingLog')}
           </span>
         )}
 
@@ -95,7 +101,7 @@ export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCard
         {/* Creator */}
         {log.userName && (
           <p className="text-sm text-[var(--text-secondary)] mt-2">
-            by {log.userName}
+            {tCommon('by')} {log.userName}
           </p>
         )}
 

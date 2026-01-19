@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { getLogs } from '@/lib/api/logs';
 import { LogGrid } from '@/components/log/LogGrid';
 import { LogFilters } from '@/components/common/LogFilters';
@@ -24,6 +25,7 @@ interface Props {
 
 export default async function LogsPage({ searchParams }: Props) {
   const params = await searchParams;
+  const t = await getTranslations('logs');
   const page = parseInt(params.page || '0', 10);
   const sort = params.sort || 'recent';
   const minRating = params.minRating ? parseInt(params.minRating, 10) : undefined;
@@ -51,10 +53,10 @@ export default async function LogsPage({ searchParams }: Props) {
       {/* Page header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-[var(--text-primary)]">
-          Cooking Logs
+          {t('title')}
         </h1>
         <p className="text-[var(--text-secondary)] mt-2">
-          See what others are cooking and their experiences
+          {t('subtitle')}
         </p>
       </div>
 
@@ -64,7 +66,7 @@ export default async function LogsPage({ searchParams }: Props) {
       {/* Results count */}
       {logs.totalElements !== null && logs.totalElements > 0 && (
         <p className="text-sm text-[var(--text-secondary)] mb-4">
-          {logs.totalElements.toLocaleString()} cooking logs
+          {t('found', { count: logs.totalElements.toLocaleString() })}
         </p>
       )}
 

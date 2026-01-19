@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import type { IngredientDto, IngredientType } from '@/lib/types/recipe';
 import type { MeasurementPreference } from '@/lib/types/user';
 import {
@@ -28,7 +29,7 @@ interface IngredientsSectionProps {
 
 const INGREDIENT_CATEGORIES: {
   type: IngredientType;
-  label: string;
+  labelKey: 'categoryMain' | 'categorySecondary' | 'categorySeasoning';
   icon: string;
   color: string;
   bgColor: string;
@@ -37,7 +38,7 @@ const INGREDIENT_CATEGORIES: {
 }[] = [
   {
     type: 'MAIN',
-    label: 'Main',
+    labelKey: 'categoryMain',
     icon: '🍲',
     color: 'var(--primary)',
     bgColor: 'var(--primary-light)',
@@ -46,7 +47,7 @@ const INGREDIENT_CATEGORIES: {
   },
   {
     type: 'SECONDARY',
-    label: 'Secondary',
+    labelKey: 'categorySecondary',
     icon: '🥕',
     color: 'var(--success)',
     bgColor: '#E8F5E9',
@@ -55,7 +56,7 @@ const INGREDIENT_CATEGORIES: {
   },
   {
     type: 'SEASONING',
-    label: 'Sauce & Seasoning',
+    labelKey: 'categorySeasoning',
     icon: '🧂',
     color: 'var(--secondary)',
     bgColor: '#EFEBE9',
@@ -65,6 +66,8 @@ const INGREDIENT_CATEGORIES: {
 ];
 
 export function IngredientsSection({ ingredients, locale }: IngredientsSectionProps) {
+  const t = useTranslations('recipes');
+  const tIngredients = useTranslations('ingredients');
   const [preference, setPreference] = useState<MeasurementPreference>('ORIGINAL');
 
   // Debug: log ingredients structure on mount
@@ -142,11 +145,11 @@ export function IngredientsSection({ ingredients, locale }: IngredientsSectionPr
     <section className="mb-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold text-[var(--text-primary)]">
-          Ingredients
+          {t('ingredients')}
         </h2>
         {hasStructuredData && preference !== 'ORIGINAL' && (
           <span className="text-xs text-[var(--text-secondary)] bg-[var(--background)] px-2 py-1 rounded">
-            Showing in {preference === 'METRIC' ? 'metric' : 'US'} units
+            {tIngredients('showingIn', { unit: preference === 'METRIC' ? tIngredients('metric') : tIngredients('us') })}
           </span>
         )}
       </div>
@@ -167,7 +170,7 @@ export function IngredientsSection({ ingredients, locale }: IngredientsSectionPr
                   className="font-semibold"
                   style={{ color: category.color }}
                 >
-                  {category.label}
+                  {tIngredients(category.labelKey)}
                 </h3>
                 <span
                   className="text-xs font-medium px-2 py-0.5 rounded-full ml-auto"

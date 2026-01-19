@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import type { RecipeSummary } from '@/lib/types';
 import { COOKING_TIME_RANGES, type CookingTimeRange } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
@@ -15,6 +18,9 @@ interface RecipeCardProps {
 }
 
 export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false, locale = 'ko' }: RecipeCardProps) {
+  const t = useTranslations('recipes');
+  const tCommon = useTranslations('common');
+  const tCard = useTranslations('card');
   const localizedTitle = getLocalizedContent(recipe.titleTranslations, locale, recipe.title);
   const localizedDescription = getLocalizedContent(recipe.descriptionTranslations, locale, recipe.description);
   const cookingTime =
@@ -45,7 +51,7 @@ export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false, loc
         {/* Variant badge */}
         {recipe.rootPublicId && (
           <span className="absolute top-3 left-3 px-2 py-1 bg-[var(--primary)] text-white text-xs font-medium rounded-full">
-            Variant
+            {tCard('variant')}
           </span>
         )}
 
@@ -68,7 +74,7 @@ export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false, loc
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
-            Recipe
+            {tCard('recipe')}
           </span>
         )}
 
@@ -91,7 +97,7 @@ export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false, loc
         <div className="flex items-center justify-between mt-3 text-sm">
           {recipe.userName && (
             <span className="text-[var(--text-secondary)]">
-              by {recipe.userName}
+              {tCommon('by')} {recipe.userName}
             </span>
           )}
           <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
@@ -121,7 +127,7 @@ export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false, loc
             {cookingTime}
           </span>
           <span className="text-xs px-2 py-1 bg-[var(--background)] text-[var(--text-secondary)] rounded">
-            {recipe.servings} servings
+            {t('servingsCount', { count: recipe.servings })}
           </span>
         </div>
 

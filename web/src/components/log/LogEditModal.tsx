@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { updateLog } from '@/lib/api/logs';
 import { getImageUrl } from '@/lib/utils/image';
 import { StarRatingSelector } from './StarRating';
@@ -20,6 +21,8 @@ export function LogEditModal({
   onClose,
   onSuccess,
 }: LogEditModalProps) {
+  const t = useTranslations('logEdit');
+  const tCommon = useTranslations('common');
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [content, setContent] = useState(log.content);
   const [rating, setRating] = useState<number>(log.rating ?? 3);
@@ -68,7 +71,7 @@ export function LogEditModal({
     e.preventDefault();
 
     if (!content.trim()) {
-      setError('Content is required');
+      setError(t('errorContent'));
       return;
     }
 
@@ -90,7 +93,7 @@ export function LogEditModal({
       onSuccess(updatedLog);
     } catch (err) {
       console.error('Failed to update log:', err);
-      setError('Failed to save changes. Please try again.');
+      setError(t('errorSave'));
     } finally {
       setIsSaving(false);
     }
@@ -108,7 +111,7 @@ export function LogEditModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">
           <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-            Edit Cooking Log
+            {t('title')}
           </h2>
           <button
             onClick={onClose}
@@ -127,7 +130,7 @@ export function LogEditModal({
           {log.images.length > 0 && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                Photos (cannot be changed)
+                {t('photosReadOnly')}
               </label>
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {log.images.map((img) => (
@@ -156,7 +159,7 @@ export function LogEditModal({
           {/* Rating */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-3">
-              Rating
+              {t('rating')}
             </label>
             <div className="flex justify-center">
               <StarRatingSelector
@@ -166,11 +169,11 @@ export function LogEditModal({
               />
             </div>
             <p className="text-center text-sm text-[var(--text-secondary)] mt-2">
-              {rating === 5 && 'Excellent!'}
-              {rating === 4 && 'Great'}
-              {rating === 3 && 'Good'}
-              {rating === 2 && 'Fair'}
-              {rating === 1 && 'Poor'}
+              {rating === 5 && t('ratingExcellent')}
+              {rating === 4 && t('ratingGreat')}
+              {rating === 3 && t('ratingGood')}
+              {rating === 2 && t('ratingFair')}
+              {rating === 1 && t('ratingPoor')}
             </p>
           </div>
 
@@ -180,7 +183,7 @@ export function LogEditModal({
               htmlFor="content"
               className="block text-sm font-medium text-[var(--text-primary)] mb-2"
             >
-              Notes
+              {t('notes')}
             </label>
             <textarea
               id="content"
@@ -188,7 +191,7 @@ export function LogEditModal({
               onChange={(e) => setContent(e.target.value)}
               rows={6}
               className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)] resize-none"
-              placeholder="How did it go? Any tips or observations?"
+              placeholder={t('notesPlaceholder')}
             />
           </div>
 
@@ -198,7 +201,7 @@ export function LogEditModal({
               htmlFor="hashtags"
               className="block text-sm font-medium text-[var(--text-primary)] mb-2"
             >
-              Hashtags
+              {t('hashtags')}
             </label>
             <input
               id="hashtags"
@@ -206,10 +209,10 @@ export function LogEditModal({
               value={hashtags}
               onChange={(e) => setHashtags(e.target.value)}
               className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
-              placeholder="homecooking, weeknight, spicy (comma separated)"
+              placeholder={t('hashtagsPlaceholder')}
             />
             <p className="text-xs text-[var(--text-secondary)] mt-1">
-              Separate hashtags with commas
+              {t('hashtagsHelp')}
             </p>
           </div>
 
@@ -229,7 +232,7 @@ export function LogEditModal({
             disabled={isSaving}
             className="px-6 py-2.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--background)] rounded-xl transition-colors disabled:opacity-50"
           >
-            Cancel
+            {tCommon('cancel')}
           </button>
           <button
             type="submit"
@@ -243,10 +246,10 @@ export function LogEditModal({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Saving...
+                {t('saving')}
               </>
             ) : (
-              'Save Changes'
+              t('saveChanges')
             )}
           </button>
         </div>

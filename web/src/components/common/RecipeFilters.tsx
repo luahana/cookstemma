@@ -2,30 +2,23 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { CookingStyleSelect, COOKING_STYLE_FILTER_OPTIONS } from './CookingStyleSelect';
 
 interface RecipeFiltersProps {
   baseUrl: string;
 }
 
-const COOKING_TIME_OPTIONS = [
-  { value: 'any', label: 'Any Time' },
-  { value: 'UNDER_15_MIN', label: 'Under 15 min' },
-  { value: 'MIN_15_TO_30', label: '15-30 min' },
-  { value: 'MIN_30_TO_60', label: '30-60 min' },
-  { value: 'HOUR_1_TO_2', label: '1-2 hours' },
-  { value: 'OVER_2_HOURS', label: '2+ hours' },
-] as const;
-
 const SERVINGS_OPTIONS = [
-  { value: 'any', label: 'Any Servings', min: undefined, max: undefined },
-  { value: '1-2', label: '1-2', min: 1, max: 2 },
-  { value: '3-4', label: '3-4', min: 3, max: 4 },
-  { value: '5-6', label: '5-6', min: 5, max: 6 },
-  { value: '7+', label: '7+', min: 7, max: undefined },
+  { value: 'any', min: undefined, max: undefined },
+  { value: '1-2', min: 1, max: 2 },
+  { value: '3-4', min: 3, max: 4 },
+  { value: '5-6', min: 5, max: 6 },
+  { value: '7+', min: 7, max: undefined },
 ] as const;
 
 export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
+  const t = useTranslations('filters');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -87,7 +80,7 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
       {/* Sort */}
       <div className="flex items-center gap-2">
         <label htmlFor="sort" className="text-sm text-[var(--text-secondary)]">
-          Sort:
+          {t('sort')}
         </label>
         <select
           id="sort"
@@ -95,17 +88,17 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
           onChange={(e) => updateFilters('sort', e.target.value)}
           className="px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
         >
-          <option value="recent">Most Recent</option>
-          <option value="popular">Most Popular</option>
-          <option value="trending">Trending</option>
-          <option value="mostForked">Most Forked</option>
+          <option value="recent">{t('sortRecent')}</option>
+          <option value="popular">{t('sortPopular')}</option>
+          <option value="trending">{t('sortTrending')}</option>
+          <option value="mostForked">{t('sortMostForked')}</option>
         </select>
       </div>
 
       {/* Type filter */}
       <div className="flex items-center gap-2">
         <label htmlFor="type" className="text-sm text-[var(--text-secondary)]">
-          Type:
+          {t('type')}
         </label>
         <select
           id="type"
@@ -113,16 +106,16 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
           onChange={(e) => updateFilters('type', e.target.value)}
           className="px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
         >
-          <option value="all">All Recipes</option>
-          <option value="original">Originals Only</option>
-          <option value="variants">Variants Only</option>
+          <option value="all">{t('typeAll')}</option>
+          <option value="original">{t('typeOriginals')}</option>
+          <option value="variants">{t('typeVariants')}</option>
         </select>
       </div>
 
       {/* Cooking Style filter */}
       <div className="flex items-center gap-2">
         <label className="text-sm text-[var(--text-secondary)]">
-          Cooking Style:
+          {t('cookingStyle')}
         </label>
         <CookingStyleSelect
           value={currentCookingStyle}
@@ -135,7 +128,7 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
       {/* Cooking Time filter */}
       <div className="flex items-center gap-2">
         <label htmlFor="cookingTime" className="text-sm text-[var(--text-secondary)]">
-          Time:
+          {t('time')}
         </label>
         <select
           id="cookingTime"
@@ -143,18 +136,19 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
           onChange={(e) => updateFilters('cookingTime', e.target.value)}
           className="px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
         >
-          {COOKING_TIME_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          <option value="any">{t('timeAny')}</option>
+          <option value="UNDER_15_MIN">{t('timeUnder15')}</option>
+          <option value="MIN_15_TO_30">{t('time15to30')}</option>
+          <option value="MIN_30_TO_60">{t('time30to60')}</option>
+          <option value="HOUR_1_TO_2">{t('time1to2hours')}</option>
+          <option value="OVER_2_HOURS">{t('timeOver2hours')}</option>
         </select>
       </div>
 
       {/* Servings filter */}
       <div className="flex items-center gap-2">
         <label htmlFor="servings" className="text-sm text-[var(--text-secondary)]">
-          Servings:
+          {t('servings')}
         </label>
         <select
           id="servings"
@@ -162,11 +156,11 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
           onChange={(e) => updateFilters('servings', e.target.value)}
           className="px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
         >
-          {SERVINGS_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          <option value="any">{t('servingsAny')}</option>
+          <option value="1-2">{t('servings1to2')}</option>
+          <option value="3-4">{t('servings3to4')}</option>
+          <option value="5-6">{t('servings5to6')}</option>
+          <option value="7+">{t('servings7plus')}</option>
         </select>
       </div>
 
@@ -178,7 +172,7 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
           }}
           className="text-sm text-[var(--primary)] hover:underline"
         >
-          Clear filters
+          {t('clearFilters')}
         </button>
       )}
     </div>

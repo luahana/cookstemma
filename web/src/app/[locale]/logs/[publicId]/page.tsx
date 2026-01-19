@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { getTranslations, getFormatter } from 'next-intl/server';
 import { getLogDetail } from '@/lib/api/logs';
 import { LogJsonLd } from '@/components/log/LogJsonLd';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
@@ -70,7 +71,8 @@ export default async function LogDetailPage({ params }: Props) {
     notFound();
   }
 
-  const formattedDate = new Date(log.createdAt).toLocaleDateString('en-US', {
+  const format = await getFormatter();
+  const formattedDate = format.dateTime(new Date(log.createdAt), {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -78,6 +80,9 @@ export default async function LogDetailPage({ params }: Props) {
 
   const localizedTitle = getLocalizedContent(log.titleTranslations, locale, log.title);
   const localizedContent = getLocalizedContent(log.contentTranslations, locale, log.content);
+
+  const t = await getTranslations('logs');
+  const tNav = await getTranslations('nav');
 
   return (
     <>
@@ -102,7 +107,7 @@ export default async function LogDetailPage({ params }: Props) {
         {/* Breadcrumb */}
         <nav className="text-sm text-[var(--text-secondary)] mb-6">
           <Link href="/logs" className="hover:text-[var(--primary)]">
-            Cooking Logs
+            {tNav('cookingLogs')}
           </Link>
           <span className="mx-2">/</span>
           <span className="text-[var(--text-primary)]">{localizedTitle}</span>
@@ -238,7 +243,7 @@ export default async function LogDetailPage({ params }: Props) {
         {log.linkedRecipe && (
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">
-              Recipe Used
+              {t('recipeUsed')}
             </h2>
             <div className="max-w-sm">
               <RecipeCard recipe={log.linkedRecipe} />
