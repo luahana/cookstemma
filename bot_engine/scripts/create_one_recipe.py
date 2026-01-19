@@ -21,9 +21,9 @@ import sys
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Load .env file
+# Load .env.dev file for AWS dev environment
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv('.env.dev')
 
 from src.api import PairingPlanetClient
 from src.config import get_settings
@@ -80,14 +80,14 @@ async def main() -> None:
 
         food_name = "Bibimbap"  # Korean mixed rice bowl (different dish)
         print(f"\nGenerating recipe for: {food_name}")
-        print("This may take several minutes (generating text + 3 cover images + step images)...")
+        print("This may take a minute (generating text + 1 cover image)...")
 
         recipe = await pipeline.generate_original_recipe(
             persona=persona,
             food_name=food_name,
             generate_images=True,
-            cover_image_count=3,
-            generate_step_images=True,
+            cover_image_count=1,
+            generate_step_images=False,
         )
 
         # 5. Print results

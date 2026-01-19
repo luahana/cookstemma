@@ -17,6 +17,22 @@ class RecipePrompts:
         lang = "Korean" if locale.startswith("ko") else "English"
         specialties_str = ", ".join(specialties) if specialties else "various"
 
+        # US uses cups/tablespoons/ounces; rest of world uses metric
+        use_us_measurements = locale.endswith("-US") or locale == "en-US"
+
+        if use_us_measurements:
+            unit_codes = """Unit codes (USE US MEASUREMENTS):
+- Volume: TSP (teaspoon), TBSP (tablespoon), CUP, FL_OZ (fluid ounce), PINT, QUART
+- Weight: OZ (ounce), LB (pound)
+- Count/Other: PIECE, PINCH, DASH, TO_TASTE, CLOVE, BUNCH, CAN, PACKAGE"""
+            unit_instruction = "Use US measurement units (CUP, TBSP, TSP, OZ, LB) - NOT metric units like grams or milliliters"
+        else:
+            unit_codes = """Unit codes (USE METRIC MEASUREMENTS):
+- Volume: ML (milliliter), L (liter)
+- Weight: G (gram), KG (kilogram)
+- Count/Other: PIECE, PINCH, DASH, TO_TASTE, CLOVE, BUNCH, CAN, PACKAGE"""
+            unit_instruction = "Use metric units (G, KG, ML, L) - NOT cups or ounces"
+
         return f"""Create a complete recipe for "{food_name}" in the style of {culinary_style} cuisine.
 
 Your specialties include: {specialties_str}
@@ -45,15 +61,13 @@ Generate a recipe with the following structure in JSON format:
     "tipFromChef": "One helpful cooking tip"
 }}
 
-Unit codes available:
-- Volume: ML, L, TSP, TBSP, CUP, FL_OZ, PINT, QUART
-- Weight: G, KG, OZ, LB
-- Count/Other: PIECE, PINCH, DASH, TO_TASTE, CLOVE, BUNCH, CAN, PACKAGE
+{unit_codes}
 
 Requirements:
 - Write EVERYTHING in {lang}
 - Include 5-15 ingredients with realistic amounts
-- Use appropriate unit codes (e.g., G for grams, CUP for cups, PIECE for whole items)
+- {unit_instruction}
+- IMPORTANT: Every ingredient MUST have both quantity (number) and unit filled
 - Include 4-10 detailed cooking steps
 - Make the description personal and engaging
 - Include 5 relevant hashtags (without #)
@@ -74,6 +88,22 @@ Return ONLY valid JSON, no additional text."""
     ) -> str:
         """Generate prompt for creating a recipe variant."""
         lang = "Korean" if locale.startswith("ko") else "English"
+
+        # US uses cups/tablespoons/ounces; rest of world uses metric
+        use_us_measurements = locale.endswith("-US") or locale == "en-US"
+
+        if use_us_measurements:
+            unit_codes = """Unit codes (USE US MEASUREMENTS):
+- Volume: TSP (teaspoon), TBSP (tablespoon), CUP, FL_OZ (fluid ounce), PINT, QUART
+- Weight: OZ (ounce), LB (pound)
+- Count/Other: PIECE, PINCH, DASH, TO_TASTE, CLOVE, BUNCH, CAN, PACKAGE"""
+            unit_instruction = "Use US measurement units (CUP, TBSP, TSP, OZ, LB) - NOT metric units like grams or milliliters"
+        else:
+            unit_codes = """Unit codes (USE METRIC MEASUREMENTS):
+- Volume: ML (milliliter), L (liter)
+- Weight: G (gram), KG (kilogram)
+- Count/Other: PIECE, PINCH, DASH, TO_TASTE, CLOVE, BUNCH, CAN, PACKAGE"""
+            unit_instruction = "Use metric units (G, KG, ML, L) - NOT cups or ounces"
 
         variation_instructions = {
             "healthier": "Make a healthier version - reduce oil, sugar, or use better alternatives",
@@ -126,16 +156,14 @@ Generate a variant recipe in JSON format:
     "changeCategories": ["INGREDIENT_SUBSTITUTION", "QUANTITY_ADJUSTMENT", "COOKING_METHOD", "SEASONING_CHANGE", "DIETARY_ADAPTATION", "TIME_OPTIMIZATION", "EQUIPMENT_CHANGE", "PRESENTATION"]
 }}
 
-Unit codes available:
-- Volume: ML, L, TSP, TBSP, CUP, FL_OZ, PINT, QUART
-- Weight: G, KG, OZ, LB
-- Count/Other: PIECE, PINCH, DASH, TO_TASTE, CLOVE, BUNCH, CAN, PACKAGE
+{unit_codes}
 
 Requirements:
 - Write EVERYTHING in {lang}
 - Make meaningful, noticeable changes (not just minor tweaks)
 - Keep the dish recognizable as a variant of the original
-- Use appropriate unit codes (e.g., G for grams, CUP for cups, PIECE for whole items)
+- {unit_instruction}
+- IMPORTANT: Every ingredient MUST have both quantity (number) and unit filled
 - Clearly explain what changed and why
 - Select 1-3 appropriate changeCategories
 - SEO: Include variation type and dish name in title, mention key ingredients and cooking methods in description

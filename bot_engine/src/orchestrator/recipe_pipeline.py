@@ -183,7 +183,7 @@ class RecipePipeline:
                 for i in parent_recipe.ingredients
             ],
             "steps": [
-                {"order": s.order, "description": s.description}
+                {"order": s.step_number, "description": s.description}
                 for s in parent_recipe.steps
             ],
         }

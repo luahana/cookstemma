@@ -30,6 +30,7 @@ from src.api import PairingPlanetClient
 from src.api.models import (
     CreateRecipeRequest,
     IngredientType,
+    MeasurementUnit,
     RecipeIngredient,
     RecipeStep,
 )
@@ -86,16 +87,16 @@ async def main() -> None:
         print(f"Steps: {len(recipe_data.get('steps', []))} steps")
 
         # 5. Generate and upload COVER images (3)
-        print("\n--- Generating 2 Cover Images ---")
+        print("\n--- Generating 3 Cover Images ---")
         cover_image_ids = []
         cover_images = await image_gen.generate_recipe_images(
             dish_name=food_name,
             persona=persona,
-            cover_count=2,
+            cover_count=3,
         )
 
         for i, img_bytes in enumerate(cover_images.get("cover_images", []), 1):
-            print(f"Uploading cover image {i}/2 ({len(img_bytes)} bytes)...")
+            print(f"Uploading cover image {i}/3 ({len(img_bytes)} bytes)...")
             optimized = image_gen.optimize_image(img_bytes)
             upload = await api_client.upload_image_bytes(
                 optimized,
@@ -150,10 +151,21 @@ Sharp focus on the main action."""
             ing_type = ing.get("type", "MAIN").upper()
             if ing_type not in ["MAIN", "SECONDARY", "SEASONING"]:
                 ing_type = "MAIN"
+
+            # Parse unit (validate against enum)
+            unit_str = ing.get("unit")
+            unit = None
+            if unit_str:
+                try:
+                    unit = MeasurementUnit(unit_str.upper())
+                except ValueError:
+                    unit = None  # Invalid unit, will be ignored
+
             ingredients.append(
                 RecipeIngredient(
                     name=ing.get("name", ""),
-                    amount=ing.get("amount", ""),
+                    quantity=ing.get("quantity"),
+                    unit=unit,
                     type=IngredientType(ing_type),
                     order=i,
                 )

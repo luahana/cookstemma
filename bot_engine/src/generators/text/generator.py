@@ -113,9 +113,20 @@ class TextGenerator:
         variation_type: str = "creative",
     ) -> Dict[str, Any]:
         """Generate a recipe variant."""
-        # Format parent recipe info
+        # Format parent recipe info with quantity and unit
+        def format_ingredient(i: Dict[str, Any]) -> str:
+            name = i.get("name", "")
+            quantity = i.get("quantity")
+            unit = i.get("unit")
+            if quantity and unit:
+                return f"- {name}: {quantity} {unit}"
+            elif quantity:
+                return f"- {name}: {quantity}"
+            else:
+                return f"- {name}"
+
         parent_ingredients = "\n".join(
-            f"- {i['name']}: {i['amount']}"
+            format_ingredient(i)
             for i in parent_recipe.get("ingredients", [])
         )
         parent_steps = "\n".join(

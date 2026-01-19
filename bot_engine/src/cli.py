@@ -13,6 +13,13 @@ from .orchestrator import ContentScheduler
 
 def setup_logging(level: str = "INFO") -> None:
     """Configure structured logging."""
+    # Fix Windows console encoding for non-ASCII characters (Korean, etc.)
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, OSError):
+            pass  # Not supported on this platform/stream
+
     structlog.configure(
         processors=[
             structlog.stdlib.filter_by_level,

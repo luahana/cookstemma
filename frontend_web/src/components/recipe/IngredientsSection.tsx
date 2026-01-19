@@ -11,6 +11,16 @@ import {
 } from '@/lib/utils/measurement';
 import { getLocalizedContent } from '@/lib/utils/localization';
 
+// Languages where ingredient name comes BEFORE quantity (e.g., "쌀 400g" not "400g 쌀")
+// Based on natural language patterns in recipes
+const NAME_FIRST_LOCALES = ['ko', 'ja', 'zh', 'vi', 'th'];
+
+function isNameFirstLocale(locale: string): boolean {
+  // Extract language code (e.g., 'ko' from 'ko-KR')
+  const lang = locale.split('-')[0].toLowerCase();
+  return NAME_FIRST_LOCALES.includes(lang);
+}
+
 interface IngredientsSectionProps {
   ingredients: IngredientDto[];
   locale: string;
@@ -169,6 +179,9 @@ export function IngredientsSection({ ingredients, locale }: IngredientsSectionPr
               <ul className="space-y-2">
                 {ingredientsByType[category.type].map((ing, idx) => {
                   const amount = formatIngredientAmount(ing);
+                  const name = getLocalizedContent(ing.nameTranslations, locale, ing.name);
+                  const nameFirst = isNameFirstLocale(locale);
+
                   return (
                     <li
                       key={idx}
@@ -179,12 +192,27 @@ export function IngredientsSection({ ingredients, locale }: IngredientsSectionPr
                         style={{ backgroundColor: category.bulletColor }}
                       />
                       <span>
-                        {amount && (
-                          <span className="font-medium text-[var(--text-primary)]">
-                            {amount}{' '}
-                          </span>
+                        {nameFirst ? (
+                          // Name first: "쌀 400g" (Korean, Japanese, Chinese, Vietnamese, Thai)
+                          <>
+                            {name}
+                            {amount && (
+                              <span className="font-medium text-[var(--text-primary)]">
+                                {' '}{amount}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          // Quantity first: "400g rice" (English, European languages, etc.)
+                          <>
+                            {amount && (
+                              <span className="font-medium text-[var(--text-primary)]">
+                                {amount}{' '}
+                              </span>
+                            )}
+                            {name}
+                          </>
                         )}
-                        {getLocalizedContent(ing.nameTranslations, locale, ing.name)}
                       </span>
                     </li>
                   );

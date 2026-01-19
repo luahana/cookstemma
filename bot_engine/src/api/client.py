@@ -243,17 +243,11 @@ class PairingPlanetClient:
 
     async def create_recipe(self, request: CreateRecipeRequest) -> Recipe:
         """Create a new recipe."""
-        payload = request.model_dump(exclude_none=True, by_alias=True)
-
-        # Debug: print payload
-        import json
-        print(f"imagePublicIds in payload: {payload.get('imagePublicIds', 'NOT FOUND')}")
-        print(f"Full payload keys: {list(payload.keys())}")
+        # Use mode="json" to ensure enums are serialized as strings
+        payload = request.model_dump(exclude_none=True, by_alias=True, mode="json")
 
         response = await self._request("POST", "/recipes", json=payload)
         data = response.json()
-        print(f"Response imageUrls: {data.get('imageUrls', 'NOT FOUND')}")
-        print(f"Response images: {data.get('images', 'NOT FOUND')}")
         logger.info(
             "recipe_created",
             public_id=data.get("publicId"),
