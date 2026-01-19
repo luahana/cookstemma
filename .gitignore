@@ -149,3 +149,12 @@ build_log.txt
 build_output.txt
 new-task-def.json
 task-def.json
+
+# Bot engine test artifacts
+empty-payload.json
+process-result.json
+recipe-full.json
+recipe.json
+result-*.json
+test-payload.json
+test-result.json
