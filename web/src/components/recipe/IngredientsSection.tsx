@@ -68,6 +68,7 @@ const INGREDIENT_CATEGORIES: {
 export function IngredientsSection({ ingredients, locale }: IngredientsSectionProps) {
   const t = useTranslations('recipes');
   const tIngredients = useTranslations('ingredients');
+  const tUnits = useTranslations('units');
   const [preference, setPreference] = useState<MeasurementPreference>('ORIGINAL');
 
   // Debug: log ingredients structure on mount
@@ -132,7 +133,7 @@ export function IngredientsSection({ ingredients, locale }: IngredientsSectionPr
     // If we have structured quantity + unit, use conversion
     if (ing.quantity !== null && ing.unit !== null) {
       const converted = convertMeasurement(ing.quantity, ing.unit, preference);
-      return formatMeasurement(converted);
+      return formatMeasurement(converted, tUnits);
     }
 
     return '';

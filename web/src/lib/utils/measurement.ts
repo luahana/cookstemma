@@ -37,15 +37,15 @@ const NON_CONVERTIBLE_UNITS: MeasurementUnit[] = [
 ];
 
 /**
- * Display labels for units
+ * Mapping from MeasurementUnit enum to i18n translation key
  */
-export const UNIT_LABELS: Record<MeasurementUnit, string> = {
+export const UNIT_TRANSLATION_KEYS: Record<MeasurementUnit, string> = {
   ML: 'ml',
-  L: 'L',
+  L: 'l',
   TSP: 'tsp',
   TBSP: 'tbsp',
   CUP: 'cup',
-  FL_OZ: 'fl oz',
+  FL_OZ: 'flOz',
   PINT: 'pint',
   QUART: 'quart',
   G: 'g',
@@ -55,7 +55,7 @@ export const UNIT_LABELS: Record<MeasurementUnit, string> = {
   PIECE: 'piece',
   PINCH: 'pinch',
   DASH: 'dash',
-  TO_TASTE: 'to taste',
+  TO_TASTE: 'toTaste',
   CLOVE: 'clove',
   BUNCH: 'bunch',
   CAN: 'can',
@@ -180,7 +180,7 @@ function normalizeUnit(
 export interface ConversionResult {
   quantity: number;
   unit: MeasurementUnit;
-  label: string;
+  translationKey: string;
 }
 
 /**
@@ -200,7 +200,7 @@ export function convertMeasurement(
     return {
       quantity: smartRound(quantity),
       unit,
-      label: UNIT_LABELS[unit],
+      translationKey: UNIT_TRANSLATION_KEYS[unit],
     };
   }
 
@@ -209,7 +209,7 @@ export function convertMeasurement(
     return {
       quantity: smartRound(quantity),
       unit,
-      label: UNIT_LABELS[unit],
+      translationKey: UNIT_TRANSLATION_KEYS[unit],
     };
   }
 
@@ -220,7 +220,7 @@ export function convertMeasurement(
     const normalized = normalizeUnit(quantity, unit);
     return {
       ...normalized,
-      label: UNIT_LABELS[normalized.unit],
+      translationKey: UNIT_TRANSLATION_KEYS[normalized.unit],
     };
   }
 
@@ -239,7 +239,7 @@ export function convertMeasurement(
     return {
       quantity: smartRound(quantity),
       unit,
-      label: UNIT_LABELS[unit],
+      translationKey: UNIT_TRANSLATION_KEYS[unit],
     };
   }
 
@@ -248,19 +248,25 @@ export function convertMeasurement(
 
   return {
     ...normalized,
-    label: UNIT_LABELS[normalized.unit],
+    translationKey: UNIT_TRANSLATION_KEYS[normalized.unit],
   };
 }
 
 /**
  * Format a measurement for display
+ * @param result - The conversion result containing quantity, unit, and translationKey
+ * @param t - Translator function that takes a translation key and returns the localized string
  */
-export function formatMeasurement(result: ConversionResult | null): string {
+export function formatMeasurement(
+  result: ConversionResult | null,
+  t: (key: string) => string
+): string {
   if (!result) {
     return '';
   }
 
-  const { quantity, label } = result;
+  const { quantity, translationKey } = result;
+  const label = t(translationKey);
 
   // Handle "to taste" specially - no quantity
   if (result.unit === 'TO_TASTE') {
