@@ -21,7 +21,7 @@ docker-compose up -d
 ./gradlew test
 ```
 
-**API Base URL**: http://localhost:4001/api/v1
+**API Base URL**: http://localhost:4000/api/v1
 
 ## Documentation
 

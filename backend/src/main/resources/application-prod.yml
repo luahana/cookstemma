@@ -39,7 +39,7 @@ internal:
 file:
   upload:
     # 운영 환경의 이미지 서버 주소 (CDN 또는 API 도메인)
-    url-prefix: ${FILE_UPLOAD_URL_PREFIX:https://api.pairingplanet.com/storage}
+    url-prefix: ${FILE_UPLOAD_URL_PREFIX:https://api.cookstemma.com/storage}
     
   # 로깅 설정 (운영은 에러 위주로)
   logging:

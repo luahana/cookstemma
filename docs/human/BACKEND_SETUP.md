@@ -1,6 +1,6 @@
-# Backend Setup Guide - Pairing Planet
+# Backend Setup Guide - Cookstemma
 
-This guide will help you set up and run the Spring Boot backend for Pairing Planet.
+This guide will help you set up and run the Spring Boot backend for Cookstemma.
 
 ---
 
@@ -46,17 +46,17 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-cd pairing_planet
+cd cookstemma
 ```
 
 ### 2. Verify Project Structure
 
 ```
-pairing_planet/
+cookstemma/
 ├── src/
 │   ├── main/
 │   │   ├── java/
-│   │   │   └── com/pairingplanet/pairing_planet/
+│   │   │   └── com/cookstemma/cookstemma/
 │   │   └── resources/
 │   │       ├── application.yml
 │   │       └── db/migration/
@@ -137,7 +137,7 @@ minio:
   endpoint: http://localhost:9000
   access-key: minioadmin
   secret-key: minioadmin
-  bucket: pairing-planet-images
+  bucket: cookstemma-images
 
 # JWT Configuration
 jwt:
@@ -154,7 +154,7 @@ firebase:
 # Internal API Key (for bot/scheduled tasks)
 internal:
   api:
-    key: pairing-planet-dev-internal-key
+    key: cookstemma-dev-internal-key
 ```
 
 ### 3. Firebase Service Account Setup
@@ -179,7 +179,7 @@ export FIREBASE_SERVICE_ACCOUNT_KEY_PATH=/path/to/firebase-service-account.json
 
 1. Open MinIO Console: http://localhost:9001
 2. Login with `minioadmin` / `minioadmin`
-3. Create bucket: `pairing-planet-images`
+3. Create bucket: `cookstemma-images`
 4. Set bucket policy to public-read (for image URLs)
 
 ---
@@ -201,10 +201,10 @@ export FIREBASE_SERVICE_ACCOUNT_KEY_PATH=/path/to/firebase-service-account.json
 
 ### Using IDE (IntelliJ IDEA)
 
-1. Open `pairing_planet` folder in IntelliJ
+1. Open `cookstemma` folder in IntelliJ
 2. Wait for Gradle sync to complete
-3. Right-click `PairingPlanetApplication.java`
-4. Select "Run 'PairingPlanetApplication'"
+3. Right-click `CookstemmaApplication.java`
+4. Select "Run 'CookstemmaApplication'"
 5. Or use the Run configuration and set:
    - **Active profiles**: `dev`
    - **VM options**: `-Dspring.profiles.active=dev`
@@ -213,13 +213,13 @@ export FIREBASE_SERVICE_ACCOUNT_KEY_PATH=/path/to/firebase-service-account.json
 
 ```bash
 # Health check
-curl http://localhost:4001/actuator/health
+curl http://localhost:4000/actuator/health
 
 # Expected response:
 # {"status":"UP"}
 ```
 
-**API Base URL**: `http://localhost:4001/api/v1`
+**API Base URL**: `http://localhost:4000/api/v1`
 
 ---
 
@@ -344,7 +344,7 @@ class RecipeServiceIntegrationTest {
 ./gradlew bootJar
 
 # Build Docker image
-docker build -t pairing-planet-backend:latest .
+docker build -t cookstemma-backend:latest .
 
 # Or using Docker Compose
 docker-compose -f docker-compose.prod.yaml build
@@ -361,10 +361,10 @@ services:
   app:
     build: .
     ports:
-      - "4001:4001"
+      - "4000:4000"
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pairingplanet
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/cookstemma
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_DATA_REDIS_HOST: redis
@@ -381,7 +381,7 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: pairingplanet
+      POSTGRES_DB: cookstemma
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
@@ -417,13 +417,13 @@ docker-compose -f docker-compose.prod.yaml up -d
 
 ### Issue 1: Port Already in Use
 
-**Error**: `Port 4001 is already in use`
+**Error**: `Port 4000 is already in use`
 
 **Solution**:
 ```bash
-# Find process using port 4001
-lsof -i :4001  # macOS/Linux
-netstat -ano | findstr :4001  # Windows
+# Find process using port 4000
+lsof -i :4000  # macOS/Linux
+netstat -ano | findstr :4000  # Windows
 
 # Kill the process or change port in application.yml
 server:
@@ -494,7 +494,7 @@ docker-compose restart redis
 **Solution**:
 1. Open MinIO Console: http://localhost:9001
 2. Login with `minioadmin` / `minioadmin`
-3. Create bucket: `pairing-planet-images`
+3. Create bucket: `cookstemma-images`
 4. Set bucket policy:
    ```json
    {
@@ -504,7 +504,7 @@ docker-compose restart redis
          "Effect": "Allow",
          "Principal": {"AWS": ["*"]},
          "Action": ["s3:GetObject"],
-         "Resource": ["arn:aws:s3:::pairing-planet-images/*"]
+         "Resource": ["arn:aws:s3:::cookstemma-images/*"]
        }
      ]
    }
@@ -557,7 +557,7 @@ To enable Swagger UI, add to `build.gradle`:
 implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 ```
 
-Access: http://localhost:4001/swagger-ui.html
+Access: http://localhost:4000/swagger-ui.html
 
 ### Manual API Testing
 
@@ -565,7 +565,7 @@ Access: http://localhost:4001/swagger-ui.html
 
 ```bash
 # 1. Login to get access token
-curl -X POST http://localhost:4001/api/v1/auth/social-login \
+curl -X POST http://localhost:4000/api/v1/auth/social-login \
   -H "Content-Type: application/json" \
   -d '{
     "provider": "GOOGLE",
@@ -576,7 +576,7 @@ curl -X POST http://localhost:4001/api/v1/auth/social-login \
 # Response: { "accessToken": "...", "refreshToken": "..." }
 
 # 2. Create recipe
-curl -X POST http://localhost:4001/api/v1/recipes \
+curl -X POST http://localhost:4000/api/v1/recipes \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <access-token>" \
   -d '{
@@ -595,7 +595,7 @@ curl -X POST http://localhost:4001/api/v1/recipes \
 
 Once your backend is running:
 
-1. ✅ Verify health endpoint: http://localhost:4001/actuator/health
+1. ✅ Verify health endpoint: http://localhost:4000/actuator/health
 2. ✅ Test authentication with Postman/Insomnia
 3. ✅ Run frontend and connect to backend (see [CLAUDE.md](CLAUDE.md#working-across-frontend-and-backend))
 4. ✅ Implement analytics endpoints (`/events`, `/events/batch`) - see [CHANGELOG.md](CHANGELOG.md)

@@ -13,17 +13,47 @@ output "ecr_repository_name" {
   value       = aws_ecr_repository.main.name
 }
 
-output "frontend_ecr_repository_url" {
-  description = "URL of the frontend ECR repository"
-  value       = aws_ecr_repository.frontend.repository_url
+output "web_ecr_repository_url" {
+  description = "URL of the web ECR repository"
+  value       = aws_ecr_repository.web.repository_url
 }
 
-output "frontend_ecr_repository_arn" {
-  description = "ARN of the frontend ECR repository"
-  value       = aws_ecr_repository.frontend.arn
+output "web_ecr_repository_arn" {
+  description = "ARN of the web ECR repository"
+  value       = aws_ecr_repository.web.arn
 }
 
-output "frontend_ecr_repository_name" {
-  description = "Name of the frontend ECR repository"
-  value       = aws_ecr_repository.frontend.name
+output "web_ecr_repository_name" {
+  description = "Name of the web ECR repository"
+  value       = aws_ecr_repository.web.name
+}
+
+output "translator_ecr_repository_url" {
+  description = "URL of the translator ECR repository"
+  value       = aws_ecr_repository.translator.repository_url
+}
+
+output "translator_ecr_repository_arn" {
+  description = "ARN of the translator ECR repository"
+  value       = aws_ecr_repository.translator.arn
+}
+
+output "translator_ecr_repository_name" {
+  description = "Name of the translator ECR repository"
+  value       = aws_ecr_repository.translator.name
+}
+
+output "image_processor_ecr_repository_url" {
+  description = "URL of the image processor ECR repository"
+  value       = aws_ecr_repository.image_processor.repository_url
+}
+
+output "image_processor_ecr_repository_arn" {
+  description = "ARN of the image processor ECR repository"
+  value       = aws_ecr_repository.image_processor.arn
+}
+
+output "image_processor_ecr_repository_name" {
+  description = "Name of the image processor ECR repository"
+  value       = aws_ecr_repository.image_processor.name
 }

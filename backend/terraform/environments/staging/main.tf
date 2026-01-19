@@ -14,11 +14,11 @@ terraform {
   # Backend configuration for state storage
   # Uncomment after creating the S3 bucket
   # backend "s3" {
-  #   bucket         = "pairing-planet-terraform-state"
+  #   bucket         = "cookstemma-terraform-state"
   #   key            = "staging/terraform.tfstate"
   #   region         = "ap-northeast-2"
   #   encrypt        = true
-  #   dynamodb_table = "pairing-planet-terraform-locks"
+  #   dynamodb_table = "cookstemma-terraform-locks"
   # }
 }
 

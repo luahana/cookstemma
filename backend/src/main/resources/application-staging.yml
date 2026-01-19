@@ -38,7 +38,7 @@ internal:
 
 file:
   upload:
-    url-prefix: ${FILE_UPLOAD_URL_PREFIX:https://staging-api.pairingplanet.com/storage}
+    url-prefix: ${FILE_UPLOAD_URL_PREFIX:https://staging-api.cookstemma.com/storage}
 
 logging:
   level:

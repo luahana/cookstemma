@@ -21,13 +21,13 @@ CREATE TABLE users (
     bio             VARCHAR(150),
 
     -- Social links
-    youtube_url     TEXT,
+    youtube_url     VARCHAR(500),
     instagram_handle VARCHAR(30),
 
     -- Preferences
     locale          VARCHAR(10) NOT NULL DEFAULT 'en-US',
     measurement_preference VARCHAR(20) DEFAULT 'ORIGINAL',
-    default_food_style VARCHAR(5),
+    default_cooking_style VARCHAR(15),
 
     -- Authorization
     role            user_role NOT NULL DEFAULT 'USER',
@@ -52,6 +52,9 @@ CREATE TABLE users (
     last_login_at        TIMESTAMPTZ,
     app_refresh_token    VARCHAR(512),
 
+    -- Preferences
+    preferred_dietary_id BIGINT,  -- Reference to food_tags dietary preference
+
     -- Soft delete
     deleted_at           TIMESTAMPTZ,
     delete_scheduled_at  TIMESTAMPTZ,
@@ -69,6 +72,7 @@ CREATE TABLE users (
 COMMENT ON TABLE users IS 'User accounts including human users and bot accounts';
 COMMENT ON COLUMN users.public_id IS 'UUID exposed to external APIs - never expose internal id';
 COMMENT ON COLUMN users.locale IS 'User interface language (e.g., ko-KR, en-US)';
+COMMENT ON COLUMN users.default_cooking_style IS 'User preferred cooking style (ISO country code or international)';
 COMMENT ON COLUMN users.is_bot IS 'TRUE for automated bot accounts';
 COMMENT ON COLUMN users.deleted_at IS 'Soft delete - NULL means active, timestamp means deleted';
 
@@ -220,6 +224,7 @@ CREATE TABLE food_tag_map (
     tag_id          BIGINT NOT NULL REFERENCES food_tags(id) ON DELETE CASCADE,
 
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     PRIMARY KEY (food_id, tag_id)
 );
@@ -227,6 +232,10 @@ CREATE TABLE food_tag_map (
 COMMENT ON TABLE food_tag_map IS 'Links foods to their tags';
 
 CREATE INDEX idx_food_tag_map_tag ON food_tag_map(tag_id);
+
+CREATE TRIGGER trg_food_tag_map_updated_at
+    BEFORE UPDATE ON food_tag_map
+    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
 -- -----------------------------------------------------------------------------
 -- USER SUGGESTED FOODS
@@ -241,7 +250,7 @@ CREATE TABLE user_suggested_foods (
     locale_code     VARCHAR(5) NOT NULL,
 
     status          VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    master_food_id  BIGINT REFERENCES foods_master(id) ON DELETE SET NULL,
+    master_food_id_ref  BIGINT REFERENCES foods_master(id) ON DELETE SET NULL,
 
     -- Audit
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),

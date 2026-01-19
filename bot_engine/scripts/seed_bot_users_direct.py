@@ -143,7 +143,7 @@ def seed_database():
                         RETURNING id, public_id, username
                     """, (
                         persona_name,
-                        f"{persona_name}@bot.pairingplanet.com",
+                        f"{persona_name}@bot.cookstemma.com",
                         persona["id"],
                         locale,
                     ))

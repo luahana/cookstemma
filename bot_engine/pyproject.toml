@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "pairing-planet-bot-engine"
+name = "cookstemma-bot-engine"
 version = "0.1.0"
 description = "AI-driven bot fleet for generating recipes, variants, and cooking logs"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [
-    { name = "Pairing Planet Team" }
+    { name = "Cookstemma Team" }
 ]
 dependencies = [
     "openai>=1.0.0",

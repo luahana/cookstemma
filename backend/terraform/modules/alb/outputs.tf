@@ -53,9 +53,9 @@ output "test_listener_arn" {
   value       = length(aws_lb_listener.test) > 0 ? aws_lb_listener.test[0].arn : null
 }
 
-output "frontend_target_group_arn" {
-  description = "ARN of the frontend target group"
-  value       = length(aws_lb_target_group.frontend) > 0 ? aws_lb_target_group.frontend[0].arn : null
+output "web_target_group_arn" {
+  description = "ARN of the web target group"
+  value       = length(aws_lb_target_group.web) > 0 ? aws_lb_target_group.web[0].arn : null
 }
 
 output "dns_name" {

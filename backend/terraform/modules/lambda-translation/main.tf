@@ -158,51 +158,14 @@ resource "aws_cloudwatch_log_group" "lambda" {
 }
 
 # -----------------------------------------------------------------------------
-# ECR REPOSITORY FOR LAMBDA CONTAINER
-# -----------------------------------------------------------------------------
-resource "aws_ecr_repository" "translator" {
-  name                 = "${var.project_name}-${var.environment}-translator"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-translator-ecr"
-    Project     = var.project_name
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
-}
-
-resource "aws_ecr_lifecycle_policy" "translator" {
-  repository = aws_ecr_repository.translator.name
-
-  policy = jsonencode({
-    rules = [{
-      rulePriority = 1
-      description  = "Keep last 5 images"
-      selection = {
-        tagStatus   = "any"
-        countType   = "imageCountMoreThan"
-        countNumber = 5
-      }
-      action = {
-        type = "expire"
-      }
-    }]
-  })
-}
-
-# -----------------------------------------------------------------------------
 # LAMBDA FUNCTION (Container-based)
+# ECR repository is created in shared terraform and passed via var.ecr_repository_url
 # -----------------------------------------------------------------------------
 resource "aws_lambda_function" "translator" {
   function_name = local.function_name
   role          = aws_iam_role.lambda_execution.arn
   package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.translator.repository_url}:latest"
+  image_uri     = "${var.ecr_repository_url}:${var.environment}-latest"
 
   memory_size = var.memory_size
   timeout     = var.timeout

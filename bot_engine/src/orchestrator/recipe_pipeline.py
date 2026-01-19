@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 
 import structlog
 
-from ..api import PairingPlanetClient
+from ..api import CookstemmaClient
 from ..api.models import (
     ChangeCategory,
     CreateRecipeRequest,
@@ -26,7 +26,7 @@ class RecipePipeline:
 
     def __init__(
         self,
-        api_client: PairingPlanetClient,
+        api_client: CookstemmaClient,
         text_generator: TextGenerator,
         image_generator: ImageGenerator,
     ) -> None:

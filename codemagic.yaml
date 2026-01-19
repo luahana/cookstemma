@@ -23,7 +23,7 @@ workflows:
       - name: Set up code signing
         script: |
           keychain initialize
-          app-store-connect fetch-signing-files "com.pairingplanet.pairingplanetfrontend.dev" \
+          app-store-connect fetch-signing-files "com.cookstemma.cookstemmafrontend.dev" \
             --type IOS_APP_DEVELOPMENT \
             --create
           keychain add-certificates
@@ -123,7 +123,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.pairingplanet.pairingplanetfrontend.stg
+        bundle_identifier: com.cookstemma.cookstemmafrontend.stg
       vars:
         FLUTTER_TARGET: lib/main_staging.dart
         FLUTTER_VERSION: "3.27.4"
@@ -169,7 +169,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.pairingplanet.pairingplanetfrontend.prod
+        bundle_identifier: com.cookstemma.cookstemmafrontend.prod
       vars:
         FLUTTER_TARGET: lib/main_prod.dart
         FLUTTER_VERSION: "3.27.4"

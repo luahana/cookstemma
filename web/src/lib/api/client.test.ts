@@ -4,7 +4,7 @@ import { apiFetch, ApiError } from './client';
 // Mock the siteConfig
 jest.mock('@/config/site', () => ({
   siteConfig: {
-    apiUrl: 'http://localhost:4001/api/v1',
+    apiUrl: 'http://localhost:4000/api/v1',
   },
 }));
 
@@ -51,7 +51,7 @@ describe('apiFetch', () => {
 
       expect(result).toEqual(mockResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:4001/api/v1/test',
+        'http://localhost:4000/api/v1/test',
         expect.objectContaining({
           credentials: 'include',
           headers: expect.objectContaining({

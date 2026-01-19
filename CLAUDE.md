@@ -448,9 +448,9 @@ gh pr create --base dev
 
 | Env | Project | Flavor |
 |-----|---------|--------|
-| Dev | pairing-planet-dev | dev |
-| Staging | pairing-planet-stg | staging |
-| Prod | pairing-planet-prod | prod |
+| Dev | cookstemma-dev | dev |
+| Staging | cookstemma-stg | staging |
+| Prod | cookstemma-prod | prod |
 
 **❌ NEVER create main.dart** - Use flavored entry points only.
 
@@ -588,7 +588,7 @@ void onTap() {
 
 ## 🌐 API
 
-**Base URL:** `http://localhost:4001/api/v1`
+**Base URL:** `http://localhost:4000/api/v1`
 **Auth:** `Authorization: Bearer $accessToken`
 **Pagination:** `{ "content": [...], "last": false }`
 

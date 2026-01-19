@@ -10,7 +10,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
-from ..api import PairingPlanetClient
+from ..api import CookstemmaClient
 from ..api.models import Recipe
 from ..config import get_settings
 from ..generators import ImageGenerator, TextGenerator
@@ -58,7 +58,7 @@ class ContentScheduler:
         persona: BotPersona,
     ) -> tuple:
         """Create authenticated clients for a persona."""
-        api_client = PairingPlanetClient()
+        api_client = CookstemmaClient()
         await api_client.login_persona(persona)
 
         text_gen = TextGenerator()

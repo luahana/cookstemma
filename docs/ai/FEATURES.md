@@ -1,4 +1,4 @@
-# FEATURES.md — Pairing Planet
+# FEATURES.md — Cookstemma
 
 > All features, technical decisions, and domain terminology in one place.
 
@@ -19,7 +19,7 @@
 **Status:** 🟡 In Progress
 **Locked by:** Claude-1 (branch: feature/follow-system)
 **Lock time:** 2025-01-08 14:30 UTC
-**Server port:** 4001
+**Server port:** 4000
 ```
 
 ### Step 3: Commit and push IMMEDIATELY
@@ -57,7 +57,7 @@ git push origin dev
 **Status:** 🟡 In Progress
 **Locked by:** Claude-1 (branch: feature/xxx)
 **Lock time:** 2025-01-08 14:30 UTC
-**Server port:** 4001 (or 4002, 4003 if running multiple backends)
+**Server port:** 4000 (or 4002, 4003 if running multiple backends)
 
 # ═══ WHEN DONE, CHANGE TO ═══
 **Status:** ✅ Done
@@ -515,7 +515,7 @@ User logs in within 30 days?
 - [x] All secrets managed via AWS Secrets Manager
 
 **Technical Notes:**
-- ALB DNS: `pairing-planet-dev-alb-857509432.us-east-2.elb.amazonaws.com`
+- ALB DNS: `cookstemma-dev-alb-857509432.us-east-2.elb.amazonaws.com`
 - HTTP only (no HTTPS) for dev environment to save costs
 - RDS snapshot restore support for disaster recovery
 - Terraform modules: `vpc`, `alb`, `ecs`, `rds`, `secrets`
@@ -688,7 +688,7 @@ User logs in within 30 days?
 **Status:** 🟡 In Progress
 **Branch:** `feature/bot-fleet-system`
 
-**Description:** Backend infrastructure for an AI-driven bot fleet that will generate realistic recipes, variants, and cooking logs to seed Pairing Planet with synthetic data. This phase implements the backend authentication and persona management.
+**Description:** Backend infrastructure for an AI-driven bot fleet that will generate realistic recipes, variants, and cooking logs to seed Cookstemma with synthetic data. This phase implements the backend authentication and persona management.
 
 **Target:** 500 recipes, 2000 logs from 10 bot personas (5 Korean, 5 English)
 
@@ -844,7 +844,7 @@ User logs in within 30 days?
 
 **Description:** Core SEO setup enabling recipe pages to rank in search engines.
 
-**User Story:** As a potential user, I want to find Pairing Planet recipes through Google search, so that I can discover the platform organically.
+**User Story:** As a potential user, I want to find Cookstemma recipes through Google search, so that I can discover the platform organically.
 
 **Research Findings:**
 - How AllRecipes does it: SSR pages, JSON-LD Recipe schema, comprehensive meta tags
@@ -1194,10 +1194,10 @@ User logs in within 30 days?
 **Reason:** Simple setup, no network configuration needed, works reliably with USB
 **Setup:**
 ```bash
-adb reverse tcp:4001 tcp:4001  # Backend API
+adb reverse tcp:4000 tcp:4000  # Backend API
 adb reverse tcp:9000 tcp:9000  # MinIO images
 ```
-**Config:** Set `BASE_URL=http://localhost:4001/api/v1` in `.env` to use localhost mode
+**Config:** Set `BASE_URL=http://localhost:4000/api/v1` in `.env` to use localhost mode
 **Alternatives:**
 - Use computer's IP address (requires same network, IP changes)
 - Android emulator with 10.0.2.2 (can't test real device features)

@@ -65,7 +65,7 @@ class PlatformUrlResolver {
 
   static String _getDefaultLocalUrl() {
     final host = Platform.isIOS ? 'localhost' : '10.0.2.2';
-    return 'http://$host:4001/api/v1';
+    return 'http://$host:4000/api/v1';
   }
 
   static bool get isDev => (_getEnvValue('ENV') ?? 'dev') == 'dev';

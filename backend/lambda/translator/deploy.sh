@@ -6,7 +6,7 @@ set -e
 
 ENVIRONMENT=${1:-dev}
 AWS_REGION=${AWS_REGION:-us-east-2}
-PROJECT_NAME="pairing-planet"
+PROJECT_NAME="cookstemma"
 LAMBDA_NAME="${PROJECT_NAME}-${ENVIRONMENT}-translator"
 ECR_REPO="${PROJECT_NAME}-${ENVIRONMENT}-translator"
 

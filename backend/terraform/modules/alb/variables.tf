@@ -37,20 +37,20 @@ variable "certificate_arn" {
 }
 
 # Frontend configuration
-variable "enable_frontend" {
-  description = "Enable frontend target group and routing"
+variable "enable_web" {
+  description = "Enable web target group and routing"
   type        = bool
   default     = false
 }
 
-variable "frontend_port" {
-  description = "Port exposed by the frontend container"
+variable "web_port" {
+  description = "Port exposed by the web container"
   type        = number
   default     = 3000
 }
 
-variable "frontend_health_check_path" {
-  description = "Health check path for frontend target group"
+variable "web_health_check_path" {
+  description = "Health check path for web target group"
   type        = string
   default     = "/"
 }

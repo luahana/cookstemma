@@ -64,3 +64,8 @@ variable "existing_security_group_id" {
   type        = string
   default     = ""
 }
+
+variable "ecr_repository_url" {
+  description = "URL of the ECR repository for Lambda container image"
+  type        = string
+}

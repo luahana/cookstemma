@@ -25,16 +25,16 @@ public class ShareService {
     private final RecipeRepository recipeRepository;
     private final UserRepository userRepository;
 
-    @Value("${app.base-url:https://pairingplanet.com}")
+    @Value("${app.base-url:https://cookstemma.com}")
     private String appBaseUrl;
 
-    @Value("${app.api-url:https://api.pairingplanet.com}")
+    @Value("${app.api-url:https://api.cookstemma.com}")
     private String apiBaseUrl;
 
     @Value("${file.upload.url-prefix}")
     private String imageUrlPrefix;
 
-    private static final String DEFAULT_IMAGE = "https://pairingplanet.com/images/og-default.png";
+    private static final String DEFAULT_IMAGE = "https://cookstemma.com/images/og-default.png";
     private static final int MAX_TITLE_LENGTH = 60;
     private static final int MAX_DESCRIPTION_LENGTH = 160;
 
@@ -57,7 +57,7 @@ public class ShareService {
         );
         String imageUrl = getImageUrl(recipe);
         String shareUrl = apiBaseUrl + "/share/recipe/" + recipePublicId;
-        String deepLink = "pairingplanet://recipe/" + recipePublicId;
+        String deepLink = "cookstemma://recipe/" + recipePublicId;
         String userName = getCreatorName(recipe);
 
         // Escape HTML entities for safety
@@ -71,7 +71,7 @@ public class ShareService {
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>%s - Pairing Planet</title>
+                    <title>%s - Cookstemma</title>
 
                     <!-- Open Graph / Facebook -->
                     <meta property="og:type" content="article">
@@ -79,7 +79,7 @@ public class ShareService {
                     <meta property="og:title" content="%s">
                     <meta property="og:description" content="%s">
                     <meta property="og:image" content="%s">
-                    <meta property="og:site_name" content="Pairing Planet">
+                    <meta property="og:site_name" content="Cookstemma">
                     <meta property="og:locale" content="ko_KR">
 
                     <!-- Twitter -->
@@ -95,11 +95,11 @@ public class ShareService {
 
                     <!-- App Deep Link -->
                     <meta property="al:android:url" content="%s">
-                    <meta property="al:android:package" content="com.pairingplanet.app">
-                    <meta property="al:android:app_name" content="Pairing Planet">
+                    <meta property="al:android:package" content="com.cookstemma.app">
+                    <meta property="al:android:app_name" content="Cookstemma">
                     <meta property="al:ios:url" content="%s">
                     <meta property="al:ios:app_store_id" content="YOUR_APP_STORE_ID">
-                    <meta property="al:ios:app_name" content="Pairing Planet">
+                    <meta property="al:ios:app_name" content="Cookstemma">
 
                     <style>
                         body {
@@ -171,7 +171,7 @@ public class ShareService {
                         // Try to open the app, fallback to store
                         function openApp() {
                             var deepLink = '%s';
-                            var fallbackUrl = 'https://play.google.com/store/apps/details?id=com.pairingplanet.app';
+                            var fallbackUrl = 'https://play.google.com/store/apps/details?id=com.cookstemma.app';
 
                             // Try deep link
                             window.location.href = deepLink;
@@ -191,7 +191,7 @@ public class ShareService {
                         <div class="author">by %s</div>
                         <a href="javascript:openApp()" class="button">앱에서 보기</a>
                         <div class="store-links">
-                            앱이 없으신가요? <a href="https://play.google.com/store/apps/details?id=com.pairingplanet.app">다운로드</a>
+                            앱이 없으신가요? <a href="https://play.google.com/store/apps/details?id=com.cookstemma.app">다운로드</a>
                         </div>
                     </div>
                 </body>
@@ -227,7 +227,7 @@ public class ShareService {
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>레시피를 찾을 수 없습니다 - Pairing Planet</title>
+                    <title>레시피를 찾을 수 없습니다 - Cookstemma</title>
                     <meta property="og:title" content="레시피를 찾을 수 없습니다">
                     <meta property="og:description" content="요청하신 레시피가 존재하지 않거나 삭제되었습니다.">
                     <style>
@@ -260,11 +260,11 @@ public class ShareService {
      */
     private String getCreatorName(Recipe recipe) {
         if (recipe.getCreatorId() == null) {
-            return "Pairing Planet";
+            return "Cookstemma";
         }
         return userRepository.findById(recipe.getCreatorId())
                 .map(user -> user.getUsername())
-                .orElse("Pairing Planet");
+                .orElse("Cookstemma");
     }
 
     /**

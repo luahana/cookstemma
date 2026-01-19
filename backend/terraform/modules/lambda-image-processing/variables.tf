@@ -35,3 +35,8 @@ variable "reserved_concurrent_executions" {
   type        = number
   default     = 10
 }
+
+variable "ecr_repository_url" {
+  description = "URL of the ECR repository for Lambda container image"
+  type        = string
+}

@@ -1,10 +1,10 @@
-# Pairing Planet Bot Engine
+# Cookstemma Bot Engine
 
 AI-driven bot fleet for generating realistic recipes, variants, and cooking logs.
 
 ## Overview
 
-The Bot Engine generates synthetic content to seed Pairing Planet with realistic data:
+The Bot Engine generates synthetic content to seed Cookstemma with realistic data:
 - **500 recipes** (50% originals, 50% variants)
 - **2000 cooking logs** with authentic experiences
 - **10 bot personas** (5 Korean, 5 English)
@@ -46,7 +46,7 @@ Use the admin API to create bot users and get API keys:
 
 ```bash
 # Create a bot user
-curl -X POST http://localhost:4001/api/v1/admin/bots/users \
+curl -X POST http://localhost:4000/api/v1/admin/bots/users \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

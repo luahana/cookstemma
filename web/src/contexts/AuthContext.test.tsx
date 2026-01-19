@@ -25,7 +25,7 @@ jest.mock('@/lib/firebase/providers', () => ({
 // Mock site config
 jest.mock('@/config/site', () => ({
   siteConfig: {
-    apiUrl: 'http://localhost:4001/api/v1',
+    apiUrl: 'http://localhost:4000/api/v1',
   },
 }));
 
@@ -73,7 +73,7 @@ describe('AuthContext', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:4001/api/v1/users/me',
+        'http://localhost:4000/api/v1/users/me',
         expect.objectContaining({
           credentials: 'include',
         })
@@ -152,7 +152,7 @@ describe('AuthContext', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:4001/api/v1/auth/web/logout',
+        'http://localhost:4000/api/v1/auth/web/logout',
         expect.objectContaining({
           method: 'POST',
           credentials: 'include',
@@ -256,7 +256,7 @@ describe('AuthContext', () => {
 
       expect(refreshResult).toBe(true);
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:4001/api/v1/auth/web/reissue',
+        'http://localhost:4000/api/v1/auth/web/reissue',
         expect.objectContaining({
           method: 'POST',
           credentials: 'include',

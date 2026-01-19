@@ -18,7 +18,7 @@ on:
 
 env:
   AWS_REGION: us-east-2
-  PROJECT_NAME: pairing-planet
+  PROJECT_NAME: cookstemma
 
 jobs:
   deploy:
@@ -36,7 +36,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::819551471059:role/github-actions-pairing-planet-${{ github.event.inputs.environment }}
+          role-to-assume: arn:aws:iam::819551471059:role/github-actions-cookstemma-${{ github.event.inputs.environment }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR

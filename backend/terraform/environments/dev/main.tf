@@ -13,11 +13,11 @@ terraform {
 
   # Backend configuration for state storage
   backend "s3" {
-    bucket         = "pairing-planet-terraform-state"
+    bucket         = "cookstemma-terraform-state"
     key            = "dev/terraform.tfstate"
     region         = "us-east-2"
     encrypt        = true
-    dynamodb_table = "pairing-planet-terraform-locks"
+    dynamodb_table = "cookstemma-terraform-locks"
   }
 }
 
@@ -38,9 +38,19 @@ data "aws_ecr_repository" "main" {
   name = var.ecr_repository_name
 }
 
-# Data source to get Frontend ECR repository (created by shared terraform)
-data "aws_ecr_repository" "frontend" {
-  name = "${var.ecr_repository_name}-frontend"
+# Data source to get Web ECR repository (created by shared terraform)
+data "aws_ecr_repository" "web" {
+  name = "${var.ecr_repository_name}-web"
+}
+
+# Data source to get Translator ECR repository (created by shared terraform)
+data "aws_ecr_repository" "translator" {
+  name = "${var.ecr_repository_name}-translator"
+}
+
+# Data source to get Image Processor ECR repository (created by shared terraform)
+data "aws_ecr_repository" "image_processor" {
+  name = "${var.ecr_repository_name}-image-processor"
 }
 
 # Data source for S3 bucket (images)
@@ -154,10 +164,10 @@ module "alb" {
   health_check_path = "/actuator/health"
   certificate_arn   = null # No HTTPS for dev, HTTP only
 
-  # Enable frontend routing
-  enable_frontend            = true
-  frontend_port              = 3000
-  frontend_health_check_path = "/"
+  # Enable web routing
+  enable_web            = true
+  web_port              = 3000
+  web_health_check_path = "/"
 }
 
 # ECS Module - With ALB for stable DNS
@@ -194,16 +204,16 @@ module "ecs" {
   firebase_secret_arn   = module.secrets.firebase_secret_arn
 }
 
-# ECS Frontend Module - Next.js application
-module "ecs_frontend" {
-  source = "../../modules/ecs-frontend"
+# ECS Web Module - Next.js application
+module "ecs_web" {
+  source = "../../modules/ecs-web"
 
   project_name     = var.project_name
   environment      = var.environment
   aws_region       = var.aws_region
   vpc_id           = module.vpc.vpc_id
   subnet_ids       = module.vpc.public_subnet_ids
-  container_image  = "${data.aws_ecr_repository.frontend.repository_url}:dev-latest"
+  container_image  = "${data.aws_ecr_repository.web.repository_url}:dev-latest"
   container_port   = 3000
   task_cpu         = 256
   task_memory      = 512
@@ -212,7 +222,7 @@ module "ecs_frontend" {
 
   # ALB configuration
   alb_security_group_id = module.alb.security_group_id
-  target_group_arn      = module.alb.frontend_target_group_arn
+  target_group_arn      = module.alb.web_target_group_arn
 }
 
 # Lambda Translation Module - OpenAI-powered content translation
@@ -224,6 +234,9 @@ module "lambda_translation" {
   environment  = var.environment
   vpc_id       = module.vpc.vpc_id
   subnet_ids   = module.vpc.private_subnet_ids # Private subnets (uses NAT for internet)
+
+  # ECR repository (created by shared terraform)
+  ecr_repository_url = data.aws_ecr_repository.translator.repository_url
 
   # Secrets
   database_secret_arn = module.secrets.database_secret_arn
@@ -248,6 +261,9 @@ module "lambda_image_processing" {
   environment    = var.environment
   s3_bucket_name = var.s3_bucket
   s3_bucket_arn  = data.aws_s3_bucket.images.arn
+
+  # ECR repository (created by shared terraform)
+  ecr_repository_url = data.aws_ecr_repository.image_processor.repository_url
 
   # Lambda configuration
   memory_size                    = 1024

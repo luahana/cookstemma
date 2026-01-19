@@ -14,10 +14,10 @@ on:
 
 env:
   AWS_REGION: us-east-2
-  ECR_REPOSITORY: pairing-planet
-  ECS_CLUSTER: pairing-planet-dev-cluster
-  ECS_SERVICE: pairing-planet-dev-service
-  CONTAINER_NAME: pairing-planet-dev
+  ECR_REPOSITORY: cookstemma
+  ECS_CLUSTER: cookstemma-dev-cluster
+  ECS_SERVICE: cookstemma-dev-service
+  CONTAINER_NAME: cookstemma-dev
 
 jobs:
   deploy:
@@ -63,7 +63,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::819551471059:role/github-actions-pairing-planet-dev
+          role-to-assume: arn:aws:iam::819551471059:role/github-actions-cookstemma-dev
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
@@ -86,7 +86,7 @@ jobs:
       - name: Download task definition
         working-directory: .
         run: |
-          aws ecs describe-task-definition --task-definition pairing-planet-dev \
+          aws ecs describe-task-definition --task-definition cookstemma-dev \
             --query taskDefinition > task-definition.json
 
       - name: Update task definition with new image
@@ -110,7 +110,7 @@ jobs:
         working-directory: ./backend/lambda/translator
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          LAMBDA_ECR_REPO: pairing-planet-dev-translator
+          LAMBDA_ECR_REPO: cookstemma-dev-translator
         run: |
           docker build -t $ECR_REGISTRY/$LAMBDA_ECR_REPO:latest .
           docker push $ECR_REGISTRY/$LAMBDA_ECR_REPO:latest
@@ -118,8 +118,8 @@ jobs:
       - name: Update Lambda Translator function
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          LAMBDA_ECR_REPO: pairing-planet-dev-translator
-          LAMBDA_NAME: pairing-planet-dev-translator
+          LAMBDA_ECR_REPO: cookstemma-dev-translator
+          LAMBDA_NAME: cookstemma-dev-translator
         run: |
           aws lambda update-function-code \
             --function-name $LAMBDA_NAME \

@@ -5,7 +5,7 @@ from typing import List, Optional
 
 import structlog
 
-from ..api import PairingPlanetClient
+from ..api import CookstemmaClient
 from ..api.models import CreateLogRequest, LogOutcome, LogPost, Recipe
 from ..config import get_settings
 from ..generators import ImageGenerator, TextGenerator
@@ -19,7 +19,7 @@ class LogPipeline:
 
     def __init__(
         self,
-        api_client: PairingPlanetClient,
+        api_client: CookstemmaClient,
         text_generator: TextGenerator,
         image_generator: ImageGenerator,
     ) -> None:

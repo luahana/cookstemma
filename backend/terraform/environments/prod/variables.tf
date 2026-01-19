@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Name of the project"
   type        = string
-  default     = "pairing-planet"
+  default     = "cookstemma"
 }
 
 variable "environment" {
@@ -25,7 +25,7 @@ variable "vpc_cidr" {
 variable "ecr_repository_name" {
   description = "Name of the ECR repository"
   type        = string
-  default     = "pairing-planet"
+  default     = "cookstemma"
 }
 
 variable "certificate_arn" {
@@ -37,7 +37,7 @@ variable "certificate_arn" {
 variable "db_name" {
   description = "Database name"
   type        = string
-  default     = "pairingplanet"
+  default     = "cookstemma"
 }
 
 variable "db_username" {

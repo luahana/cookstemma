@@ -1,6 +1,6 @@
 """API client module for backend communication."""
 
-from .client import PairingPlanetClient
+from .client import CookstemmaClient
 from .models import (
     Recipe,
     RecipeIngredient,
@@ -10,7 +10,7 @@ from .models import (
 )
 
 __all__ = [
-    "PairingPlanetClient",
+    "CookstemmaClient",
     "Recipe",
     "RecipeIngredient",
     "RecipeStep",

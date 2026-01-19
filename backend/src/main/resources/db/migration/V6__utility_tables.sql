@@ -1,5 +1,5 @@
 -- =============================================================================
--- UTILITY TABLES: Analytics, Idempotency, Autocomplete
+-- UTILITY TABLES: Analytics, Idempotency, Autocomplete, History, Translations
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -85,4 +85,110 @@ CREATE INDEX idx_autocomplete_items_score ON autocomplete_items(score DESC);
 
 CREATE TRIGGER trg_autocomplete_items_updated_at
     BEFORE UPDATE ON autocomplete_items
+    FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+-- -----------------------------------------------------------------------------
+-- VIEW HISTORY
+-- Purpose: Track recently viewed recipes and logs
+-- -----------------------------------------------------------------------------
+CREATE TABLE view_history (
+    id              BIGSERIAL PRIMARY KEY,
+    user_id         BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    entity_type     VARCHAR(20) NOT NULL,  -- 'RECIPE' or 'LOG_POST'
+    entity_id       BIGINT NOT NULL,
+    viewed_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    -- Ensure unique view per user per entity (will update timestamp on re-view)
+    CONSTRAINT uk_view_history_user_entity UNIQUE (user_id, entity_type, entity_id)
+);
+
+COMMENT ON TABLE view_history IS 'Tracks recently viewed content for each user';
+
+CREATE INDEX idx_view_history_user_viewed ON view_history(user_id, viewed_at DESC);
+CREATE INDEX idx_view_history_entity ON view_history(entity_type, entity_id);
+
+-- -----------------------------------------------------------------------------
+-- SEARCH HISTORY
+-- Purpose: Track user search queries
+-- -----------------------------------------------------------------------------
+CREATE TABLE search_history (
+    id              BIGSERIAL PRIMARY KEY,
+    user_id         BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    query           VARCHAR(500) NOT NULL,
+    searched_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE search_history IS 'User search query history';
+
+CREATE INDEX idx_search_history_user_searched ON search_history(user_id, searched_at DESC);
+
+-- -----------------------------------------------------------------------------
+-- TRANSLATION EVENTS
+-- Purpose: Track pending/completed translations
+-- Note: Uses VARCHAR instead of ENUM for Hibernate compatibility
+-- -----------------------------------------------------------------------------
+CREATE TABLE translation_events (
+    id              BIGSERIAL PRIMARY KEY,
+    public_id       UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+
+    -- What to translate (VARCHAR for Hibernate compatibility)
+    entity_type     VARCHAR(30) NOT NULL,  -- RECIPE, RECIPE_STEP, RECIPE_INGREDIENT, LOG_POST
+    entity_id       BIGINT NOT NULL,
+    source_locale   VARCHAR(5) NOT NULL,   -- Original language (e.g., 'ko', 'en')
+
+    -- Status tracking (VARCHAR for Hibernate compatibility)
+    status          VARCHAR(20) NOT NULL DEFAULT 'PENDING',  -- PENDING, PROCESSING, COMPLETED, FAILED
+    target_locales  JSONB NOT NULL,       -- Array of target languages: ["en", "ja", "zh"]
+    completed_locales JSONB DEFAULT '[]', -- Array of completed translations
+
+    -- Error handling
+    retry_count     INTEGER NOT NULL DEFAULT 0,
+    last_error      TEXT,
+
+    -- Timestamps
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    started_at      TIMESTAMPTZ,
+    completed_at    TIMESTAMPTZ
+);
+
+COMMENT ON TABLE translation_events IS 'Tracks async translation requests for user content';
+COMMENT ON COLUMN translation_events.target_locales IS 'Languages to translate to: ["en", "ja", "zh", ...]';
+COMMENT ON COLUMN translation_events.completed_locales IS 'Successfully translated languages';
+
+CREATE INDEX idx_translation_events_pending ON translation_events(status, created_at)
+    WHERE status IN ('PENDING', 'FAILED');
+CREATE INDEX idx_translation_events_entity ON translation_events(entity_type, entity_id);
+
+-- -----------------------------------------------------------------------------
+-- USER SUGGESTED INGREDIENTS
+-- Purpose: Capture ingredient names not found in AutocompleteItem
+-- -----------------------------------------------------------------------------
+CREATE TABLE user_suggested_ingredients (
+    id              BIGSERIAL PRIMARY KEY,
+    public_id       UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+
+    suggested_name  VARCHAR(255) NOT NULL,
+    ingredient_type VARCHAR(20) NOT NULL,
+    locale_code     VARCHAR(10) NOT NULL DEFAULT 'en-US',
+    status          VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+
+    user_id                 BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    autocomplete_item_id    BIGINT REFERENCES autocomplete_items(id) ON DELETE SET NULL,
+
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT chk_suggested_ingredient_type CHECK (ingredient_type IN ('MAIN', 'SECONDARY', 'SEASONING')),
+    CONSTRAINT chk_suggested_ingredient_status CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED'))
+);
+
+COMMENT ON TABLE user_suggested_ingredients IS 'User submissions for new ingredient items';
+
+CREATE INDEX idx_suggested_ingredients_status ON user_suggested_ingredients(status);
+CREATE INDEX idx_suggested_ingredients_type ON user_suggested_ingredients(ingredient_type);
+CREATE INDEX idx_suggested_ingredients_name ON user_suggested_ingredients(suggested_name);
+CREATE INDEX idx_suggested_ingredients_user ON user_suggested_ingredients(user_id);
+
+CREATE TRIGGER trg_user_suggested_ingredients_updated_at
+    BEFORE UPDATE ON user_suggested_ingredients
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();

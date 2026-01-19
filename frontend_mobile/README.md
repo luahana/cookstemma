@@ -42,7 +42,7 @@ All project documentation has been consolidated to the root-level `docs/ai/` dir
 Create `.env` file in project root:
 
 ```
-BASE_URL=http://10.0.2.2:4001/api/v1  # Android emulator localhost
+BASE_URL=http://10.0.2.2:4000/api/v1  # Android emulator localhost
 ENV=dev
 ```
 

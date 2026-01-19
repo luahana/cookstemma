@@ -17,14 +17,12 @@ CREATE TABLE recipes (
     food_master_id  BIGINT NOT NULL REFERENCES foods_master(id) ON DELETE RESTRICT,
 
     -- Content
-    culinary_locale VARCHAR(5) NOT NULL,  -- KR, US, JP, CN, IT, MX, TH, IN, FR
+    cooking_style   VARCHAR(15) NOT NULL,  -- ISO country code or 'international'
     title           VARCHAR(255) NOT NULL,
-    description     TEXT,
+    description     VARCHAR(500),
 
     -- Cooking details
-    cooking_time    INTEGER,  -- Minutes
     cooking_time_range cooking_time_range DEFAULT 'MIN_30_TO_60',
-    difficulty      VARCHAR(20),
     servings        INTEGER NOT NULL DEFAULT 2,
 
     -- Recipe genealogy (for forks/variations)
@@ -39,9 +37,14 @@ CREATE TABLE recipes (
 
     -- Metrics (denormalized)
     saved_count     INTEGER NOT NULL DEFAULT 0,
+    view_count      INTEGER NOT NULL DEFAULT 0,
 
     -- Visibility
     is_private      BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- Translation support
+    title_translations JSONB DEFAULT '{}',
+    description_translations JSONB DEFAULT '{}',
 
     -- Soft delete (standardized pattern)
     deleted_at      TIMESTAMPTZ,
@@ -53,29 +56,33 @@ CREATE TABLE recipes (
 
     -- Constraints
     CONSTRAINT chk_recipes_saved_count CHECK (saved_count >= 0),
-    CONSTRAINT chk_recipes_servings CHECK (servings > 0),
-    CONSTRAINT chk_recipes_culinary_locale CHECK (
-        culinary_locale IN ('KR', 'US', 'JP', 'CN', 'IT', 'MX', 'TH', 'IN', 'FR', 'OTHER')
-    )
+    CONSTRAINT chk_recipes_view_count CHECK (view_count >= 0),
+    CONSTRAINT chk_recipes_servings CHECK (servings > 0)
 );
 
 COMMENT ON TABLE recipes IS 'User-created recipes with variation/fork relationships';
-COMMENT ON COLUMN recipes.culinary_locale IS 'Cuisine origin: KR, US, JP, CN, IT, MX, TH, IN, FR';
+COMMENT ON COLUMN recipes.cooking_style IS 'Cuisine style: ISO country code (KR, US, JP, etc.) or international';
 COMMENT ON COLUMN recipes.root_recipe_id IS 'Original recipe this was forked from (NULL if original)';
 COMMENT ON COLUMN recipes.parent_recipe_id IS 'Immediate parent in variation chain';
 COMMENT ON COLUMN recipes.change_diff IS 'JSON diff showing modifications from parent';
 COMMENT ON COLUMN recipes.deleted_at IS 'Soft delete timestamp - NULL means active';
+COMMENT ON COLUMN recipes.title_translations IS 'Translated titles: {"en": "...", "ja": "...", ...}';
+COMMENT ON COLUMN recipes.description_translations IS 'Translated descriptions: {"en": "...", "ja": "...", ...}';
 
 -- Performance indexes
 CREATE INDEX idx_recipes_creator ON recipes(creator_id, created_at DESC);
 CREATE INDEX idx_recipes_food_master ON recipes(food_master_id);
-CREATE INDEX idx_recipes_locale ON recipes(culinary_locale);
+CREATE INDEX idx_recipes_cooking_style ON recipes(cooking_style);
 CREATE INDEX idx_recipes_root ON recipes(root_recipe_id) WHERE root_recipe_id IS NOT NULL;
 CREATE INDEX idx_recipes_parent ON recipes(parent_recipe_id) WHERE parent_recipe_id IS NOT NULL;
-CREATE INDEX idx_recipes_discovery ON recipes(deleted_at, is_private, culinary_locale, created_at DESC)
+CREATE INDEX idx_recipes_discovery ON recipes(cooking_style, created_at DESC)
     WHERE deleted_at IS NULL AND is_private = FALSE;
 CREATE INDEX idx_recipes_title_trgm ON recipes USING GIN(title gin_trgm_ops);
 CREATE INDEX idx_recipes_change_categories ON recipes USING GIN(change_categories);
+CREATE INDEX idx_recipes_title_trans ON recipes USING GIN(title_translations jsonb_path_ops);
+CREATE INDEX idx_recipes_desc_trans ON recipes USING GIN(description_translations jsonb_path_ops);
+CREATE INDEX idx_recipes_view_count ON recipes(view_count DESC);
+CREATE INDEX idx_recipes_saved_count ON recipes(saved_count DESC);
 
 CREATE TRIGGER trg_recipes_updated_at
     BEFORE UPDATE ON recipes
@@ -92,20 +99,22 @@ CREATE TABLE recipe_ingredients (
 
     -- Ingredient info
     name            VARCHAR(100) NOT NULL,
-    amount          VARCHAR(50),  -- Legacy free-text
 
     -- Structured measurement
     quantity        DOUBLE PRECISION,
     unit            measurement_unit,
 
     type            ingredient_type,
-    display_order   INTEGER NOT NULL DEFAULT 0
+    display_order   INTEGER NOT NULL DEFAULT 0,
+
+    -- Translation support
+    name_translations JSONB DEFAULT '{}'
 );
 
 COMMENT ON TABLE recipe_ingredients IS 'Ingredients list for recipes';
-COMMENT ON COLUMN recipe_ingredients.amount IS 'Legacy free-text amount (e.g., "2 cups")';
 COMMENT ON COLUMN recipe_ingredients.quantity IS 'Numeric quantity for structured measurement';
 COMMENT ON COLUMN recipe_ingredients.unit IS 'Standardized measurement unit';
+COMMENT ON COLUMN recipe_ingredients.name_translations IS 'Translated ingredient names: {"en": "...", "ja": "...", ...}';
 
 CREATE INDEX idx_recipe_ingredients_recipe ON recipe_ingredients(recipe_id);
 CREATE INDEX idx_recipe_ingredients_name_trgm ON recipe_ingredients USING GIN(name gin_trgm_ops);
@@ -120,12 +129,16 @@ CREATE TABLE recipe_steps (
 
     recipe_id       BIGINT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
     step_number     INTEGER NOT NULL,
-    description     TEXT NOT NULL,
+    description     VARCHAR(500) NOT NULL,
 
-    image_id        BIGINT  -- FK added after images table
+    image_id        BIGINT,  -- FK added after images table
+
+    -- Translation support
+    description_translations JSONB DEFAULT '{}'
 );
 
 COMMENT ON TABLE recipe_steps IS 'Step-by-step cooking instructions';
+COMMENT ON COLUMN recipe_steps.description_translations IS 'Translated step descriptions: {"en": "...", "ja": "...", ...}';
 
 CREATE INDEX idx_recipe_steps_recipe ON recipe_steps(recipe_id, step_number);
 
@@ -141,8 +154,8 @@ CREATE TABLE log_posts (
 
     -- Content
     locale          VARCHAR(10) NOT NULL,
-    title           TEXT,
-    content         TEXT,
+    title           VARCHAR(500),
+    content         VARCHAR(500),
 
     -- Settings
     comments_enabled BOOLEAN NOT NULL DEFAULT TRUE,
@@ -151,6 +164,11 @@ CREATE TABLE log_posts (
     -- Metrics
     saved_count     INTEGER NOT NULL DEFAULT 0,
     comment_count   INTEGER NOT NULL DEFAULT 0,
+    view_count      INTEGER NOT NULL DEFAULT 0,
+
+    -- Translation support
+    title_translations JSONB DEFAULT '{}',
+    content_translations JSONB DEFAULT '{}',
 
     -- Soft delete
     deleted_at      TIMESTAMPTZ,
@@ -161,16 +179,23 @@ CREATE TABLE log_posts (
     updated_by_id   BIGINT REFERENCES users(id),
 
     CONSTRAINT chk_log_posts_saved_count CHECK (saved_count >= 0),
-    CONSTRAINT chk_log_posts_comment_count CHECK (comment_count >= 0)
+    CONSTRAINT chk_log_posts_comment_count CHECK (comment_count >= 0),
+    CONSTRAINT chk_log_posts_view_count CHECK (view_count >= 0)
 );
 
 COMMENT ON TABLE log_posts IS 'User cooking diary/log entries';
 COMMENT ON COLUMN log_posts.deleted_at IS 'Soft delete timestamp - NULL means active';
+COMMENT ON COLUMN log_posts.title_translations IS 'Translated titles: {"en": "...", "ja": "...", ...}';
+COMMENT ON COLUMN log_posts.content_translations IS 'Translated content: {"en": "...", "ja": "...", ...}';
 
 CREATE INDEX idx_log_posts_creator ON log_posts(creator_id, created_at DESC);
 CREATE INDEX idx_log_posts_locale ON log_posts(locale);
 CREATE INDEX idx_log_posts_discovery ON log_posts(deleted_at, is_private, locale, created_at DESC)
     WHERE deleted_at IS NULL AND is_private = FALSE;
+CREATE INDEX idx_log_posts_title_trans ON log_posts USING GIN(title_translations jsonb_path_ops);
+CREATE INDEX idx_log_posts_content_trans ON log_posts USING GIN(content_translations jsonb_path_ops);
+CREATE INDEX idx_log_posts_view_count ON log_posts(view_count DESC);
+CREATE INDEX idx_log_posts_saved_count ON log_posts(saved_count DESC);
 
 CREATE TRIGGER trg_log_posts_updated_at
     BEFORE UPDATE ON log_posts
@@ -178,18 +203,21 @@ CREATE TRIGGER trg_log_posts_updated_at
 
 -- -----------------------------------------------------------------------------
 -- RECIPE LOGS
--- Purpose: Links log posts to recipes with cooking outcome
+-- Purpose: Links log posts to recipes with rating
 -- -----------------------------------------------------------------------------
 CREATE TABLE recipe_logs (
     log_post_id     BIGINT PRIMARY KEY REFERENCES log_posts(id) ON DELETE CASCADE,
     recipe_id       BIGINT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
 
-    outcome         cooking_outcome NOT NULL
+    rating          INTEGER NOT NULL,
+
+    CONSTRAINT chk_recipe_logs_rating CHECK (rating >= 1 AND rating <= 5)
 );
 
-COMMENT ON TABLE recipe_logs IS 'Links log posts to recipes with cooking outcome';
+COMMENT ON TABLE recipe_logs IS 'Links log posts to recipes with star rating (1-5)';
 
 CREATE INDEX idx_recipe_logs_recipe ON recipe_logs(recipe_id);
+CREATE INDEX idx_recipe_logs_rating ON recipe_logs(rating);
 
 -- -----------------------------------------------------------------------------
 -- IMAGES

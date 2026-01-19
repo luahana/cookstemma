@@ -4,7 +4,7 @@
 -- =============================================================================
 
 -- Clear and repopulate (idempotent)
-TRUNCATE autocomplete_items;
+TRUNCATE autocomplete_items CASCADE;
 
 -- Reset sequence
 ALTER SEQUENCE autocomplete_items_id_seq RESTART WITH 1;

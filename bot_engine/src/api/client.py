@@ -1,4 +1,4 @@
-"""HTTP client for Pairing Planet backend API."""
+"""HTTP client for Cookstemma backend API."""
 
 import asyncio
 from pathlib import Path
@@ -27,8 +27,8 @@ from .models import (
 logger = structlog.get_logger()
 
 
-class PairingPlanetClient:
-    """Async HTTP client for Pairing Planet backend API."""
+class CookstemmaClient:
+    """Async HTTP client for Cookstemma backend API."""
 
     def __init__(
         self,
@@ -43,7 +43,7 @@ class PairingPlanetClient:
         self._refresh_token: Optional[str] = None
         self._user_public_id: Optional[str] = None
 
-    async def __aenter__(self) -> "PairingPlanetClient":
+    async def __aenter__(self) -> "CookstemmaClient":
         """Enter async context."""
         await self._ensure_client()
         return self

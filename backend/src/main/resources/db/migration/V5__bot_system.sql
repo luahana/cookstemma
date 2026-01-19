@@ -1,10 +1,11 @@
 -- =============================================================================
--- BOT SYSTEM: Personas and API Keys
+-- BOT SYSTEM: Personas, API Keys, and Tracking
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
 -- BOT PERSONAS
 -- Purpose: Bot personality profiles for content generation
+-- Note: Uses VARCHAR instead of ENUM for Hibernate compatibility
 -- -----------------------------------------------------------------------------
 CREATE TABLE bot_personas (
     id              BIGSERIAL PRIMARY KEY,
@@ -14,15 +15,15 @@ CREATE TABLE bot_personas (
     name            VARCHAR(50) NOT NULL UNIQUE,
     display_name    JSONB NOT NULL DEFAULT '{}'::jsonb,  -- Localized
 
-    -- Personality
-    tone            bot_tone NOT NULL,
-    skill_level     bot_skill_level NOT NULL,
+    -- Personality (VARCHAR for Hibernate @Enumerated(EnumType.STRING))
+    tone            VARCHAR(30) NOT NULL,  -- PROFESSIONAL, CASUAL, WARM, ENTHUSIASTIC, EDUCATIONAL, MOTIVATIONAL
+    skill_level     VARCHAR(30) NOT NULL,  -- PROFESSIONAL, INTERMEDIATE, BEGINNER, HOME_COOK
     dietary_focus   VARCHAR(50),
-    vocabulary_style bot_vocabulary_style NOT NULL,
+    vocabulary_style VARCHAR(30) NOT NULL, -- TECHNICAL, SIMPLE, CONVERSATIONAL
 
     -- Locale settings
     locale          VARCHAR(10) NOT NULL,
-    culinary_locale VARCHAR(10) NOT NULL,
+    cooking_style   VARCHAR(15) NOT NULL,  -- ISO country code or 'international'
 
     -- AI prompt
     kitchen_style_prompt TEXT NOT NULL,
@@ -39,7 +40,8 @@ CREATE TABLE bot_personas (
 );
 
 COMMENT ON TABLE bot_personas IS 'Bot personality profiles for AI content generation';
-COMMENT ON COLUMN bot_personas.tone IS 'Personality tone: professional, casual, warm, etc.';
+COMMENT ON COLUMN bot_personas.tone IS 'Personality tone: PROFESSIONAL, CASUAL, WARM, etc.';
+COMMENT ON COLUMN bot_personas.cooking_style IS 'Bot cuisine style (ISO country code or international)';
 COMMENT ON COLUMN bot_personas.kitchen_style_prompt IS 'Detailed prompt for AI image generation';
 
 CREATE INDEX idx_bot_personas_name ON bot_personas(name);
@@ -95,3 +97,21 @@ CREATE INDEX idx_bot_api_keys_active ON bot_api_keys(is_active) WHERE is_active 
 CREATE TRIGGER trg_bot_api_keys_updated_at
     BEFORE UPDATE ON bot_api_keys
     FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+-- -----------------------------------------------------------------------------
+-- BOT CREATED FOODS
+-- Purpose: Track which foods each bot persona has created recipes for
+-- -----------------------------------------------------------------------------
+CREATE TABLE bot_created_foods (
+    id              BIGSERIAL PRIMARY KEY,
+    persona_name    VARCHAR(100) NOT NULL,
+    food_name       VARCHAR(200) NOT NULL,
+    recipe_public_id UUID,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT uk_bot_created_foods_persona_food UNIQUE (persona_name, food_name)
+);
+
+COMMENT ON TABLE bot_created_foods IS 'Tracks which foods each bot persona has created recipes for';
+
+CREATE INDEX idx_bot_created_foods_persona ON bot_created_foods(persona_name);

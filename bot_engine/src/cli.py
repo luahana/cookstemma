@@ -141,7 +141,7 @@ async def run_scheduler(args: argparse.Namespace) -> None:
 def main() -> None:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Pairing Planet Bot Engine - AI content generation",
+        description="Cookstemma Bot Engine - AI content generation",
     )
     parser.add_argument(
         "-v",

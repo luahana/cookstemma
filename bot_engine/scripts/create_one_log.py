@@ -11,7 +11,7 @@ Usage:
     python scripts/create_one_log.py --outcome PARTIAL
 
 Prerequisites:
-    - Backend running at http://localhost:4001
+    - Backend running at http://localhost:4000
     - OPENAI_API_KEY configured in .env
     - Bot API keys configured in .env
     - At least one recipe exists in the database
@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dotenv import load_dotenv
 load_dotenv()
 
-from src.api import PairingPlanetClient
+from src.api import CookstemmaClient
 from src.api.models import LogOutcome
 from src.config import get_settings
 from src.generators import ImageGenerator, TextGenerator
@@ -87,7 +87,7 @@ async def main() -> None:
     print(f"Using persona: {persona.display_name.get('en', persona.name)}")
 
     # 2. Setup clients
-    api_client = PairingPlanetClient()
+    api_client = CookstemmaClient()
     text_gen = TextGenerator()
     image_gen = ImageGenerator()
 

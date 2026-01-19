@@ -26,7 +26,7 @@ variable "subnet_ids" {
 }
 
 variable "container_image" {
-  description = "Docker image for the frontend container"
+  description = "Docker image for the web container"
   type        = string
 }
 

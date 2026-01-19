@@ -99,13 +99,13 @@ class CookieConfigTest {
         @DisplayName("Should set domain when configured")
         void shouldSetDomain_WhenConfigured() {
             // Arrange
-            ReflectionTestUtils.setField(cookieConfig, "cookieDomain", ".pairingplanet.com");
+            ReflectionTestUtils.setField(cookieConfig, "cookieDomain", ".cookstemma.com");
 
             // Act
             ResponseCookie cookie = cookieConfig.createAccessTokenCookie("test-token");
 
             // Assert
-            assertThat(cookie.getDomain()).isEqualTo(".pairingplanet.com");
+            assertThat(cookie.getDomain()).isEqualTo(".cookstemma.com");
         }
     }
 

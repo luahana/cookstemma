@@ -1,6 +1,7 @@
 # =============================================================================
 # LAMBDA IMAGE PROCESSING MODULE
-# Generates image variants using Step Functions for parallel processing
+# Generates image variants using SQS for reliable, scalable processing
+# Architecture: S3 upload → EventBridge → Orchestrator Lambda → SQS → Processor Lambda
 # =============================================================================
 
 locals {
@@ -10,42 +11,40 @@ locals {
   orchestrator_log_group = "/aws/lambda/${local.orchestrator_name}"
 }
 
-# -----------------------------------------------------------------------------
-# ECR REPOSITORY FOR LAMBDA CONTAINER
-# -----------------------------------------------------------------------------
-resource "aws_ecr_repository" "image_processor" {
-  name                 = "${var.project_name}-${var.environment}-image-processor"
-  image_tag_mutability = "MUTABLE"
+# ECR repository is created in shared terraform and passed via var.ecr_repository_url
 
-  image_scanning_configuration {
-    scan_on_push = true
-  }
+# -----------------------------------------------------------------------------
+# SQS QUEUES
+# -----------------------------------------------------------------------------
+resource "aws_sqs_queue" "image_processing_dlq" {
+  name                      = "${var.project_name}-${var.environment}-image-processing-dlq"
+  message_retention_seconds = 1209600 # 14 days
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-image-processor-ecr"
+    Name        = "${var.project_name}-${var.environment}-image-processing-dlq"
     Project     = var.project_name
     Environment = var.environment
     ManagedBy   = "terraform"
   }
 }
 
-resource "aws_ecr_lifecycle_policy" "image_processor" {
-  repository = aws_ecr_repository.image_processor.name
+resource "aws_sqs_queue" "image_processing" {
+  name                       = "${var.project_name}-${var.environment}-image-processing-queue"
+  visibility_timeout_seconds = 90 # Slightly longer than Lambda timeout (60s)
+  message_retention_seconds  = 86400 # 1 day
+  receive_wait_time_seconds  = 20 # Long polling
 
-  policy = jsonencode({
-    rules = [{
-      rulePriority = 1
-      description  = "Keep last 5 images"
-      selection = {
-        tagStatus   = "any"
-        countType   = "imageCountMoreThan"
-        countNumber = 5
-      }
-      action = {
-        type = "expire"
-      }
-    }]
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.image_processing_dlq.arn
+    maxReceiveCount     = 3
   })
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-image-processing-queue"
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -107,6 +106,34 @@ resource "aws_iam_role_policy" "s3_access" {
   })
 }
 
+# SQS access policy
+resource "aws_iam_role_policy" "sqs_access" {
+  name = "${var.project_name}-${var.environment}-image-processor-sqs-policy"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage"
+        ]
+        Resource = aws_sqs_queue.image_processing.arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes"
+        ]
+        Resource = aws_sqs_queue.image_processing.arn
+      }
+    ]
+  })
+}
+
 # -----------------------------------------------------------------------------
 # CLOUDWATCH LOG GROUPS
 # -----------------------------------------------------------------------------
@@ -138,12 +165,12 @@ resource "aws_cloudwatch_log_group" "orchestrator" {
 # LAMBDA FUNCTIONS
 # -----------------------------------------------------------------------------
 
-# Image Processor - handles individual variant generation
+# Image Processor - handles individual variant generation (triggered by SQS)
 resource "aws_lambda_function" "processor" {
   function_name = local.function_name
   role          = aws_iam_role.lambda_execution.arn
   package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.image_processor.repository_url}:latest"
+  image_uri     = "${var.ecr_repository_url}:${var.environment}-latest"
 
   memory_size = var.memory_size
   timeout     = var.timeout
@@ -174,12 +201,21 @@ resource "aws_lambda_function" "processor" {
   }
 }
 
-# Orchestrator - receives S3 events and triggers Step Functions
+# SQS trigger for processor Lambda
+resource "aws_lambda_event_source_mapping" "sqs_trigger" {
+  event_source_arn = aws_sqs_queue.image_processing.arn
+  function_name    = aws_lambda_function.processor.arn
+  batch_size       = 1 # Process one variant at a time
+
+  depends_on = [aws_iam_role_policy.sqs_access]
+}
+
+# Orchestrator - receives S3 events and sends 8 messages to SQS (one per variant)
 resource "aws_lambda_function" "orchestrator" {
   function_name = local.orchestrator_name
   role          = aws_iam_role.lambda_execution.arn
   package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.image_processor.repository_url}:latest"
+  image_uri     = "${var.ecr_repository_url}:${var.environment}-latest"
 
   # Override the handler for orchestrator
   image_config {
@@ -191,9 +227,9 @@ resource "aws_lambda_function" "orchestrator" {
 
   environment {
     variables = {
-      ENVIRONMENT       = var.environment
-      S3_BUCKET         = var.s3_bucket_name
-      STATE_MACHINE_ARN = aws_sfn_state_machine.image_processing.arn
+      ENVIRONMENT = var.environment
+      S3_BUCKET   = var.s3_bucket_name
+      SQS_QUEUE_URL = aws_sqs_queue.image_processing.url
     }
   }
 
@@ -214,234 +250,13 @@ resource "aws_lambda_function" "orchestrator" {
   }
 }
 
-# Permission for orchestrator to start Step Functions
-resource "aws_iam_role_policy" "stepfunctions_start" {
-  name = "${var.project_name}-${var.environment}-orchestrator-sfn-policy"
-  role = aws_iam_role.lambda_execution.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Action   = "states:StartExecution"
-        Resource = aws_sfn_state_machine.image_processing.arn
-      }
-    ]
-  })
-}
-
-# -----------------------------------------------------------------------------
-# STEP FUNCTIONS STATE MACHINE
-# Parallel processing of image variants
-# -----------------------------------------------------------------------------
-resource "aws_iam_role" "stepfunctions" {
-  name = "${var.project_name}-${var.environment}-image-sfn-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "states.amazonaws.com"
-      }
-    }]
-  })
-
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-image-sfn-role"
-    Project     = var.project_name
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
-}
-
-resource "aws_iam_role_policy" "stepfunctions_lambda" {
-  name = "${var.project_name}-${var.environment}-image-sfn-lambda-policy"
-  role = aws_iam_role.stepfunctions.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Action   = "lambda:InvokeFunction"
-        Resource = aws_lambda_function.processor.arn
-      }
-    ]
-  })
-}
-
-resource "aws_sfn_state_machine" "image_processing" {
-  name     = "${var.project_name}-${var.environment}-image-processing"
-  role_arn = aws_iam_role.stepfunctions.arn
-
-  definition = jsonencode({
-    Comment = "Parallel image variant processing"
-    StartAt = "ProcessVariants"
-    States = {
-      ProcessVariants = {
-        Type = "Parallel"
-        Branches = [
-          # JPEG variants
-          {
-            StartAt = "LARGE_1200_JPEG"
-            States = {
-              "LARGE_1200_JPEG" = {
-                Type     = "Task"
-                Resource = aws_lambda_function.processor.arn
-                Parameters = {
-                  "bucket.$"    = "$.bucket"
-                  "key.$"       = "$.key"
-                  "variant"     = "LARGE_1200"
-                  "format"      = "JPEG"
-                  "public_id.$" = "$.public_id"
-                  "image_id.$"  = "$.image_id"
-                }
-                End = true
-              }
-            }
-          },
-          {
-            StartAt = "MEDIUM_800_JPEG"
-            States = {
-              "MEDIUM_800_JPEG" = {
-                Type     = "Task"
-                Resource = aws_lambda_function.processor.arn
-                Parameters = {
-                  "bucket.$"    = "$.bucket"
-                  "key.$"       = "$.key"
-                  "variant"     = "MEDIUM_800"
-                  "format"      = "JPEG"
-                  "public_id.$" = "$.public_id"
-                  "image_id.$"  = "$.image_id"
-                }
-                End = true
-              }
-            }
-          },
-          {
-            StartAt = "THUMB_400_JPEG"
-            States = {
-              "THUMB_400_JPEG" = {
-                Type     = "Task"
-                Resource = aws_lambda_function.processor.arn
-                Parameters = {
-                  "bucket.$"    = "$.bucket"
-                  "key.$"       = "$.key"
-                  "variant"     = "THUMB_400"
-                  "format"      = "JPEG"
-                  "public_id.$" = "$.public_id"
-                  "image_id.$"  = "$.image_id"
-                }
-                End = true
-              }
-            }
-          },
-          {
-            StartAt = "THUMB_200_JPEG"
-            States = {
-              "THUMB_200_JPEG" = {
-                Type     = "Task"
-                Resource = aws_lambda_function.processor.arn
-                Parameters = {
-                  "bucket.$"    = "$.bucket"
-                  "key.$"       = "$.key"
-                  "variant"     = "THUMB_200"
-                  "format"      = "JPEG"
-                  "public_id.$" = "$.public_id"
-                  "image_id.$"  = "$.image_id"
-                }
-                End = true
-              }
-            }
-          },
-          # WebP variants
-          {
-            StartAt = "LARGE_1200_WEBP"
-            States = {
-              "LARGE_1200_WEBP" = {
-                Type     = "Task"
-                Resource = aws_lambda_function.processor.arn
-                Parameters = {
-                  "bucket.$"    = "$.bucket"
-                  "key.$"       = "$.key"
-                  "variant"     = "LARGE_1200"
-                  "format"      = "WEBP"
-                  "public_id.$" = "$.public_id"
-                  "image_id.$"  = "$.image_id"
-                }
-                End = true
-              }
-            }
-          },
-          {
-            StartAt = "MEDIUM_800_WEBP"
-            States = {
-              "MEDIUM_800_WEBP" = {
-                Type     = "Task"
-                Resource = aws_lambda_function.processor.arn
-                Parameters = {
-                  "bucket.$"    = "$.bucket"
-                  "key.$"       = "$.key"
-                  "variant"     = "MEDIUM_800"
-                  "format"      = "WEBP"
-                  "public_id.$" = "$.public_id"
-                  "image_id.$"  = "$.image_id"
-                }
-                End = true
-              }
-            }
-          },
-          {
-            StartAt = "THUMB_400_WEBP"
-            States = {
-              "THUMB_400_WEBP" = {
-                Type     = "Task"
-                Resource = aws_lambda_function.processor.arn
-                Parameters = {
-                  "bucket.$"    = "$.bucket"
-                  "key.$"       = "$.key"
-                  "variant"     = "THUMB_400"
-                  "format"      = "WEBP"
-                  "public_id.$" = "$.public_id"
-                  "image_id.$"  = "$.image_id"
-                }
-                End = true
-              }
-            }
-          },
-          {
-            StartAt = "THUMB_200_WEBP"
-            States = {
-              "THUMB_200_WEBP" = {
-                Type     = "Task"
-                Resource = aws_lambda_function.processor.arn
-                Parameters = {
-                  "bucket.$"    = "$.bucket"
-                  "key.$"       = "$.key"
-                  "variant"     = "THUMB_200"
-                  "format"      = "WEBP"
-                  "public_id.$" = "$.public_id"
-                  "image_id.$"  = "$.image_id"
-                }
-                End = true
-              }
-            }
-          }
-        ]
-        End = true
-      }
-    }
-  })
-
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-image-processing"
-    Project     = var.project_name
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
+# Permission for EventBridge to invoke orchestrator Lambda
+resource "aws_lambda_permission" "eventbridge" {
+  statement_id  = "AllowEventBridgeInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.orchestrator.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.image_upload.arn
 }
 
 # -----------------------------------------------------------------------------
@@ -481,12 +296,11 @@ resource "aws_cloudwatch_event_rule" "image_upload" {
   }
 }
 
-# EventBridge target - Step Functions
-resource "aws_cloudwatch_event_target" "stepfunctions" {
+# EventBridge target - Orchestrator Lambda
+resource "aws_cloudwatch_event_target" "orchestrator" {
   rule      = aws_cloudwatch_event_rule.image_upload.name
-  target_id = "ImageProcessingStateMachine"
-  arn       = aws_sfn_state_machine.image_processing.arn
-  role_arn  = aws_iam_role.eventbridge_sfn.arn
+  target_id = "ImageProcessingOrchestrator"
+  arn       = aws_lambda_function.orchestrator.arn
 
   input_transformer {
     input_paths = {
@@ -498,47 +312,8 @@ resource "aws_cloudwatch_event_target" "stepfunctions" {
 {
   "bucket": <bucket>,
   "key": <key>,
-  "public_id": <requestId>
+  "request_id": <requestId>
 }
 EOF
   }
-}
-
-# IAM role for EventBridge to invoke Step Functions
-resource "aws_iam_role" "eventbridge_sfn" {
-  name = "${var.project_name}-${var.environment}-eventbridge-sfn-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "events.amazonaws.com"
-      }
-    }]
-  })
-
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-eventbridge-sfn-role"
-    Project     = var.project_name
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
-}
-
-resource "aws_iam_role_policy" "eventbridge_sfn" {
-  name = "${var.project_name}-${var.environment}-eventbridge-sfn-policy"
-  role = aws_iam_role.eventbridge_sfn.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Action   = "states:StartExecution"
-        Resource = aws_sfn_state_machine.image_processing.arn
-      }
-    ]
-  })
 }

@@ -1,31 +1,31 @@
 # multi instance of claude code set up
 
-cd ~/projects/pairing-planet
-git worktree add ../pairing-planet-2 dev
-git worktree add ../pairing-planet-3 dev
-git worktree add ../pairing-planet-4 dev
+cd ~/projects/cookstemma
+git worktree add ../cookstemma-2 dev
+git worktree add ../cookstemma-3 dev
+git worktree add ../cookstemma-4 dev
 
 
 # Terminal 1
-cd ~/projects/pairing-planet
+cd ~/projects/cookstemma
 claude
 
 # Terminal 2
-cd ~/projects/pairing-planet-2
+cd ~/projects/cookstemma-2
 claude
 
 # Terminal 3
-cd ~/projects/pairing-planet-3
+cd ~/projects/cookstemma-3
 claude
 
 # Terminal 4
-cd ~/projects/pairing-planet-4
+cd ~/projects/cookstemma-4
 claude
 
 
 # Claude Code runs this to know who it is
 pwd
-# /home/user/projects/pairing-planet-2 → I am Claude-2, port 4002
+# /home/user/projects/cookstemma-2 → I am Claude-2, port 4002
 
 
 

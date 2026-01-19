@@ -1,9 +1,9 @@
 # ECS Frontend Module
-# Creates ECS cluster, task definition, and service for Next.js frontend
+# Creates ECS cluster, task definition, and service for Next.js web
 
 # ECS Cluster (separate from backend for isolation)
-resource "aws_ecs_cluster" "frontend" {
-  name = "${var.project_name}-${var.environment}-frontend-cluster"
+resource "aws_ecs_cluster" "web" {
+  name = "${var.project_name}-${var.environment}-web-cluster"
 
   setting {
     name  = "containerInsights"
@@ -11,13 +11,13 @@ resource "aws_ecs_cluster" "frontend" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-frontend-cluster"
+    Name = "${var.project_name}-${var.environment}-web-cluster"
   }
 }
 
 # ECS Cluster Capacity Providers
-resource "aws_ecs_cluster_capacity_providers" "frontend" {
-  cluster_name = aws_ecs_cluster.frontend.name
+resource "aws_ecs_cluster_capacity_providers" "web" {
+  cluster_name = aws_ecs_cluster.web.name
 
   capacity_providers = ["FARGATE", "FARGATE_SPOT"]
 
@@ -29,9 +29,9 @@ resource "aws_ecs_cluster_capacity_providers" "frontend" {
 }
 
 # Security Group for ECS Frontend Tasks
-resource "aws_security_group" "ecs_frontend" {
-  name        = "${var.project_name}-${var.environment}-ecs-frontend-sg"
-  description = "Security group for ECS frontend tasks"
+resource "aws_security_group" "ecs_web" {
+  name        = "${var.project_name}-${var.environment}-ecs-web-sg"
+  description = "Security group for ECS web tasks"
   vpc_id      = var.vpc_id
 
   ingress {
@@ -52,23 +52,23 @@ resource "aws_security_group" "ecs_frontend" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-ecs-frontend-sg"
+    Name = "${var.project_name}-${var.environment}-ecs-web-sg"
   }
 }
 
 # CloudWatch Log Group for Frontend
-resource "aws_cloudwatch_log_group" "frontend" {
-  name              = "/ecs/${var.project_name}-${var.environment}-frontend"
+resource "aws_cloudwatch_log_group" "web" {
+  name              = "/ecs/${var.project_name}-${var.environment}-web"
   retention_in_days = var.environment == "prod" ? 30 : 7
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-frontend-logs"
+    Name = "${var.project_name}-${var.environment}-web-logs"
   }
 }
 
 # IAM Role for ECS Task Execution
-resource "aws_iam_role" "ecs_frontend_execution" {
-  name = "${var.project_name}-${var.environment}-ecs-frontend-execution"
+resource "aws_iam_role" "ecs_web_execution" {
+  name = "${var.project_name}-${var.environment}-ecs-web-execution"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -84,18 +84,18 @@ resource "aws_iam_role" "ecs_frontend_execution" {
   })
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-ecs-frontend-execution"
+    Name = "${var.project_name}-${var.environment}-ecs-web-execution"
   }
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_frontend_execution" {
-  role       = aws_iam_role.ecs_frontend_execution.name
+resource "aws_iam_role_policy_attachment" "ecs_web_execution" {
+  role       = aws_iam_role.ecs_web_execution.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 # IAM Role for ECS Task
-resource "aws_iam_role" "ecs_frontend_task" {
-  name = "${var.project_name}-${var.environment}-ecs-frontend-task"
+resource "aws_iam_role" "ecs_web_task" {
+  name = "${var.project_name}-${var.environment}-ecs-web-task"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -111,23 +111,23 @@ resource "aws_iam_role" "ecs_frontend_task" {
   })
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-ecs-frontend-task"
+    Name = "${var.project_name}-${var.environment}-ecs-web-task"
   }
 }
 
 # ECS Task Definition for Next.js
-resource "aws_ecs_task_definition" "frontend" {
-  family                   = "${var.project_name}-${var.environment}-frontend"
+resource "aws_ecs_task_definition" "web" {
+  family                   = "${var.project_name}-${var.environment}-web"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.task_cpu
   memory                   = var.task_memory
-  execution_role_arn       = aws_iam_role.ecs_frontend_execution.arn
-  task_role_arn            = aws_iam_role.ecs_frontend_task.arn
+  execution_role_arn       = aws_iam_role.ecs_web_execution.arn
+  task_role_arn            = aws_iam_role.ecs_web_task.arn
 
   container_definitions = jsonencode([
     {
-      name  = "${var.project_name}-${var.environment}-frontend"
+      name  = "${var.project_name}-${var.environment}-web"
       image = var.container_image
 
       portMappings = [
@@ -152,7 +152,7 @@ resource "aws_ecs_task_definition" "frontend" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.frontend.name
+          "awslogs-group"         = aws_cloudwatch_log_group.web.name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "ecs"
         }
@@ -171,21 +171,21 @@ resource "aws_ecs_task_definition" "frontend" {
   ])
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-frontend-task"
+    Name = "${var.project_name}-${var.environment}-web-task"
   }
 }
 
 # ECS Service for Frontend
-resource "aws_ecs_service" "frontend" {
-  name            = "${var.project_name}-${var.environment}-frontend-service"
-  cluster         = aws_ecs_cluster.frontend.id
-  task_definition = aws_ecs_task_definition.frontend.arn
+resource "aws_ecs_service" "web" {
+  name            = "${var.project_name}-${var.environment}-web-service"
+  cluster         = aws_ecs_cluster.web.id
+  task_definition = aws_ecs_task_definition.web.arn
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
 
   network_configuration {
     subnets          = var.subnet_ids
-    security_groups  = [aws_security_group.ecs_frontend.id]
+    security_groups  = [aws_security_group.ecs_web.id]
     assign_public_ip = var.assign_public_ip
   }
 
@@ -193,12 +193,12 @@ resource "aws_ecs_service" "frontend" {
     for_each = var.target_group_arn != null ? [1] : []
     content {
       target_group_arn = var.target_group_arn
-      container_name   = "${var.project_name}-${var.environment}-frontend"
+      container_name   = "${var.project_name}-${var.environment}-web"
       container_port   = var.container_port
     }
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-frontend-service"
+    Name = "${var.project_name}-${var.environment}-web-service"
   }
 }

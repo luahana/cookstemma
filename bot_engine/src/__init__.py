@@ -1,4 +1,4 @@
-"""Pairing Planet Bot Engine - AI-driven content generation."""
+"""Cookstemma Bot Engine - AI-driven content generation."""
 
 import sys
 

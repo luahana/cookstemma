@@ -50,9 +50,9 @@ public class SecurityConfig {
             "https://staging.cookstemma.com",
             "https://cookstemma.com",
             "https://www.cookstemma.com",
-            "https://pairingplanet.com",
-            "https://www.pairingplanet.com",
-            "https://staging.pairingplanet.com"
+            "https://cookstemma.com",
+            "https://www.cookstemma.com",
+            "https://staging.cookstemma.com"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));

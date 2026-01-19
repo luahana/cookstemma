@@ -24,7 +24,7 @@ public class ShareController {
      * Social media crawlers (KakaoTalk, Twitter, Facebook) fetch this URL
      * to generate rich link previews.
      *
-     * URL: https://api.pairingplanet.com/share/recipe/{publicId}
+     * URL: https://api.cookstemma.com/share/recipe/{publicId}
      */
     @GetMapping(value = "/recipe/{publicId}", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> getRecipeSharePage(@PathVariable("publicId") UUID publicId) {

@@ -79,7 +79,7 @@ CREATE TABLE notifications (
     -- Content
     type            notification_type NOT NULL,
     title           VARCHAR(255) NOT NULL,
-    body            TEXT NOT NULL,
+    body            VARCHAR(500) NOT NULL,
 
     -- Context references
     recipe_id       BIGINT REFERENCES recipes(id) ON DELETE CASCADE,

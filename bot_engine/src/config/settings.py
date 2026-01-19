@@ -19,8 +19,8 @@ class Settings(BaseSettings):
 
     # API Configuration
     backend_base_url: str = Field(
-        default="http://localhost:4001/api/v1",
-        description="Pairing Planet backend API base URL",
+        default="http://localhost:4000/api/v1",
+        description="Cookstemma backend API base URL",
     )
 
     # OpenAI Configuration

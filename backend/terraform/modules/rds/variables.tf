@@ -50,7 +50,7 @@ variable "max_allocated_storage" {
 variable "database_name" {
   description = "Name of the default database"
   type        = string
-  default     = "pairingplanet"
+  default     = "cookstemma"
 }
 
 variable "master_username" {

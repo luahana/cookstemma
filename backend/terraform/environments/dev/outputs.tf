@@ -43,29 +43,29 @@ output "api_endpoint" {
   value       = "http://${module.alb.alb_dns_name}/api/v1"
 }
 
-# Frontend outputs
-output "frontend_ecr_repository_url" {
-  description = "Frontend ECR repository URL"
-  value       = data.aws_ecr_repository.frontend.repository_url
+# Web outputs
+output "web_ecr_repository_url" {
+  description = "Web ECR repository URL"
+  value       = data.aws_ecr_repository.web.repository_url
 }
 
-output "frontend_ecs_cluster_name" {
-  description = "Name of the frontend ECS cluster"
-  value       = module.ecs_frontend.cluster_name
+output "web_ecs_cluster_name" {
+  description = "Name of the web ECS cluster"
+  value       = module.ecs_web.cluster_name
 }
 
-output "frontend_ecs_service_name" {
-  description = "Name of the frontend ECS service"
-  value       = module.ecs_frontend.service_name
+output "web_ecs_service_name" {
+  description = "Name of the web ECS service"
+  value       = module.ecs_web.service_name
 }
 
-output "frontend_cloudwatch_log_group" {
-  description = "Frontend CloudWatch log group name"
-  value       = module.ecs_frontend.log_group_name
+output "web_cloudwatch_log_group" {
+  description = "Web CloudWatch log group name"
+  value       = module.ecs_web.log_group_name
 }
 
-output "frontend_endpoint" {
-  description = "Frontend URL (HTTP)"
+output "web_endpoint" {
+  description = "Web URL (HTTP)"
   value       = "http://${module.alb.alb_dns_name}"
 }
 
@@ -86,9 +86,9 @@ output "image_processor_lambda_arn" {
   value       = module.lambda_image_processing.processor_lambda_arn
 }
 
-output "image_state_machine_arn" {
-  description = "ARN of the image processing Step Functions state machine"
-  value       = module.lambda_image_processing.state_machine_arn
+output "image_processing_sqs_queue_url" {
+  description = "URL of the image processing SQS queue"
+  value       = module.lambda_image_processing.sqs_queue_url
 }
 
 # CloudFront outputs

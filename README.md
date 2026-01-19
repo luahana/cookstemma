@@ -1,11 +1,11 @@
-# Pairing Planet Fullstack
+# Cookstemma Fullstack
 
-Monorepo containing all Pairing Planet applications - a recipe sharing and cooking community platform.
+Monorepo containing all Cookstemma applications - a recipe sharing and cooking community platform.
 
 ## Project Structure
 
 ```
-pairing_planet_fullstack/
+cookstemma_fullstack/
 ├── backend/              # Spring Boot API (Java 21)
 ├── frontend_mobile/      # Flutter mobile app (iOS/Android)
 ├── frontend_web/         # Next.js web app (planned)
