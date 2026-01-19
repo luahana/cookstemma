@@ -7,7 +7,7 @@ auto-creating bot users as needed.
 Usage:
     cd bot_engine
     python scripts/create_recipes_all_bots.py
-    python scripts/create_recipes_all_bots.py --no-images    # Skip images (faster)
+    python scripts/create_recipes_all_bots.py --step-images     # Include step images
     python scripts/create_recipes_all_bots.py --limit 5      # Only first 5 personas
 
 Prerequisites:
@@ -59,9 +59,16 @@ def parse_args() -> argparse.Namespace:
         help="Limit to first N personas (for testing)",
     )
     parser.add_argument(
-        "--no-images",
+        "--step-images",
         action="store_true",
-        help="Skip image generation (faster for testing)",
+        help="Generate images for each recipe step (default: cover image only)",
+    )
+    parser.add_argument(
+        "--cover",
+        type=int,
+        choices=[1, 2, 3],
+        default=1,
+        help="Number of cover images to generate (1, 2, or 3)",
     )
     parser.add_argument(
         "--continue-on-error",
@@ -77,9 +84,10 @@ async def create_recipe_for_persona(
     api_client: CookstemmaClient,
     text_gen: TextGenerator,
     image_gen: ImageGenerator,
-    generate_images: bool,
+    generate_step_images: bool,
+    cover_image_count: int = 1,
 ) -> RecipeResult:
-    """Create a recipe for a single persona."""
+    """Create a recipe for a single persona (cover image always generated)."""
     try:
         # Authenticate with persona (auto-creates user if needed)
         auth = await api_client.login_by_persona(persona.name)
@@ -125,9 +133,9 @@ async def create_recipe_for_persona(
         recipe = await pipeline.generate_original_recipe(
             persona=persona,
             food_name=food_name,
-            generate_images=generate_images,
-            cover_image_count=1 if generate_images else 0,
-            generate_step_images=False,
+            generate_images=True,
+            cover_image_count=cover_image_count,
+            generate_step_images=generate_step_images,
         )
 
         return RecipeResult(
@@ -189,7 +197,8 @@ async def main() -> None:
         print(f"\nProcessing {total} personas...")
         print("=" * 60)
 
-        generate_images = not args.no_images
+        generate_step_images = args.step_images
+        cover_image_count = args.cover
 
         for i, persona in enumerate(personas_to_process, 1):
             print(f"\n[{i}/{total}] {persona.name} ({persona.display_name.get('en', '')})")
@@ -199,7 +208,8 @@ async def main() -> None:
                 api_client=api_client,
                 text_gen=text_gen,
                 image_gen=image_gen,
-                generate_images=generate_images,
+                generate_step_images=generate_step_images,
+                cover_image_count=cover_image_count,
             )
             results.append(result)
 
