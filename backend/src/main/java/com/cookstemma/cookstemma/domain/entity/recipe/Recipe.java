@@ -35,6 +35,7 @@ public class Recipe extends BaseEntity {
     private String description;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "cooking_time_range")
     @Builder.Default
     private CookingTimeRange cookingTimeRange = CookingTimeRange.MIN_30_TO_60;

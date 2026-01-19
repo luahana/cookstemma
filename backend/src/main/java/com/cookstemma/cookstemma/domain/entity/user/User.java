@@ -8,6 +8,8 @@ import com.cookstemma.cookstemma.domain.enums.MeasurementPreference;
 import com.cookstemma.cookstemma.domain.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -27,6 +29,7 @@ public class User extends BaseEntity {
     private String email;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private Gender gender;
 
     @Column(name = "birth_date")
@@ -47,9 +50,11 @@ public class User extends BaseEntity {
     private String appRefreshToken;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private Role role;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private AccountStatus status;
 
     @Column(name = "marketing_agreed")

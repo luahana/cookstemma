@@ -4,6 +4,8 @@ import com.cookstemma.cookstemma.domain.enums.ReportReason;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -32,6 +34,7 @@ public class UserReport {
     private Long reportedId;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false, length = 30)
     private ReportReason reason;
 

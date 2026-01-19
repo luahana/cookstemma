@@ -5,6 +5,8 @@ import com.cookstemma.cookstemma.domain.enums.Provider;
 import com.cookstemma.cookstemma.util.EncryptionConverter;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "social_accounts", uniqueConstraints = {
@@ -21,6 +23,7 @@ public class SocialAccount extends BaseEntity {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private Provider provider;
 
     @Column(name = "provider_user_id", nullable = false)

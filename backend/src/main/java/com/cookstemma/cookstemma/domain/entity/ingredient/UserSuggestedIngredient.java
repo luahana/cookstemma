@@ -8,6 +8,8 @@ import com.cookstemma.cookstemma.domain.enums.SuggestionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "user_suggested_ingredients")
@@ -21,6 +23,7 @@ public class UserSuggestedIngredient extends BaseEntity {
     private String suggestedName;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "ingredient_type", nullable = false, length = 20)
     private IngredientType ingredientType;
 

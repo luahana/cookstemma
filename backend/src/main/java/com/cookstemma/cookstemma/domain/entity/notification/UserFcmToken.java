@@ -6,6 +6,8 @@ import com.cookstemma.cookstemma.domain.enums.DeviceType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -26,6 +28,7 @@ public class UserFcmToken extends BaseEntity {
     private String fcmToken;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "device_type", nullable = false, length = 20)
     private DeviceType deviceType;
 

@@ -40,10 +40,12 @@ public class RecipeIngredient {
      * Standardized unit for structured measurements.
      */
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(length = 20)
     private MeasurementUnit unit;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private IngredientType type;
 
     @Column(name = "display_order")
