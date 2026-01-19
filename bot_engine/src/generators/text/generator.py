@@ -208,6 +208,13 @@ Based on your specialties ({', '.join(persona.specialties)}), suggest dishes tha
 - Have variety (different meal types, techniques)
 {"- Exclude these (already have recipes): " + exclude_str if exclude else ""}
 
+IMPORTANT - Food name rules:
+- Use ONLY the simple, standard food name (e.g., "비빔밥", "김치찌개", "불고기")
+- Do NOT add descriptions, adjectives, or combine multiple dishes
+- Do NOT use "와/과" (and) to combine foods
+- Bad examples: "전복구이와 트러플 리조또", "한우 갈비찜과 고구마 퓌레"
+- Good examples: "갈비찜", "된장찌개", "잡채", "삼겹살"
+
 Return as JSON:
 {{
     "dishes": ["dish1", "dish2", ...]

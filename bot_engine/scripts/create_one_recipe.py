@@ -78,8 +78,33 @@ async def main() -> None:
         # 4. Create pipeline and generate recipe
         pipeline = RecipePipeline(api_client, text_gen, image_gen)
 
-        food_name = "Bibimbap"  # Korean mixed rice bowl (different dish)
-        print(f"\nGenerating recipe for: {food_name}")
+        # Get existing foods to exclude from suggestions
+        print("\nFetching existing foods...")
+        existing_foods = await api_client.get_created_foods()
+        print(f"Bot has created {len(existing_foods)} foods already")
+
+        # Ask AI to suggest a food name
+        print("Asking AI for food suggestion...")
+        suggestions = await text_gen.suggest_food_names(
+            persona=persona,
+            count=1,
+            exclude=existing_foods,
+        )
+
+        if not suggestions:
+            print("Error: AI couldn't suggest any new foods")
+            sys.exit(1)
+
+        # Filter out any that somehow still match existing (case-insensitive)
+        existing_lower = {f.lower() for f in existing_foods}
+        filtered = [f for f in suggestions if f.lower() not in existing_lower]
+
+        if not filtered:
+            print("Error: All suggested foods already exist")
+            sys.exit(1)
+
+        food_name = filtered[0]
+        print(f"\nAI chose: {food_name}")
         print("This may take a minute (generating text + 1 cover image)...")
 
         recipe = await pipeline.generate_original_recipe(

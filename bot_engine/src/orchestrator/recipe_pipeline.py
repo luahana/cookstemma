@@ -41,6 +41,7 @@ class RecipePipeline:
         generate_images: bool = True,
         cover_image_count: int = 2,
         generate_step_images: bool = False,
+        skip_dedup: bool = False,
     ) -> Recipe:
         """Generate and publish an original recipe.
 
@@ -50,10 +51,24 @@ class RecipePipeline:
             generate_images: Whether to generate AI images
             cover_image_count: Number of cover images to generate
             generate_step_images: Whether to generate images for each step
+            skip_dedup: Skip dedup check (used by batch caller that handles dedup separately)
 
         Returns:
             Created Recipe from API
+
+        Raises:
+            ValueError: If recipe for this food already exists (unless skip_dedup=True)
         """
+        # Check if food already created (unless skipped by batch caller)
+        if not skip_dedup:
+            try:
+                if await self.api.has_created_food(food_name):
+                    raise ValueError(f"Recipe for '{food_name}' already exists for this bot")
+            except ValueError:
+                raise
+            except Exception as e:
+                logger.warning("dedup_check_failed", food=food_name, error=str(e))
+
         logger.info(
             "recipe_pipeline_start",
             persona=persona.name,
@@ -125,6 +140,13 @@ class RecipePipeline:
 
         # 4. Create recipe via API
         recipe = await self.api.create_recipe(request)
+
+        # Record the food after successful creation (unless skipped)
+        if not skip_dedup:
+            try:
+                await self.api.record_created_food(food_name, recipe.public_id)
+            except Exception as e:
+                logger.warning("failed_to_record_food", food=food_name, error=str(e))
 
         logger.info(
             "recipe_pipeline_complete",
@@ -306,6 +328,7 @@ class RecipePipeline:
                     persona=persona,
                     food_name=food_name,
                     generate_images=generate_images,
+                    skip_dedup=True,  # Batch handles dedup separately
                 )
                 recipes.append(recipe)
 
