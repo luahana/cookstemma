@@ -340,6 +340,19 @@ function SuggestedFoodsTab() {
       },
     },
     {
+      key: 'rejectionReason',
+      header: 'Rejection Reason',
+      sortable: false,
+      width: '200px',
+      render: (item) => item.rejectionReason ? (
+        <span className="text-sm text-red-600" title={item.rejectionReason}>
+          {item.rejectionReason.length > 50
+            ? `${item.rejectionReason.substring(0, 50)}...`
+            : item.rejectionReason}
+        </span>
+      ) : '-',
+    },
+    {
       key: 'username',
       header: 'User',
       sortable: false,
@@ -938,6 +951,19 @@ function SuggestedIngredientsTab() {
           </select>
         );
       },
+    },
+    {
+      key: 'rejectionReason',
+      header: 'Rejection Reason',
+      sortable: false,
+      width: '200px',
+      render: (item) => item.rejectionReason ? (
+        <span className="text-sm text-red-600" title={item.rejectionReason}>
+          {item.rejectionReason.length > 50
+            ? `${item.rejectionReason.substring(0, 50)}...`
+            : item.rejectionReason}
+        </span>
+      ) : '-',
     },
     {
       key: 'username',

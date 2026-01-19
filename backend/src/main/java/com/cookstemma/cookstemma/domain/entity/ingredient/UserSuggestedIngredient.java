@@ -44,8 +44,16 @@ public class UserSuggestedIngredient extends BaseEntity {
     @JoinColumn(name = "autocomplete_item_id")
     private AutocompleteItem autocompleteItemRef;
 
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
     public void updateStatus(SuggestionStatus status) {
         this.status = status;
+    }
+
+    public void reject(String reason) {
+        this.status = SuggestionStatus.REJECTED;
+        this.rejectionReason = reason;
     }
 
     public void linkToAutocompleteItem(AutocompleteItem autocompleteItem) {

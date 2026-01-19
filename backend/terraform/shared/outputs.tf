@@ -57,3 +57,18 @@ output "image_processor_ecr_repository_name" {
   description = "Name of the image processor ECR repository"
   value       = aws_ecr_repository.image_processor.name
 }
+
+output "suggestion_verifier_ecr_repository_url" {
+  description = "URL of the suggestion verifier ECR repository"
+  value       = aws_ecr_repository.suggestion_verifier.repository_url
+}
+
+output "suggestion_verifier_ecr_repository_arn" {
+  description = "ARN of the suggestion verifier ECR repository"
+  value       = aws_ecr_repository.suggestion_verifier.arn
+}
+
+output "suggestion_verifier_ecr_repository_name" {
+  description = "Name of the suggestion verifier ECR repository"
+  value       = aws_ecr_repository.suggestion_verifier.name
+}

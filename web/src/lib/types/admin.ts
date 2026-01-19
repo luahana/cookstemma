@@ -17,6 +17,7 @@ export interface UserSuggestedFood {
   suggestedName: string;
   localeCode: string;
   status: SuggestionStatus;
+  rejectionReason: string | null;
   userPublicId: string;
   username: string;
   masterFoodPublicId: string | null;
@@ -52,6 +53,7 @@ export interface UserSuggestedIngredient {
   ingredientType: IngredientType;
   localeCode: string;
   status: SuggestionStatus;
+  rejectionReason: string | null;
   userPublicId: string | null;
   username: string | null;
   autocompleteItemPublicId: string | null;

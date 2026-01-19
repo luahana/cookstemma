@@ -35,8 +35,16 @@ public class UserSuggestedFood extends BaseEntity {
     @JoinColumn(name = "master_food_id_ref")
     private FoodMaster masterFoodRef;
 
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
     public void updateStatus(SuggestionStatus status) {
         this.status = status;
+    }
+
+    public void reject(String reason) {
+        this.status = SuggestionStatus.REJECTED;
+        this.rejectionReason = reason;
     }
 
     public void linkToFoodMaster(FoodMaster foodMaster) {

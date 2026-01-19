@@ -13,6 +13,7 @@ public record UserSuggestedFoodDto(
         String suggestedName,
         String localeCode,
         SuggestionStatus status,
+        String rejectionReason,
         UUID userPublicId,
         String username,
         UUID masterFoodPublicId,
@@ -25,6 +26,7 @@ public record UserSuggestedFoodDto(
                 .suggestedName(entity.getSuggestedName())
                 .localeCode(entity.getLocaleCode())
                 .status(entity.getStatus())
+                .rejectionReason(entity.getRejectionReason())
                 .userPublicId(entity.getUser().getPublicId())
                 .username(entity.getUser().getUsername())
                 .masterFoodPublicId(entity.getMasterFoodRef() != null

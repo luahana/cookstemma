@@ -15,6 +15,7 @@ public record SuggestedIngredientAdminDto(
         IngredientType ingredientType,
         String localeCode,
         SuggestionStatus status,
+        String rejectionReason,
         UUID userPublicId,
         String username,
         UUID autocompleteItemPublicId,
@@ -28,6 +29,7 @@ public record SuggestedIngredientAdminDto(
                 .ingredientType(entity.getIngredientType())
                 .localeCode(entity.getLocaleCode())
                 .status(entity.getStatus())
+                .rejectionReason(entity.getRejectionReason())
                 .userPublicId(entity.getUser() != null ? entity.getUser().getPublicId() : null)
                 .username(entity.getUser() != null ? entity.getUser().getUsername() : null)
                 .autocompleteItemPublicId(entity.getAutocompleteItemRef() != null

@@ -53,13 +53,18 @@ data "aws_ecr_repository" "image_processor" {
   name = "${var.ecr_repository_name}-image-processor"
 }
 
+# Data source to get Suggestion Verifier ECR repository (created by shared terraform)
+data "aws_ecr_repository" "suggestion_verifier" {
+  name = "${var.ecr_repository_name}-suggestion-verifier"
+}
+
 # Data source for S3 bucket (images)
 data "aws_s3_bucket" "images" {
   bucket = var.s3_bucket
 }
 
 # =============================================================================
-# STANDALONE SECURITY GROUP FOR LAMBDA
+# STANDALONE SECURITY GROUPS FOR LAMBDAS
 # Created first to break circular dependency with RDS
 # =============================================================================
 resource "aws_security_group" "lambda_translation" {
@@ -78,6 +83,28 @@ resource "aws_security_group" "lambda_translation" {
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-translator-lambda-sg"
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
+resource "aws_security_group" "lambda_suggestion_verifier" {
+  name        = "${var.project_name}-${var.environment}-suggestion-verifier-lambda-sg"
+  description = "Security group for suggestion verifier Lambda"
+  vpc_id      = module.vpc.vpc_id
+
+  # Outbound: Allow all (needed for RDS, Secrets Manager, OpenAI API)
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-suggestion-verifier-lambda-sg"
     Project     = var.project_name
     Environment = var.environment
     ManagedBy   = "terraform"
@@ -105,7 +132,7 @@ module "rds" {
   environment             = var.environment
   vpc_id                  = module.vpc.vpc_id
   subnet_ids              = module.vpc.private_subnet_ids
-  allowed_security_groups = [module.ecs.security_group_id, aws_security_group.lambda_translation.id]
+  allowed_security_groups = [module.ecs.security_group_id, aws_security_group.lambda_translation.id, aws_security_group.lambda_suggestion_verifier.id]
 
   instance_class          = "db.t3.micro"
   allocated_storage       = 20
@@ -271,6 +298,34 @@ module "lambda_image_processing" {
   # Lambda configuration
   memory_size                    = 1024
   timeout                        = 60
+  reserved_concurrent_executions = -1 # No reserved concurrency (account quota limit)
+}
+
+# Lambda Suggestion Verifier Module - AI-powered validation of user suggestions
+# Uses private subnets with NAT gateway to reach both RDS and OpenAI API
+module "lambda_suggestion_verifier" {
+  source = "../../modules/lambda-suggestion-verifier"
+
+  project_name = var.project_name
+  environment  = var.environment
+  vpc_id       = module.vpc.vpc_id
+  subnet_ids   = module.vpc.private_subnet_ids # Private subnets (uses NAT for internet)
+
+  # ECR repository (created by shared terraform)
+  ecr_repository_url = data.aws_ecr_repository.suggestion_verifier.repository_url
+
+  # Secrets (reuse OpenAI secret from translation module)
+  database_secret_arn = module.secrets.database_secret_arn
+  openai_secret_arn   = module.lambda_translation.openai_secret_arn
+
+  # Use pre-created security group to break circular dependency
+  use_existing_security_group = true
+  existing_security_group_id  = aws_security_group.lambda_suggestion_verifier.id
+
+  # Lambda configuration
+  schedule_expression            = "rate(1 day)"
+  memory_size                    = 512
+  timeout                        = 300
   reserved_concurrent_executions = -1 # No reserved concurrency (account quota limit)
 }
 
