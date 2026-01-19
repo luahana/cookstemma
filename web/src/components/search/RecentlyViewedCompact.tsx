@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import {
   getViewHistory,
   clearViewHistory as clearLocalViewHistory,
@@ -12,6 +13,7 @@ import { getImageUrl } from '@/lib/utils/image';
 import { StarRating } from '@/components/log/StarRating';
 
 export function RecentlyViewedCompact() {
+  const t = useTranslations('search');
   // Initialize with null to detect if we've loaded from localStorage yet
   const [items, setItems] = useState<ViewHistoryItem[] | null>(null);
   const [isClearing, setIsClearing] = useState(false);
@@ -42,14 +44,14 @@ export function RecentlyViewedCompact() {
     <div className="mb-8">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-          Recently Viewed
+          {t('recentlyViewed')}
         </h2>
         <button
           onClick={handleClearAll}
           disabled={isClearing}
           className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-50"
         >
-          {isClearing ? 'Clearing...' : 'Clear all'}
+          {isClearing ? t('clearing') : t('clearAll')}
         </button>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -89,7 +91,7 @@ export function RecentlyViewedCompact() {
                   )}
                   {/* Recipe badge */}
                   <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[var(--primary)] text-white text-xs font-medium rounded">
-                    Recipe
+                    {t('recipe')}
                   </span>
                 </div>
                 <p className="text-sm text-[var(--text-primary)] font-medium truncate group-hover:text-[var(--primary)] transition-colors">
@@ -136,7 +138,7 @@ export function RecentlyViewedCompact() {
                   {/* Log badge with star rating */}
                   <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[var(--secondary)] text-white text-xs font-medium rounded flex items-center gap-1">
                     {item.rating && <StarRating rating={item.rating} size="sm" />}
-                    Log
+                    {t('log')}
                   </span>
                 </div>
                 <p className="text-sm text-[var(--text-primary)] font-medium truncate group-hover:text-[var(--secondary)] transition-colors">

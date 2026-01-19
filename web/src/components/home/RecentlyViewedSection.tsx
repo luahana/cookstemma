@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { getRecentlyViewedRecipes } from '@/lib/api/history';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import type { RecipeSummary } from '@/lib/types';
 
 export function RecentlyViewedSection() {
+  const t = useTranslations('recentlyViewed');
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,13 +46,13 @@ export function RecentlyViewedSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
-            Recently Viewed
+            {t('title')}
           </h2>
           <Link
             href="/recipes"
             className="text-[var(--primary)] hover:underline font-medium"
           >
-            Browse more
+            {t('browseMore')}
           </Link>
         </div>
         <RecipeGrid recipes={recipes} />

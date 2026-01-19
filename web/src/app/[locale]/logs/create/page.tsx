@@ -130,7 +130,7 @@ function CreateLogPageContent() {
       setRecipeSearchQuery('');
       setSearchResults([]);
     } catch {
-      setError('Failed to load recipe details');
+      setError(t('failedToLoadRecipe'));
     }
   };
 
@@ -143,7 +143,7 @@ function CreateLogPageContent() {
       setRecipeSearchQuery('');
       setSearchResults([]);
     } catch {
-      setError('Failed to load recipe details');
+      setError(t('failedToLoadRecipe'));
     }
   };
 
@@ -183,7 +183,7 @@ function CreateLogPageContent() {
         setImages((prev) =>
           prev.map((p) =>
             p.preview === img.preview
-              ? { ...p, uploading: false, error: 'Upload failed' }
+              ? { ...p, uploading: false, error: t('uploadFailed') }
               : p
           )
         );
@@ -249,25 +249,25 @@ function CreateLogPageContent() {
 
     // Validation
     if (!selectedRecipe) {
-      setError('Please select a recipe');
+      setError(t('errorSelectRecipe'));
       return;
     }
 
     if (!content.trim()) {
-      setError('Please enter your cooking notes');
+      setError(t('errorNotes'));
       return;
     }
 
     // Check if any images are still uploading
     if (images.some((img) => img.uploading)) {
-      setError('Please wait for images to finish uploading');
+      setError(t('errorUploading'));
       return;
     }
 
     // Check for failed uploads
     const failedImages = images.filter((img) => img.error);
     if (failedImages.length > 0) {
-      setError('Some images failed to upload. Please remove them and try again.');
+      setError(t('errorFailedImages'));
       return;
     }
 
@@ -297,7 +297,7 @@ function CreateLogPageContent() {
       router.push(`/logs/${log.publicId}`);
     } catch (err) {
       console.error('Failed to create log:', err);
-      setError('Failed to create cooking log. Please try again.');
+      setError(t('errorCreate'));
     } finally {
       setIsSubmitting(false);
     }
@@ -466,7 +466,7 @@ function CreateLogPageContent() {
                         ) : recentRecipes.length > 0 ? (
                           <div>
                             <p className="text-sm font-medium text-[var(--text-secondary)] px-3 py-2">
-                              Recently Viewed
+                              {t('recentlyViewed')}
                             </p>
                             <div className="space-y-1">
                               {recentRecipes.map((item) => (
@@ -572,7 +572,7 @@ function CreateLogPageContent() {
                 >
                   <Image
                     src={img.preview}
-                    alt="Upload preview"
+                    alt={t('uploadPreview')}
                     fill
                     className="object-cover"
                     sizes="96px"
@@ -667,7 +667,7 @@ function CreateLogPageContent() {
                   disabled={!hashtagInput.trim()}
                   className="px-4 py-3 bg-[var(--primary)] dark:bg-[var(--secondary)] text-white rounded-xl font-medium hover:bg-[var(--primary-dark)] dark:hover:bg-[#6D4C41] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Add
+                  {t('add')}
                 </button>
               </div>
             )}

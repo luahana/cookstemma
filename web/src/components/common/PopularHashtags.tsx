@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { getPopularHashtags } from '@/lib/api/hashtags';
 
 interface PopularHashtagsProps {
@@ -10,6 +11,7 @@ export async function PopularHashtags({
   limit = 8,
   className = '',
 }: PopularHashtagsProps) {
+  const t = await getTranslations('popularHashtags');
   let hashtags;
   try {
     hashtags = await getPopularHashtags(limit);
@@ -25,7 +27,7 @@ export async function PopularHashtags({
     <section className={className}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-[var(--text-primary)]">
-          Popular Hashtags
+          {t('title')}
         </h2>
       </div>
 

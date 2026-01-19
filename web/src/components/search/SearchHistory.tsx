@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { recordSearchHistory as recordSearchHistoryToBackend } from '@/lib/api/history';
 
 const STORAGE_KEY = 'searchHistory';
@@ -11,6 +12,7 @@ interface SearchHistoryProps {
 }
 
 export function SearchHistory({ onSelect }: SearchHistoryProps) {
+  const t = useTranslations('search');
   // Initialize with null to detect if we've loaded from localStorage yet
   const [history, setHistory] = useState<string[] | null>(null);
 
@@ -57,14 +59,14 @@ export function SearchHistory({ onSelect }: SearchHistoryProps) {
     <div className="mb-8">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-          Recent Searches
+          {t('recentSearches')}
         </h2>
         {history.length > 0 && (
           <button
             onClick={clearAll}
             className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
           >
-            Clear all
+            {t('clearAll')}
           </button>
         )}
       </div>
@@ -83,7 +85,7 @@ export function SearchHistory({ onSelect }: SearchHistoryProps) {
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          No recent searches
+          {t('noRecentSearches')}
         </p>
       ) : (
         <div className="flex flex-wrap gap-2">
@@ -104,7 +106,7 @@ export function SearchHistory({ onSelect }: SearchHistoryProps) {
                   removeItem(query);
                 }}
                 className="p-0.5 rounded-full hover:bg-[var(--border)] transition-colors opacity-50 group-hover:opacity-100"
-                aria-label={`Remove "${query}" from history`}
+                aria-label={t('removeFromHistory', { query })}
               >
                 <svg
                   className="w-3.5 h-3.5"

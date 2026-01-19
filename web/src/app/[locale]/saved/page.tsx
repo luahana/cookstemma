@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getSavedRecipes, getSavedLogs } from '@/lib/api/saved';
@@ -15,6 +16,7 @@ type TabType = 'recipes' | 'logs';
 export default function SavedPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const t = useTranslations('saved');
 
   const [activeTab, setActiveTab] = useState<TabType>('recipes');
   const [recipes, setRecipes] = useState<UnifiedPageResponse<RecipeSummary> | null>(null);
@@ -72,9 +74,9 @@ export default function SavedPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Page header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[var(--text-primary)]">Saved</h1>
+        <h1 className="text-3xl font-bold text-[var(--text-primary)]">{t('title')}</h1>
         <p className="text-[var(--text-secondary)] mt-2">
-          Your bookmarked recipes and cooking logs
+          {t('subtitle')}
         </p>
       </div>
 
@@ -89,7 +91,7 @@ export default function SavedPage() {
                 : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border)]'
             }`}
           >
-            Recipes
+            {t('recipesTab')}
             {recipes?.totalElements !== null && recipes?.totalElements !== undefined && (
               <span className="ml-2 py-0.5 px-2 bg-[var(--background)] text-[var(--text-secondary)] text-xs rounded-full">
                 {recipes.totalElements}
@@ -104,7 +106,7 @@ export default function SavedPage() {
                 : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border)]'
             }`}
           >
-            Cooking Logs
+            {t('logsTab')}
             {logs?.totalElements !== null && logs?.totalElements !== undefined && (
               <span className="ml-2 py-0.5 px-2 bg-[var(--background)] text-[var(--text-secondary)] text-xs rounded-full">
                 {logs.totalElements}
@@ -146,10 +148,10 @@ export default function SavedPage() {
                 />
               </svg>
               <h3 className="mt-4 text-lg font-medium text-[var(--text-primary)]">
-                No saved recipes yet
+                {t('noSavedRecipes')}
               </h3>
               <p className="mt-2 text-[var(--text-secondary)]">
-                Bookmark recipes you love to find them here later
+                {t('startBrowsing')}
               </p>
             </div>
           ) : (
@@ -178,10 +180,10 @@ export default function SavedPage() {
                 />
               </svg>
               <h3 className="mt-4 text-lg font-medium text-[var(--text-primary)]">
-                No saved cooking logs yet
+                {t('noSavedLogs')}
               </h3>
               <p className="mt-2 text-[var(--text-secondary)]">
-                Bookmark cooking logs to find them here later
+                {t('startBrowsing')}
               </p>
             </div>
           ) : (

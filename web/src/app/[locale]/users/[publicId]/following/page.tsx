@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { getFollowing, type FollowerDto } from '@/lib/api/follows';
 import { getUserProfile } from '@/lib/api/users';
 import { FollowButton } from '@/components/common/FollowButton';
@@ -14,6 +15,9 @@ import type { UserProfile } from '@/lib/types';
 export default function FollowingPage() {
   const params = useParams();
   const publicId = params.publicId as string;
+  const t = useTranslations('following');
+  const tCommon = useTranslations('common');
+  const tProfile = useTranslations('profile');
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [following, setFollowing] = useState<FollowerDto[]>([]);
@@ -81,11 +85,11 @@ export default function FollowingPage() {
           href={`/users/${publicId}`}
           className="text-sm text-[var(--text-secondary)] hover:text-[var(--primary)] mb-2 inline-block"
         >
-          &larr; Back to {user?.username}&apos;s profile
+          &larr; {tCommon('back')} - {user?.username}
         </Link>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Following</h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('title')}</h1>
         <p className="text-[var(--text-secondary)] mt-1">
-          {user?.followingCount} following
+          {user?.followingCount} {tProfile('following').toLowerCase()}
         </p>
       </div>
 
@@ -106,10 +110,10 @@ export default function FollowingPage() {
             />
           </svg>
           <h3 className="mt-4 text-lg font-medium text-[var(--text-primary)]">
-            Not following anyone
+            {t('notFollowing')}
           </h3>
           <p className="mt-2 text-[var(--text-secondary)]">
-            When {user?.username} follows people, they&apos;ll appear here.
+            {user?.username}
           </p>
         </div>
       ) : (
@@ -146,7 +150,7 @@ export default function FollowingPage() {
                 </Link>
                 {followedUser.isFollowingBack && (
                   <p className="text-sm text-[var(--text-secondary)]">
-                    Follows {user?.username} back
+                    {t('followsBack')}
                   </p>
                 )}
               </div>
@@ -165,7 +169,7 @@ export default function FollowingPage() {
             disabled={isLoading}
             className="px-6 py-2 bg-[var(--background)] text-[var(--text-primary)] rounded-lg hover:bg-[var(--border)] transition-colors disabled:opacity-50"
           >
-            {isLoading ? 'Loading...' : 'Load more'}
+            {isLoading ? tCommon('loading') : t('loadMore')}
           </button>
         </div>
       )}

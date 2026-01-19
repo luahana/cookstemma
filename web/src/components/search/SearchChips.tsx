@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import type { SearchCounts, SearchTypeFilter } from '@/lib/types';
 
 interface SearchChipsProps {
@@ -9,14 +10,15 @@ interface SearchChipsProps {
   query: string;
 }
 
-const CHIP_CONFIG: Array<{ key: SearchTypeFilter; label: string; countKey: keyof SearchCounts }> = [
-  { key: 'all', label: 'All', countKey: 'total' },
-  { key: 'recipes', label: 'Recipes', countKey: 'recipes' },
-  { key: 'logs', label: 'Logs', countKey: 'logs' },
-  { key: 'hashtags', label: 'Hashtags', countKey: 'hashtags' },
+const CHIP_KEYS: Array<{ key: SearchTypeFilter; labelKey: string; countKey: keyof SearchCounts }> = [
+  { key: 'all', labelKey: 'all', countKey: 'total' },
+  { key: 'recipes', labelKey: 'recipes', countKey: 'recipes' },
+  { key: 'logs', labelKey: 'logs', countKey: 'logs' },
+  { key: 'hashtags', labelKey: 'hashtags', countKey: 'hashtags' },
 ];
 
 export function SearchChips({ counts, selected, query }: SearchChipsProps) {
+  const t = useTranslations('search');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -34,7 +36,7 @@ export function SearchChips({ counts, selected, query }: SearchChipsProps) {
 
   return (
     <div className="flex flex-wrap gap-2 mb-6">
-      {CHIP_CONFIG.map(({ key, label, countKey }) => {
+      {CHIP_KEYS.map(({ key, labelKey, countKey }) => {
         const count = counts[countKey];
         const isSelected = selected === key;
 
@@ -52,7 +54,7 @@ export function SearchChips({ counts, selected, query }: SearchChipsProps) {
               }
             `}
           >
-            <span>{label}</span>
+            <span>{t(labelKey)}</span>
             <span
               className={`
                 ml-2 px-2 py-0.5 rounded-full text-xs font-semibold

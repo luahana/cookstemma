@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { getHashtagCounts, getRecipesByHashtag, getLogsByHashtag } from '@/lib/api/hashtags';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { LogGrid } from '@/components/log/LogGrid';
@@ -35,6 +36,7 @@ export default async function HashtagPage({ params, searchParams }: Props) {
   const { tab = 'recipes', page: pageParam = '0' } = await searchParams;
   const page = parseInt(pageParam, 10);
   const decodedName = decodeURIComponent(name);
+  const t = await getTranslations('hashtags');
 
   let counts;
   try {
@@ -44,8 +46,8 @@ export default async function HashtagPage({ params, searchParams }: Props) {
   }
 
   const tabs = [
-    { id: 'recipes', label: 'Recipes', count: counts.recipeCount },
-    { id: 'logs', label: 'Cooking Logs', count: counts.logPostCount },
+    { id: 'recipes', label: t('recipesTab'), count: counts.recipeCount },
+    { id: 'logs', label: t('logsTab'), count: counts.logPostCount },
   ];
 
   // Fetch content based on active tab
@@ -72,7 +74,7 @@ export default async function HashtagPage({ params, searchParams }: Props) {
             #{decodedName}
           </h1>
           <p className="text-[var(--text-secondary)] mt-2">
-            {counts.recipeCount + counts.logPostCount} posts with this hashtag
+            {t('postsWithTag', { count: counts.recipeCount + counts.logPostCount })}
           </p>
         </div>
 
@@ -100,7 +102,7 @@ export default async function HashtagPage({ params, searchParams }: Props) {
           <>
             <RecipeGrid
               recipes={recipes.content}
-              emptyMessage={`No recipes found with #${decodedName}`}
+              emptyMessage={t('noRecipes')}
             />
             {recipes.totalPages !== null && recipes.totalPages > 1 && (
               <Pagination
@@ -116,7 +118,7 @@ export default async function HashtagPage({ params, searchParams }: Props) {
           <>
             <LogGrid
               logs={logs.content}
-              emptyMessage={`No cooking logs found with #${decodedName}`}
+              emptyMessage={t('noLogs')}
             />
             {logs.totalPages !== null && logs.totalPages > 1 && (
               <Pagination

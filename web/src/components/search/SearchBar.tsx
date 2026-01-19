@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { addToSearchHistory } from './SearchHistory';
 
 interface SearchBarProps {
@@ -11,10 +12,12 @@ interface SearchBarProps {
 }
 
 export function SearchBar({
-  placeholder = 'Search recipes...',
+  placeholder,
   defaultValue = '',
   autoFocus = false,
 }: SearchBarProps) {
+  const t = useTranslations('search');
+  const searchPlaceholder = placeholder ?? t('searchRecipes');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(defaultValue || searchParams.get('q') || '');
@@ -38,7 +41,7 @@ export function SearchBar({
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
+          placeholder={searchPlaceholder}
           autoFocus={autoFocus}
           className="w-full px-4 py-3 pl-12 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary-light)] transition-colors"
         />
@@ -78,7 +81,7 @@ export function SearchBar({
           type="submit"
           className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dark)] transition-colors text-sm font-medium"
         >
-          Search
+          {t('searchButton')}
         </button>
       </div>
     </form>
