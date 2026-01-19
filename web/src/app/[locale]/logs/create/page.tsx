@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { createLog } from '@/lib/api/logs';
 import { getRecipes, getRecipeDetail } from '@/lib/api/recipes';
@@ -48,6 +49,7 @@ function CreateLogPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const t = useTranslations('errors');
 
   // Form state
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeDetail | null>(null);
@@ -244,6 +246,13 @@ function CreateLogPageContent() {
     const failedImages = images.filter((img) => img.error);
     if (failedImages.length > 0) {
       setError('Some images failed to upload. Please remove them and try again.');
+      return;
+    }
+
+    // Check for at least one successfully uploaded image
+    const successfulImages = images.filter((img) => img.publicId && !img.error);
+    if (successfulImages.length === 0) {
+      setError(t('photoRequired'));
       return;
     }
 
@@ -477,7 +486,7 @@ function CreateLogPageContent() {
           {/* Images */}
           <div>
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              Photos (up to 3)
+              Photos (1-3) <span className="text-[var(--error)]">*</span>
             </label>
             <div className="flex gap-3 flex-wrap">
               {images.map((img) => (

@@ -47,8 +47,7 @@
     "us": "US"
   },
   "home": {
-    "heroTitle": "Your Recipes, {highlight}",
-    "heroHighlight": "Evolved",
+    "heroTitle": "Your Recipes, <highlight>Evolved</highlight>",
     "heroSubtitle": "Share your recipes, create variations, and track your cooking journey. Join a community of home cooks discovering new flavors together.",
     "featuredRecipes": "Featured Recipes",
     "recentCookingLogs": "Recent Cooking Logs",
@@ -70,12 +69,15 @@
   },
   "recipes": {
     "title": "Recipes",
+    "subtitle": "Discover recipes from our community of home cooks",
+    "found": "{count} recipes found",
     "create": "Create Recipe",
     "edit": "Edit Recipe",
     "noRecipes": "No recipes found",
     "ingredients": "Ingredients",
     "instructions": "Instructions",
     "servings": "Servings",
+    "servingsCount": "{count} servings",
     "prepTime": "Prep Time",
     "cookTime": "Cook Time",
     "totalTime": "Total Time",
@@ -85,16 +87,32 @@
     "tags": "Tags",
     "notes": "Notes",
     "minutes": "minutes",
-    "hours": "hours"
+    "hours": "hours",
+    "variant": "Variant",
+    "variantOf": "This is a variant of:",
+    "step": "Step {number}",
+    "recipe": "Recipe"
   },
   "logs": {
     "title": "Cooking Logs",
+    "subtitle": "See what others are cooking and their experiences",
+    "found": "{count} cooking logs",
     "create": "New Cooking Log",
     "noLogs": "No cooking logs found",
+    "noCookingLogs": "No cooking logs yet",
+    "beFirst": "Be the first to share your cooking experience!",
+    "madeRecipe": "Made this recipe?",
+    "shareExperience": "Share your cooking experience with others",
+    "viewMore": "View More",
+    "moreLogs": "{count} more logs",
+    "recipeUsed": "Recipe Used",
     "rating": "Rating",
     "notes": "Notes",
     "photos": "Photos",
-    "cookedOn": "Cooked on"
+    "cookedOn": "Cooked on",
+    "cookingLog": "Cooking Log",
+    "variant": "Variant",
+    "backToLogs": "Back to Logs"
   },
   "profile": {
     "followers": "Followers",
@@ -103,14 +121,25 @@
     "logs": "Logs",
     "editProfile": "Edit Profile",
     "follow": "Follow",
-    "unfollow": "Unfollow"
+    "unfollow": "Unfollow",
+    "level": "Level {level}"
   },
   "auth": {
     "signInTitle": "Sign In",
     "signInWith": "Sign in with {provider}",
     "continueWith": "Continue with {provider}",
     "signInDescription": "Sign in to create recipes, log your cooking, and save your favorites.",
-    "redirecting": "Redirecting..."
+    "redirecting": "Redirecting...",
+    "welcomeBack": "Welcome Back",
+    "signInSubtitle": "Sign in to share recipes and track your cooking journey",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "signingIn": "Signing in...",
+    "termsAgree": "By signing in, you agree to our",
+    "and": "and",
+    "backToHome": "Back to home",
+    "firebaseNotConfigured": "Firebase Not Configured",
+    "firebaseConfigMessage": "To enable authentication, set the following environment variables:"
   },
   "search": {
     "title": "Search",
@@ -141,7 +170,8 @@
     "tryAgain": "Please try again.",
     "cannotModify": "Cannot modify this item",
     "unknownError": "An unexpected error occurred",
-    "title": "Error"
+    "title": "Error",
+    "photoRequired": "Please add at least one photo"
   },
   "metadata": {
     "siteDescription": "Share your recipes, create variations, and track your cooking journey"
