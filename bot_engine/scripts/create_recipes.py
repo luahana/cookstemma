@@ -88,6 +88,24 @@ def parse_args() -> argparse.Namespace:
         default=1,
         help="Number of cover images to generate (1, 2, or 3)",
     )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=5,
+        help="Number of recipes per batch before longer pause (default: 5)",
+    )
+    parser.add_argument(
+        "--delay",
+        type=int,
+        default=3,
+        help="Seconds to wait between recipes (default: 3)",
+    )
+    parser.add_argument(
+        "--batch-delay",
+        type=int,
+        default=15,
+        help="Seconds to wait between batches (default: 15)",
+    )
     return parser.parse_args()
 
 
@@ -283,7 +301,13 @@ async def main() -> None:
             if args.persona:
                 print(f"\nNote: --persona ignored when --count > 1 (using random personas)")
 
+            # Rate limiting configuration from CLI args
+            batch_size = args.batch_size
+            delay_between_recipes = args.delay
+            delay_between_batches = args.batch_delay
+
             print(f"\nGenerating {count} recipes with random personas...")
+            print(f"Rate limiting: {delay_between_recipes}s between recipes, {delay_between_batches}s between batches of {batch_size}")
             print("=" * 60)
 
             for i in range(count):
@@ -310,6 +334,15 @@ async def main() -> None:
                     print(f"  ✓ Created: {result.recipe_title}")
                 else:
                     print(f"  ✗ Failed: {result.error}")
+
+                # Rate limiting: delay between recipes
+                if i < count - 1:  # Don't delay after the last recipe
+                    # Longer delay between batches
+                    if (i + 1) % batch_size == 0:
+                        print(f"\n  ⏳ Batch complete. Waiting {delay_between_batches}s before next batch...")
+                        await asyncio.sleep(delay_between_batches)
+                    else:
+                        await asyncio.sleep(delay_between_recipes)
 
             # Print summary
             print_summary(results)
