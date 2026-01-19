@@ -208,12 +208,38 @@ Based on your specialties ({', '.join(persona.specialties)}), suggest dishes tha
 - Have variety (different meal types, techniques)
 {"- Exclude these (already have recipes): " + exclude_str if exclude else ""}
 
-IMPORTANT - Food name rules:
-- Use ONLY the simple, standard food name (e.g., "비빔밥", "김치찌개", "불고기")
-- Do NOT add descriptions, adjectives, or combine multiple dishes
-- Do NOT use "와/과" (and) to combine foods
-- Bad examples: "전복구이와 트러플 리조또", "한우 갈비찜과 고구마 퓌레"
-- Good examples: "갈비찜", "된장찌개", "잡채", "삼겹살"
+IMPORTANT - Food name rules (STRICT - follow exactly):
+- Use ONLY the simple, canonical food name
+- Do NOT use adjectives (descriptive words like: crispy, delicious, homemade, spicy, fresh)
+- Do NOT use adverbs (words like: perfectly, freshly, slowly, very)
+- Do NOT add descriptions or combine multiple dishes
+- Do NOT use conjunctions to combine foods (and, with, 와/과, と, 和, и, etc.)
+
+BAD examples by language (NEVER use these formats):
+- English: "Crispy Fried Chicken" → "Fried Chicken", "Delicious Pasta" → "Pasta"
+- Korean (ko): "매콤한 김치찌개" → "김치찌개", "바삭한 치킨" → "치킨"
+- Japanese (ja): "美味しいラーメン" → "ラーメン", "サクサク天ぷら" → "天ぷら"
+- Chinese (zh): "香辣火锅" → "火锅", "美味炒饭" → "炒饭"
+- Spanish (es): "Deliciosa Paella" → "Paella", "Crujientes Churros" → "Churros"
+- French (fr): "Délicieux Croissant" → "Croissant", "Croustillant Poulet" → "Poulet Rôti"
+- German (de): "Leckere Bratwurst" → "Bratwurst", "Knusprige Schnitzel" → "Schnitzel"
+- Italian (it): "Deliziosa Pizza" → "Pizza", "Cremosa Carbonara" → "Carbonara"
+- Portuguese (pt): "Deliciosa Feijoada" → "Feijoada", "Crocante Pastel" → "Pastel"
+- Russian (ru): "Вкусный борщ" → "Борщ", "Хрустящие блины" → "Блины"
+- Arabic (ar): "كباب لذيذ" → "كباب", "فلافل مقرمشة" → "فلافل"
+- Hindi (hi): "स्वादिष्ट बिरयानी" → "बिरयानी", "कुरकुरा समोसा" → "समोसा"
+- Thai (th): "ผัดไทยอร่อย" → "ผัดไทย", "ต้มยำกุ้งรสเด็ด" → "ต้มยำกุ้ง"
+- Vietnamese (vi): "Phở ngon tuyệt" → "Phở", "Bánh mì giòn" → "Bánh mì"
+- Indonesian (id): "Nasi Goreng Lezat" → "Nasi Goreng", "Sate Ayam Empuk" → "Sate Ayam"
+- Turkish (tr): "Lezzetli Kebap" → "Kebap", "Çıtır Börek" → "Börek"
+- Dutch (nl): "Heerlijke Stroopwafel" → "Stroopwafel", "Krokante Bitterballen" → "Bitterballen"
+- Polish (pl): "Pyszne Pierogi" → "Pierogi", "Chrupiący Schabowy" → "Schabowy"
+- Swedish (sv): "Läckra Köttbullar" → "Köttbullar", "Krispig Smörgås" → "Smörgås"
+- Persian (fa): "کباب خوشمزه" → "کباب", "قورمه‌سبزی لذیذ" → "قورمه‌سبزی"
+
+GOOD examples (simple, canonical names only):
+- Use the standard dictionary name for the dish
+- No flavor descriptors, no texture words, no quality adjectives
 
 Return as JSON:
 {{
