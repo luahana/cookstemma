@@ -50,7 +50,7 @@ Generate a recipe with the following structure in JSON format:
     "title": "Recipe title (include dish name + key cooking method/style, e.g., 'Crispy Pan-Fried Chicken with Garlic Butter Sauce')",
     "description": "2-3 sentences that include: the dish name, main ingredients, cooking method, and why it's delicious. Write naturally but include searchable terms.",
     "servings": number (1-8),
-    "cookingTimeRange": "UNDER_15" | "UNDER_30" | "UNDER_60" | "OVER_60",
+    "cookingTimeRange": "UNDER_15_MIN" | "MIN_15_TO_30" | "MIN_30_TO_60" | "HOUR_1_TO_2" | "OVER_2_HOURS",
     "ingredients": [
         {{
             "name": "ingredient name",
@@ -143,7 +143,7 @@ Generate a variant recipe in JSON format:
     "title": "Title with variation type + dish name (e.g., 'Quick 15-Minute Garlic Butter Shrimp' or 'Healthy Low-Carb Chicken Stir-Fry')",
     "description": "2-3 sentences that include: what changed, the dish name, key ingredients, and cooking method. Write naturally but include searchable terms.",
     "servings": number,
-    "cookingTimeRange": "UNDER_15" | "UNDER_30" | "UNDER_60" | "OVER_60",
+    "cookingTimeRange": "UNDER_15_MIN" | "MIN_15_TO_30" | "MIN_30_TO_60" | "HOUR_1_TO_2" | "OVER_2_HOURS",
     "ingredients": [
         {{
             "name": "ingredient name",
