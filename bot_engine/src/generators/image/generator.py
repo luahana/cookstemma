@@ -1,7 +1,7 @@
-"""Image generator using Nano Banana Pro or DALL-E fallback."""
+"""Image generator using DALL-E."""
 
 import io
-from typing import List, Optional
+from typing import Optional
 
 import httpx
 import structlog
@@ -21,16 +21,13 @@ logger = structlog.get_logger()
 
 
 class ImageGenerator:
-    """Generate food images using AI image generation services."""
+    """Generate food images using DALL-E."""
 
     def __init__(
         self,
-        nano_banana_api_key: Optional[str] = None,
         openai_api_key: Optional[str] = None,
     ) -> None:
         settings = get_settings()
-        self.nano_banana_api_key = nano_banana_api_key or settings.nano_banana_api_key
-        self.nano_banana_base_url = settings.nano_banana_base_url
         self.openai_client = AsyncOpenAI(
             api_key=openai_api_key or settings.openai_api_key
         )
@@ -99,54 +96,6 @@ Shot with phone camera, natural indoor lighting, realistic presentation."""
         return f"{prompt}\nSubtle realistic details: {', '.join(selected)}."
 
     @retry(
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=2, min=5, max=60),
-    )
-    async def generate_with_nano_banana(
-        self,
-        prompt: str,
-        size: str = "1024x1024",
-    ) -> bytes:
-        """Generate image using Nano Banana Pro API."""
-        if not self.nano_banana_api_key:
-            raise ValueError("Nano Banana API key not configured")
-
-        client = await self._ensure_http_client()
-
-        response = await client.post(
-            f"{self.nano_banana_base_url}/images/generate",
-            headers={
-                "Authorization": f"Bearer {self.nano_banana_api_key}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "prompt": prompt,
-                "size": size,
-                "quality": "high",
-                "style": "realistic",
-            },
-        )
-        response.raise_for_status()
-
-        data = response.json()
-        image_url = data.get("url") or data.get("image_url")
-
-        if image_url:
-            # Download the image
-            img_response = await client.get(image_url)
-            img_response.raise_for_status()
-            return img_response.content
-
-        # If response contains base64 data
-        import base64
-
-        if "data" in data:
-            return base64.b64decode(data["data"])
-
-        raise ValueError("No image data in response")
-
-    @retry(
         retry=retry_if_exception_type(Exception),
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=2, min=5, max=60),
@@ -183,22 +132,10 @@ Shot with phone camera, natural indoor lighting, realistic presentation."""
         size: str = "1024x1024",
         add_imperfections: bool = True,
     ) -> bytes:
-        """Generate image using available service (Nano Banana or DALL-E fallback)."""
+        """Generate image using DALL-E."""
         if add_imperfections:
             prompt = self._add_realism_imperfections(prompt)
 
-        # Try Nano Banana first if available
-        if self.nano_banana_api_key:
-            try:
-                return await self.generate_with_nano_banana(prompt, size)
-            except Exception as e:
-                logger.warning(
-                    "nano_banana_failed",
-                    error=str(e),
-                    fallback="dalle",
-                )
-
-        # Fallback to DALL-E
         return await self.generate_with_dalle(prompt, size)
 
     async def generate_recipe_images(

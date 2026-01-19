@@ -1,7 +1,6 @@
 """Application settings using Pydantic Settings."""
 
 from functools import lru_cache
-from typing import Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -39,16 +38,6 @@ class Settings(BaseSettings):
     openai_temperature: float = Field(
         default=0.8,
         description="Temperature for text generation (0.0-2.0)",
-    )
-
-    # Image Generation Configuration
-    nano_banana_api_key: Optional[str] = Field(
-        default=None,
-        description="Nano Banana Pro API key for image generation",
-    )
-    nano_banana_base_url: str = Field(
-        default="https://api.nanobanana.pro/v1",
-        description="Nano Banana Pro API base URL",
     )
 
     # Redis Configuration (for Celery)

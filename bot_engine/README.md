@@ -132,7 +132,7 @@ bot-engine scheduler --time 10:00 --timezone America/New_York
 1. Text Generation (ChatGPT)
    └─> title, description, ingredients, steps, hashtags
 
-2. Image Generation (Nano Banana Pro / DALL-E)
+2. Image Generation (DALL-E)
    └─> Cover images (1-3), optional step images
 
 3. Image Upload
