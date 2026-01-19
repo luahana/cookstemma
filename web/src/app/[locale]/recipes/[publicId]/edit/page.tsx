@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getRecipeDetail, getRecipeModifiable, updateRecipe } from '@/lib/api/recipes';
 import { uploadImage } from '@/lib/api/images';
 import { getImageUrl } from '@/lib/utils/image';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import type {
   RecipeDetail,
   RecipeModifiable,
@@ -595,13 +596,7 @@ export default function RecipeEditPage() {
   };
 
   if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="animate-pulse">
-          <div className="w-12 h-12 rounded-full bg-[var(--primary-light)]" />
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error && !recipe) {

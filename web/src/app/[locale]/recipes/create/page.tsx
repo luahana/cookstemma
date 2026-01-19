@@ -12,17 +12,12 @@ import type { IngredientType, CookingTimeRange, IngredientDto, MeasurementUnit }
 import { COOKING_TIME_RANGES } from '@/lib/types';
 import { getDefaultCookingStyle } from '@/lib/utils/cookingStyle';
 import { CookingStyleSelect, COOKING_STYLE_OPTIONS } from '@/components/common/CookingStyleSelect';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { getImageUrl } from '@/lib/utils/image';
 
 // Loading fallback component
 function CreateRecipeLoading() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-      <div className="animate-pulse">
-        <div className="w-12 h-12 rounded-full bg-[var(--primary-light)]" />
-      </div>
-    </div>
-  );
+  return <LoadingSpinner />;
 }
 
 // Wrapper component with Suspense for useSearchParams
@@ -863,13 +858,7 @@ function CreateRecipeContent() {
 
   // Show loading state while auth is loading, redirecting to login, or loading parent
   if (authLoading || !isAuthenticated || isLoadingParent) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="animate-pulse">
-          <div className="w-12 h-12 rounded-full bg-[var(--primary-light)]" />
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

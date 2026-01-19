@@ -10,6 +10,7 @@ import { getRecipes, getRecipeDetail } from '@/lib/api/recipes';
 import { uploadImage } from '@/lib/api/images';
 import { getImageUrl } from '@/lib/utils/image';
 import { StarRatingSelector } from '@/components/log/StarRating';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import type { Rating, RecipeSummary, RecipeDetail } from '@/lib/types';
 
 // Constants matching Flutter app
@@ -36,13 +37,7 @@ interface UploadedImage {
 
 export default function CreateLogPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="animate-pulse">
-          <div className="w-12 h-12 rounded-full bg-[var(--primary-light)]" />
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<LoadingSpinner />}>
       <CreateLogPageContent />
     </Suspense>
   );
@@ -279,13 +274,7 @@ function CreateLogPageContent() {
 
   // Show loading state while auth is loading or redirecting to login
   if (authLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="animate-pulse">
-          <div className="w-12 h-12 rounded-full bg-[var(--primary-light)]" />
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

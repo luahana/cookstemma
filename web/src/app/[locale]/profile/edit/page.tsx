@@ -9,6 +9,7 @@ import {
   CookingStyleSelect,
   COOKING_STYLE_OPTIONS,
 } from '@/components/common/CookingStyleSelect';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import type { MeasurementPreference, UpdateProfileRequest } from '@/lib/types';
 
 // Character limits (matching database constraints)
@@ -284,15 +285,7 @@ export default function ProfileEditPage() {
   };
 
   if (authLoading || isLoading) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-[var(--highlight-bg)] rounded w-1/3" />
-          <div className="h-32 bg-[var(--highlight-bg)] rounded" />
-          <div className="h-32 bg-[var(--highlight-bg)] rounded" />
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

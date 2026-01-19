@@ -7,6 +7,7 @@ import { getSavedRecipes, getSavedLogs } from '@/lib/api/saved';
 import { RecipeCard } from '@/components/recipe/RecipeCard';
 import { LogCard } from '@/components/log/LogCard';
 import { Pagination } from '@/components/common/Pagination';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import type { RecipeSummary, LogPostSummary, UnifiedPageResponse } from '@/lib/types';
 
 type TabType = 'recipes' | 'logs';
@@ -57,14 +58,7 @@ export default function SavedPage() {
   }, [authLoading, isAuthenticated, router]);
 
   if (authLoading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-[var(--border)] rounded w-48 mb-4"></div>
-          <div className="h-4 bg-[var(--border)] rounded w-64 mb-8"></div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!isAuthenticated) {
