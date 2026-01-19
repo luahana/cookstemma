@@ -10,6 +10,7 @@ import { createLog } from '@/lib/api/logs';
 import { getRecipes, getRecipeDetail } from '@/lib/api/recipes';
 import { uploadImage } from '@/lib/api/images';
 import { getImageUrl } from '@/lib/utils/image';
+import { getViewHistory, ViewHistoryItem } from '@/lib/utils/viewHistory';
 import { StarRatingSelector } from '@/components/log/StarRating';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import type { Rating, RecipeSummary, RecipeDetail } from '@/lib/types';
@@ -19,14 +20,7 @@ const MAX_CONTENT_LENGTH = 500;
 const MAX_HASHTAGS = 5;
 const MAX_HASHTAG_LENGTH = 30;
 
-// Rating labels for feedback
-const RATING_LABELS: Record<number, string> = {
-  1: 'Poor - Lesson learned',
-  2: 'Fair - Needs work',
-  3: 'Good - Decent result',
-  4: 'Great - Almost perfect',
-  5: 'Excellent - Nailed it!',
-};
+// Rating labels are now handled by translations
 
 interface UploadedImage {
   file: File;
@@ -49,7 +43,10 @@ function CreateLogPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const t = useTranslations('errors');
+  const tErrors = useTranslations('errors');
+  const t = useTranslations('logCreate');
+  const tLogs = useTranslations('logs');
+  const tCommon = useTranslations('common');
 
   // Form state
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeDetail | null>(null);
@@ -66,6 +63,7 @@ function CreateLogPageContent() {
   const [recipeSearchQuery, setRecipeSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<RecipeSummary[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [recentRecipes, setRecentRecipes] = useState<ViewHistoryItem[]>([]);
 
   // Load recipe from URL parameter if provided
   useEffect(() => {
@@ -83,6 +81,17 @@ function CreateLogPageContent() {
       router.push('/login?redirect=/logs/create');
     }
   }, [isAuthenticated, authLoading, router]);
+
+  // Load recently viewed recipes when modal opens
+  useEffect(() => {
+    if (showRecipeSearch) {
+      const history = getViewHistory();
+      const recipes = history
+        .filter((item) => item.type === 'recipe')
+        .slice(0, 5);
+      setRecentRecipes(recipes);
+    }
+  }, [showRecipeSearch]);
 
   // Search recipes
   const searchRecipes = useCallback(async (query: string) => {
@@ -116,6 +125,19 @@ function CreateLogPageContent() {
   const handleSelectRecipe = async (recipe: RecipeSummary) => {
     try {
       const detail = await getRecipeDetail(recipe.publicId);
+      setSelectedRecipe(detail);
+      setShowRecipeSearch(false);
+      setRecipeSearchQuery('');
+      setSearchResults([]);
+    } catch {
+      setError('Failed to load recipe details');
+    }
+  };
+
+  // Handle selecting from recently viewed
+  const handleSelectRecentRecipe = async (item: ViewHistoryItem) => {
+    try {
+      const detail = await getRecipeDetail(item.publicId);
       setSelectedRecipe(detail);
       setShowRecipeSearch(false);
       setRecipeSearchQuery('');
@@ -252,7 +274,7 @@ function CreateLogPageContent() {
     // Check for at least one successfully uploaded image
     const successfulImages = images.filter((img) => img.publicId && !img.error);
     if (successfulImages.length === 0) {
-      setError(t('photoRequired'));
+      setError(tErrors('photoRequired'));
       return;
     }
 
@@ -298,13 +320,13 @@ function CreateLogPageContent() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Logs
+            {tLogs('backToLogs')}
           </Link>
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">
-            New Cooking Log
+            {tLogs('create')}
           </h1>
           <p className="text-[var(--text-secondary)] mt-2">
-            Share your cooking experience with the community
+            {t('subtitle')}
           </p>
         </div>
 
@@ -312,7 +334,7 @@ function CreateLogPageContent() {
           {/* Recipe Selection */}
           <div>
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              Recipe <span className="text-[var(--error)]">*</span>
+              {t('recipeLabel')} <span className="text-[var(--error)]">*</span>
             </label>
             {selectedRecipe ? (
               <div className="flex items-center gap-4 p-4 bg-[var(--surface)] rounded-xl border border-[var(--border)]">
@@ -352,17 +374,27 @@ function CreateLogPageContent() {
                   onClick={() => setShowRecipeSearch(true)}
                   className="w-full p-4 bg-[var(--surface)] rounded-xl border border-[var(--border)] border-dashed text-[var(--text-secondary)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors text-left"
                 >
-                  Click to select a recipe you cooked...
+                  {t('selectRecipePlaceholder')}
                 </button>
 
                 {/* Recipe Search Modal */}
                 {showRecipeSearch && (
-                  <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center pt-20 px-4">
-                    <div className="bg-[var(--surface)] rounded-2xl w-full max-w-lg shadow-xl max-h-[70vh] overflow-hidden flex flex-col">
+                  <div
+                    className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center pt-20 px-4"
+                    onClick={() => {
+                      setShowRecipeSearch(false);
+                      setRecipeSearchQuery('');
+                      setSearchResults([]);
+                    }}
+                  >
+                    <div
+                      className="bg-[var(--surface)] rounded-2xl w-full max-w-lg shadow-xl max-h-[70vh] overflow-hidden flex flex-col"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="p-4 border-b border-[var(--border)]">
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-                            Select Recipe
+                            {t('selectRecipe')}
                           </h3>
                           <button
                             type="button"
@@ -382,7 +414,7 @@ function CreateLogPageContent() {
                           type="text"
                           value={recipeSearchQuery}
                           onChange={(e) => setRecipeSearchQuery(e.target.value)}
-                          placeholder="Search recipes..."
+                          placeholder={t('searchRecipes')}
                           className="w-full px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--primary)]"
                           autoFocus
                         />
@@ -429,11 +461,51 @@ function CreateLogPageContent() {
                           </div>
                         ) : recipeSearchQuery.length >= 2 ? (
                           <p className="text-center text-[var(--text-secondary)] py-8">
-                            No recipes found
+                            {t('noRecipesFound')}
                           </p>
+                        ) : recentRecipes.length > 0 ? (
+                          <div>
+                            <p className="text-sm font-medium text-[var(--text-secondary)] px-3 py-2">
+                              Recently Viewed
+                            </p>
+                            <div className="space-y-1">
+                              {recentRecipes.map((item) => (
+                                <button
+                                  key={item.publicId}
+                                  type="button"
+                                  onClick={() => handleSelectRecentRecipe(item)}
+                                  className="w-full flex items-center gap-3 p-3 hover:bg-[var(--background)] rounded-lg transition-colors text-left"
+                                >
+                                  {item.thumbnail ? (
+                                    <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                                      <Image
+                                        src={getImageUrl(item.thumbnail) || ''}
+                                        alt={item.title}
+                                        fill
+                                        className="object-cover"
+                                        sizes="48px"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="w-12 h-12 rounded-lg bg-[var(--background)] flex items-center justify-center flex-shrink-0">
+                                      <span className="text-2xl">🍳</span>
+                                    </div>
+                                  )}
+                                  <div className="min-w-0">
+                                    <p className="font-medium text-[var(--text-primary)] truncate">
+                                      {item.title}
+                                    </p>
+                                    <p className="text-sm text-[var(--text-secondary)] truncate">
+                                      {item.foodName}
+                                    </p>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         ) : (
                           <p className="text-center text-[var(--text-secondary)] py-8">
-                            Type at least 2 characters to search
+                            {t('searchMinChars')}
                           </p>
                         )}
                       </div>
@@ -447,7 +519,7 @@ function CreateLogPageContent() {
           {/* Rating Selection */}
           <div>
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-3">
-              How did it go? <span className="text-[var(--error)]">*</span>
+              {t('ratingLabel')} <span className="text-[var(--error)]">*</span>
             </label>
             <div className="flex flex-col items-center gap-3 p-4 bg-[var(--surface)] rounded-xl border border-[var(--border)]">
               <StarRatingSelector
@@ -456,7 +528,11 @@ function CreateLogPageContent() {
                 size="lg"
               />
               <p className="text-sm text-[var(--text-secondary)]">
-                {RATING_LABELS[rating]}
+                {rating === 1 ? t('ratingPoor') :
+                 rating === 2 ? t('ratingFair') :
+                 rating === 3 ? t('ratingGood') :
+                 rating === 4 ? t('ratingGreat') :
+                 t('ratingExcellent')}
               </p>
             </div>
           </div>
@@ -467,7 +543,7 @@ function CreateLogPageContent() {
               htmlFor="content"
               className="block text-sm font-medium text-[var(--text-primary)] mb-2"
             >
-              Cooking Notes <span className="text-[var(--error)]">*</span>
+              {t('notesLabel')} <span className="text-[var(--error)]">*</span>
             </label>
             <textarea
               id="content"
@@ -476,7 +552,7 @@ function CreateLogPageContent() {
               rows={6}
               maxLength={MAX_CONTENT_LENGTH}
               className="w-full px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)] resize-none"
-              placeholder="How did it turn out? Share your experience, tips, or modifications..."
+              placeholder={t('notesPlaceholder')}
             />
             <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">
               {content.length}/{MAX_CONTENT_LENGTH}
@@ -486,7 +562,7 @@ function CreateLogPageContent() {
           {/* Images */}
           <div>
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              Photos (1-3) <span className="text-[var(--error)]">*</span>
+              {t('photosLabel', { max: 3 })} <span className="text-[var(--error)]">*</span>
             </label>
             <div className="flex gap-3 flex-wrap">
               {images.map((img) => (
@@ -549,7 +625,7 @@ function CreateLogPageContent() {
           {/* Hashtags */}
           <div>
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              Hashtags (optional, max {MAX_HASHTAGS})
+              {t('hashtagsLabel', { max: MAX_HASHTAGS })}
             </label>
             {/* Tag chips */}
             {hashtags.length > 0 && (
@@ -583,7 +659,7 @@ function CreateLogPageContent() {
                   onKeyDown={handleHashtagKeyDown}
                   maxLength={MAX_HASHTAG_LENGTH}
                   className="flex-1 px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
-                  placeholder="Add a hashtag..."
+                  placeholder={t('hashtagPlaceholder')}
                 />
                 <button
                   type="button"
@@ -596,7 +672,7 @@ function CreateLogPageContent() {
               </div>
             )}
             <p className="text-xs text-[var(--text-secondary)] mt-1">
-              Press Enter or comma to add • {hashtags.length}/{MAX_HASHTAGS} tags
+              {t('hashtagHint', { count: hashtags.length, max: MAX_HASHTAGS })}
             </p>
           </div>
 
@@ -613,7 +689,7 @@ function CreateLogPageContent() {
               href="/logs"
               className="flex-1 py-3 text-center text-[var(--text-primary)] border border-[var(--border)] rounded-xl font-medium hover:bg-[var(--surface)] transition-colors"
             >
-              Cancel
+              {tCommon('cancel')}
             </Link>
             <button
               type="submit"
@@ -626,10 +702,10 @@ function CreateLogPageContent() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Creating...
+                  {t('creating')}
                 </>
               ) : (
-                'Create Log'
+                t('createLog')
               )}
             </button>
           </div>
