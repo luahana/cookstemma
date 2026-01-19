@@ -54,7 +54,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
           </p>
           <Link
             href={`/logs/create?recipe=${recipePublicId}`}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dark)] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)] dark:bg-[var(--secondary)] text-white rounded-lg hover:bg-[var(--primary-dark)] dark:hover:bg-[#6D4C41] transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -189,13 +189,13 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
       <div className="mt-6">
         <Link
           href={`/logs/create?recipe=${recipePublicId}`}
-          className="flex items-center justify-between gap-4 px-5 py-4 bg-[var(--surface)] border border-[var(--border)] border-l-4 border-l-[var(--primary)] rounded-xl hover:bg-[var(--background)] transition-colors"
+          className="flex items-center justify-between gap-4 px-5 py-4 bg-[var(--surface)] border border-[var(--border)] border-l-4 border-l-[var(--primary)] dark:border-l-[var(--secondary)] rounded-xl hover:bg-[var(--background)] transition-colors"
         >
           <div>
             <p className="font-semibold text-[var(--text-primary)]">Made this recipe?</p>
             <p className="text-sm text-[var(--text-secondary)]">Share your cooking experience with others</p>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white font-medium rounded-lg shrink-0 text-sm">
+          <div className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] dark:bg-[var(--secondary)] text-white font-medium rounded-lg shrink-0 text-sm">
             <svg
               className="w-4 h-4"
               fill="none"

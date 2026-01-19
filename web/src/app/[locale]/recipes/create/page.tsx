@@ -1657,7 +1657,7 @@ function CreateRecipeContent() {
                         type="button"
                         onClick={addHashtag}
                         disabled={!hashtagInput.trim()}
-                        className="px-4 py-3 bg-[var(--primary)] text-white rounded-xl hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-3 bg-[var(--primary)] dark:bg-[var(--secondary)] text-white rounded-xl hover:bg-[var(--primary-dark)] dark:hover:bg-[#6D4C41] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Add
                       </button>
@@ -1743,7 +1743,7 @@ function CreateRecipeContent() {
             <button
               type="submit"
               disabled={isSubmitting || photos.some((p) => p.type === 'uploaded' && p.uploadedImage?.uploading) || steps.some((s) => s.image?.uploading)}
-              className="flex-1 py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 py-3 bg-[var(--primary)] dark:bg-[var(--secondary)] text-white rounded-xl font-medium hover:bg-[var(--primary-dark)] dark:hover:bg-[#6D4C41] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
