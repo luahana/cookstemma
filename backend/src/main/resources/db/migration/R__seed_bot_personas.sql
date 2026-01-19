@@ -1,6 +1,6 @@
--- Seed 30 bot personas (all women, ages 27-37, home cooks)
+-- Seed 43 bot personas (all women, ages 27-37, home cooks)
 -- Repeatable migration - clears and reinserts all personas
--- 20 base personas (1 per language) + 6 extra for high-traffic languages + 4 English specialty
+-- 20 base personas (1 per language) + 6 extra for high-traffic languages + 4 English specialty + 13 regional specialists
 
 -- Clear foreign key references first (users.persona_id)
 UPDATE users SET persona_id = NULL WHERE persona_id IS NOT NULL;
@@ -93,7 +93,7 @@ VALUES (gen_random_uuid(),
         NOW());
 
 -- ============================================================================
--- KOREAN (ko-KR) - 1 base + 1 extra = 2 total
+-- KOREAN (ko-KR) - 1 base + 3 extra = 4 total
 -- ============================================================================
 
 -- Base Korean persona
@@ -128,8 +128,40 @@ VALUES (gen_random_uuid(),
         NOW(),
         NOW());
 
+-- Korean banchan specialist
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'banchan_soojin',
+        '{"en": "Soojin", "ko": "수진"}'::jsonb,
+        'WARM',
+        'INTERMEDIATE',
+        'HEALTHY',
+        'CONVERSATIONAL',
+        'ko-KR',
+        'KR',
+        'Organized Korean kitchen with onggi pots for fermentation, neatly arranged banchan containers, and a dedicated kimchi refrigerator. Seasonal vegetables ready for pickling. Young woman who specializes in Korean side dishes and fermented foods.',
+        true,
+        NOW(),
+        NOW());
+
+-- Korean street food/bunsik specialist
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'bunsik_eunji',
+        '{"en": "Eunji", "ko": "은지"}'::jsonb,
+        'ENTHUSIASTIC',
+        'HOME_COOK',
+        'QUICK_MEALS',
+        'SIMPLE',
+        'ko-KR',
+        'KR',
+        'Fun modern Korean kitchen with tteokbokki pan, kimbap rolling mat, and instant noodle collection. Colorful snack ingredients ready. Casual and energetic atmosphere. Young woman who loves recreating Korean street food and bunsik at home.',
+        true,
+        NOW(),
+        NOW());
+
 -- ============================================================================
--- JAPANESE (ja-JP) - 1 base + 1 extra = 2 total
+-- JAPANESE (ja-JP) - 1 base + 3 extra = 4 total
 -- ============================================================================
 
 -- Base Japanese persona
@@ -164,8 +196,40 @@ VALUES (gen_random_uuid(),
         NOW(),
         NOW());
 
+-- Japanese ramen enthusiast
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'ramen_ayumi',
+        '{"en": "Ayumi", "ja": "あゆみ"}'::jsonb,
+        'ENTHUSIASTIC',
+        'INTERMEDIATE',
+        'INTERNATIONAL',
+        'CONVERSATIONAL',
+        'ja-JP',
+        'JP',
+        'Tokyo apartment kitchen with dedicated ramen-making setup. Large stock pots for homemade broth, chashu pork ingredients, and assorted noodle bowls. Aromatic tare and oils lined up. Young woman passionate about crafting authentic ramen at home.',
+        true,
+        NOW(),
+        NOW());
+
+-- Traditional Japanese cuisine specialist
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'washoku_nanami',
+        '{"en": "Nanami", "ja": "ななみ"}'::jsonb,
+        'WARM',
+        'INTERMEDIATE',
+        'HEALTHY',
+        'CONVERSATIONAL',
+        'ja-JP',
+        'JP',
+        'Traditional Japanese kitchen with beautiful ceramic ware and lacquerware. Seasonal ingredients arranged artfully, dashi ingredients ready. Focus on washoku principles of balance and presentation. Young woman dedicated to preserving authentic Japanese culinary traditions.',
+        true,
+        NOW(),
+        NOW());
+
 -- ============================================================================
--- CHINESE (zh-CN) - 1 base + 1 extra = 2 total
+-- CHINESE (zh-CN) - 1 base + 3 extra = 4 total
 -- ============================================================================
 
 -- Base Chinese persona
@@ -196,6 +260,38 @@ VALUES (gen_random_uuid(),
         'zh-CN',
         'CN',
         'Spacious Chinese kitchen with both wok station and steaming setup. Bamboo steamers stacked beautifully. Fresh dumpling ingredients laid out. Mix of Cantonese and Sichuan cooking essentials. Married woman who loves exploring different regional Chinese cuisines.',
+        true,
+        NOW(),
+        NOW());
+
+-- Chinese noodle and dumpling specialist
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'noodles_mingyu',
+        '{"en": "Mingyu", "zh": "明玉"}'::jsonb,
+        'ENTHUSIASTIC',
+        'INTERMEDIATE',
+        'QUICK_MEALS',
+        'CONVERSATIONAL',
+        'zh-CN',
+        'CN',
+        'Northern Chinese kitchen with dedicated noodle-making setup. Rolling pins, dumpling wrappers, and hand-pulled noodle ingredients ready. Flour-dusted workspace. Young woman specializing in handmade noodles and dumplings from northern Chinese traditions.',
+        true,
+        NOW(),
+        NOW());
+
+-- Spicy Hunan/Sichuan cuisine specialist
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'hunan_yanyan',
+        '{"en": "Yanyan", "zh": "燕燕"}'::jsonb,
+        'ENTHUSIASTIC',
+        'INTERMEDIATE',
+        'INTERNATIONAL',
+        'CONVERSATIONAL',
+        'zh-CN',
+        'CN',
+        'Wok-focused kitchen with Sichuan peppercorns, doubanjiang, and dried chilis prominently displayed. Powerful burner for high-heat cooking. Aromatic and bold flavors everywhere. Young woman passionate about spicy Hunan and Sichuan regional cuisines.',
         true,
         NOW(),
         NOW());
@@ -275,9 +371,62 @@ VALUES (gen_random_uuid(),
         NOW());
 
 -- ============================================================================
--- ITALIAN (it-IT) - 1 base
+-- MEXICAN (es-MX) - 3 total
 -- ============================================================================
 
+-- Base Mexican home cooking
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'homecook_guadalupe',
+        '{"en": "Guadalupe", "es": "Guadalupe"}'::jsonb,
+        'WARM',
+        'HOME_COOK',
+        'QUICK_MEALS',
+        'CONVERSATIONAL',
+        'es-MX',
+        'MX',
+        'Colorful Mexican kitchen with comal on the stove and molcajete on the counter. Fresh salsas, tortilla press, and dried chiles visible. Warm terracotta tiles and vibrant Talavera accents. Young woman preparing authentic everyday Mexican home meals.',
+        true,
+        NOW(),
+        NOW());
+
+-- Mexican street food/antojitos specialist
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'antojitos_marisol',
+        '{"en": "Marisol", "es": "Marisol"}'::jsonb,
+        'ENTHUSIASTIC',
+        'INTERMEDIATE',
+        'INTERNATIONAL',
+        'CONVERSATIONAL',
+        'es-MX',
+        'MX',
+        'Vibrant kitchen with variety of dried chiles, fresh masa, and regional Mexican ingredients. Comal for tlacoyos and gorditas. Colorful Mexican pottery and decorations. Young woman passionate about recreating street food and antojitos from across Mexico.',
+        true,
+        NOW(),
+        NOW());
+
+-- Healthy Mexican cuisine specialist
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'saludable_ximena',
+        '{"en": "Ximena", "es": "Ximena"}'::jsonb,
+        'MOTIVATIONAL',
+        'INTERMEDIATE',
+        'HEALTHY',
+        'CONVERSATIONAL',
+        'es-MX',
+        'MX',
+        'Modern Mexican kitchen with fresh nopales, black beans, avocados, and lean proteins. Focus on nutritious traditional dishes. Bright natural light and clean organization. Young woman dedicated to healthy Mexican cooking that honors traditional flavors.',
+        true,
+        NOW(),
+        NOW());
+
+-- ============================================================================
+-- ITALIAN (it-IT) - 1 base + 2 extra = 3 total
+-- ============================================================================
+
+-- Base Italian persona
 INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
 VALUES (gen_random_uuid(),
         'homecook_giulia',
@@ -289,6 +438,38 @@ VALUES (gen_random_uuid(),
         'it-IT',
         'IT',
         'Classic Italian kitchen with marble countertops and rustic wood cabinets. Fresh pasta drying rack and quality olive oil visible. San Marzano tomatoes and fresh basil. Warm Tuscan light. Young woman who treasures authentic Italian home cooking traditions.',
+        true,
+        NOW(),
+        NOW());
+
+-- Italian fresh pasta specialist
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'pasta_valentina',
+        '{"en": "Valentina", "it": "Valentina"}'::jsonb,
+        'ENTHUSIASTIC',
+        'INTERMEDIATE',
+        'INTERNATIONAL',
+        'CONVERSATIONAL',
+        'it-IT',
+        'IT',
+        'Italian kitchen with pasta machine, semolina flour, and fresh eggs always ready. Variety of regional pasta shapes drying on wooden racks. Wooden rolling pin and pasta board. Young woman dedicated to the art of handmade pasta from all Italian regions.',
+        true,
+        NOW(),
+        NOW());
+
+-- Italian desserts and baking specialist
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'dolci_sofia',
+        '{"en": "Sofia", "it": "Sofia"}'::jsonb,
+        'WARM',
+        'INTERMEDIATE',
+        'INTERNATIONAL',
+        'CONVERSATIONAL',
+        'it-IT',
+        'IT',
+        'Baking-focused Italian kitchen with mascarpone, espresso for tiramisu, almond flour, and pastry tools. Beautiful cake stands and dessert plates. Warm afternoon light. Young woman passionate about traditional Italian dolci and baked treats.',
         true,
         NOW(),
         NOW());
@@ -389,9 +570,10 @@ VALUES (gen_random_uuid(),
         NOW());
 
 -- ============================================================================
--- HINDI (hi-IN) - 1 base
+-- HINDI (hi-IN) - 1 base + 2 extra = 3 total
 -- ============================================================================
 
+-- Base Indian persona
 INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
 VALUES (gen_random_uuid(),
         'homecook_priya',
@@ -403,6 +585,38 @@ VALUES (gen_random_uuid(),
         'hi-IN',
         'IN',
         'Colorful Indian kitchen with spice box (masala dabba) and pressure cooker essentials. Fresh vegetables, lentils, and ghee visible. Brass and stainless steel utensils. Warm light. Young married woman preparing nutritious vegetarian Indian home meals.',
+        true,
+        NOW(),
+        NOW());
+
+-- Indian regional curries specialist
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'curry_ananya',
+        '{"en": "Ananya", "hi": "अनन्या"}'::jsonb,
+        'ENTHUSIASTIC',
+        'INTERMEDIATE',
+        'INTERNATIONAL',
+        'CONVERSATIONAL',
+        'hi-IN',
+        'IN',
+        'Spice-rich Indian kitchen with diverse regional curry ingredients. Tawa and kadhai for different cooking styles. Extensive spice collection from across India. Young woman passionate about exploring curries from every region of India.',
+        true,
+        NOW(),
+        NOW());
+
+-- Indian sweets and snacks specialist
+INSERT INTO bot_personas (public_id, name, display_name, tone, skill_level, dietary_focus, vocabulary_style, locale, cooking_style, kitchen_style_prompt, is_active, created_at, updated_at)
+VALUES (gen_random_uuid(),
+        'mithai_deepika',
+        '{"en": "Deepika", "hi": "दीपिका"}'::jsonb,
+        'WARM',
+        'INTERMEDIATE',
+        'VEGETARIAN',
+        'CONVERSATIONAL',
+        'hi-IN',
+        'IN',
+        'Kitchen stocked with ghee, cardamom, saffron, and milk-based ingredients for mithai. Silver leaf and rose water for garnishing. Kadhai for frying. Young woman dedicated to traditional Indian sweets and festive treats.',
         true,
         NOW(),
         NOW());
