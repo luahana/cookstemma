@@ -7,9 +7,17 @@ import { Link, usePathname, useRouter } from '@/i18n/navigation';
 import { routing, type Locale } from '@/i18n/routing';
 import { siteConfig } from '@/config/site';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme, type Theme } from '@/contexts/ThemeContext';
+import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { updateUserProfile } from '@/lib/api/users';
 import { dispatchMeasurementChange } from '@/lib/utils/measurement';
 import type { MeasurementPreference } from '@/lib/types';
+
+const THEME_OPTIONS: { value: Theme; labelKey: string }[] = [
+  { value: 'light', labelKey: 'lightMode' },
+  { value: 'dark', labelKey: 'darkMode' },
+  { value: 'system', labelKey: 'systemMode' },
+];
 
 const LOCALE_OPTIONS: { value: Locale; label: string; dir: 'ltr' | 'rtl' }[] = [
   { value: 'en', label: 'English', dir: 'ltr' },
@@ -207,6 +215,44 @@ export function Header() {
                 </svg>
               </Link>
 
+              {/* Measurement Selector */}
+              <div className="relative" ref={measurementMenuRef}>
+                <button
+                  onClick={() => {
+                    setIsMeasurementMenuOpen(!isMeasurementMenuOpen);
+                    setIsLocaleMenuOpen(false);
+                    setIsUserMenuOpen(false);
+                  }}
+                  className="flex items-center gap-1 px-2 py-1.5 text-sm rounded-lg hover:bg-[var(--background)] transition-colors text-[var(--text-secondary)]"
+                  title={t('measurementUnits')}
+                >
+                  <span className="text-xs">{tMeasurement(currentMeasurementOption.labelKey)}</span>
+                  <svg
+                    className={`w-3 h-3 transition-transform ${isMeasurementMenuOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {isMeasurementMenuOpen && (
+                  <div className="absolute end-0 mt-2 w-28 bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-lg py-1 z-50">
+                    {MEASUREMENT_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => handleMeasurementChange(opt.value as MeasurementPreference)}
+                        className={`w-full text-start px-3 py-2 text-sm hover:bg-[var(--background)] ${
+                          opt.value === currentMeasurement ? 'bg-[var(--primary-light)] text-[var(--primary)]' : 'text-[var(--text-primary)]'
+                        }`}
+                      >
+                        {tMeasurement(opt.labelKey)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Language Selector */}
               <div className="relative" ref={localeMenuRef}>
                 <button
@@ -219,9 +265,6 @@ export function Header() {
                   className={`flex items-center gap-1 px-2 py-1.5 text-sm rounded-lg hover:bg-[var(--background)] transition-colors text-[var(--text-secondary)] ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                   title={t('language')}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                  </svg>
                   <span className="text-xs">{currentLocaleOption.label}</span>
                   <svg
                     className={`w-3 h-3 transition-transform ${isLocaleMenuOpen ? 'rotate-180' : ''}`}
@@ -250,46 +293,16 @@ export function Header() {
                 )}
               </div>
 
-              {/* Measurement Selector */}
-              <div className="relative" ref={measurementMenuRef}>
-                <button
-                  onClick={() => {
-                    setIsMeasurementMenuOpen(!isMeasurementMenuOpen);
+              {/* Theme Toggle */}
+              <ThemeToggle
+                onMenuToggle={(isOpen) => {
+                  if (isOpen) {
                     setIsLocaleMenuOpen(false);
+                    setIsMeasurementMenuOpen(false);
                     setIsUserMenuOpen(false);
-                  }}
-                  className="flex items-center gap-1 px-2 py-1.5 text-sm rounded-lg hover:bg-[var(--background)] transition-colors text-[var(--text-secondary)]"
-                  title={t('measurementUnits')}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-                  </svg>
-                  <span className="text-xs">{tMeasurement(currentMeasurementOption.labelKey)}</span>
-                  <svg
-                    className={`w-3 h-3 transition-transform ${isMeasurementMenuOpen ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {isMeasurementMenuOpen && (
-                  <div className="absolute end-0 mt-2 w-28 bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-lg py-1 z-50">
-                    {MEASUREMENT_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => handleMeasurementChange(opt.value as MeasurementPreference)}
-                        className={`w-full text-start px-3 py-2 text-sm hover:bg-[var(--background)] ${
-                          opt.value === currentMeasurement ? 'bg-[var(--primary-light)] text-[var(--primary)]' : 'text-[var(--text-primary)]'
-                        }`}
-                      >
-                        {tMeasurement(opt.labelKey)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+                  }
+                }}
+              />
 
               {/* Auth Section */}
               {!isLoading && (
@@ -540,6 +553,24 @@ export function Header() {
               {t('settings')}
             </p>
 
+            {/* Measurement Select */}
+            <div>
+              <label className="block text-sm text-[var(--text-primary)] mb-2">
+                {t('measurementUnits')}
+              </label>
+              <select
+                value={currentMeasurement}
+                onChange={(e) => handleMeasurementChange(e.target.value as MeasurementPreference)}
+                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]"
+              >
+                {MEASUREMENT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {tMeasurement(opt.labelKey)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Language Select */}
             <div>
               <label className="block text-sm text-[var(--text-primary)] mb-2">
@@ -559,23 +590,8 @@ export function Header() {
               </select>
             </div>
 
-            {/* Measurement Select */}
-            <div>
-              <label className="block text-sm text-[var(--text-primary)] mb-2">
-                {t('measurementUnits')}
-              </label>
-              <select
-                value={currentMeasurement}
-                onChange={(e) => handleMeasurementChange(e.target.value as MeasurementPreference)}
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]"
-              >
-                {MEASUREMENT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {tMeasurement(opt.labelKey)}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Theme Select */}
+            <MobileThemeSelect />
           </div>
 
           {/* Divider */}
@@ -615,5 +631,29 @@ export function Header() {
         </div>
       </div>
     </>
+  );
+}
+
+function MobileThemeSelect() {
+  const t = useTranslations('nav');
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <div>
+      <label className="block text-sm text-[var(--text-primary)] mb-2">
+        {t('theme')}
+      </label>
+      <select
+        value={theme}
+        onChange={(e) => setTheme(e.target.value as Theme)}
+        className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]"
+      >
+        {THEME_OPTIONS.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {t(opt.labelKey)}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }

@@ -184,13 +184,13 @@ export default async function Home({ params }: Props) {
           <div className="flex justify-center gap-4">
             <Link
               href="/recipes"
-              className="px-6 py-3 bg-white text-[var(--primary)] font-semibold rounded-xl hover:bg-gray-100 transition-colors"
+              className="px-6 py-3 bg-white !text-gray-800 font-semibold rounded-xl hover:bg-gray-200 hover:scale-105 transition-all"
             >
               Browse Recipes
             </Link>
             <Link
               href="/search"
-              className="px-6 py-3 bg-[var(--primary-dark)] text-white font-semibold rounded-xl hover:bg-[var(--secondary)] transition-colors"
+              className="px-6 py-3 bg-[var(--primary-dark)] text-white font-semibold rounded-xl hover:bg-[var(--secondary)] hover:scale-105 transition-all"
             >
               Search
             </Link>
