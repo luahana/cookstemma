@@ -33,7 +33,7 @@ VARIANTS = {
     'THUMB_200': {'max_size': 200, 'quality': 70},
 }
 
-SUPPORTED_FORMATS = ['JPEG', 'WEBP']
+SUPPORTED_FORMATS = ['JPEG']
 
 
 def get_secret(secret_name: str) -> dict:
@@ -85,19 +85,15 @@ def resize_image(image: Image.Image, max_size: int) -> Image.Image:
 
 
 def convert_to_format(image: Image.Image, format: str, quality: int) -> tuple[bytes, str]:
-    """Convert image to specified format and return bytes + content type."""
+    """Convert image to JPEG format and return bytes + content type."""
     output = BytesIO()
 
     # Ensure RGB mode for JPEG (no alpha channel)
-    if format == 'JPEG' and image.mode in ('RGBA', 'P'):
+    if image.mode in ('RGBA', 'P'):
         image = image.convert('RGB')
 
-    if format == 'WEBP':
-        image.save(output, format='WEBP', quality=quality, method=6)
-        content_type = 'image/webp'
-    else:
-        image.save(output, format='JPEG', quality=quality, optimize=True)
-        content_type = 'image/jpeg'
+    image.save(output, format='JPEG', quality=quality, optimize=True)
+    content_type = 'image/jpeg'
 
     return output.getvalue(), content_type
 
@@ -105,7 +101,7 @@ def convert_to_format(image: Image.Image, format: str, quality: int) -> tuple[by
 def generate_variant_key(original_key: str, variant_name: str, format: str) -> str:
     """Generate S3 key for variant image."""
     # Original: images/abc123.jpg
-    # Variant: images/variants/LARGE_1200/abc123.jpg (or .webp)
+    # Variant: images/variants/LARGE_1200/abc123.jpg
     parts = original_key.rsplit('/', 1)
     if len(parts) == 2:
         prefix, filename = parts
@@ -113,13 +109,11 @@ def generate_variant_key(original_key: str, variant_name: str, format: str) -> s
         prefix = ''
         filename = original_key
 
-    # Change extension for WebP
     name, _ = os.path.splitext(filename)
-    new_ext = '.webp' if format == 'WEBP' else '.jpg'
 
     if prefix:
-        return f"{prefix}/variants/{variant_name}/{name}{new_ext}"
-    return f"variants/{variant_name}/{name}{new_ext}"
+        return f"{prefix}/variants/{variant_name}/{name}.jpg"
+    return f"variants/{variant_name}/{name}.jpg"
 
 
 def process_single_variant(
