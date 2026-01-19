@@ -121,7 +121,7 @@ resource "aws_lb_target_group" "web" {
     timeout             = 5
     interval            = 30
     path                = var.web_health_check_path
-    matcher             = "200"
+    matcher             = "200,307"  # 307 for Next.js i18n redirects
   }
 
   tags = {
