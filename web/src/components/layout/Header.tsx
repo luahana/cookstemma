@@ -305,97 +305,95 @@ export function Header() {
               />
 
               {/* Auth Section */}
-              {!isLoading && (
-                <>
-                  {isAuthenticated ? (
-                    <div className="relative" ref={userMenuRef}>
-                      <button
-                        onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-[var(--background)] transition-colors"
-                      >
-                        <div className="w-8 h-8 bg-[var(--primary-light)] rounded-full flex items-center justify-center">
-                          <span className="text-[var(--primary)] font-medium text-sm">
-                            {user?.username?.charAt(0).toUpperCase() || 'U'}
-                          </span>
-                        </div>
-                        <svg
-                          className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-
-                      {/* User Dropdown Menu */}
-                      {isUserMenuOpen && (
-                        <div className="absolute end-0 mt-2 w-48 bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-lg py-2 z-50">
-                          <div className="px-4 py-2 border-b border-[var(--border)]">
-                            <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                              {user?.username}
-                            </p>
-                          </div>
-                          <Link
-                            href={`/users/${user?.publicId}`}
-                            className="block px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background)]"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            {t('myProfile')}
-                          </Link>
-                          <Link
-                            href="/saved"
-                            className="block px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background)]"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            {t('saved')}
-                          </Link>
-                          <Link
-                            href="/recipes/create"
-                            className="block px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background)]"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            {t('createRecipe')}
-                          </Link>
-                          <Link
-                            href="/logs/create"
-                            className="block px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background)]"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            {t('newCookingLog')}
-                          </Link>
-                          {isAdmin && (
-                            <Link
-                              href="/admin"
-                              className="block px-4 py-2 text-sm text-[var(--primary)] font-medium hover:bg-[var(--background)]"
-                              onClick={() => setIsUserMenuOpen(false)}
-                            >
-                              {t('adminDashboard')}
-                            </Link>
-                          )}
-                          <div className="border-t border-[var(--border)] mt-2 pt-2">
-                            <button
-                              onClick={() => {
-                                setIsUserMenuOpen(false);
-                                signOut();
-                              }}
-                              className="w-full text-start px-4 py-2 text-sm text-[var(--error)] hover:bg-[var(--background)]"
-                            >
-                              {tCommon('signOut')}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <Link
-                      href="/login"
-                      className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors"
+              {isAuthenticated ? (
+                !isLoading && (
+                  <div className="relative" ref={userMenuRef}>
+                    <button
+                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-[var(--background)] transition-colors"
                     >
-                      {tCommon('signIn')}
-                    </Link>
-                  )}
-                </>
+                      <div className="w-8 h-8 bg-[var(--primary-light)] rounded-full flex items-center justify-center">
+                        <span className="text-[var(--primary)] font-medium text-sm">
+                          {user?.username?.charAt(0).toUpperCase() || 'U'}
+                        </span>
+                      </div>
+                      <svg
+                        className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* User Dropdown Menu */}
+                    {isUserMenuOpen && (
+                      <div className="absolute end-0 mt-2 w-48 bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-lg py-2 z-50">
+                        <div className="px-4 py-2 border-b border-[var(--border)]">
+                          <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                            {user?.username}
+                          </p>
+                        </div>
+                        <Link
+                          href={`/users/${user?.publicId}`}
+                          className="block px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background)]"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          {t('myProfile')}
+                        </Link>
+                        <Link
+                          href="/saved"
+                          className="block px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background)]"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          {t('saved')}
+                        </Link>
+                        <Link
+                          href="/recipes/create"
+                          className="block px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background)]"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          {t('createRecipe')}
+                        </Link>
+                        <Link
+                          href="/logs/create"
+                          className="block px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background)]"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          {t('newCookingLog')}
+                        </Link>
+                        {isAdmin && (
+                          <Link
+                            href="/admin"
+                            className="block px-4 py-2 text-sm text-[var(--primary)] font-medium hover:bg-[var(--background)]"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            {t('adminDashboard')}
+                          </Link>
+                        )}
+                        <div className="border-t border-[var(--border)] mt-2 pt-2">
+                          <button
+                            onClick={() => {
+                              setIsUserMenuOpen(false);
+                              signOut();
+                            }}
+                            className="w-full text-start px-4 py-2 text-sm text-[var(--error)] hover:bg-[var(--background)]"
+                          >
+                            {tCommon('signOut')}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              ) : (
+                <Link
+                  href="/login"
+                  className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors"
+                >
+                  {tCommon('signIn')}
+                </Link>
               )}
             </nav>
 
@@ -462,9 +460,9 @@ export function Header() {
           </form>
 
           {/* Mobile Auth Section */}
-          {!isLoading && (
-            <div className="mb-6">
-              {isAuthenticated ? (
+          <div className="mb-6">
+            {isAuthenticated ? (
+              !isLoading && (
                 <div className="flex items-center gap-3 px-4 py-3 bg-[var(--background)] rounded-lg">
                   <div className="w-10 h-10 bg-[var(--primary-light)] rounded-full flex items-center justify-center">
                     <span className="text-[var(--primary)] font-medium">
@@ -478,16 +476,16 @@ export function Header() {
                     <p className="text-xs text-[var(--text-secondary)]">{tCommon('signedIn')}</p>
                   </div>
                 </div>
-              ) : (
-                <Link
-                  href="/login"
-                  className="block w-full text-center px-4 py-3 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors"
-                >
-                  {tCommon('signIn')}
-                </Link>
-              )}
-            </div>
-          )}
+              )
+            ) : (
+              <Link
+                href="/login"
+                className="block w-full text-center px-4 py-3 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors"
+              >
+                {tCommon('signIn')}
+              </Link>
+            )}
+          </div>
 
           {/* Mobile Nav Links */}
           <nav className="space-y-1">
