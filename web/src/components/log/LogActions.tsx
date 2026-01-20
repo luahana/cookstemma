@@ -12,10 +12,9 @@ import type { LogPostDetail } from '@/lib/types';
 
 interface LogActionsProps {
   log: LogPostDetail;
-  onEditClick: () => void;
 }
 
-export function LogActions({ log, onEditClick }: LogActionsProps) {
+export function LogActions({ log }: LogActionsProps) {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const t = useTranslations('logs');
@@ -50,7 +49,7 @@ export function LogActions({ log, onEditClick }: LogActionsProps) {
   const menuItems = [
     {
       label: t('edit'),
-      onClick: onEditClick,
+      onClick: () => router.push(`/logs/${log.publicId}/edit`),
       icon: ActionMenuIcons.edit,
     },
     {

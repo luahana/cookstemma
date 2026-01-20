@@ -484,6 +484,8 @@
   },
   "logEdit": {
     "title": "Edit Cooking Log",
+    "backToLog": "Back to cooking log",
+    "cannotEdit": "Cannot Edit Log",
     "photosReadOnly": "Photos (cannot be changed)",
     "rating": "Rating",
     "ratingExcellent": "Excellent!",
@@ -500,6 +502,8 @@
     "saveChanges": "Save Changes",
     "saving": "Saving...",
     "errorContent": "Content is required",
+    "errorLoad": "Failed to load cooking log",
+    "errorNotOwner": "You can only edit your own cooking logs",
     "errorSave": "Failed to save changes. Please try again."
   },
   "variant": {
