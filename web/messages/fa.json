@@ -178,12 +178,15 @@
   "search": {
     "title": "جستجو",
     "placeholder": "جستجوی دستور، مواد یا کاربران...",
+    "searchPlaceholder": "جستجوی دستورها، یادداشت‌ها، هشتگ‌ها...",
     "searchRecipes": "جستجوی دستورها...",
     "searchButton": "جستجو",
     "recipes": "دستورها",
     "users": "کاربران",
     "hashtags": "هشتگ‌ها",
     "logs": "یادداشت‌ها",
+    "cookingLogs": "یادداشت‌های آشپزی",
+    "results": "نتایج",
     "all": "همه",
     "recentSearches": "جستجوهای اخیر",
     "clearAll": "پاک کردن همه",
@@ -193,7 +196,10 @@
     "recipe": "دستور",
     "log": "یادداشت",
     "noResults": "نتیجه‌ای یافت نشد",
+    "noResultsFor": "هیچ {type} برای \"{query}\" یافت نشد",
+    "resultsFor": "{count} {type} برای \"{query}\" یافت شد",
     "tryDifferent": "عبارت جستجوی دیگری را امتحان کنید",
+    "tryDifferentFilter": "عبارت جستجو یا فیلتر دیگری را امتحان کنید.",
     "removeFromHistory": "حذف \"{query}\" از تاریخچه"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "یادداشت",
     "logs": "یادداشت",
     "topContributors": "مشارکت‌کنندگان برتر:",
-    "postsTagged": "پست برچسب‌گذاری شده"
+    "postsTagged": "پست برچسب‌گذاری شده",
+    "postsTaggedCount": "{count} پست برچسب‌گذاری شده"
   },
   "changeDiff": {
     "title": "چه تغییراتی ایجاد شده",

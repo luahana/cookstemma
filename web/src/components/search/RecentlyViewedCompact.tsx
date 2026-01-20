@@ -135,15 +135,20 @@ export function RecentlyViewedCompact() {
                       </svg>
                     </div>
                   )}
-                  {/* Log badge with star rating */}
-                  <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[var(--secondary)] text-white text-xs font-medium rounded flex items-center gap-1">
-                    {item.rating && <StarRating rating={item.rating} size="sm" />}
+                  {/* Log badge */}
+                  <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[var(--secondary)] text-white text-xs font-medium rounded">
                     {t('log')}
                   </span>
                 </div>
                 <p className="text-sm text-[var(--text-primary)] font-medium truncate group-hover:text-[var(--secondary)] transition-colors">
                   {item.title}
                 </p>
+                {/* Star rating above food name */}
+                {item.rating && (
+                  <div className="mt-0.5">
+                    <StarRating rating={item.rating} size="sm" />
+                  </div>
+                )}
                 <p className="text-xs text-[var(--text-secondary)] truncate">
                   {item.foodName}
                 </p>

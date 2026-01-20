@@ -178,12 +178,15 @@
   "search": {
     "title": "Ara",
     "placeholder": "Tarif, malzeme veya kullanıcı ara...",
+    "searchPlaceholder": "Tarif, günlük, hashtag ara...",
     "searchRecipes": "Tarif ara...",
     "searchButton": "Ara",
     "recipes": "Tarifler",
     "users": "Kullanıcılar",
     "hashtags": "Hashtagler",
     "logs": "Günlükler",
+    "cookingLogs": "yemek günlükleri",
+    "results": "sonuçlar",
     "all": "Tümü",
     "recentSearches": "Son Aramalar",
     "clearAll": "Tümünü temizle",
@@ -193,7 +196,10 @@
     "recipe": "Tarif",
     "log": "Günlük",
     "noResults": "Sonuç bulunamadı",
+    "noResultsFor": "\"{query}\" için {type} bulunamadı",
+    "resultsFor": "\"{query}\" için {count} {type} bulundu",
     "tryDifferent": "Farklı bir arama terimi deneyin",
+    "tryDifferentFilter": "Farklı bir arama terimi veya filtre deneyin.",
     "removeFromHistory": "\"{query}\" geçmişten kaldırıldı"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "günlük",
     "logs": "günlük",
     "topContributors": "En çok katkıda bulunanlar:",
-    "postsTagged": "etiketli gönderi"
+    "postsTagged": "etiketli gönderi",
+    "postsTaggedCount": "{count} etiketli gönderi"
   },
   "changeDiff": {
     "title": "Neler Değişti",

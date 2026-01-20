@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { unifiedSearch } from '@/lib/api/search';
 import { Pagination } from '@/components/common/Pagination';
 import { SearchBar } from '@/components/search/SearchBar';
@@ -31,20 +32,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   };
 }
 
-function getResultTypeLabel(type: SearchTypeFilter): string {
-  switch (type) {
-    case 'recipes':
-      return 'recipes';
-    case 'logs':
-      return 'cooking logs';
-    case 'hashtags':
-      return 'hashtags';
-    default:
-      return 'results';
-  }
-}
-
 export default async function SearchPage({ searchParams }: Props) {
+  const t = await getTranslations('search');
   const params = await searchParams;
   const query = params.q || '';
   const type = (params.type as SearchTypeFilter) || 'all';
@@ -63,15 +52,29 @@ export default async function SearchPage({ searchParams }: Props) {
     ? `/search?${filterParams.toString()}`
     : '/search';
 
+  // Helper to get translated result type label
+  const getResultTypeLabel = (filterType: SearchTypeFilter): string => {
+    switch (filterType) {
+      case 'recipes':
+        return t('recipes');
+      case 'logs':
+        return t('cookingLogs');
+      case 'hashtags':
+        return t('hashtags');
+      default:
+        return t('results');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Page header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-4">
-          Search
+          {t('title')}
         </h1>
         <div className="max-w-2xl">
-          <SearchBar defaultValue={query} autoFocus={!query} placeholder="Search recipes, logs, hashtags..." />
+          <SearchBar defaultValue={query} autoFocus={!query} placeholder={t('searchPlaceholder')} />
         </div>
       </div>
 
@@ -87,8 +90,8 @@ export default async function SearchPage({ searchParams }: Props) {
           {results && (
             <p className="text-sm text-[var(--text-secondary)] mb-4">
               {results.totalElements === 0
-                ? `No ${getResultTypeLabel(type)} found for "${query}"`
-                : `${results.totalElements.toLocaleString()} ${getResultTypeLabel(type)} found for "${query}"`}
+                ? t('noResultsFor', { type: getResultTypeLabel(type), query })
+                : t('resultsFor', { count: results.totalElements.toLocaleString(), type: getResultTypeLabel(type), query })}
             </p>
           )}
 
@@ -118,7 +121,7 @@ export default async function SearchPage({ searchParams }: Props) {
                   </svg>
                 </div>
                 <p className="text-[var(--text-secondary)]">
-                  No {getResultTypeLabel(type)} found for &quot;{query}&quot;. Try a different search term or filter.
+                  {t('noResultsFor', { type: getResultTypeLabel(type), query })} {t('tryDifferentFilter')}
                 </p>
               </div>
             )

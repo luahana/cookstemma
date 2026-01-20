@@ -178,12 +178,15 @@
   "search": {
     "title": "खोजें",
     "placeholder": "रेसिपी, सामग्री या यूजर खोजें...",
+    "searchPlaceholder": "रेसिपी, लॉग, हैशटैग खोजें...",
     "searchRecipes": "रेसिपी खोजें...",
     "searchButton": "खोजें",
     "recipes": "रेसिपी",
     "users": "यूजर",
     "hashtags": "हैशटैग",
     "logs": "लॉग",
+    "cookingLogs": "कुकिंग लॉग",
+    "results": "परिणाम",
     "all": "सभी",
     "recentSearches": "हाल की खोजें",
     "clearAll": "सभी साफ करें",
@@ -193,7 +196,10 @@
     "recipe": "रेसिपी",
     "log": "लॉग",
     "noResults": "कोई परिणाम नहीं मिला",
+    "noResultsFor": "\"{query}\" के लिए कोई {type} नहीं मिला",
+    "resultsFor": "\"{query}\" के लिए {count} {type} मिले",
     "tryDifferent": "कोई अलग खोज शब्द आज़माएं",
+    "tryDifferentFilter": "कोई अलग खोज शब्द या फ़िल्टर आज़माएं।",
     "removeFromHistory": "\"{query}\" को इतिहास से हटाएं"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "लॉग",
     "logs": "लॉग",
     "topContributors": "टॉप योगदानकर्ता:",
-    "postsTagged": "पोस्ट टैग किए गए"
+    "postsTagged": "पोस्ट टैग किए गए",
+    "postsTaggedCount": "{count} पोस्ट टैग किए गए"
   },
   "changeDiff": {
     "title": "क्या बदला",

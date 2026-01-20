@@ -178,12 +178,15 @@
   "search": {
     "title": "Cerca",
     "placeholder": "Cerca ricette, ingredienti o utenti...",
+    "searchPlaceholder": "Cerca ricette, diari, hashtag...",
     "searchRecipes": "Cerca ricette...",
     "searchButton": "Cerca",
     "recipes": "Ricette",
     "users": "Utenti",
     "hashtags": "Hashtag",
     "logs": "Diari",
+    "cookingLogs": "diari di cucina",
+    "results": "risultati",
     "all": "Tutti",
     "recentSearches": "Ricerche recenti",
     "clearAll": "Cancella tutto",
@@ -193,7 +196,10 @@
     "recipe": "Ricetta",
     "log": "Diario",
     "noResults": "Nessun risultato trovato",
+    "noResultsFor": "Nessun {type} trovato per \"{query}\"",
+    "resultsFor": "{count} {type} trovati per \"{query}\"",
     "tryDifferent": "Prova un termine di ricerca diverso",
+    "tryDifferentFilter": "Prova un termine di ricerca o filtro diverso.",
     "removeFromHistory": "Rimuovi \"{query}\" dalla cronologia"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "diario",
     "logs": "diari",
     "topContributors": "Top contributori:",
-    "postsTagged": "post taggati"
+    "postsTagged": "post taggati",
+    "postsTaggedCount": "{count} post taggati"
   },
   "changeDiff": {
     "title": "Cosa è cambiato",

@@ -170,12 +170,15 @@
   "search": {
     "title": "Rechercher",
     "placeholder": "Rechercher des recettes, ingrédients ou utilisateurs...",
+    "searchPlaceholder": "Rechercher des recettes, journaux, hashtags...",
     "searchRecipes": "Rechercher des recettes...",
     "searchButton": "Rechercher",
     "recipes": "Recettes",
     "users": "Utilisateurs",
     "hashtags": "Hashtags",
     "logs": "Journaux",
+    "cookingLogs": "journaux de cuisine",
+    "results": "résultats",
     "all": "Tous",
     "recentSearches": "Recherches récentes",
     "clearAll": "Tout effacer",
@@ -185,7 +188,10 @@
     "recipe": "Recette",
     "log": "Journal",
     "noResults": "Aucun résultat trouvé",
+    "noResultsFor": "Aucun(e) {type} trouvé(e) pour \"{query}\"",
+    "resultsFor": "{count} {type} trouvé(e)s pour \"{query}\"",
     "tryDifferent": "Essayez un autre terme de recherche",
+    "tryDifferentFilter": "Essayez un autre terme de recherche ou filtre.",
     "removeFromHistory": "Supprimer \"{query}\" de l'historique"
   },
   "saved": {
@@ -634,7 +640,8 @@
     "log": "journal",
     "logs": "journaux",
     "topContributors": "Principaux contributeurs :",
-    "postsTagged": "publications taguées"
+    "postsTagged": "publications taguées",
+    "postsTaggedCount": "{count} publications taguées"
   },
   "changeDiff": {
     "title": "Ce qui a changé",

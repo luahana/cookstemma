@@ -178,12 +178,15 @@
   "search": {
     "title": "検索",
     "placeholder": "レシピ、材料、ユーザーを検索...",
+    "searchPlaceholder": "レシピ、日記、ハッシュタグを検索...",
     "searchRecipes": "レシピを検索...",
     "searchButton": "検索",
     "recipes": "レシピ",
     "users": "ユーザー",
     "hashtags": "ハッシュタグ",
     "logs": "日記",
+    "cookingLogs": "料理日記",
+    "results": "結果",
     "all": "すべて",
     "recentSearches": "最近の検索",
     "clearAll": "すべてクリア",
@@ -193,7 +196,10 @@
     "recipe": "レシピ",
     "log": "日記",
     "noResults": "結果が見つかりません",
+    "noResultsFor": "「{query}」に一致する{type}が見つかりません",
+    "resultsFor": "「{query}」に一致する{type}が{count}件見つかりました",
     "tryDifferent": "別の検索語をお試しください",
+    "tryDifferentFilter": "別の検索語やフィルターをお試しください。",
     "removeFromHistory": "「{query}」を履歴から削除"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "件の日記",
     "logs": "件の日記",
     "topContributors": "トップ投稿者：",
-    "postsTagged": "件のタグ付き投稿"
+    "postsTagged": "件のタグ付き投稿",
+    "postsTaggedCount": "{count}件のタグ付き投稿"
   },
   "changeDiff": {
     "title": "変更点",

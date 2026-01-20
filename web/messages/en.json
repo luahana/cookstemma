@@ -179,12 +179,15 @@
   "search": {
     "title": "Search",
     "placeholder": "Search for recipes, ingredients, or users...",
+    "searchPlaceholder": "Search recipes, logs, hashtags...",
     "searchRecipes": "Search recipes...",
     "searchButton": "Search",
     "recipes": "Recipes",
     "users": "Users",
     "hashtags": "Hashtags",
     "logs": "Logs",
+    "cookingLogs": "cooking logs",
+    "results": "results",
     "all": "All",
     "recentSearches": "Recent Searches",
     "clearAll": "Clear all",
@@ -194,7 +197,10 @@
     "recipe": "Recipe",
     "log": "Log",
     "noResults": "No results found",
+    "noResultsFor": "No {type} found for \"{query}\"",
+    "resultsFor": "{count} {type} found for \"{query}\"",
     "tryDifferent": "Try a different search term",
+    "tryDifferentFilter": "Try a different search term or filter.",
     "removeFromHistory": "Remove \"{query}\" from history"
   },
   "saved": {
@@ -651,7 +657,8 @@
     "log": "log",
     "logs": "logs",
     "topContributors": "Top contributors:",
-    "postsTagged": "posts tagged"
+    "postsTagged": "posts tagged",
+    "postsTaggedCount": "{count} posts tagged"
   },
   "changeDiff": {
     "title": "What Changed",

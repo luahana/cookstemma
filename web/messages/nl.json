@@ -178,12 +178,15 @@
   "search": {
     "title": "Zoeken",
     "placeholder": "Zoek recepten, ingrediënten of gebruikers...",
+    "searchPlaceholder": "Zoek recepten, logboeken, hashtags...",
     "searchRecipes": "Recepten zoeken...",
     "searchButton": "Zoeken",
     "recipes": "Recepten",
     "users": "Gebruikers",
     "hashtags": "Hashtags",
     "logs": "Logboeken",
+    "cookingLogs": "kooklogboeken",
+    "results": "resultaten",
     "all": "Alles",
     "recentSearches": "Recente zoekopdrachten",
     "clearAll": "Alles wissen",
@@ -193,7 +196,10 @@
     "recipe": "Recept",
     "log": "Logboek",
     "noResults": "Geen resultaten gevonden",
+    "noResultsFor": "Geen {type} gevonden voor \"{query}\"",
+    "resultsFor": "{count} {type} gevonden voor \"{query}\"",
     "tryDifferent": "Probeer een andere zoekterm",
+    "tryDifferentFilter": "Probeer een andere zoekterm of filter.",
     "removeFromHistory": "Verwijder \"{query}\" uit geschiedenis"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "logboek",
     "logs": "logboeken",
     "topContributors": "Top bijdragers:",
-    "postsTagged": "posts getagd"
+    "postsTagged": "posts getagd",
+    "postsTaggedCount": "{count} posts getagd"
   },
   "changeDiff": {
     "title": "Wat is er veranderd",

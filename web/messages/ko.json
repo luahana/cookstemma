@@ -179,12 +179,15 @@
   "search": {
     "title": "검색",
     "placeholder": "레시피, 재료 또는 사용자 검색...",
+    "searchPlaceholder": "레시피, 일지, 해시태그 검색...",
     "searchRecipes": "레시피 검색...",
     "searchButton": "검색",
     "recipes": "레시피",
     "users": "사용자",
     "hashtags": "해시태그",
     "logs": "일지",
+    "cookingLogs": "요리 일지",
+    "results": "결과",
     "all": "전체",
     "recentSearches": "최근 검색",
     "clearAll": "전체 삭제",
@@ -194,7 +197,10 @@
     "recipe": "레시피",
     "log": "일지",
     "noResults": "결과가 없습니다",
+    "noResultsFor": "\"{query}\"에 대한 {type}이(가) 없습니다",
+    "resultsFor": "\"{query}\"에 대한 {type} {count}개",
     "tryDifferent": "다른 검색어로 시도해 보세요",
+    "tryDifferentFilter": "다른 검색어나 필터를 시도해 보세요.",
     "removeFromHistory": "\"{query}\" 검색 기록 삭제"
   },
   "saved": {
@@ -651,7 +657,8 @@
     "log": "일지",
     "logs": "일지",
     "topContributors": "상위 기여자:",
-    "postsTagged": "개의 게시물"
+    "postsTagged": "개의 게시물",
+    "postsTaggedCount": "{count}개의 게시물"
   },
   "changeDiff": {
     "title": "변경 사항",

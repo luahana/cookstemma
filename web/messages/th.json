@@ -178,12 +178,15 @@
   "search": {
     "title": "ค้นหา",
     "placeholder": "ค้นหาสูตรอาหาร ส่วนผสม หรือผู้ใช้...",
+    "searchPlaceholder": "ค้นหาสูตรอาหาร บันทึก แฮชแท็ก...",
     "searchRecipes": "ค้นหาสูตรอาหาร...",
     "searchButton": "ค้นหา",
     "recipes": "สูตรอาหาร",
     "users": "ผู้ใช้",
     "hashtags": "แฮชแท็ก",
     "logs": "บันทึก",
+    "cookingLogs": "บันทึกการทำอาหาร",
+    "results": "ผลลัพธ์",
     "all": "ทั้งหมด",
     "recentSearches": "การค้นหาล่าสุด",
     "clearAll": "ล้างทั้งหมด",
@@ -193,7 +196,10 @@
     "recipe": "สูตรอาหาร",
     "log": "บันทึก",
     "noResults": "ไม่พบผลลัพธ์",
+    "noResultsFor": "ไม่พบ{type}สำหรับ \"{query}\"",
+    "resultsFor": "พบ {count} {type} สำหรับ \"{query}\"",
     "tryDifferent": "ลองใช้คำค้นหาอื่น",
+    "tryDifferentFilter": "ลองใช้คำค้นหาหรือตัวกรองอื่น",
     "removeFromHistory": "ลบ \"{query}\" ออกจากประวัติ"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "บันทึก",
     "logs": "บันทึก",
     "topContributors": "ผู้มีส่วนร่วมหลัก:",
-    "postsTagged": "โพสต์ที่ติดแท็ก"
+    "postsTagged": "โพสต์ที่ติดแท็ก",
+    "postsTaggedCount": "{count} โพสต์ที่ติดแท็ก"
   },
   "changeDiff": {
     "title": "สิ่งที่เปลี่ยนแปลง",

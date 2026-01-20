@@ -178,12 +178,15 @@
   "search": {
     "title": "Tìm kiếm",
     "placeholder": "Tìm công thức, nguyên liệu hoặc người dùng...",
+    "searchPlaceholder": "Tìm công thức, nhật ký, hashtag...",
     "searchRecipes": "Tìm công thức...",
     "searchButton": "Tìm kiếm",
     "recipes": "Công thức",
     "users": "Người dùng",
     "hashtags": "Hashtag",
     "logs": "Nhật ký",
+    "cookingLogs": "nhật ký nấu ăn",
+    "results": "kết quả",
     "all": "Tất cả",
     "recentSearches": "Tìm kiếm gần đây",
     "clearAll": "Xóa tất cả",
@@ -193,7 +196,10 @@
     "recipe": "Công thức",
     "log": "Nhật ký",
     "noResults": "Không tìm thấy kết quả",
+    "noResultsFor": "Không tìm thấy {type} cho \"{query}\"",
+    "resultsFor": "Tìm thấy {count} {type} cho \"{query}\"",
     "tryDifferent": "Thử từ khóa khác",
+    "tryDifferentFilter": "Thử từ khóa hoặc bộ lọc khác.",
     "removeFromHistory": "Xóa \"{query}\" khỏi lịch sử"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "nhật ký",
     "logs": "nhật ký",
     "topContributors": "Người đóng góp hàng đầu:",
-    "postsTagged": "bài đăng được gắn thẻ"
+    "postsTagged": "bài đăng được gắn thẻ",
+    "postsTaggedCount": "{count} bài đăng được gắn thẻ"
   },
   "changeDiff": {
     "title": "Những thay đổi",

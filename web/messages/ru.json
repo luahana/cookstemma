@@ -178,12 +178,15 @@
   "search": {
     "title": "Поиск",
     "placeholder": "Искать рецепты, ингредиенты или пользователей...",
+    "searchPlaceholder": "Искать рецепты, записи, хэштеги...",
     "searchRecipes": "Искать рецепты...",
     "searchButton": "Найти",
     "recipes": "Рецепты",
     "users": "Пользователи",
     "hashtags": "Хэштеги",
     "logs": "Записи",
+    "cookingLogs": "записи о готовке",
+    "results": "результаты",
     "all": "Все",
     "recentSearches": "Недавние запросы",
     "clearAll": "Очистить все",
@@ -193,7 +196,10 @@
     "recipe": "Рецепт",
     "log": "Запись",
     "noResults": "Ничего не найдено",
+    "noResultsFor": "{type} по запросу \"{query}\" не найдено",
+    "resultsFor": "Найдено {count} {type} по запросу \"{query}\"",
     "tryDifferent": "Попробуйте другой поисковый запрос",
+    "tryDifferentFilter": "Попробуйте другой поисковый запрос или фильтр.",
     "removeFromHistory": "Удалить \"{query}\" из истории"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "запись",
     "logs": "записей",
     "topContributors": "Топ авторов:",
-    "postsTagged": "публикаций отмечено"
+    "postsTagged": "публикаций отмечено",
+    "postsTaggedCount": "{count} публикаций с тегом"
   },
   "changeDiff": {
     "title": "Что изменилось",

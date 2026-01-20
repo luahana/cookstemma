@@ -178,12 +178,15 @@
   "search": {
     "title": "Sök",
     "placeholder": "Sök recept, ingredienser eller användare...",
+    "searchPlaceholder": "Sök recept, dagboksposter, hashtags...",
     "searchRecipes": "Sök recept...",
     "searchButton": "Sök",
     "recipes": "Recept",
     "users": "Användare",
     "hashtags": "Hashtags",
     "logs": "Dagbok",
+    "cookingLogs": "dagboksposter",
+    "results": "resultat",
     "all": "Alla",
     "recentSearches": "Senaste sökningar",
     "clearAll": "Rensa alla",
@@ -193,7 +196,10 @@
     "recipe": "Recept",
     "log": "Dagbok",
     "noResults": "Inga resultat hittades",
+    "noResultsFor": "Inga {type} hittades för \"{query}\"",
+    "resultsFor": "{count} {type} hittades för \"{query}\"",
     "tryDifferent": "Prova ett annat sökord",
+    "tryDifferentFilter": "Prova ett annat sökord eller filter.",
     "removeFromHistory": "Ta bort \"{query}\" från historiken"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "dagbokspost",
     "logs": "dagboksposter",
     "topContributors": "Toppbidragsgivare:",
-    "postsTagged": "taggade inlägg"
+    "postsTagged": "taggade inlägg",
+    "postsTaggedCount": "{count} taggade inlägg"
   },
   "changeDiff": {
     "title": "Vad som ändrades",

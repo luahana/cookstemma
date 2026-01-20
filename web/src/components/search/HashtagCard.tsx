@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import type { HashtagSearchResult } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
 
@@ -8,6 +11,7 @@ interface HashtagCardProps {
 }
 
 export function HashtagCard({ hashtag }: HashtagCardProps) {
+  const t = useTranslations('hashtagCard');
   const totalCount = hashtag.recipeCount + hashtag.logCount;
 
   return (
@@ -68,7 +72,7 @@ export function HashtagCard({ hashtag }: HashtagCardProps) {
                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
               />
             </svg>
-            {hashtag.recipeCount} {hashtag.recipeCount === 1 ? 'recipe' : 'recipes'}
+            {hashtag.recipeCount} {t(hashtag.recipeCount === 1 ? 'recipe' : 'recipes')}
           </span>
           <span className="flex items-center gap-1">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,14 +83,14 @@ export function HashtagCard({ hashtag }: HashtagCardProps) {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            {hashtag.logCount} {hashtag.logCount === 1 ? 'log' : 'logs'}
+            {hashtag.logCount} {t(hashtag.logCount === 1 ? 'log' : 'logs')}
           </span>
         </div>
 
         {/* Top contributors */}
         {hashtag.topContributors.length > 0 && (
           <div className="flex items-center gap-2 mt-3">
-            <span className="text-xs text-[var(--text-secondary)]">Top contributors:</span>
+            <span className="text-xs text-[var(--text-secondary)]">{t('topContributors')}</span>
             <div className="flex -space-x-2">
               {hashtag.topContributors.map((contributor) => (
                 <div
@@ -116,7 +120,7 @@ export function HashtagCard({ hashtag }: HashtagCardProps) {
         {/* Total count */}
         <div className="mt-3 pt-3 border-t border-[var(--border)]">
           <p className="text-sm text-[var(--text-primary)] font-medium">
-            {totalCount} {totalCount === 1 ? 'post' : 'posts'} tagged
+            {t('postsTaggedCount', { count: totalCount })}
           </p>
         </div>
       </div>

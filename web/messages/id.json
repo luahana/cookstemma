@@ -178,12 +178,15 @@
   "search": {
     "title": "Cari",
     "placeholder": "Cari resep, bahan, atau pengguna...",
+    "searchPlaceholder": "Cari resep, catatan, hashtag...",
     "searchRecipes": "Cari resep...",
     "searchButton": "Cari",
     "recipes": "Resep",
     "users": "Pengguna",
     "hashtags": "Hashtag",
     "logs": "Catatan",
+    "cookingLogs": "catatan memasak",
+    "results": "hasil",
     "all": "Semua",
     "recentSearches": "Pencarian Terbaru",
     "clearAll": "Hapus semua",
@@ -193,7 +196,10 @@
     "recipe": "Resep",
     "log": "Catatan",
     "noResults": "Tidak ada hasil ditemukan",
+    "noResultsFor": "Tidak ada {type} ditemukan untuk \"{query}\"",
+    "resultsFor": "{count} {type} ditemukan untuk \"{query}\"",
     "tryDifferent": "Coba kata pencarian lain",
+    "tryDifferentFilter": "Coba kata pencarian atau filter lain.",
     "removeFromHistory": "Hapus \"{query}\" dari riwayat"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "catatan",
     "logs": "catatan",
     "topContributors": "Kontributor teratas:",
-    "postsTagged": "postingan ditandai"
+    "postsTagged": "postingan ditandai",
+    "postsTaggedCount": "{count} postingan ditandai"
   },
   "changeDiff": {
     "title": "Apa yang Berubah",

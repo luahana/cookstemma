@@ -178,12 +178,15 @@
   "search": {
     "title": "Suchen",
     "placeholder": "Rezepte, Zutaten oder Benutzer suchen...",
+    "searchPlaceholder": "Rezepte, Protokolle, Hashtags suchen...",
     "searchRecipes": "Rezepte suchen...",
     "searchButton": "Suchen",
     "recipes": "Rezepte",
     "users": "Benutzer",
     "hashtags": "Hashtags",
     "logs": "Protokolle",
+    "cookingLogs": "Kochprotokolle",
+    "results": "Ergebnisse",
     "all": "Alle",
     "recentSearches": "Letzte Suchen",
     "clearAll": "Alle löschen",
@@ -193,7 +196,10 @@
     "recipe": "Rezept",
     "log": "Protokoll",
     "noResults": "Keine Ergebnisse gefunden",
+    "noResultsFor": "Keine {type} für \"{query}\" gefunden",
+    "resultsFor": "{count} {type} für \"{query}\" gefunden",
     "tryDifferent": "Versuche einen anderen Suchbegriff",
+    "tryDifferentFilter": "Versuche einen anderen Suchbegriff oder Filter.",
     "removeFromHistory": "\"{query}\" aus dem Verlauf entfernen"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "Protokoll",
     "logs": "Protokolle",
     "topContributors": "Top-Beitragende:",
-    "postsTagged": "markierte Beiträge"
+    "postsTagged": "markierte Beiträge",
+    "postsTaggedCount": "{count} markierte Beiträge"
   },
   "changeDiff": {
     "title": "Was wurde geändert",

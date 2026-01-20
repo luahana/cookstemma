@@ -178,12 +178,15 @@
   "search": {
     "title": "搜索",
     "placeholder": "搜索食谱、食材或用户...",
+    "searchPlaceholder": "搜索食谱、日志、话题标签...",
     "searchRecipes": "搜索食谱...",
     "searchButton": "搜索",
     "recipes": "食谱",
     "users": "用户",
     "hashtags": "话题标签",
     "logs": "日志",
+    "cookingLogs": "烹饪日志",
+    "results": "结果",
     "all": "全部",
     "recentSearches": "最近搜索",
     "clearAll": "清除全部",
@@ -193,7 +196,10 @@
     "recipe": "食谱",
     "log": "日志",
     "noResults": "未找到结果",
+    "noResultsFor": "未找到「{query}」相关的{type}",
+    "resultsFor": "找到 {count} 个「{query}」相关的{type}",
     "tryDifferent": "请尝试其他搜索词",
+    "tryDifferentFilter": "请尝试其他搜索词或筛选条件。",
     "removeFromHistory": "从历史记录中移除「{query}」"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "日志",
     "logs": "日志",
     "topContributors": "热门贡献者：",
-    "postsTagged": "篇带标签的内容"
+    "postsTagged": "篇带标签的内容",
+    "postsTaggedCount": "{count} 篇带标签的内容"
   },
   "changeDiff": {
     "title": "改动内容",

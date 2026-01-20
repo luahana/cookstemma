@@ -178,12 +178,15 @@
   "search": {
     "title": "بحث",
     "placeholder": "ابحث عن وصفات أو مكونات أو مستخدمين...",
+    "searchPlaceholder": "البحث في الوصفات والسجلات والوسوم...",
     "searchRecipes": "ابحث عن وصفات...",
     "searchButton": "بحث",
     "recipes": "الوصفات",
     "users": "المستخدمون",
     "hashtags": "الوسوم",
     "logs": "السجلات",
+    "cookingLogs": "سجلات الطبخ",
+    "results": "النتائج",
     "all": "الكل",
     "recentSearches": "عمليات البحث الأخيرة",
     "clearAll": "مسح الكل",
@@ -193,7 +196,10 @@
     "recipe": "وصفة",
     "log": "سجل",
     "noResults": "لم يتم العثور على نتائج",
+    "noResultsFor": "لا توجد {type} لـ \"{query}\"",
+    "resultsFor": "{count} {type} لـ \"{query}\"",
     "tryDifferent": "جرب مصطلح بحث مختلف",
+    "tryDifferentFilter": "جرب مصطلح بحث أو فلتر مختلف.",
     "removeFromHistory": "إزالة \"{query}\" من السجل"
   },
   "saved": {
@@ -646,7 +652,8 @@
     "log": "سجل",
     "logs": "سجلات",
     "topContributors": "أبرز المساهمين:",
-    "postsTagged": "منشورات موسومة"
+    "postsTagged": "منشورات موسومة",
+    "postsTaggedCount": "{count} منشور موسوم"
   },
   "changeDiff": {
     "title": "ما الذي تغير",
