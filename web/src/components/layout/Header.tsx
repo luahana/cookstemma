@@ -117,6 +117,7 @@ export function Header() {
   // Handle locale change
   const handleLocaleChange = (newLocale: Locale) => {
     setIsLocaleMenuOpen(false);
+    localStorage.setItem('userLocale', newLocale);
     startTransition(() => {
       router.replace(pathname, { locale: newLocale });
     });

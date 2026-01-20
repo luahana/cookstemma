@@ -15,6 +15,7 @@ import { notFound } from 'next/navigation';
 import { routing, type Locale, isRtlLocale } from '@/i18n/routing';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { LocaleSync } from '@/components/common/LocaleSync';
 import { SiteJsonLd } from '@/components/seo/SiteJsonLd';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -213,6 +214,7 @@ export default async function LocaleLayout({
         <ThemeProvider>
           <NextIntlClientProvider messages={messages}>
             <AuthProvider>
+              <LocaleSync />
               <Header />
               <main className="flex-1">{children}</main>
               <Footer />
