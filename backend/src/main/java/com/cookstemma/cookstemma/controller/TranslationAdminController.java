@@ -57,5 +57,26 @@ public class TranslationAdminController {
         ));
     }
 
+    /**
+     * Backfill translations for all FoodMaster entries that only have one locale.
+     * This queues translation events for foods that were created before the
+     * automatic translation system was in place.
+     *
+     * POST /api/v1/admin/translations/foods/backfill
+     *
+     * @return Number of foods queued for translation
+     */
+    @PostMapping("/foods/backfill")
+    public ResponseEntity<Map<String, Object>> backfillFoodTranslations() {
+        int count = translationEventService.queueUntranslatedFoodMasters();
+
+        log.info("Admin triggered backfill for {} untranslated foods", count);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Backfill queued successfully",
+                "foodsQueued", count
+        ));
+    }
+
     public record RetranslateRequest(String sourceLocale) {}
 }

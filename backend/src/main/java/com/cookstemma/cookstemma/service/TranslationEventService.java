@@ -9,6 +9,7 @@ import com.cookstemma.cookstemma.domain.entity.recipe.RecipeStep;
 import com.cookstemma.cookstemma.domain.entity.translation.TranslationEvent;
 import com.cookstemma.cookstemma.domain.enums.TranslatableEntity;
 import com.cookstemma.cookstemma.domain.enums.TranslationStatus;
+import com.cookstemma.cookstemma.repository.food.FoodMasterRepository;
 import com.cookstemma.cookstemma.repository.translation.TranslationEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import java.util.Map;
 public class TranslationEventService {
 
     private final TranslationEventRepository translationEventRepository;
+    private final FoodMasterRepository foodMasterRepository;
 
     // All supported languages (20 total)
     private static final List<String> ALL_LOCALES = List.of(
@@ -256,6 +258,30 @@ public class TranslationEventService {
             event.markCompleted();
         }
         translationEventRepository.save(event);
+    }
+
+    /**
+     * Queue translations for all FoodMaster entries that only have one locale.
+     * Used for backfilling translations for existing untranslated foods.
+     *
+     * @return The number of foods queued for translation
+     */
+    @Transactional
+    public int queueUntranslatedFoodMasters() {
+        List<FoodMaster> untranslated = foodMasterRepository.findUntranslatedFoods();
+        int count = 0;
+
+        for (FoodMaster food : untranslated) {
+            if (food.getName() == null || food.getName().isEmpty()) {
+                continue;
+            }
+            String sourceLocale = food.getName().keySet().iterator().next();
+            queueFoodMasterTranslation(food, sourceLocale);
+            count++;
+        }
+
+        log.info("Queued {} untranslated FoodMaster entries for translation", count);
+        return count;
     }
 
     /**

@@ -41,4 +41,11 @@ public interface FoodMasterRepository extends JpaRepository<FoodMaster, Long> {
     List<AutocompleteProjectionDto> searchByNameWithFuzzy(@Param("keyword") String keyword,
                                                           @Param("locale") String locale,
                                                           Pageable pageable);
+
+    /**
+     * Find FoodMaster entries that have only one locale in their name map (untranslated).
+     * Used for backfilling translations for existing foods.
+     */
+    @Query(value = "SELECT * FROM foods_master WHERE jsonb_array_length(jsonb_path_query_array(name, '$.keyvalue()')) = 1", nativeQuery = true)
+    List<FoodMaster> findUntranslatedFoods();
 }

@@ -335,6 +335,9 @@ public class RecipeService {
                 .build();
         foodMasterRepository.save(newFood);
 
+        // Queue translation for the new food name to all supported locales
+        translationEventService.queueFoodMasterTranslation(newFood, normalizedLocale);
+
         // 2. user_suggested_foods 기록 생성
         UserSuggestedFood suggestion = UserSuggestedFood.builder()
                 .suggestedName(foodName)
