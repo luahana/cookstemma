@@ -1,5 +1,6 @@
 package com.cookstemma.cookstemma.config;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.LocaleResolver;
@@ -12,18 +13,20 @@ import java.util.Locale;
 /**
  * Configuration for locale resolution from Accept-Language header.
  * Supports 20 languages with English as default.
+ * Uses a custom resolver that handles language-only codes (e.g., "zh" → "zh_CN").
  */
 @Configuration
 public class LocaleConfig implements WebMvcConfigurer {
 
     /**
      * Supported locales matching the web frontend configuration.
+     * Note: Locale.SIMPLIFIED_CHINESE is zh_CN, Locale.KOREAN is ko (no country).
      */
     public static final List<Locale> SUPPORTED_LOCALES = List.of(
             Locale.ENGLISH,                          // en
             Locale.KOREAN,                           // ko
             Locale.JAPANESE,                         // ja
-            Locale.SIMPLIFIED_CHINESE,               // zh
+            Locale.SIMPLIFIED_CHINESE,               // zh_CN
             Locale.GERMAN,                           // de
             Locale.FRENCH,                           // fr
             new Locale("es"),                        // es (Spanish)
@@ -44,10 +47,51 @@ public class LocaleConfig implements WebMvcConfigurer {
 
     @Bean
     public LocaleResolver localeResolver() {
-        AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
-        resolver.setDefaultLocale(Locale.ENGLISH);
-        resolver.setSupportedLocales(SUPPORTED_LOCALES);
-        return resolver;
+        return new LanguageFallbackLocaleResolver();
+    }
+
+    /**
+     * Custom locale resolver that extends AcceptHeaderLocaleResolver to support
+     * language-only codes. When a request comes with "Accept-Language: zh",
+     * it will match to Locale.SIMPLIFIED_CHINESE (zh_CN) via language fallback.
+     */
+    private static class LanguageFallbackLocaleResolver extends AcceptHeaderLocaleResolver {
+
+        public LanguageFallbackLocaleResolver() {
+            setDefaultLocale(Locale.ENGLISH);
+            setSupportedLocales(SUPPORTED_LOCALES);
+        }
+
+        @Override
+        public Locale resolveLocale(HttpServletRequest request) {
+            // Get requested locales from Accept-Language header
+            java.util.Enumeration<Locale> requestLocales = request.getLocales();
+            if (requestLocales == null || !requestLocales.hasMoreElements()) {
+                return getDefaultLocale();
+            }
+
+            while (requestLocales.hasMoreElements()) {
+                Locale requestedLocale = requestLocales.nextElement();
+
+                // 1. Try exact match
+                for (Locale supported : SUPPORTED_LOCALES) {
+                    if (supported.equals(requestedLocale)) {
+                        return supported;
+                    }
+                }
+
+                // 2. Try language-only match (e.g., "zh" matches "zh_CN")
+                String requestedLanguage = requestedLocale.getLanguage();
+                for (Locale supported : SUPPORTED_LOCALES) {
+                    if (supported.getLanguage().equals(requestedLanguage)) {
+                        return supported;
+                    }
+                }
+            }
+
+            // No match found, return default
+            return getDefaultLocale();
+        }
     }
 
     /**
