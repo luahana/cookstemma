@@ -7,6 +7,9 @@ import { RecipeFilters } from '@/components/common/RecipeFilters';
 import { Pagination } from '@/components/common/Pagination';
 import { siteConfig } from '@/config/site';
 
+// Force dynamic rendering to support useSearchParams in RecipeFilters
+export const dynamic = 'force-dynamic';
+
 interface Props {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{
