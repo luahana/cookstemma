@@ -51,22 +51,12 @@ export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCard
           </div>
         )}
 
-        {/* Variant indicator - shift left if bookmark button is present */}
+        {/* Variant indicator */}
         {log.isVariant && (
-          <span className="absolute top-3 right-12 px-2 py-1 bg-[var(--secondary)] text-white text-xs font-medium rounded-full">
+          <span className="absolute top-3 right-3 px-2 py-1 bg-[var(--secondary)] text-white text-xs font-medium rounded-full">
             {tCard('variant')}
           </span>
         )}
-
-        {/* Bookmark button */}
-        <div className="absolute top-3 right-3">
-          <BookmarkButton
-            publicId={log.publicId}
-            type="log"
-            initialSaved={isSaved}
-            size="sm"
-          />
-        </div>
       </div>
 
       {/* Content */}
@@ -81,12 +71,22 @@ export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCard
           </span>
         )}
 
-        {/* Food name with star rating */}
-        {log.foodName && (
-          <p className="text-sm font-medium text-[var(--primary)]">
-            {log.foodName}
-          </p>
-        )}
+        {/* Food name with bookmark button */}
+        <div className="flex items-center justify-between">
+          {log.foodName && (
+            <p className="text-sm font-medium text-[var(--primary)]">
+              {log.foodName}
+            </p>
+          )}
+          <BookmarkButton
+            publicId={log.publicId}
+            type="log"
+            initialSaved={isSaved}
+            size="sm"
+            variant="inline"
+          />
+        </div>
+        {/* Star rating */}
         {log.rating && (
           <div className="mt-1">
             <StarRating rating={log.rating} size="sm" />
