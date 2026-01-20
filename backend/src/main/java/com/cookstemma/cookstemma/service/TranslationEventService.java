@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -29,6 +30,36 @@ public class TranslationEventService {
     private static final List<String> ALL_LOCALES = List.of(
             "en", "zh", "es", "ja", "de", "fr", "pt", "ko", "it", "ar",
             "ru", "id", "vi", "hi", "th", "pl", "tr", "nl", "sv", "fa"
+    );
+
+    // Country code to language code mapping (cookingStyle uses country codes)
+    private static final Map<String, String> COUNTRY_TO_LANGUAGE = Map.ofEntries(
+            Map.entry("KR", "ko"),  // Korea → Korean
+            Map.entry("US", "en"),  // USA → English
+            Map.entry("GB", "en"),  // UK → English
+            Map.entry("JP", "ja"),  // Japan → Japanese
+            Map.entry("CN", "zh"),  // China → Chinese
+            Map.entry("TW", "zh"),  // Taiwan → Chinese
+            Map.entry("FR", "fr"),  // France → French
+            Map.entry("DE", "de"),  // Germany → German
+            Map.entry("ES", "es"),  // Spain → Spanish
+            Map.entry("MX", "es"),  // Mexico → Spanish
+            Map.entry("IT", "it"),  // Italy → Italian
+            Map.entry("PT", "pt"),  // Portugal → Portuguese
+            Map.entry("BR", "pt"),  // Brazil → Portuguese
+            Map.entry("RU", "ru"),  // Russia → Russian
+            Map.entry("SA", "ar"),  // Saudi Arabia → Arabic
+            Map.entry("AE", "ar"),  // UAE → Arabic
+            Map.entry("EG", "ar"),  // Egypt → Arabic
+            Map.entry("ID", "id"),  // Indonesia → Indonesian
+            Map.entry("VN", "vi"),  // Vietnam → Vietnamese
+            Map.entry("IN", "hi"),  // India → Hindi
+            Map.entry("TH", "th"),  // Thailand → Thai
+            Map.entry("PL", "pl"),  // Poland → Polish
+            Map.entry("TR", "tr"),  // Turkey → Turkish
+            Map.entry("NL", "nl"),  // Netherlands → Dutch
+            Map.entry("SE", "sv"),  // Sweden → Swedish
+            Map.entry("IR", "fa")   // Iran → Persian
     );
 
     @Transactional
@@ -236,9 +267,23 @@ public class TranslationEventService {
         if (locale == null || locale.isBlank()) {
             return "ko";
         }
-        // Convert "ko-KR" → "ko", "en-US" → "en", etc.
-        String normalized = locale.split("[-_]")[0].toLowerCase();
-        return ALL_LOCALES.contains(normalized) ? normalized : "ko";
+
+        String normalized = locale.split("[-_]")[0];
+        String upper = normalized.toUpperCase();
+        String lower = normalized.toLowerCase();
+
+        // First check if it's a country code (e.g., "SA", "KR", "TR")
+        if (COUNTRY_TO_LANGUAGE.containsKey(upper)) {
+            return COUNTRY_TO_LANGUAGE.get(upper);
+        }
+
+        // Then check if it's already a language code (e.g., "ko", "en", "ar")
+        if (ALL_LOCALES.contains(lower)) {
+            return lower;
+        }
+
+        // Default to Korean
+        return "ko";
     }
 
     private List<String> getTargetLocales(String sourceLocale) {
