@@ -20,7 +20,8 @@
     "success": "Succes",
     "noResults": "Geen resultaten gevonden",
     "by": "door",
-    "anonymous": "Anoniem"
+    "anonymous": "Anoniem",
+    "style": "Stijl"
   },
   "nav": {
     "recipes": "Recepten",

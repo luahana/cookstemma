@@ -19,7 +19,8 @@
     "success": "Éxito",
     "noResults": "No se encontraron resultados",
     "by": "por",
-    "anonymous": "Anónimo"
+    "anonymous": "Anónimo",
+    "style": "Estilo"
   },
   "nav": {
     "recipes": "Recetas",

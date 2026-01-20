@@ -20,7 +20,8 @@
     "success": "Успех",
     "noResults": "Ничего не найдено",
     "by": "от",
-    "anonymous": "Аноним"
+    "anonymous": "Аноним",
+    "style": "Стиль"
   },
   "nav": {
     "recipes": "Рецепты",

@@ -20,7 +20,8 @@
     "success": "成功",
     "noResults": "結果が見つかりません",
     "by": "by",
-    "anonymous": "匿名"
+    "anonymous": "匿名",
+    "style": "スタイル"
   },
   "nav": {
     "recipes": "レシピ",

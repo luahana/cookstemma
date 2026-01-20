@@ -20,7 +20,8 @@
     "success": "موفقیت",
     "noResults": "نتیجه‌ای یافت نشد",
     "by": "توسط",
-    "anonymous": "ناشناس"
+    "anonymous": "ناشناس",
+    "style": "سبک"
   },
   "nav": {
     "recipes": "دستورها",
