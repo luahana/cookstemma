@@ -17,10 +17,13 @@ public record UserSuggestedFoodDto(
         UUID userPublicId,
         String username,
         UUID masterFoodPublicId,
+        String masterFoodNameKo,
+        String masterFoodNameEn,
         Instant createdAt,
         Instant updatedAt
 ) {
     public static UserSuggestedFoodDto from(UserSuggestedFood entity) {
+        var master = entity.getMasterFoodRef();
         return UserSuggestedFoodDto.builder()
                 .publicId(entity.getPublicId())
                 .suggestedName(entity.getSuggestedName())
@@ -29,9 +32,9 @@ public record UserSuggestedFoodDto(
                 .rejectionReason(entity.getRejectionReason())
                 .userPublicId(entity.getUser().getPublicId())
                 .username(entity.getUser().getUsername())
-                .masterFoodPublicId(entity.getMasterFoodRef() != null
-                        ? entity.getMasterFoodRef().getPublicId()
-                        : null)
+                .masterFoodPublicId(master != null ? master.getPublicId() : null)
+                .masterFoodNameKo(master != null ? master.getNameByLocale("ko-KR") : null)
+                .masterFoodNameEn(master != null ? master.getNameByLocale("en-US") : null)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

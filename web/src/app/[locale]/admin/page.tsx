@@ -342,6 +342,16 @@ function SuggestedFoodsTab() {
       },
     },
     {
+      key: 'translations',
+      header: 'Translations (KO / EN)',
+      sortable: false,
+      width: '200px',
+      render: (item) =>
+        item.status === 'APPROVED' && (item.masterFoodNameKo || item.masterFoodNameEn)
+          ? `${item.masterFoodNameKo || '-'} / ${item.masterFoodNameEn || '-'}`
+          : '-',
+    },
+    {
       key: 'rejectionReason',
       header: 'Rejection Reason',
       sortable: false,
@@ -955,6 +965,16 @@ function SuggestedIngredientsTab() {
           </select>
         );
       },
+    },
+    {
+      key: 'translations',
+      header: 'Translations (KO / EN)',
+      sortable: false,
+      width: '200px',
+      render: (item) =>
+        item.status === 'APPROVED' && (item.autocompleteItemNameKo || item.autocompleteItemNameEn)
+          ? `${item.autocompleteItemNameKo || '-'} / ${item.autocompleteItemNameEn || '-'}`
+          : '-',
     },
     {
       key: 'rejectionReason',

@@ -21,6 +21,8 @@ export interface UserSuggestedFood {
   userPublicId: string;
   username: string;
   masterFoodPublicId: string | null;
+  masterFoodNameKo: string | null;
+  masterFoodNameEn: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -57,6 +59,8 @@ export interface UserSuggestedIngredient {
   userPublicId: string | null;
   username: string | null;
   autocompleteItemPublicId: string | null;
+  autocompleteItemNameKo: string | null;
+  autocompleteItemNameEn: string | null;
   createdAt: string;
   updatedAt: string;
 }
