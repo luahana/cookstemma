@@ -235,14 +235,14 @@ public class RecipeService {
 
                     return new LogPostSummaryDto(
                             logPost.getPublicId(),
-                            logPost.getTitle(),
-                            logPost.getContent(),
+                            LocaleUtils.getLocalizedValue(logPost.getTitleTranslations(), normalizedLocale, logPost.getTitle()),
+                            LocaleUtils.getLocalizedValue(logPost.getContentTranslations(), normalizedLocale, logPost.getContent()),
                             rl.getRating(),
                             thumbnailUrl,
                             logCreatorPublicId,
                             logCreatorName,
                             foodName,
-                            recipe.getTitle(),
+                            LocaleUtils.getLocalizedValue(recipe.getTitleTranslations(), normalizedLocale, recipe.getTitle()),
                             logHashtags,
                             isVariant
                     );
