@@ -43,7 +43,6 @@ claude --dangerously-skip-permissions --model opus
 ## 🔴 CRITICAL RULES
 
 0. **Model** → Use opus with extended thinking
-1. **Before coding** → Create branch from dev
 2. **Plan with ultrathink** → Research best practices before implementing
 3. **After plan mode** → Check docs/ai/FEATURES.md: if feature exists, ask user "Should I update FEATURES.md with the planned changes?" If not there, ask "Should I document this new feature to FEATURES.md?"
 4. **Feature = Code + Tests** → A feature is NOT complete until unit tests and integration tests are written and passing. No PR without tests.
@@ -422,22 +421,19 @@ Container(height: 1.h)  // Horizontal line
 
 **Branch strategy:**
 ```
-main ← staging ← dev ← feature/*
-                     ← bugfix/*
+main ← staging ← dev
+                    
 ```
 
 **PR targets:**
 | From | To |
 |------|----|
-| feature/* | dev |
-| bugfix/* | dev |
 | dev | staging |
 | staging | main |
 
 **Commands:**
 ```bash
 git fetch origin
-git checkout -b feature/xxx origin/dev
 git push origin HEAD
 gh pr create --base dev
 ```
@@ -620,8 +616,6 @@ void onTap() {
 ## 🛑 STOP AND CHECK
 
 **Before starting feature:**
-- [ ] On correct branch?
-- [ ] Branch created from latest dev?
 - [ ] Test cases planned?
 
 **Before committing:**
