@@ -221,8 +221,9 @@ public class BotUserService {
      * Creates a new bot user for a persona with an auto-generated username.
      */
     private User createBotUserForPersona(BotPersona persona) {
-        // Generate username from persona name (e.g., "chef_park_soojin" -> "bot_chef_park_soojin")
-        String baseUsername = "bot_" + persona.getName().toLowerCase().replace("-", "_");
+        // Generate username from persona's English display name (e.g., "Sarah" -> "sarah")
+        String displayName = persona.getDisplayNameForLocale("en");
+        String baseUsername = displayName.toLowerCase().replaceAll("[^a-z0-9]", "");
         String username = baseUsername;
 
         // Ensure uniqueness (unlikely but handle collision)

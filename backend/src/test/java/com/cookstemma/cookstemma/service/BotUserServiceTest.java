@@ -246,6 +246,94 @@ class BotUserServiceTest extends BaseIntegrationTest {
     }
 
     @Nested
+    @DisplayName("Find Or Create Bot User")
+    class FindOrCreateBotUserTests {
+
+        @Test
+        @DisplayName("Should create bot user with username from English display name")
+        void findOrCreateBotUser_UsernameFromDisplayName() {
+            BotPersona persona = BotPersona.builder()
+                    .name("homecook_sarah_" + System.currentTimeMillis())
+                    .displayName(Map.of("en", "Sarah", "ko", "사라"))
+                    .tone(BotTone.CASUAL)
+                    .skillLevel(BotSkillLevel.BEGINNER)
+                    .vocabularyStyle(BotVocabularyStyle.SIMPLE)
+                    .locale("en-US")
+                    .cookingStyle("US")
+                    .kitchenStylePrompt("Cozy home kitchen")
+                    .isActive(true)
+                    .build();
+            botPersonaRepository.save(persona);
+
+            User botUser = botUserService.findOrCreateBotUser(persona);
+
+            assertThat(botUser.getUsername()).isEqualTo("sarah");
+            assertThat(botUser.isBot()).isTrue();
+            assertThat(botUser.getPersona().getId()).isEqualTo(persona.getId());
+        }
+
+        @Test
+        @DisplayName("Should return existing bot user if already exists for persona")
+        void findOrCreateBotUser_ReturnsExisting() {
+            BotPersona persona = BotPersona.builder()
+                    .name("existing_persona_" + System.currentTimeMillis())
+                    .displayName(Map.of("en", "Maria", "ko", "마리아"))
+                    .tone(BotTone.WARM)
+                    .skillLevel(BotSkillLevel.ADVANCED)
+                    .vocabularyStyle(BotVocabularyStyle.STANDARD)
+                    .locale("en-US")
+                    .cookingStyle("US")
+                    .kitchenStylePrompt("Mediterranean kitchen")
+                    .isActive(true)
+                    .build();
+            botPersonaRepository.save(persona);
+
+            User firstUser = botUserService.findOrCreateBotUser(persona);
+            User secondUser = botUserService.findOrCreateBotUser(persona);
+
+            assertThat(firstUser.getId()).isEqualTo(secondUser.getId());
+            assertThat(firstUser.getUsername()).isEqualTo("maria");
+        }
+
+        @Test
+        @DisplayName("Should add suffix when username collision occurs")
+        void findOrCreateBotUser_HandlesDuplicateUsername() {
+            // Create two personas with same English display name
+            BotPersona persona1 = BotPersona.builder()
+                    .name("mediterranean_maria_" + System.currentTimeMillis())
+                    .displayName(Map.of("en", "Sophia", "ko", "소피아"))
+                    .tone(BotTone.CASUAL)
+                    .skillLevel(BotSkillLevel.INTERMEDIATE)
+                    .vocabularyStyle(BotVocabularyStyle.SIMPLE)
+                    .locale("en-US")
+                    .cookingStyle("US")
+                    .kitchenStylePrompt("Kitchen 1")
+                    .isActive(true)
+                    .build();
+            botPersonaRepository.save(persona1);
+
+            BotPersona persona2 = BotPersona.builder()
+                    .name("homecook_sophia_" + System.currentTimeMillis())
+                    .displayName(Map.of("en", "Sophia", "ko", "소피아"))
+                    .tone(BotTone.WARM)
+                    .skillLevel(BotSkillLevel.BEGINNER)
+                    .vocabularyStyle(BotVocabularyStyle.STANDARD)
+                    .locale("ko-KR")
+                    .cookingStyle("KO")
+                    .kitchenStylePrompt("Kitchen 2")
+                    .isActive(true)
+                    .build();
+            botPersonaRepository.save(persona2);
+
+            User user1 = botUserService.findOrCreateBotUser(persona1);
+            User user2 = botUserService.findOrCreateBotUser(persona2);
+
+            assertThat(user1.getUsername()).isEqualTo("sophia");
+            assertThat(user2.getUsername()).isEqualTo("sophia_1");
+        }
+    }
+
+    @Nested
     @DisplayName("Get API Keys")
     class GetApiKeysTests {
 
