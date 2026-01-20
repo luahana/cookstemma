@@ -36,7 +36,7 @@ export function CookingStyleBadge({
 
   return (
     <span
-      className={`relative group inline-flex items-center gap-1.5 bg-[var(--background)] text-[var(--text-secondary)] rounded border border-[var(--border)] ${sizeClasses[size]}`}
+      className={`relative group/badge inline-flex items-center gap-1.5 bg-[var(--background)] text-[var(--text-secondary)] rounded border border-[var(--border)] ${sizeClasses[size]}`}
     >
       <Image
         src={flagUrl}
@@ -49,7 +49,7 @@ export function CookingStyleBadge({
       {showLabel && <span className="font-medium">{tCommon('style')}</span>}
 
       {/* Styled Tooltip */}
-      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--text-primary)] text-[var(--background)] text-xs rounded whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-200 pointer-events-none z-10">
+      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--text-primary)] text-[var(--background)] text-xs rounded whitespace-nowrap opacity-0 invisible group-hover/badge:opacity-100 group-hover/badge:visible transition-opacity duration-200 pointer-events-none z-10">
         {name}
       </span>
     </span>
