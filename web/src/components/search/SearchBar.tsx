@@ -43,7 +43,7 @@ export function SearchBar({
           onChange={(e) => setQuery(e.target.value)}
           placeholder={searchPlaceholder}
           autoFocus={autoFocus}
-          className="w-full px-4 py-3 pl-12 pr-28 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary-light)] transition-colors"
+          className="w-full px-4 py-3 pl-12 pr-28 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary-light)] transition-colors [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
         />
         <svg
           className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]"
