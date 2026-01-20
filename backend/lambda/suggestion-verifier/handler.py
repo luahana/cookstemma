@@ -94,7 +94,7 @@ def is_duplicate_food(conn, name: str) -> dict | None:
     """Check if food already exists in foods_master (search all locales)."""
     with conn.cursor() as cur:
         cur.execute("""
-            SELECT id, name FROM foods_master
+            SELECT id, name, is_verified FROM foods_master
             WHERE EXISTS (
                 SELECT 1 FROM jsonb_each_text(name) AS t(locale, value)
                 WHERE LOWER(value) = LOWER(%s)
@@ -155,6 +155,17 @@ def create_food_master(conn, translations: dict[str, str], source_locale: str) -
         return result['id']
 
 
+def update_food_master_verified(conn, food_id: int, translations: dict[str, str]) -> None:
+    """Update existing FoodMaster with translations and mark as verified."""
+    with conn.cursor() as cur:
+        cur.execute("""
+            UPDATE foods_master
+            SET name = %s, is_verified = TRUE, updated_at = NOW()
+            WHERE id = %s
+        """, (json.dumps(translations), food_id))
+    logger.info(f"Updated FoodMaster {food_id} with translations, marked as verified")
+
+
 def approve_food(conn, food_id: int, food_master_id: int):
     """Mark a food suggestion as approved and link to FoodMaster."""
     with conn.cursor() as cur:
@@ -181,7 +192,7 @@ def create_autocomplete_item(conn, translations: dict[str, str], item_type: str)
     with conn.cursor() as cur:
         cur.execute("""
             INSERT INTO autocomplete_items (name, type, created_at, updated_at)
-            VALUES (%s, %s::autocomplete_item_type, NOW(), NOW())
+            VALUES (%s, %s, NOW(), NOW())
             RETURNING id
         """, (json.dumps(translations), item_type))
         result = cur.fetchone()
@@ -229,15 +240,40 @@ def process_suggested_foods(conn, verifier: AIVerifier) -> dict:
             # 1. Check for duplicates
             existing = is_duplicate_food(conn, suggested_name)
             if existing:
-                existing_name = get_existing_name_for_locale(
-                    existing['name'], suggested_name
-                )
-                reject_food(conn, suggestion['id'],
-                    f"Already exists in database as '{existing_name}'")
-                stats['rejected'] += 1
-                continue
+                if existing['is_verified']:
+                    # Already verified - reject as duplicate
+                    existing_name = get_existing_name_for_locale(
+                        existing['name'], suggested_name
+                    )
+                    reject_food(conn, suggestion['id'],
+                        f"Already exists in database as '{existing_name}'")
+                    stats['rejected'] += 1
+                    continue
+                else:
+                    # Unverified - AI verify, update with translations, approve
+                    result = verifier.verify_name(
+                        name=suggested_name,
+                        locale=locale_code,
+                        item_type='FOOD'
+                    )
 
-            # 2. AI verification
+                    if not result['is_valid']:
+                        reject_food(conn, suggestion['id'], result['rejection_reason'])
+                        stats['rejected'] += 1
+                        continue
+
+                    canonical_name = result.get('canonical_name', suggested_name)
+                    translations = verifier.translate_to_all_locales(
+                        name=canonical_name,
+                        source_locale=locale_code
+                    )
+
+                    update_food_master_verified(conn, existing['id'], translations)
+                    approve_food(conn, suggestion['id'], existing['id'])
+                    stats['approved'] += 1
+                    continue
+
+            # 2. AI verification (for new foods not in database)
             result = verifier.verify_name(
                 name=suggested_name,
                 locale=locale_code,
@@ -263,6 +299,7 @@ def process_suggested_foods(conn, verifier: AIVerifier) -> dict:
         except Exception as e:
             logger.error(f"Error processing food {suggestion['id']}: {e}")
             stats['errors'] += 1
+            conn.rollback()  # Recover from transaction error
 
     conn.commit()
     return stats
@@ -320,6 +357,7 @@ def process_suggested_ingredients(conn, verifier: AIVerifier) -> dict:
         except Exception as e:
             logger.error(f"Error processing ingredient {suggestion['id']}: {e}")
             stats['errors'] += 1
+            conn.rollback()  # Recover from transaction error
 
     conn.commit()
     return stats
