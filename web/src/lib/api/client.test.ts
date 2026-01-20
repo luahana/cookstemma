@@ -8,6 +8,14 @@ jest.mock('@/config/site', () => ({
   },
 }));
 
+// Mock the routing config to avoid next-intl ESM import issues in Jest
+jest.mock('@/i18n/routing', () => ({
+  routing: {
+    locales: ['en', 'ko', 'zh', 'ja', 'es', 'de', 'fr', 'pt', 'it', 'ar', 'ru', 'id', 'vi', 'hi', 'th', 'pl', 'tr', 'nl', 'sv', 'fa'],
+    defaultLocale: 'en',
+  },
+}));
+
 // Helper to create mock response with headers
 const createMockResponse = (overrides: {
   ok?: boolean;
