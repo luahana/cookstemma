@@ -2,6 +2,29 @@ import * as Sentry from '@sentry/nextjs';
 import Cookies from 'js-cookie';
 import { siteConfig } from '@/config/site';
 
+// Supported locales - must match routing.locales in i18n/routing.ts
+const SUPPORTED_LOCALES = ['ko', 'en'];
+const DEFAULT_LOCALE = 'ko';
+
+/**
+ * Get the current locale from the URL path (client-side) or return default.
+ * URL format: /{locale}/... (e.g., /ko/recipes, /en/recipes)
+ */
+function getCurrentLocale(): string {
+  if (typeof window === 'undefined') {
+    return DEFAULT_LOCALE;
+  }
+
+  const pathSegments = window.location.pathname.split('/');
+  const firstSegment = pathSegments[1];
+
+  if (firstSegment && SUPPORTED_LOCALES.includes(firstSegment)) {
+    return firstSegment;
+  }
+
+  return DEFAULT_LOCALE;
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -86,6 +109,7 @@ export async function apiFetch<T>(
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        'Accept-Language': getCurrentLocale(),
         ...getCsrfHeader(fetchOptions.method),
         ...fetchOptions.headers,
       },
