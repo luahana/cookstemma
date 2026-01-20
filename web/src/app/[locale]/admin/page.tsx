@@ -66,6 +66,7 @@ export default function AdminPage() {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZoneName: 'short',
     });
   }, [format]);
 
@@ -165,6 +166,7 @@ function SuggestedFoodsTab() {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZoneName: 'short',
     });
   }, [format]);
 
@@ -460,6 +462,7 @@ function UsersTab({ currentUserPublicId }: { currentUserPublicId?: string }) {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZoneName: 'short',
     });
   }, [format]);
 
@@ -768,6 +771,7 @@ function SuggestedIngredientsTab() {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZoneName: 'short',
     });
   }, [format]);
 
