@@ -112,7 +112,7 @@ export default async function RecipesPage({ params, searchParams }: Props) {
       )}
 
       {/* Recipe grid */}
-      <RecipeGrid recipes={recipes.content} locale={pageLocale} />
+      <RecipeGrid recipes={recipes.content} />
 
       {/* Pagination */}
       {recipes.totalPages !== null && recipes.totalPages > 1 && (

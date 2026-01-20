@@ -81,7 +81,7 @@ export default async function Home({ params }: Props) {
                 {tCommon('viewAll')}
               </Link>
             </div>
-            <RecipeGrid recipes={featuredRecipes.content} locale={locale} />
+            <RecipeGrid recipes={featuredRecipes.content} />
           </div>
         </section>
       )}
