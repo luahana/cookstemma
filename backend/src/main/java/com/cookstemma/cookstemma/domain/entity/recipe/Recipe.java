@@ -32,7 +32,9 @@ public class Recipe extends BaseEntity {
 
     @Column(name = "cooking_style", length = 15)
     private String cookingStyle;
+    @Column(length = 200)
     private String title;
+    @Column(length = 2000)
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -77,7 +79,7 @@ public class Recipe extends BaseEntity {
     @Builder.Default
     private Map<String, Object> changeDiff = new HashMap<>();
 
-    @Column(name = "change_reason", length = 200)
+    @Column(name = "change_reason", length = 2000)
     private String changeReason;
 
     @JdbcTypeCode(SqlTypes.JSON)
