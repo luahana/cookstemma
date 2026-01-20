@@ -21,13 +21,14 @@ export type CookingTimeFilter =
 
 interface RecipeSearchParams extends PaginationParams {
   q?: string;
-  locale?: string;
+  locale?: string; // Cooking style filter (e.g., korean, japanese)
   onlyRoot?: boolean;
   typeFilter?: 'original' | 'variants';
   sort?: 'recent' | 'popular' | 'mostForked' | 'trending';
   cookingTime?: CookingTimeFilter[];
   minServings?: number;
   maxServings?: number;
+  contentLocale?: string; // Accept-Language header for content translation (SSR)
 }
 
 /**
@@ -51,6 +52,7 @@ export async function getRecipes(
 
   return apiFetch<UnifiedPageResponse<RecipeSummary>>(`/recipes${queryString}`, {
     next: { revalidate: 60 }, // Cache for 1 minute
+    locale: params.contentLocale, // Pass to Accept-Language header for SSR
   });
 }
 

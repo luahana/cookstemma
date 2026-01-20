@@ -37,8 +37,8 @@ export default async function Home({ params }: Props) {
 
   try {
     [homeFeed, featuredRecipes] = await Promise.all([
-      getHomeFeed(),
-      getRecipes({ size: 6, sort: 'trending' }),
+      getHomeFeed(locale),
+      getRecipes({ size: 6, sort: 'trending', contentLocale: locale }),
     ]);
   } catch {
     // If API fails, show minimal page

@@ -49,6 +49,7 @@ interface FetchOptions extends RequestInit {
     tags?: string[];
   };
   skipAuth?: boolean;
+  locale?: string; // Explicit locale for SSR (bypasses window.location check)
 }
 
 // Track if we're currently refreshing to avoid multiple refresh calls
@@ -101,7 +102,10 @@ export async function apiFetch<T>(
   options: FetchOptions = {},
 ): Promise<T> {
   const url = `${siteConfig.apiUrl}${endpoint}`;
-  const { skipAuth, ...fetchOptions } = options;
+  const { skipAuth, locale, ...fetchOptions } = options;
+
+  // Use explicit locale if provided, otherwise try to detect from URL
+  const acceptLanguage = locale || getCurrentLocale();
 
   const makeRequest = async () => {
     return fetch(url, {
@@ -109,7 +113,7 @@ export async function apiFetch<T>(
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        'Accept-Language': getCurrentLocale(),
+        'Accept-Language': acceptLanguage,
         ...getCsrfHeader(fetchOptions.method),
         ...fetchOptions.headers,
       },

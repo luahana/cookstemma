@@ -74,6 +74,7 @@ export default async function RecipesPage({ params, searchParams }: Props) {
     cookingTime,
     minServings,
     maxServings,
+    contentLocale: pageLocale, // Pass page locale for content translation
   });
 
   // Build base URL with current filters for pagination
