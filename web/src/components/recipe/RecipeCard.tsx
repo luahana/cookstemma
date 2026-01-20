@@ -51,16 +51,6 @@ export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false }: R
             {tCard('variant')}
           </span>
         )}
-
-        {/* Bookmark button */}
-        <div className="absolute top-3 right-3">
-          <BookmarkButton
-            publicId={recipe.publicId}
-            type="recipe"
-            initialSaved={isSaved}
-            size="sm"
-          />
-        </div>
       </div>
 
       {/* Content */}
@@ -75,10 +65,19 @@ export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false }: R
           </span>
         )}
 
-        {/* Food name */}
-        <p className="text-sm font-medium text-[var(--primary)]">
-          {recipe.foodName}
-        </p>
+        {/* Food name with bookmark button */}
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium text-[var(--primary)]">
+            {recipe.foodName}
+          </p>
+          <BookmarkButton
+            publicId={recipe.publicId}
+            type="recipe"
+            initialSaved={isSaved}
+            size="sm"
+            variant="inline"
+          />
+        </div>
 
         {/* Title */}
         <h3 className="font-semibold text-[var(--text-primary)] mt-1 line-clamp-1 group-hover:text-[var(--primary)] transition-colors">

@@ -12,6 +12,7 @@ import {
 } from '@/lib/utils/viewHistory';
 import { getImageUrl } from '@/lib/utils/image';
 import { StarRating } from '@/components/log/StarRating';
+import { BookmarkButton } from '@/components/common/BookmarkButton';
 import { getRecipeDetail } from '@/lib/api/recipes';
 import { getLogDetail } from '@/lib/api/logs';
 
@@ -162,9 +163,17 @@ export function RecentlyViewedCompact() {
                 <p className="text-sm text-[var(--text-primary)] font-medium truncate group-hover:text-[var(--primary)] transition-colors">
                   {item.title}
                 </p>
-                <p className="text-xs text-[var(--text-secondary)] truncate">
-                  {item.foodName}
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-[var(--text-secondary)] truncate flex-1">
+                    {item.foodName}
+                  </p>
+                  <BookmarkButton
+                    publicId={item.publicId}
+                    type="recipe"
+                    size="sm"
+                    variant="inline"
+                  />
+                </div>
               </Link>
             );
           } else {
@@ -214,9 +223,17 @@ export function RecentlyViewedCompact() {
                     <StarRating rating={item.rating} size="sm" />
                   </div>
                 )}
-                <p className="text-xs text-[var(--text-secondary)] truncate">
-                  {item.foodName}
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-[var(--text-secondary)] truncate flex-1">
+                    {item.foodName}
+                  </p>
+                  <BookmarkButton
+                    publicId={item.publicId}
+                    type="log"
+                    size="sm"
+                    variant="inline"
+                  />
+                </div>
               </Link>
             );
           }

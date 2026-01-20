@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 
@@ -8,22 +8,32 @@ export function NavigationProgress() {
   const { isLoading, stopLoading } = useNavigationProgress();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [progress, setProgress] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
 
   // Stop loading when route changes (navigation completed)
   useEffect(() => {
     stopLoading();
   }, [pathname, searchParams, stopLoading]);
-  const [progress, setProgress] = useState(0);
-  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // Clear previous timeouts
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+
     if (isLoading) {
-      setVisible(true);
-      setProgress(0);
+      // Use setTimeout to avoid synchronous setState in effect
+      timeoutsRef.current.push(
+        setTimeout(() => {
+          setVisible(true);
+          setProgress(0);
+        }, 0)
+      );
 
       // Animate progress: fast at start, slow down as it approaches 90%
       const intervals = [
-        { delay: 0, value: 30 },
+        { delay: 10, value: 30 },
         { delay: 100, value: 50 },
         { delay: 300, value: 70 },
         { delay: 600, value: 80 },
@@ -31,30 +41,26 @@ export function NavigationProgress() {
         { delay: 2000, value: 90 },
       ];
 
-      const timeouts: NodeJS.Timeout[] = [];
-
       intervals.forEach(({ delay, value }) => {
-        const timeout = setTimeout(() => {
-          setProgress(value);
-        }, delay);
-        timeouts.push(timeout);
+        timeoutsRef.current.push(setTimeout(() => setProgress(value), delay));
       });
-
-      return () => {
-        timeouts.forEach(clearTimeout);
-      };
     } else if (visible) {
       // Complete the progress bar
-      setProgress(100);
+      timeoutsRef.current.push(setTimeout(() => setProgress(100), 0));
 
       // Hide after animation completes
-      const hideTimeout = setTimeout(() => {
-        setVisible(false);
-        setProgress(0);
-      }, 300);
-
-      return () => clearTimeout(hideTimeout);
+      timeoutsRef.current.push(
+        setTimeout(() => {
+          setVisible(false);
+          setProgress(0);
+        }, 300)
+      );
     }
+
+    return () => {
+      timeoutsRef.current.forEach(clearTimeout);
+      timeoutsRef.current = [];
+    };
   }, [isLoading, visible]);
 
   if (!visible) return null;

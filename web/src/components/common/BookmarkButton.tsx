@@ -18,6 +18,7 @@ interface BookmarkButtonProps {
   type: 'recipe' | 'log';
   initialSaved?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  variant?: 'overlay' | 'inline';
   className?: string;
   onSaveChange?: (isSaved: boolean) => void;
 }
@@ -27,6 +28,7 @@ export function BookmarkButton({
   type,
   initialSaved = false,
   size = 'md',
+  variant = 'overlay',
   className = '',
   onSaveChange,
 }: BookmarkButtonProps) {
@@ -107,6 +109,11 @@ export function BookmarkButton({
     [isAuthenticated, isLoading, isSaved, publicId, type, onSaveChange, router]
   );
 
+  const variantClasses = {
+    overlay: 'bg-white/90 backdrop-blur-sm shadow-sm hover:bg-white hover:shadow-md',
+    inline: 'bg-transparent hover:bg-[var(--highlight-bg)]',
+  };
+
   return (
     <button
       onClick={handleClick}
@@ -114,8 +121,7 @@ export function BookmarkButton({
       className={`
         ${sizeClasses[size]}
         flex items-center justify-center rounded-full
-        bg-white/90 backdrop-blur-sm shadow-sm
-        hover:bg-white hover:shadow-md
+        ${variantClasses[variant]}
         transition-all duration-200
         disabled:opacity-50 disabled:cursor-not-allowed
         ${className}
