@@ -19,6 +19,8 @@ import { LocaleSync } from '@/components/common/LocaleSync';
 import { SiteJsonLd } from '@/components/seo/SiteJsonLd';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { NavigationProgressProvider } from '@/contexts/NavigationProgressContext';
+import { NavigationProgress } from '@/components/common/NavigationProgress';
 import { themeScript } from '@/lib/theme/script';
 import { siteConfig } from '@/config/site';
 import '../globals.css';
@@ -214,10 +216,13 @@ export default async function LocaleLayout({
         <ThemeProvider>
           <NextIntlClientProvider messages={messages}>
             <AuthProvider>
-              <LocaleSync />
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
+              <NavigationProgressProvider>
+                <NavigationProgress />
+                <LocaleSync />
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </NavigationProgressProvider>
             </AuthProvider>
           </NextIntlClientProvider>
         </ThemeProvider>

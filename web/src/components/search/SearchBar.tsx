@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useCallback, useTransition } from 'react';
+import { useState, useCallback, useTransition, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 import { addToSearchHistory } from './SearchHistory';
 
 interface SearchBarProps {
@@ -22,6 +23,14 @@ export function SearchBar({
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(defaultValue || searchParams.get('q') || '');
   const [isPending, startTransition] = useTransition();
+  const { startLoading, stopLoading } = useNavigationProgress();
+
+  // Stop loading when transition completes
+  useEffect(() => {
+    if (!isPending) {
+      stopLoading();
+    }
+  }, [isPending, stopLoading]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -29,12 +38,13 @@ export function SearchBar({
       const trimmed = query.trim();
       if (trimmed) {
         addToSearchHistory(trimmed);
+        startLoading();
         startTransition(() => {
           router.push(`/search?q=${encodeURIComponent(trimmed)}`);
         });
       }
     },
-    [query, router],
+    [query, router, startLoading],
   );
 
   return (
