@@ -57,7 +57,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
             {t('beFirst')}
           </p>
           <Link
-            href={`/logs/create?recipe=${recipePublicId}`}
+            href={`/logs/create?recipeId=${recipePublicId}`}
             className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)] dark:bg-[var(--secondary)] text-white [&>*]:text-white rounded-lg hover:bg-[var(--primary-dark)] dark:hover:bg-[#6D4C41] transition-colors"
           >
             <svg
@@ -200,7 +200,7 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
       {/* Write Log CTA */}
       <div className="mt-6">
         <Link
-          href={`/logs/create?recipe=${recipePublicId}`}
+          href={`/logs/create?recipeId=${recipePublicId}`}
           className="flex items-center justify-between gap-4 px-5 py-4 bg-[var(--surface)] border border-[var(--border)] border-l-4 border-l-[var(--primary)] dark:border-l-[var(--secondary)] rounded-xl hover:bg-[var(--background)] transition-colors"
         >
           <div>
