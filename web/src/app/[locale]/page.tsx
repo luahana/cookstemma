@@ -128,9 +128,13 @@ export default async function Home({ params }: Props) {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        {activity.rating && <StarRating rating={activity.rating} size="sm" />}
+                      <div className="mb-1">
                         <span className="text-sm font-medium text-[var(--primary)]">{activity.foodName}</span>
+                        {activity.rating && (
+                          <div className="mt-1">
+                            <StarRating rating={activity.rating} size="sm" />
+                          </div>
+                        )}
                       </div>
                       <p className="font-medium text-[var(--text-primary)] truncate">
                         {activity.recipeTitle}
