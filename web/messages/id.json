@@ -20,7 +20,8 @@
     "success": "Berhasil",
     "noResults": "Tidak ada hasil",
     "by": "oleh",
-    "anonymous": "Anonim"
+    "anonymous": "Anonim",
+    "style": "Gaya"
   },
   "nav": {
     "recipes": "Resep",

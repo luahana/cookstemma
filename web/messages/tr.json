@@ -20,7 +20,8 @@
     "success": "Başarılı",
     "noResults": "Sonuç bulunamadı",
     "by": "tarafından",
-    "anonymous": "Anonim"
+    "anonymous": "Anonim",
+    "style": "Stil"
   },
   "nav": {
     "recipes": "Tarifler",

@@ -20,7 +20,8 @@
     "success": "성공",
     "noResults": "결과가 없습니다",
     "by": "by",
-    "anonymous": "익명"
+    "anonymous": "익명",
+    "style": "스타일"
   },
   "nav": {
     "recipes": "레시피",

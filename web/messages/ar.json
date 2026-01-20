@@ -20,7 +20,8 @@
     "success": "نجاح",
     "noResults": "لم يتم العثور على نتائج",
     "by": "بواسطة",
-    "anonymous": "مجهول"
+    "anonymous": "مجهول",
+    "style": "الأسلوب"
   },
   "nav": {
     "recipes": "الوصفات",

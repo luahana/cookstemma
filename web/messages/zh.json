@@ -20,7 +20,8 @@
     "success": "成功",
     "noResults": "未找到结果",
     "by": "作者",
-    "anonymous": "匿名"
+    "anonymous": "匿名",
+    "style": "风格"
   },
   "nav": {
     "recipes": "食谱",

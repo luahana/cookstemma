@@ -20,7 +20,8 @@
     "success": "Lyckades",
     "noResults": "Inga resultat hittades",
     "by": "av",
-    "anonymous": "Anonym"
+    "anonymous": "Anonym",
+    "style": "Stil"
   },
   "nav": {
     "recipes": "Recept",

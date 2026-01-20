@@ -20,7 +20,8 @@
     "success": "सफलता",
     "noResults": "कोई परिणाम नहीं मिला",
     "by": "द्वारा",
-    "anonymous": "गुमनाम"
+    "anonymous": "गुमनाम",
+    "style": "शैली"
   },
   "nav": {
     "recipes": "रेसिपी",
