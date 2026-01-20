@@ -43,7 +43,7 @@ export function SearchBar({
           onChange={(e) => setQuery(e.target.value)}
           placeholder={searchPlaceholder}
           autoFocus={autoFocus}
-          className="w-full px-4 py-3 pl-12 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary-light)] transition-colors"
+          className="w-full px-4 py-3 pl-12 pr-28 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary-light)] transition-colors"
         />
         <svg
           className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]"
@@ -58,31 +58,33 @@ export function SearchBar({
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           />
         </svg>
-        {query && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          {query && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery('');
+                router.push('/search');
+              }}
+              className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          )}
           <button
-            type="button"
-            onClick={() => {
-              setQuery('');
-              router.push('/search');
-            }}
-            className="absolute right-14 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            type="submit"
+            className="px-4 py-1.5 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dark)] transition-colors text-sm font-medium"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            {t('searchButton')}
           </button>
-        )}
-        <button
-          type="submit"
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-dark)] transition-colors text-sm font-medium"
-        >
-          {t('searchButton')}
-        </button>
+        </div>
       </div>
     </form>
   );
