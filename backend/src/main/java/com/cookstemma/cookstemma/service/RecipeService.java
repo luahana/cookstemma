@@ -570,7 +570,9 @@ public class RecipeService {
     }
 
     @Transactional(readOnly = true)
-    public HomeFeedResponseDto getHomeFeed() {
+    public HomeFeedResponseDto getHomeFeed(String locale) {
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+
         // 1. 최근 요리 활동 (로그) 조회 - "📍 최근 요리 활동" 섹션
         List<RecentActivityDto> recentActivity = logPostRepository
                 .findAllOrderByCreatedAtDesc(PageRequest.of(0, 5))
@@ -586,14 +588,22 @@ public class RecipeService {
                             .map(img -> urlPrefix + "/" + img.getStoredFilename())
                             .orElse(null);
 
+                    // Get localized recipe title
+                    String recipeTitle = LocaleUtils.getLocalizedValue(
+                            recipe.getTitleTranslations(), normalizedLocale, recipe.getTitle());
+                    // Get localized food name
+                    String foodName = LocaleUtils.getLocalizedValue(
+                            recipe.getFoodMaster().getName(), normalizedLocale,
+                            recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
+
                     return RecentActivityDto.builder()
                             .logPublicId(log.getPublicId())
                             .rating(recipeLog.getRating())
                             .thumbnailUrl(thumbnailUrl)
                             .userName(userName)
-                            .recipeTitle(recipe.getTitle())
+                            .recipeTitle(recipeTitle)
                             .recipePublicId(recipe.getPublicId())
-                            .foodName(getFoodName(recipe))
+                            .foodName(foodName)
                             .createdAt(log.getCreatedAt())
                             .hashtags(log.getHashtags().stream().map(Hashtag::getName).toList())
                             .build();
@@ -602,7 +612,7 @@ public class RecipeService {
 
         // 2. 최근 레시피 조회
         List<RecipeSummaryDto> recentRecipes = recipeRepository.findTop5ByDeletedAtIsNullAndIsPrivateFalseOrderByCreatedAtDesc()
-                .stream().map(this::convertToSummary).toList();
+                .stream().map(r -> convertToSummary(r, normalizedLocale)).toList();
 
         // 3. 활발한 변형 트리 조회 (기획서: "🔥 이 레시피, 이렇게 바뀌고 있어요")
         List<TrendingTreeDto> trending = recipeRepository.findTrendingOriginals(PageRequest.of(0, 5))
@@ -621,15 +631,24 @@ public class RecipeService {
                     String userName = creatorOpt.map(user -> user.getUsername()).orElse("Unknown");
                     UUID creatorPublicId = creatorOpt.map(user -> user.getPublicId()).orElse(null);
 
+                    // Get localized title and food name
+                    String title = LocaleUtils.getLocalizedValue(
+                            root.getTitleTranslations(), normalizedLocale, root.getTitle());
+                    String foodName = LocaleUtils.getLocalizedValue(
+                            root.getFoodMaster().getName(), normalizedLocale,
+                            root.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
+                    String description = LocaleUtils.getLocalizedValue(
+                            root.getDescriptionTranslations(), normalizedLocale, root.getDescription());
+
                     return TrendingTreeDto.builder()
                             .rootRecipeId(root.getPublicId())
-                            .title(root.getTitle())
-                            .foodName(getFoodName(root))
+                            .title(title)
+                            .foodName(foodName)
                             .cookingStyle(root.getCookingStyle())
                             .thumbnail(thumbnail)
                             .variantCount(variants)
                             .logCount(logs)
-                            .latestChangeSummary(root.getDescription())
+                            .latestChangeSummary(description)
                             .userName(userName)
                             .creatorPublicId(creatorPublicId)
                             .build();
@@ -870,7 +889,7 @@ public class RecipeService {
      * Find recipes with cursor-based pagination
      */
     @Transactional(readOnly = true)
-    public CursorPageResponse<RecipeSummaryDto> findRecipesWithCursor(String locale, boolean onlyRoot, String typeFilter, String cursor, int size) {
+    public CursorPageResponse<RecipeSummaryDto> findRecipesWithCursor(String locale, boolean onlyRoot, String typeFilter, String cursor, int size, String contentLocale) {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
@@ -919,14 +938,14 @@ public class RecipeService {
             }
         }
 
-        return buildCursorResponse(recipes, size);
+        return buildCursorResponse(recipes, size, contentLocale);
     }
 
     /**
      * Search recipes with cursor-based pagination
      */
     @Transactional(readOnly = true)
-    public CursorPageResponse<RecipeSummaryDto> searchRecipesWithCursor(String keyword, String cursor, int size) {
+    public CursorPageResponse<RecipeSummaryDto> searchRecipesWithCursor(String keyword, String cursor, int size, String contentLocale) {
         if (keyword == null || keyword.trim().length() < 2) {
             return CursorPageResponse.empty(size);
         }
@@ -943,7 +962,7 @@ public class RecipeService {
         Pageable pageable = PageRequest.of(page, size);
         Slice<Recipe> recipes = recipeRepository.searchRecipes(keyword.trim(), pageable);
         List<RecipeSummaryDto> content = recipes.getContent().stream()
-                .map(this::convertToSummary)
+                .map(r -> convertToSummary(r, contentLocale))
                 .toList();
 
         String nextCursor = recipes.hasNext() ? String.valueOf(page + 1) : null;
@@ -984,11 +1003,18 @@ public class RecipeService {
     }
 
     /**
-     * Helper to build cursor response from Slice
+     * Helper to build cursor response from Slice (uses default locale)
      */
     private CursorPageResponse<RecipeSummaryDto> buildCursorResponse(Slice<Recipe> recipes, int size) {
+        return buildCursorResponse(recipes, size, LocaleUtils.DEFAULT_LOCALE);
+    }
+
+    /**
+     * Helper to build cursor response from Slice
+     */
+    private CursorPageResponse<RecipeSummaryDto> buildCursorResponse(Slice<Recipe> recipes, int size, String contentLocale) {
         List<RecipeSummaryDto> content = recipes.getContent().stream()
-                .map(this::convertToSummary)
+                .map(r -> convertToSummary(r, contentLocale))
                 .toList();
 
         String nextCursor = null;
@@ -1018,12 +1044,16 @@ public class RecipeService {
      * Filter options:
      * - cookingTimeRanges: List of acceptable cooking time ranges
      * - minServings/maxServings: Servings range filter
+     *
+     * @param contentLocale Locale from Accept-Language header for content translation
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<RecipeSummaryDto> findRecipesUnified(
             String locale, String typeFilter, String sort,
             List<CookingTimeRange> cookingTimeRanges, Integer minServings, Integer maxServings,
-            String cursor, Integer page, int size) {
+            String cursor, Integer page, int size, String contentLocale) {
+
+        String normalizedLocale = LocaleUtils.normalizeLocale(contentLocale);
 
         // Check if any advanced filters are applied
         boolean hasAdvancedFilters = (cookingTimeRanges != null && !cookingTimeRanges.isEmpty())
@@ -1036,19 +1066,19 @@ public class RecipeService {
         if (hasAdvancedFilters || isComplexSort) {
             int pageNum = (page != null) ? page : 0;
             if (isComplexSort && !hasAdvancedFilters) {
-                return findRecipesWithOffsetSorted(locale, typeFilter, sort, pageNum, size);
+                return findRecipesWithOffsetSorted(locale, typeFilter, sort, pageNum, size, normalizedLocale);
             }
-            return findRecipesWithSpecification(locale, typeFilter, sort, cookingTimeRanges, minServings, maxServings, pageNum, size);
+            return findRecipesWithSpecification(locale, typeFilter, sort, cookingTimeRanges, minServings, maxServings, pageNum, size, normalizedLocale);
         }
 
         // Strategy selection for recent sort (default) without advanced filters
         if (cursor != null && !cursor.isEmpty()) {
-            return findRecipesWithCursorUnified(locale, typeFilter, cursor, size);
+            return findRecipesWithCursorUnified(locale, typeFilter, cursor, size, normalizedLocale);
         } else if (page != null) {
-            return findRecipesWithOffset(locale, typeFilter, page, size);
+            return findRecipesWithOffset(locale, typeFilter, page, size, normalizedLocale);
         } else {
             // Default: initial cursor-based (first page)
-            return findRecipesWithCursorUnified(locale, typeFilter, null, size);
+            return findRecipesWithCursorUnified(locale, typeFilter, null, size, normalizedLocale);
         }
     }
 
@@ -1059,7 +1089,7 @@ public class RecipeService {
     private UnifiedPageResponse<RecipeSummaryDto> findRecipesWithSpecification(
             String locale, String typeFilter, String sort,
             List<CookingTimeRange> cookingTimeRanges, Integer minServings, Integer maxServings,
-            int page, int size) {
+            int page, int size, String contentLocale) {
 
         Sort sortBy;
         if ("mostForked".equalsIgnoreCase(sort)) {
@@ -1074,7 +1104,7 @@ public class RecipeService {
         var spec = RecipeSpecification.withFilters(locale, typeFilter, cookingTimeRanges, minServings, maxServings);
 
         Page<Recipe> recipes = recipeRepository.findAll(spec, pageable);
-        Page<RecipeSummaryDto> mappedPage = recipes.map(this::convertToSummary);
+        Page<RecipeSummaryDto> mappedPage = recipes.map(r -> convertToSummary(r, contentLocale));
         return UnifiedPageResponse.fromPage(mappedPage, size);
     }
 
@@ -1083,7 +1113,7 @@ public class RecipeService {
      * Returns Page with totalElements, totalPages, currentPage.
      */
     private UnifiedPageResponse<RecipeSummaryDto> findRecipesWithOffset(
-            String locale, String typeFilter, int page, int size) {
+            String locale, String typeFilter, int page, int size, String contentLocale) {
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -1111,7 +1141,7 @@ public class RecipeService {
             }
         }
 
-        Page<RecipeSummaryDto> mappedPage = recipes.map(this::convertToSummary);
+        Page<RecipeSummaryDto> mappedPage = recipes.map(r -> convertToSummary(r, contentLocale));
         return UnifiedPageResponse.fromPage(mappedPage, size);
     }
 
@@ -1120,7 +1150,7 @@ public class RecipeService {
      * Uses native queries with subqueries for counting variants/activity.
      */
     private UnifiedPageResponse<RecipeSummaryDto> findRecipesWithOffsetSorted(
-            String locale, String typeFilter, String sort, int page, int size) {
+            String locale, String typeFilter, String sort, int page, int size, String contentLocale) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Recipe> recipes;
@@ -1141,7 +1171,7 @@ public class RecipeService {
             recipes = recipeRepository.findPublicRecipesPage(pageable);
         }
 
-        Page<RecipeSummaryDto> mappedPage = recipes.map(this::convertToSummary);
+        Page<RecipeSummaryDto> mappedPage = recipes.map(r -> convertToSummary(r, contentLocale));
         return UnifiedPageResponse.fromPage(mappedPage, size);
     }
 
@@ -1149,10 +1179,10 @@ public class RecipeService {
      * Cursor-based pagination wrapped in UnifiedPageResponse for mobile clients.
      */
     private UnifiedPageResponse<RecipeSummaryDto> findRecipesWithCursorUnified(
-            String locale, String typeFilter, String cursor, int size) {
+            String locale, String typeFilter, String cursor, int size, String contentLocale) {
 
         CursorPageResponse<RecipeSummaryDto> cursorResponse =
-                findRecipesWithCursor(locale, false, typeFilter, cursor, size);
+                findRecipesWithCursor(locale, false, typeFilter, cursor, size, contentLocale);
 
         return UnifiedPageResponse.fromCursor(
                 cursorResponse.content(),
@@ -1218,21 +1248,25 @@ public class RecipeService {
 
     /**
      * Unified search with strategy-based pagination.
+     *
+     * @param contentLocale Locale from Accept-Language header for content translation
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<RecipeSummaryDto> searchRecipesUnified(
-            String keyword, String cursor, Integer page, int size) {
+            String keyword, String cursor, Integer page, int size, String contentLocale) {
+
+        String normalizedLocale = LocaleUtils.normalizeLocale(contentLocale);
 
         if (keyword == null || keyword.trim().length() < 2) {
             return UnifiedPageResponse.emptyCursor(size);
         }
 
         if (cursor != null && !cursor.isEmpty()) {
-            return searchRecipesWithCursorUnified(keyword, cursor, size);
+            return searchRecipesWithCursorUnified(keyword, cursor, size, normalizedLocale);
         } else if (page != null) {
-            return searchRecipesWithOffset(keyword, page, size);
+            return searchRecipesWithOffset(keyword, page, size, normalizedLocale);
         } else {
-            return searchRecipesWithCursorUnified(keyword, null, size);
+            return searchRecipesWithCursorUnified(keyword, null, size, normalizedLocale);
         }
     }
 
@@ -1240,12 +1274,12 @@ public class RecipeService {
      * Offset-based search for web clients.
      */
     private UnifiedPageResponse<RecipeSummaryDto> searchRecipesWithOffset(
-            String keyword, int page, int size) {
+            String keyword, int page, int size, String contentLocale) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword.trim(), pageable);
 
-        Page<RecipeSummaryDto> mappedPage = recipes.map(this::convertToSummary);
+        Page<RecipeSummaryDto> mappedPage = recipes.map(r -> convertToSummary(r, contentLocale));
         return UnifiedPageResponse.fromPage(mappedPage, size);
     }
 
@@ -1253,10 +1287,10 @@ public class RecipeService {
      * Cursor-based search wrapped in UnifiedPageResponse.
      */
     private UnifiedPageResponse<RecipeSummaryDto> searchRecipesWithCursorUnified(
-            String keyword, String cursor, int size) {
+            String keyword, String cursor, int size, String contentLocale) {
 
         CursorPageResponse<RecipeSummaryDto> cursorResponse =
-                searchRecipesWithCursor(keyword, cursor, size);
+                searchRecipesWithCursor(keyword, cursor, size, contentLocale);
 
         return UnifiedPageResponse.fromCursor(
                 cursorResponse.content(),

@@ -52,14 +52,17 @@ public class RecipeController {
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
+        // Get content locale from Accept-Language header for translation
+        String contentLocale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+
         // 검색어가 있으면 검색 모드
         if (searchKeyword != null && !searchKeyword.isBlank()) {
-            return ResponseEntity.ok(recipeService.searchRecipesUnified(searchKeyword, cursor, page, size));
+            return ResponseEntity.ok(recipeService.searchRecipesUnified(searchKeyword, cursor, page, size, contentLocale));
         }
         // typeFilter takes precedence over onlyRoot
         String effectiveTypeFilter = (typeFilter != null) ? typeFilter : (onlyRoot ? "original" : null);
         return ResponseEntity.ok(recipeService.findRecipesUnified(
-                locale, effectiveTypeFilter, sort, cookingTimeRanges, minServings, maxServings, cursor, page, size));
+                locale, effectiveTypeFilter, sort, cookingTimeRanges, minServings, maxServings, cursor, page, size, contentLocale));
     }
 
     /**
