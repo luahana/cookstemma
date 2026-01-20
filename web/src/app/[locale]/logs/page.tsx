@@ -6,15 +6,8 @@ import { LogFilters } from '@/components/common/LogFilters';
 import { Pagination } from '@/components/common/Pagination';
 import { siteConfig } from '@/config/site';
 
-export const metadata: Metadata = {
-  title: 'Cooking Logs',
-  description: 'Browse cooking logs and experiences from our community of home cooks',
-  alternates: {
-    canonical: `${siteConfig.url}/logs`,
-  },
-};
-
 interface Props {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{
     page?: string;
     sort?: 'recent' | 'popular' | 'trending';
@@ -23,13 +16,32 @@ interface Props {
   }>;
 }
 
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const queryParams = await searchParams;
+  const t = await getTranslations({ locale, namespace: 'logs' });
+
+  // Check if there are any filters applied
+  const hasFilters = queryParams.sort || queryParams.page || queryParams.minRating || queryParams.maxRating;
+
+  return {
+    title: t('title'),
+    description: t('subtitle'),
+    alternates: {
+      canonical: `${siteConfig.url}/${locale}/logs`,
+    },
+    // Add noindex for filtered/paginated pages to prevent duplicate content
+    robots: hasFilters ? { index: false, follow: true } : undefined,
+  };
+}
+
 export default async function LogsPage({ searchParams }: Props) {
-  const params = await searchParams;
+  const queryParams = await searchParams;
   const t = await getTranslations('logs');
-  const page = parseInt(params.page || '0', 10);
-  const sort = params.sort || 'recent';
-  const minRating = params.minRating ? parseInt(params.minRating, 10) : undefined;
-  const maxRating = params.maxRating ? parseInt(params.maxRating, 10) : undefined;
+  const page = parseInt(queryParams.page || '0', 10);
+  const sort = queryParams.sort || 'recent';
+  const minRating = queryParams.minRating ? parseInt(queryParams.minRating, 10) : undefined;
+  const maxRating = queryParams.maxRating ? parseInt(queryParams.maxRating, 10) : undefined;
 
   const logs = await getLogs({
     page,

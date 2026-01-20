@@ -79,6 +79,35 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+/**
+ * Map locale codes to OpenGraph locale format (e.g., "en" → "en_US")
+ */
+function getOpenGraphLocale(locale: string): string {
+  const ogLocaleMap: Record<string, string> = {
+    en: 'en_US',
+    ko: 'ko_KR',
+    ja: 'ja_JP',
+    zh: 'zh_CN',
+    de: 'de_DE',
+    fr: 'fr_FR',
+    es: 'es_ES',
+    pt: 'pt_BR',
+    it: 'it_IT',
+    ar: 'ar_SA',
+    ru: 'ru_RU',
+    id: 'id_ID',
+    vi: 'vi_VN',
+    hi: 'hi_IN',
+    th: 'th_TH',
+    pl: 'pl_PL',
+    tr: 'tr_TR',
+    nl: 'nl_NL',
+    sv: 'sv_SE',
+    fa: 'fa_IR',
+  };
+  return ogLocaleMap[locale] || 'en_US';
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -108,7 +137,7 @@ export async function generateMetadata({
     },
     openGraph: {
       type: 'website',
-      locale: locale === 'ar' ? 'ar_SA' : 'en_US',
+      locale: getOpenGraphLocale(locale),
       url: siteConfig.url,
       siteName: siteConfig.name,
       title: siteConfig.name,

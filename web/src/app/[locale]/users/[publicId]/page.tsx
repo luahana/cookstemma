@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { getUserProfile, getUserRecipes, getUserLogs } from '@/lib/api/users';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { LogGrid } from '@/components/log/LogGrid';
@@ -11,12 +12,12 @@ import { getImageUrl } from '@/lib/utils/image';
 import { siteConfig } from '@/config/site';
 
 interface Props {
-  params: Promise<{ publicId: string }>;
+  params: Promise<{ publicId: string; locale: string }>;
   searchParams: Promise<{ tab?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { publicId } = await params;
+  const { publicId, locale } = await params;
 
   try {
     const user = await getUserProfile(publicId);
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: user.username,
       description: user.bio || `${user.username}'s recipes and cooking logs on Cookstemma`,
       alternates: {
-        canonical: `${siteConfig.url}/users/${publicId}`,
+        canonical: `${siteConfig.url}/${locale}/users/${publicId}`,
       },
       openGraph: {
         title: user.username,
@@ -44,8 +45,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function UserProfilePage({ params, searchParams }: Props) {
-  const { publicId } = await params;
+  const { publicId, locale } = await params;
   const { tab = 'recipes' } = await searchParams;
+  const tNav = await getTranslations('nav');
 
   let user;
   try {
@@ -60,8 +62,8 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
   ]);
 
   const tabs = [
-    { id: 'recipes', label: 'Recipes', count: user.recipeCount },
-    { id: 'logs', label: 'Cooking Logs', count: user.logCount },
+    { id: 'recipes', label: tNav('recipes'), count: user.recipeCount },
+    { id: 'logs', label: tNav('cookingLogs'), count: user.logCount },
   ];
 
   return (
@@ -75,8 +77,9 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
         instagramHandle={user.instagramHandle}
       />
       <BreadcrumbJsonLd
+        locale={locale}
         items={[
-          { name: 'Home', href: '/' },
+          { name: tNav('home') || 'Home', href: '/' },
           { name: user.username, href: `/users/${publicId}` },
         ]}
       />

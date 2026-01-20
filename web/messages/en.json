@@ -24,6 +24,7 @@
     "style": "Style"
   },
   "nav": {
+    "home": "Home",
     "recipes": "Recipes",
     "cookingLogs": "Cooking Logs",
     "search": "Search",
@@ -71,6 +72,8 @@
     "package": "package"
   },
   "home": {
+    "metaTitle": "Cookstemma - Share Your Recipes",
+    "metaDescription": "Discover and share recipes from around the world. Create variations, track your cooking journey, and join a community of home cooks.",
     "heroTitle": "Your Recipes, <highlight>Evolved</highlight>",
     "heroSubtitle": "Share your recipes, create variations, and track your cooking journey. Join a community of home cooks discovering new flavors together.",
     "featuredRecipes": "Featured Recipes",

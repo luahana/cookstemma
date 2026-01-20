@@ -9,19 +9,19 @@ import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 import { siteConfig } from '@/config/site';
 
 interface Props {
-  params: Promise<{ name: string }>;
+  params: Promise<{ name: string; locale: string }>;
   searchParams: Promise<{ tab?: string; page?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { name } = await params;
+  const { name, locale } = await params;
   const decodedName = decodeURIComponent(name);
 
   return {
     title: `#${decodedName}`,
     description: `Recipes and cooking logs tagged with #${decodedName} on Cookstemma`,
     alternates: {
-      canonical: `${siteConfig.url}/hashtags/${encodeURIComponent(decodedName)}`,
+      canonical: `${siteConfig.url}/${locale}/hashtags/${encodeURIComponent(decodedName)}`,
     },
     openGraph: {
       title: `#${decodedName} | Cookstemma`,
@@ -32,11 +32,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function HashtagPage({ params, searchParams }: Props) {
-  const { name } = await params;
+  const { name, locale } = await params;
   const { tab = 'recipes', page: pageParam = '0' } = await searchParams;
   const page = parseInt(pageParam, 10);
   const decodedName = decodeURIComponent(name);
   const t = await getTranslations('hashtags');
+  const tNav = await getTranslations('nav');
 
   let counts;
   try {
@@ -61,8 +62,9 @@ export default async function HashtagPage({ params, searchParams }: Props) {
   return (
     <>
       <BreadcrumbJsonLd
+        locale={locale}
         items={[
-          { name: 'Home', href: '/' },
+          { name: tNav('home') || 'Home', href: '/' },
           { name: `#${decodedName}`, href: `/hashtags/${encodeURIComponent(decodedName)}` },
         ]}
       />
@@ -81,17 +83,17 @@ export default async function HashtagPage({ params, searchParams }: Props) {
         {/* Tabs */}
         <div className="border-b border-[var(--border)] mb-6">
           <nav className="flex gap-8">
-            {tabs.map((t) => (
+            {tabs.map((tabItem) => (
               <Link
-                key={t.id}
-                href={`/hashtags/${encodeURIComponent(decodedName)}?tab=${t.id}`}
+                key={tabItem.id}
+                href={`/hashtags/${encodeURIComponent(decodedName)}?tab=${tabItem.id}`}
                 className={`pb-4 px-1 border-b-2 font-medium transition-colors ${
-                  tab === t.id
+                  tab === tabItem.id
                     ? 'border-[var(--primary)] text-[var(--primary)]'
                     : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
-                {t.label} ({t.count})
+                {tabItem.label} ({tabItem.count})
               </Link>
             ))}
           </nav>

@@ -16,7 +16,7 @@ public final class LocaleUtils {
 
     /**
      * Get a localized value from a translations map.
-     * Fallback order: requested locale → default locale (en-US) → fallback value → first available → null.
+     * Fallback order: requested locale → language-only match → default locale (en-US) → English variants → fallback value → first available → null.
      *
      * @param translations Map of locale code to translated value
      * @param locale       Requested locale (e.g., "ko-KR", "en-US")
@@ -68,6 +68,18 @@ public final class LocaleUtils {
     }
 
     /**
+     * Get a localized value from a translations map (without fallback).
+     * Fallback chain: requestedLocale → "en" → first available → null
+     *
+     * @param translations Map of locale codes to translated values
+     * @param locale       Requested locale code (e.g., "ko-KR", "ja", "en")
+     * @return Localized value or null if map is empty
+     */
+    public static String getLocalizedValue(Map<String, String> translations, String locale) {
+        return getLocalizedValue(translations, locale, null);
+    }
+
+    /**
      * Normalize locale format (e.g., "ko_KR" → "ko-KR").
      */
     public static String normalizeLocale(String locale) {
@@ -90,5 +102,19 @@ public final class LocaleUtils {
             return language;
         }
         return language + "-" + country;
+    }
+
+    /**
+     * Extract the language code from a full locale (e.g., "ko-KR" → "ko").
+     *
+     * @param locale Full locale string
+     * @return Language code only
+     */
+    public static String getLanguageCode(String locale) {
+        if (locale == null) {
+            return null;
+        }
+        int dashIndex = locale.indexOf('-');
+        return dashIndex > 0 ? locale.substring(0, dashIndex) : locale;
     }
 }

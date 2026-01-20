@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
@@ -8,9 +9,23 @@ import { AppDownloadCTA } from '@/components/common/AppDownloadCTA';
 import { PopularHashtags } from '@/components/common/PopularHashtags';
 import { StarRating } from '@/components/log/StarRating';
 import { getImageUrl } from '@/lib/utils/image';
+import { siteConfig } from '@/config/site';
 
 interface Props {
   params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'home' });
+
+  return {
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+    alternates: {
+      canonical: `${siteConfig.url}/${locale}`,
+    },
+  };
 }
 
 export default async function Home({ params }: Props) {
