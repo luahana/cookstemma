@@ -9,6 +9,7 @@ import { SearchEmptyState } from '@/components/search/SearchEmptyState';
 import type { SearchTypeFilter } from '@/lib/types';
 
 interface Props {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ q?: string; type?: string; page?: string }>;
 }
 
@@ -32,16 +33,17 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   };
 }
 
-export default async function SearchPage({ searchParams }: Props) {
+export default async function SearchPage({ params, searchParams }: Props) {
+  const { locale } = await params;
   const t = await getTranslations('search');
-  const params = await searchParams;
-  const query = params.q || '';
-  const type = (params.type as SearchTypeFilter) || 'all';
-  const page = parseInt(params.page || '0', 10);
+  const resolvedSearchParams = await searchParams;
+  const query = resolvedSearchParams.q || '';
+  const type = (resolvedSearchParams.type as SearchTypeFilter) || 'all';
+  const page = parseInt(resolvedSearchParams.page || '0', 10);
 
   // Only fetch if there's a query
   const results = query
-    ? await unifiedSearch({ q: query, type, page, size: 12 })
+    ? await unifiedSearch({ q: query, type, page, size: 12, locale })
     : null;
 
   // Build base URL with current filters for pagination
