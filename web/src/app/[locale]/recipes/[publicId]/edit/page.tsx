@@ -16,7 +16,6 @@ import type {
   IngredientType,
   MeasurementUnit,
   UpdateRecipeRequest,
-  CookingTimeRange,
 } from '@/lib/types';
 import { COOKING_TIME_TRANSLATION_KEYS } from '@/lib/types';
 
