@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description: description.slice(0, 160),
       alternates: {
-        canonical: `${siteConfig.url}/recipes/${publicId}`,
+        canonical: `${siteConfig.url}/${locale}/recipes/${publicId}`,
       },
       openGraph: {
         title,
@@ -100,9 +100,10 @@ export default async function RecipeDetailPage({ params }: Props) {
       />
       <RecipeJsonLd recipe={recipe} />
       <BreadcrumbJsonLd
+        locale={locale}
         items={[
-          { name: 'Home', href: '/' },
-          { name: 'Recipes', href: '/recipes' },
+          { name: tNav('home') || 'Home', href: '/' },
+          { name: tNav('recipes'), href: '/recipes' },
           { name: localizedTitle, href: `/recipes/${publicId}` },
         ]}
       />

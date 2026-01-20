@@ -24,6 +24,7 @@
     "style": "스타일"
   },
   "nav": {
+    "home": "홈",
     "recipes": "레시피",
     "cookingLogs": "요리 일지",
     "search": "검색",
@@ -71,6 +72,8 @@
     "package": "봉지"
   },
   "home": {
+    "metaTitle": "쿡스테마 - 레시피를 공유하세요",
+    "metaDescription": "전 세계의 레시피를 발견하고 공유하세요. 변형을 만들고, 요리 여정을 기록하고, 홈 쿡 커뮤니티에 함께하세요.",
     "heroTitle": "당신의 레시피, <highlight>진화하다</highlight>",
     "heroSubtitle": "레시피를 공유하고, 변형을 만들고, 요리 여정을 기록하세요. 새로운 맛을 발견하는 홈 쿡 커뮤니티에 함께하세요.",
     "featuredRecipes": "추천 레시피",

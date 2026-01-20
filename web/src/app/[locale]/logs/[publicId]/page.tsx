@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description: content.slice(0, 160),
       alternates: {
-        canonical: `${siteConfig.url}/logs/${publicId}`,
+        canonical: `${siteConfig.url}/${locale}/logs/${publicId}`,
       },
       openGraph: {
         title,
@@ -97,9 +97,10 @@ export default async function LogDetailPage({ params }: Props) {
       />
       <LogJsonLd log={log} />
       <BreadcrumbJsonLd
+        locale={locale}
         items={[
-          { name: 'Home', href: '/' },
-          { name: 'Cooking Logs', href: '/logs' },
+          { name: tNav('home') || 'Home', href: '/' },
+          { name: tNav('cookingLogs'), href: '/logs' },
           { name: localizedTitle, href: `/logs/${publicId}` },
         ]}
       />

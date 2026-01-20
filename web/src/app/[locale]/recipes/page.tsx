@@ -6,14 +6,6 @@ import { RecipeFilters } from '@/components/common/RecipeFilters';
 import { Pagination } from '@/components/common/Pagination';
 import { siteConfig } from '@/config/site';
 
-export const metadata: Metadata = {
-  title: 'Recipes',
-  description: 'Browse and discover delicious recipes from our community',
-  alternates: {
-    canonical: `${siteConfig.url}/recipes`,
-  },
-};
-
 interface Props {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{
@@ -26,6 +18,26 @@ interface Props {
     minServings?: string;
     maxServings?: string;
   }>;
+}
+
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const queryParams = await searchParams;
+  const t = await getTranslations({ locale, namespace: 'recipes' });
+
+  // Check if there are any filters applied
+  const hasFilters = queryParams.sort || queryParams.type || queryParams.style ||
+    queryParams.cookingTime || queryParams.page || queryParams.minServings || queryParams.maxServings;
+
+  return {
+    title: t('title'),
+    description: t('subtitle'),
+    alternates: {
+      canonical: `${siteConfig.url}/${locale}/recipes`,
+    },
+    // Add noindex for filtered/paginated pages to prevent duplicate content
+    robots: hasFilters ? { index: false, follow: true } : undefined,
+  };
 }
 
 export default async function RecipesPage({ params, searchParams }: Props) {
