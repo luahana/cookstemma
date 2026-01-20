@@ -12,6 +12,7 @@ import com.cookstemma.cookstemma.repository.recipe.RecipeRepository;
 import com.cookstemma.cookstemma.repository.recipe.SavedRecipeRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
 import com.cookstemma.cookstemma.util.CursorUtil;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -76,17 +77,22 @@ public class SavedRecipeService {
                 .orElse(false);
     }
 
-    public Slice<RecipeSummaryDto> getSavedRecipes(Long userId, Pageable pageable) {
+    public Slice<RecipeSummaryDto> getSavedRecipes(Long userId, Pageable pageable, String locale) {
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
         return savedRecipeRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
-                .map(sr -> convertToSummary(sr.getRecipe()));
+                .map(sr -> convertToSummary(sr.getRecipe(), normalizedLocale));
     }
 
-    private RecipeSummaryDto convertToSummary(Recipe recipe) {
+    private RecipeSummaryDto convertToSummary(Recipe recipe, String locale) {
         User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
 
-        String foodName = getFoodName(recipe);
+        // Locale-aware food name
+        String foodName = LocaleUtils.getLocalizedValue(
+                recipe.getFoodMaster().getName(),
+                locale,
+                recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
 
         String thumbnail = recipe.getCoverImages().stream()
                 .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
@@ -96,18 +102,33 @@ public class SavedRecipeService {
 
         int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
-        String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
+
+        // Locale-aware root title
+        String rootTitle = null;
+        if (recipe.getRootRecipe() != null) {
+            rootTitle = LocaleUtils.getLocalizedValue(
+                    recipe.getRootRecipe().getTitleTranslations(),
+                    locale,
+                    recipe.getRootRecipe().getTitle());
+        }
+
         List<String> hashtags = recipe.getHashtags().stream()
                 .map(Hashtag::getName)
                 .limit(3)
                 .toList();
 
+        // Locale-aware title and description
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                recipe.getTitleTranslations(), locale, recipe.getTitle());
+        String localizedDescription = LocaleUtils.getLocalizedValue(
+                recipe.getDescriptionTranslations(), locale, recipe.getDescription());
+
         return new RecipeSummaryDto(
                 recipe.getPublicId(),
                 foodName,
                 recipe.getFoodMaster().getPublicId(),
-                recipe.getTitle(),
-                recipe.getDescription(),
+                localizedTitle,
+                localizedDescription,
                 recipe.getCookingStyle(),
                 creatorPublicId,
                 userName,
@@ -119,31 +140,14 @@ public class SavedRecipeService {
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
                 recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-                hashtags,
-                recipe.getTitleTranslations(),
-                recipe.getDescriptionTranslations()
+                hashtags
         );
-    }
-
-    private String getFoodName(Recipe recipe) {
-        Map<String, String> nameMap = recipe.getFoodMaster().getName();
-        String locale = recipe.getCookingStyle();
-
-        if (locale != null && nameMap.containsKey(locale)) {
-            return nameMap.get(locale);
-        }
-
-        if (nameMap.containsKey("ko-KR")) {
-            return nameMap.get("ko-KR");
-        }
-
-        return nameMap.values().stream().findFirst().orElse("Unknown Food");
     }
 
     /**
      * Get saved recipes with cursor-based pagination
      */
-    public CursorPageResponse<RecipeSummaryDto> getSavedRecipesWithCursor(Long userId, String cursor, int size) {
+    public CursorPageResponse<RecipeSummaryDto> getSavedRecipesWithCursor(Long userId, String cursor, int size, String locale) {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
@@ -154,8 +158,9 @@ public class SavedRecipeService {
             savedRecipes = savedRecipeRepository.findSavedRecipesWithCursor(userId, cursorData.createdAt(), cursorData.id(), pageable);
         }
 
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
         List<RecipeSummaryDto> content = savedRecipes.getContent().stream()
-                .map(sr -> convertToSummary(sr.getRecipe()))
+                .map(sr -> convertToSummary(sr.getRecipe(), normalizedLocale))
                 .toList();
 
         String nextCursor = null;
@@ -178,25 +183,26 @@ public class SavedRecipeService {
      * - Default → cursor-based initial page
      */
     @Transactional(readOnly = true)
-    public UnifiedPageResponse<RecipeSummaryDto> getSavedRecipesUnified(Long userId, String cursor, Integer page, int size) {
+    public UnifiedPageResponse<RecipeSummaryDto> getSavedRecipesUnified(Long userId, String cursor, Integer page, int size, String locale) {
         if (cursor != null && !cursor.isEmpty()) {
-            return getSavedRecipesWithCursorUnified(userId, cursor, size);
+            return getSavedRecipesWithCursorUnified(userId, cursor, size, locale);
         } else if (page != null) {
-            return getSavedRecipesWithOffset(userId, page, size);
+            return getSavedRecipesWithOffset(userId, page, size, locale);
         } else {
-            return getSavedRecipesWithCursorUnified(userId, null, size);
+            return getSavedRecipesWithCursorUnified(userId, null, size, locale);
         }
     }
 
     /**
      * Offset-based saved recipes for web clients.
      */
-    private UnifiedPageResponse<RecipeSummaryDto> getSavedRecipesWithOffset(Long userId, int page, int size) {
+    private UnifiedPageResponse<RecipeSummaryDto> getSavedRecipesWithOffset(Long userId, int page, int size, String locale) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sort);
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
 
         Page<SavedRecipe> savedRecipes = savedRecipeRepository.findSavedRecipesPage(userId, pageable);
-        Page<RecipeSummaryDto> mappedPage = savedRecipes.map(sr -> convertToSummary(sr.getRecipe()));
+        Page<RecipeSummaryDto> mappedPage = savedRecipes.map(sr -> convertToSummary(sr.getRecipe(), normalizedLocale));
 
         return UnifiedPageResponse.fromPage(mappedPage, size);
     }
@@ -204,8 +210,8 @@ public class SavedRecipeService {
     /**
      * Cursor-based saved recipes wrapped in UnifiedPageResponse.
      */
-    private UnifiedPageResponse<RecipeSummaryDto> getSavedRecipesWithCursorUnified(Long userId, String cursor, int size) {
-        CursorPageResponse<RecipeSummaryDto> cursorResponse = getSavedRecipesWithCursor(userId, cursor, size);
+    private UnifiedPageResponse<RecipeSummaryDto> getSavedRecipesWithCursorUnified(Long userId, String cursor, int size, String locale) {
+        CursorPageResponse<RecipeSummaryDto> cursorResponse = getSavedRecipesWithCursor(userId, cursor, size, locale);
 
         return UnifiedPageResponse.fromCursor(
                 cursorResponse.content(),

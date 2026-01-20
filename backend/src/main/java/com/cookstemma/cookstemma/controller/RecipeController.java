@@ -115,7 +115,8 @@ public class RecipeController {
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
-        return ResponseEntity.ok(savedRecipeService.getSavedRecipesUnified(principal.getId(), cursor, page, size));
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        return ResponseEntity.ok(savedRecipeService.getSavedRecipesUnified(principal.getId(), cursor, page, size, locale));
     }
 
     // --- [SAVE/BOOKMARK] ---

@@ -20,6 +20,7 @@ import com.cookstemma.cookstemma.repository.recipe.RecipeRepository;
 import com.cookstemma.cookstemma.repository.recipe.SavedRecipeRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
 import com.cookstemma.cookstemma.security.UserPrincipal;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -307,8 +308,9 @@ public class UserService {
      * Get a user's public recipes
      * @param publicId user's publicId
      * @param typeFilter "original" (only root recipes), "variants" (only variants), or null (all)
+     * @param locale locale for translations
      */
-    public Slice<RecipeSummaryDto> getUserRecipes(UUID publicId, String typeFilter, Pageable pageable) {
+    public Slice<RecipeSummaryDto> getUserRecipes(UUID publicId, String typeFilter, Pageable pageable, String locale) {
         User user = userRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -323,28 +325,35 @@ public class UserService {
             recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
         }
 
-        return recipes.map(this::convertToRecipeSummary);
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+        return recipes.map(recipe -> convertToRecipeSummary(recipe, normalizedLocale));
     }
 
     /**
      * Get a user's public logs
+     * @param locale locale for translations
      */
-    public Slice<LogPostSummaryDto> getUserLogs(UUID publicId, Pageable pageable) {
+    public Slice<LogPostSummaryDto> getUserLogs(UUID publicId, Pageable pageable, String locale) {
         User user = userRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Long userId = user.getId();
         Slice<LogPost> logs = logPostRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
 
-        return logs.map(this::convertToLogSummary);
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+        return logs.map(log -> convertToLogSummary(log, normalizedLocale));
     }
 
-    private RecipeSummaryDto convertToRecipeSummary(Recipe recipe) {
+    private RecipeSummaryDto convertToRecipeSummary(Recipe recipe, String locale) {
         User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
 
-        String foodName = getFoodName(recipe);
+        // Locale-aware food name
+        String foodName = LocaleUtils.getLocalizedValue(
+                recipe.getFoodMaster().getName(),
+                locale,
+                recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
 
         String thumbnail = recipe.getCoverImages().stream()
                 .filter(img -> img.getType() == ImageType.COVER)
@@ -354,18 +363,33 @@ public class UserService {
 
         int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
-        String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
+
+        // Locale-aware root title
+        String rootTitle = null;
+        if (recipe.getRootRecipe() != null) {
+            rootTitle = LocaleUtils.getLocalizedValue(
+                    recipe.getRootRecipe().getTitleTranslations(),
+                    locale,
+                    recipe.getRootRecipe().getTitle());
+        }
+
         List<String> hashtags = recipe.getHashtags().stream()
                 .map(Hashtag::getName)
                 .limit(3)
                 .toList();
 
+        // Locale-aware title and description
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                recipe.getTitleTranslations(), locale, recipe.getTitle());
+        String localizedDescription = LocaleUtils.getLocalizedValue(
+                recipe.getDescriptionTranslations(), locale, recipe.getDescription());
+
         return new RecipeSummaryDto(
                 recipe.getPublicId(),
                 foodName,
                 recipe.getFoodMaster().getPublicId(),
-                recipe.getTitle(),
-                recipe.getDescription(),
+                localizedTitle,
+                localizedDescription,
                 recipe.getCookingStyle(),
                 creatorPublicId,
                 userName,
@@ -377,13 +401,11 @@ public class UserService {
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
                 recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-                hashtags,
-                recipe.getTitleTranslations(),
-                recipe.getDescriptionTranslations()
+                hashtags
         );
     }
 
-    private LogPostSummaryDto convertToLogSummary(LogPost log) {
+    private LogPostSummaryDto convertToLogSummary(LogPost log, String locale) {
         User creator = userRepository.findById(log.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
@@ -393,14 +415,18 @@ public class UserService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        // Get food name, recipe title, and variant status from linked recipe
+        // Get food name, recipe title, and variant status from linked recipe (locale-aware)
         String foodName = null;
         String recipeTitle = null;
         Boolean isVariant = null;
         if (log.getRecipeLog() != null && log.getRecipeLog().getRecipe() != null) {
             Recipe recipe = log.getRecipeLog().getRecipe();
-            foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
-            recipeTitle = recipe.getTitle();
+            foodName = LocaleUtils.getLocalizedValue(
+                    recipe.getFoodMaster().getName(),
+                    locale,
+                    recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
+            recipeTitle = LocaleUtils.getLocalizedValue(
+                    recipe.getTitleTranslations(), locale, recipe.getTitle());
             isVariant = recipe.getRootRecipe() != null;
         }
 
@@ -409,10 +435,16 @@ public class UserService {
                 .map(Hashtag::getName)
                 .toList();
 
+        // Locale-aware title and content
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                log.getTitleTranslations(), locale, log.getTitle());
+        String localizedContent = LocaleUtils.getLocalizedValue(
+                log.getContentTranslations(), locale, log.getContent());
+
         return new LogPostSummaryDto(
                 log.getPublicId(),
-                log.getTitle(),
-                log.getContent(),
+                localizedTitle,
+                localizedContent,
                 log.getRecipeLog() != null ? log.getRecipeLog().getRating() : null,
                 thumbnailUrl,
                 creatorPublicId,
@@ -422,19 +454,6 @@ public class UserService {
                 hashtags,
                 isVariant
         );
-    }
-
-    private String getFoodName(Recipe recipe) {
-        Map<String, String> nameMap = recipe.getFoodMaster().getName();
-        String locale = recipe.getCookingStyle();
-
-        if (locale != null && nameMap.containsKey(locale)) {
-            return nameMap.get(locale);
-        }
-        if (nameMap.containsKey("en-US")) {
-            return nameMap.get("en-US");
-        }
-        return nameMap.values().stream().findFirst().orElse("Unknown Food");
     }
 
     /**

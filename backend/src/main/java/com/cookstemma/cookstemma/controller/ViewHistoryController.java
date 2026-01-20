@@ -6,8 +6,10 @@ import com.cookstemma.cookstemma.dto.search.SearchHistoryRequest;
 import com.cookstemma.cookstemma.security.UserPrincipal;
 import com.cookstemma.cookstemma.service.SearchHistoryService;
 import com.cookstemma.cookstemma.service.ViewHistoryService;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -55,9 +57,11 @@ public class ViewHistoryController {
     public ResponseEntity<List<RecipeSummaryDto>> getRecentlyViewedRecipes(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(defaultValue = "10") int limit) {
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
         List<RecipeSummaryDto> recipes = viewHistoryService.getRecentlyViewedRecipes(
                 principal.getId(),
-                Math.min(limit, 50)
+                Math.min(limit, 50),
+                locale
         );
         return ResponseEntity.ok(recipes);
     }
@@ -70,9 +74,11 @@ public class ViewHistoryController {
     public ResponseEntity<List<LogPostSummaryDto>> getRecentlyViewedLogs(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(defaultValue = "10") int limit) {
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
         List<LogPostSummaryDto> logs = viewHistoryService.getRecentlyViewedLogs(
                 principal.getId(),
-                Math.min(limit, 50)
+                Math.min(limit, 50),
+                locale
         );
         return ResponseEntity.ok(logs);
     }

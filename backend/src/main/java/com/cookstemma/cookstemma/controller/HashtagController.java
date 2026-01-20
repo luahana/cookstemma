@@ -5,7 +5,9 @@ import com.cookstemma.cookstemma.dto.hashtag.HashtagDto;
 import com.cookstemma.cookstemma.dto.log_post.LogPostSummaryDto;
 import com.cookstemma.cookstemma.dto.recipe.RecipeSummaryDto;
 import com.cookstemma.cookstemma.service.HashtagService;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +47,8 @@ public class HashtagController {
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
-        return ResponseEntity.ok(hashtagService.getRecipesByHashtag(hashtagName, cursor, page, size));
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        return ResponseEntity.ok(hashtagService.getRecipesByHashtag(hashtagName, cursor, page, size, locale));
     }
 
     /**
@@ -58,7 +61,8 @@ public class HashtagController {
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
-        return ResponseEntity.ok(hashtagService.getLogPostsByHashtag(hashtagName, cursor, page, size));
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        return ResponseEntity.ok(hashtagService.getLogPostsByHashtag(hashtagName, cursor, page, size, locale));
     }
 
     /**

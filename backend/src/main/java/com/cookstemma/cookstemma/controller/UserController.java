@@ -7,11 +7,13 @@ import com.cookstemma.cookstemma.dto.user.AcceptLegalTermsRequestDto;
 import com.cookstemma.cookstemma.dto.user.UpdateProfileRequestDto;
 import com.cookstemma.cookstemma.dto.user.UserDto;
 import com.cookstemma.cookstemma.dto.user.MyProfileResponseDto;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import jakarta.validation.Valid;
 import com.cookstemma.cookstemma.security.UserPrincipal;
 import com.cookstemma.cookstemma.service.CookingDnaService;
 import com.cookstemma.cookstemma.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
@@ -129,7 +131,8 @@ public class UserController {
             @PathVariable("userId") UUID userId,
             @RequestParam(required = false) String typeFilter,
             Pageable pageable) {
-        Slice<RecipeSummaryDto> response = userService.getUserRecipes(userId, typeFilter, pageable);
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        Slice<RecipeSummaryDto> response = userService.getUserRecipes(userId, typeFilter, pageable, locale);
         return ResponseEntity.ok(response);
     }
 
@@ -141,7 +144,8 @@ public class UserController {
     public ResponseEntity<Slice<LogPostSummaryDto>> getUserLogs(
             @PathVariable("userId") UUID userId,
             Pageable pageable) {
-        Slice<LogPostSummaryDto> response = userService.getUserLogs(userId, pageable);
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        Slice<LogPostSummaryDto> response = userService.getUserLogs(userId, pageable, locale);
         return ResponseEntity.ok(response);
     }
 }

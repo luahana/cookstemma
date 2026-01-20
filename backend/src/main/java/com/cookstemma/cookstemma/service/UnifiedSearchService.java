@@ -14,6 +14,7 @@ import com.cookstemma.cookstemma.repository.log_post.LogPostRepository;
 import com.cookstemma.cookstemma.repository.recipe.RecipeLogRepository;
 import com.cookstemma.cookstemma.repository.recipe.RecipeRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,15 +55,17 @@ public class UnifiedSearchService {
      * @param type    Filter type: all, recipes, logs, hashtags
      * @param page    Page number (0-indexed)
      * @param size    Items per page
+     * @param locale  Locale for translations
      * @return Unified search response with mixed results and counts
      */
-    public UnifiedSearchResponse search(String keyword, String type, int page, int size) {
+    public UnifiedSearchResponse search(String keyword, String type, int page, int size, String locale) {
         if (keyword == null || keyword.trim().length() < MIN_KEYWORD_LENGTH) {
             return UnifiedSearchResponse.empty(size);
         }
 
         String normalizedKeyword = keyword.trim();
         String normalizedType = type != null ? type.toLowerCase() : TYPE_ALL;
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
 
         // Get counts for all types (for filter chips)
         SearchCounts counts = getCounts(normalizedKeyword);
@@ -73,11 +76,11 @@ public class UnifiedSearchService {
 
         switch (normalizedType) {
             case TYPE_RECIPES -> {
-                items = searchRecipesOnly(normalizedKeyword, page, size);
+                items = searchRecipesOnly(normalizedKeyword, page, size, normalizedLocale);
                 totalElements = counts.recipes();
             }
             case TYPE_LOGS -> {
-                items = searchLogsOnly(normalizedKeyword, page, size);
+                items = searchLogsOnly(normalizedKeyword, page, size, normalizedLocale);
                 totalElements = counts.logs();
             }
             case TYPE_HASHTAGS -> {
@@ -85,7 +88,7 @@ public class UnifiedSearchService {
                 totalElements = counts.hashtags();
             }
             default -> {
-                items = searchAll(normalizedKeyword, page, size);
+                items = searchAll(normalizedKeyword, page, size, normalizedLocale);
                 totalElements = counts.total();
             }
         }
@@ -107,7 +110,7 @@ public class UnifiedSearchService {
     /**
      * Search all types and merge results by relevance.
      */
-    private List<SearchResultItem> searchAll(String keyword, int page, int size) {
+    private List<SearchResultItem> searchAll(String keyword, int page, int size, String locale) {
         // For "all" type, we fetch proportionally from each type based on counts
         // Then merge and sort by relevance score
         // For simplicity, fetch size items from each type for the first page,
@@ -129,12 +132,12 @@ public class UnifiedSearchService {
         // Fetch recipes with position-based relevance
         Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword,
             PageRequest.of(0, fetchSize, Sort.by(Sort.Direction.DESC, "created_at")));
-        addRecipeItems(allItems, recipes.getContent(), fetchSize);
+        addRecipeItems(allItems, recipes.getContent(), fetchSize, locale);
 
         // Fetch logs
         Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword,
             PageRequest.of(0, fetchSize, Sort.by(Sort.Direction.DESC, "created_at")));
-        addLogItems(allItems, logs.getContent(), fetchSize);
+        addLogItems(allItems, logs.getContent(), fetchSize, locale);
 
         // Fetch hashtags
         Page<Hashtag> hashtags = hashtagRepository.searchHashtagsWithRelevance(keyword,
@@ -154,24 +157,24 @@ public class UnifiedSearchService {
     /**
      * Search only recipes.
      */
-    private List<SearchResultItem> searchRecipesOnly(String keyword, int page, int size) {
+    private List<SearchResultItem> searchRecipesOnly(String keyword, int page, int size, String locale) {
         Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword,
             PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "created_at")));
 
         List<SearchResultItem> items = new ArrayList<>();
-        addRecipeItems(items, recipes.getContent(), size);
+        addRecipeItems(items, recipes.getContent(), size, locale);
         return items;
     }
 
     /**
      * Search only logs.
      */
-    private List<SearchResultItem> searchLogsOnly(String keyword, int page, int size) {
+    private List<SearchResultItem> searchLogsOnly(String keyword, int page, int size, String locale) {
         Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword,
             PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "created_at")));
 
         List<SearchResultItem> items = new ArrayList<>();
-        addLogItems(items, logs.getContent(), size);
+        addLogItems(items, logs.getContent(), size, locale);
         return items;
     }
 
@@ -190,11 +193,11 @@ public class UnifiedSearchService {
     /**
      * Add recipe items to the list with position-based relevance scores.
      */
-    private void addRecipeItems(List<SearchResultItem> items, List<Recipe> recipes, int totalSize) {
+    private void addRecipeItems(List<SearchResultItem> items, List<Recipe> recipes, int totalSize, String locale) {
         for (int i = 0; i < recipes.size(); i++) {
             Recipe recipe = recipes.get(i);
             double relevance = calculatePositionScore(i, totalSize);
-            RecipeSummaryDto dto = convertToRecipeSummary(recipe);
+            RecipeSummaryDto dto = convertToRecipeSummary(recipe, locale);
             items.add(SearchResultItem.recipe(dto, relevance));
         }
     }
@@ -202,11 +205,11 @@ public class UnifiedSearchService {
     /**
      * Add log items to the list with position-based relevance scores.
      */
-    private void addLogItems(List<SearchResultItem> items, List<LogPost> logs, int totalSize) {
+    private void addLogItems(List<SearchResultItem> items, List<LogPost> logs, int totalSize, String locale) {
         for (int i = 0; i < logs.size(); i++) {
             LogPost log = logs.get(i);
             double relevance = calculatePositionScore(i, totalSize);
-            LogPostSummaryDto dto = convertToLogSummary(log);
+            LogPostSummaryDto dto = convertToLogSummary(log, locale);
             items.add(SearchResultItem.log(dto, relevance));
         }
     }
@@ -255,14 +258,18 @@ public class UnifiedSearchService {
     }
 
     /**
-     * Convert Recipe entity to RecipeSummaryDto.
+     * Convert Recipe entity to RecipeSummaryDto with locale-aware fields.
      */
-    private RecipeSummaryDto convertToRecipeSummary(Recipe recipe) {
+    private RecipeSummaryDto convertToRecipeSummary(Recipe recipe, String locale) {
         User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
 
-        String foodName = getFoodName(recipe);
+        // Locale-aware food name
+        String foodName = LocaleUtils.getLocalizedValue(
+            recipe.getFoodMaster().getName(),
+            locale,
+            recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
 
         String thumbnail = recipe.getCoverImages().stream()
             .filter(img -> img.getType() == ImageType.COVER)
@@ -272,19 +279,33 @@ public class UnifiedSearchService {
 
         int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
-        String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
+
+        // Locale-aware root title
+        String rootTitle = null;
+        if (recipe.getRootRecipe() != null) {
+            rootTitle = LocaleUtils.getLocalizedValue(
+                recipe.getRootRecipe().getTitleTranslations(),
+                locale,
+                recipe.getRootRecipe().getTitle());
+        }
 
         List<String> hashtags = recipe.getHashtags().stream()
             .map(com.cookstemma.cookstemma.domain.entity.hashtag.Hashtag::getName)
             .limit(3)
             .toList();
 
+        // Locale-aware title and description
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+            recipe.getTitleTranslations(), locale, recipe.getTitle());
+        String localizedDescription = LocaleUtils.getLocalizedValue(
+            recipe.getDescriptionTranslations(), locale, recipe.getDescription());
+
         return new RecipeSummaryDto(
             recipe.getPublicId(),
             foodName,
             recipe.getFoodMaster().getPublicId(),
-            recipe.getTitle(),
-            recipe.getDescription(),
+            localizedTitle,
+            localizedDescription,
             recipe.getCookingStyle(),
             creatorPublicId,
             userName,
@@ -296,16 +317,14 @@ public class UnifiedSearchService {
             rootTitle,
             recipe.getServings() != null ? recipe.getServings() : 2,
             recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-            hashtags,
-            recipe.getTitleTranslations(),
-            recipe.getDescriptionTranslations()
+            hashtags
         );
     }
 
     /**
-     * Convert LogPost entity to LogPostSummaryDto.
+     * Convert LogPost entity to LogPostSummaryDto with locale-aware fields.
      */
-    private LogPostSummaryDto convertToLogSummary(LogPost log) {
+    private LogPostSummaryDto convertToLogSummary(LogPost log, String locale) {
         User creator = userRepository.findById(log.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
@@ -321,8 +340,12 @@ public class UnifiedSearchService {
         Boolean isVariant = null;
         if (recipeLog != null && recipeLog.getRecipe() != null) {
             Recipe recipe = recipeLog.getRecipe();
-            foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
-            recipeTitle = recipe.getTitle();
+            foodName = LocaleUtils.getLocalizedValue(
+                recipe.getFoodMaster().getName(),
+                locale,
+                recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
+            recipeTitle = LocaleUtils.getLocalizedValue(
+                recipe.getTitleTranslations(), locale, recipe.getTitle());
             isVariant = recipe.getRootRecipe() != null;
         }
 
@@ -330,10 +353,16 @@ public class UnifiedSearchService {
             .map(com.cookstemma.cookstemma.domain.entity.hashtag.Hashtag::getName)
             .toList();
 
+        // Locale-aware title and content
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+            log.getTitleTranslations(), locale, log.getTitle());
+        String localizedContent = LocaleUtils.getLocalizedValue(
+            log.getContentTranslations(), locale, log.getContent());
+
         return new LogPostSummaryDto(
             log.getPublicId(),
-            log.getTitle(),
-            log.getContent(),
+            localizedTitle,
+            localizedContent,
             recipeLog != null ? recipeLog.getRating() : null,
             thumbnailUrl,
             creatorPublicId,
@@ -378,13 +407,4 @@ public class UnifiedSearchService {
         );
     }
 
-    /**
-     * Get food name from recipe with fallback.
-     */
-    private String getFoodName(Recipe recipe) {
-        if (recipe.getFoodMaster() == null) {
-            return "Unknown";
-        }
-        return recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
-    }
 }
