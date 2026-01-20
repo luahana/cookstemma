@@ -93,6 +93,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         publicId={publicId}
         type="recipe"
         title={localizedTitle}
+        titleTranslations={recipe.titleTranslations}
         thumbnail={recipe.images[0]?.imageUrl || null}
         foodName={recipe.foodName}
       />

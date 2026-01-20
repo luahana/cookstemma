@@ -90,6 +90,7 @@ export default async function LogDetailPage({ params }: Props) {
         publicId={publicId}
         type="log"
         title={localizedTitle}
+        titleTranslations={log.titleTranslations}
         thumbnail={log.images[0]?.imageUrl || null}
         foodName={log.linkedRecipe?.foodName || null}
         rating={log.rating}
