@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { createLog } from '@/lib/api/logs';
 import { getRecipes, getRecipeDetail } from '@/lib/api/recipes';
@@ -47,15 +47,6 @@ function CreateLogPageContent() {
   const t = useTranslations('logCreate');
   const tLogs = useTranslations('logs');
   const tCommon = useTranslations('common');
-  const locale = useLocale();
-
-  // Helper to get translated content with fallback to original
-  const getTranslated = (
-    original: string,
-    translations: Record<string, string> | null | undefined
-  ): string => {
-    return translations?.[locale] || original;
-  };
 
   // Form state
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeDetail | null>(null);
@@ -351,7 +342,7 @@ function CreateLogPageContent() {
                   <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                     <Image
                       src={getImageUrl(selectedRecipe.images[0].imageUrl) || ''}
-                      alt={getTranslated(selectedRecipe.title, selectedRecipe.titleTranslations)}
+                      alt={selectedRecipe.title}
                       fill
                       className="object-cover"
                       sizes="64px"
@@ -360,7 +351,7 @@ function CreateLogPageContent() {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-[var(--text-primary)] truncate">
-                    {getTranslated(selectedRecipe.title, selectedRecipe.titleTranslations)}
+                    {selectedRecipe.title}
                   </p>
                   <p className="text-sm text-[var(--text-secondary)] truncate">
                     {selectedRecipe.foodName}
@@ -446,7 +437,7 @@ function CreateLogPageContent() {
                                   <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
                                     <Image
                                       src={getImageUrl(recipe.thumbnail) || ''}
-                                      alt={getTranslated(recipe.title, recipe.titleTranslations)}
+                                      alt={recipe.title}
                                       fill
                                       className="object-cover"
                                       sizes="48px"
@@ -459,7 +450,7 @@ function CreateLogPageContent() {
                                 )}
                                 <div className="min-w-0">
                                   <p className="font-medium text-[var(--text-primary)] truncate">
-                                    {getTranslated(recipe.title, recipe.titleTranslations)}
+                                    {recipe.title}
                                   </p>
                                   <p className="text-sm text-[var(--text-secondary)] truncate">
                                     {recipe.foodName}
@@ -489,7 +480,7 @@ function CreateLogPageContent() {
                                     <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
                                       <Image
                                         src={getImageUrl(item.thumbnail) || ''}
-                                        alt={getTranslated(item.title, item.titleTranslations)}
+                                        alt={item.title}
                                         fill
                                         className="object-cover"
                                         sizes="48px"
@@ -502,7 +493,7 @@ function CreateLogPageContent() {
                                   )}
                                   <div className="min-w-0">
                                     <p className="font-medium text-[var(--text-primary)] truncate">
-                                      {getTranslated(item.title, item.titleTranslations)}
+                                      {item.title}
                                     </p>
                                     <p className="text-sm text-[var(--text-secondary)] truncate">
                                       {item.foodName}
