@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useTransition, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 import type { HashtagSearchResult } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
 
@@ -15,9 +16,18 @@ export function HashtagCard({ hashtag }: HashtagCardProps) {
   const t = useTranslations('hashtagCard');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const { startLoading, stopLoading } = useNavigationProgress();
   const totalCount = hashtag.recipeCount + hashtag.logCount;
 
+  // Stop loading when transition completes
+  useEffect(() => {
+    if (!isPending) {
+      stopLoading();
+    }
+  }, [isPending, stopLoading]);
+
   const handleClick = () => {
+    startLoading();
     startTransition(() => {
       router.push(`/hashtags/${encodeURIComponent(hashtag.name)}`);
     });
