@@ -71,6 +71,8 @@
     "package": "paket"
   },
   "home": {
+    "metaTitle": "Cookstemma - Mutfak yolculuğunuz",
+    "metaDescription": "Kişisel yemek günlüğünüz. Yemeklerinizi kaydedin, ilerlemenizi takip edin ve ev aşçısı olarak gelişin. Tarifler keşfedin ve mutfak yolculuğunuzu paylaşın.",
     "heroTitle": "Tarifleriniz, <highlight>gelişiyor</highlight>",
     "heroSubtitle": "Tariflerinizi paylaşın, varyasyonlar oluşturun ve yemek yolculuğunuzu takip edin. Birlikte yeni tatlar keşfeden ev aşçıları topluluğuna katılın.",
     "featuredRecipes": "Öne Çıkan Tarifler",

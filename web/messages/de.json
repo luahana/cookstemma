@@ -71,6 +71,8 @@
     "package": "Packung"
   },
   "home": {
+    "metaTitle": "Cookstemma - Deine kulinarische Reise",
+    "metaDescription": "Dein persönliches Kochtagebuch. Protokolliere Mahlzeiten, verfolge deinen Fortschritt und werde ein besserer Hobbykoch. Entdecke Rezepte und teile deine kulinarische Reise.",
     "heroTitle": "Deine Rezepte, <highlight>weiterentwickelt</highlight>",
     "heroSubtitle": "Teile deine Rezepte, erstelle Variationen und dokumentiere deine Kochreise. Werde Teil einer Community von Hobbyköchen, die gemeinsam neue Geschmäcker entdecken.",
     "featuredRecipes": "Empfohlene Rezepte",

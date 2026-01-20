@@ -71,6 +71,8 @@
     "package": "confezione"
   },
   "home": {
+    "metaTitle": "Cookstemma - Il tuo viaggio culinario",
+    "metaDescription": "Il tuo diario di cucina personale. Registra i pasti, monitora i tuoi progressi e cresci come cuoco casalingo. Scopri ricette e condividi il tuo viaggio culinario.",
     "heroTitle": "Le tue ricette, <highlight>evolute</highlight>",
     "heroSubtitle": "Condividi le tue ricette, crea varianti e documenta il tuo percorso culinario. Unisciti a una comunità di cuochi casalinghi che scoprono nuovi sapori insieme.",
     "featuredRecipes": "Ricette in evidenza",

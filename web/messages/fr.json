@@ -70,6 +70,8 @@
     "package": "paquet"
   },
   "home": {
+    "metaTitle": "Cookstemma - Votre parcours culinaire",
+    "metaDescription": "Votre journal de cuisine personnel. Enregistrez vos repas, suivez vos progrès et progressez en tant que cuisinier amateur. Découvrez des recettes et partagez votre parcours culinaire.",
     "heroTitle": "Vos recettes, <highlight>évoluées</highlight>",
     "heroSubtitle": "Partagez vos recettes, créez des variantes et suivez votre parcours culinaire. Rejoignez une communauté de cuisiniers amateurs découvrant de nouvelles saveurs ensemble.",
     "featuredRecipes": "Recettes en vedette",

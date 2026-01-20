@@ -70,6 +70,8 @@
     "package": "paquete"
   },
   "home": {
+    "metaTitle": "Cookstemma - Tu viaje culinario",
+    "metaDescription": "Tu diario de cocina personal. Registra tus comidas, sigue tu progreso y crece como cocinero casero. Descubre recetas y comparte tu viaje culinario.",
     "heroTitle": "Tus recetas, <highlight>evolucionadas</highlight>",
     "heroSubtitle": "Comparte tus recetas, crea variaciones y registra tu viaje culinario. Únete a una comunidad de cocineros caseros descubriendo nuevos sabores juntos.",
     "featuredRecipes": "Recetas destacadas",

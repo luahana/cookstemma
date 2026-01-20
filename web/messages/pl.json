@@ -71,6 +71,8 @@
     "package": "opakowanie"
   },
   "home": {
+    "metaTitle": "Cookstemma - Twoja kulinarna podróż",
+    "metaDescription": "Twój osobisty dziennik kulinarny. Zapisuj posiłki, śledź postępy i rozwijaj się jako domowy kucharz. Odkrywaj przepisy i dziel się swoją kulinarną podróżą.",
     "heroTitle": "Twoje przepisy, <highlight>ewoluują</highlight>",
     "heroSubtitle": "Dziel się przepisami, twórz warianty i śledź swoją kulinarną podróż. Dołącz do społeczności domowych kucharzy odkrywających razem nowe smaki.",
     "featuredRecipes": "Polecane przepisy",

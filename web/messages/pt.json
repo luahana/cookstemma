@@ -71,6 +71,8 @@
     "package": "pacote"
   },
   "home": {
+    "metaTitle": "Cookstemma - Sua jornada culinária",
+    "metaDescription": "Seu diário de cozinha pessoal. Registre refeições, acompanhe seu progresso e evolua como cozinheiro caseiro. Descubra receitas e compartilhe sua jornada culinária.",
     "heroTitle": "Suas receitas, <highlight>evoluídas</highlight>",
     "heroSubtitle": "Compartilhe suas receitas, crie variações e acompanhe sua jornada culinária. Junte-se a uma comunidade de cozinheiros caseiros descobrindo novos sabores juntos.",
     "featuredRecipes": "Receitas em destaque",

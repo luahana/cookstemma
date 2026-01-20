@@ -72,8 +72,8 @@
     "package": "package"
   },
   "home": {
-    "metaTitle": "Cookstemma - Share Your Recipes",
-    "metaDescription": "Discover and share recipes from around the world. Create variations, track your cooking journey, and join a community of home cooks.",
+    "metaTitle": "Cookstemma - Your Cooking Journey",
+    "metaDescription": "Your personal cooking journal. Log meals, track your progress, and grow as a home cook. Discover recipes and share your culinary journey.",
     "heroTitle": "Your Recipes, <highlight>Evolved</highlight>",
     "heroSubtitle": "Share your recipes, create variations, and track your cooking journey. Join a community of home cooks discovering new flavors together.",
     "featuredRecipes": "Featured Recipes",
@@ -486,7 +486,9 @@
     "title": "Edit Cooking Log",
     "backToLog": "Back to cooking log",
     "cannotEdit": "Cannot Edit Log",
-    "photosReadOnly": "Photos (cannot be changed)",
+    "photos": "Photos",
+    "photosCount": "{count}/{max} photos",
+    "original": "Original",
     "rating": "Rating",
     "ratingExcellent": "Excellent!",
     "ratingGreat": "Great",
@@ -504,7 +506,8 @@
     "errorContent": "Content is required",
     "errorLoad": "Failed to load cooking log",
     "errorNotOwner": "You can only edit your own cooking logs",
-    "errorSave": "Failed to save changes. Please try again."
+    "errorSave": "Failed to save changes. Please try again.",
+    "errorUploading": "Please wait for photos to finish uploading"
   },
   "variant": {
     "madeItYourWay": "Made it your own way?",

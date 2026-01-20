@@ -71,6 +71,8 @@
     "package": "förpackning"
   },
   "home": {
+    "metaTitle": "Cookstemma - Din kulinariska resa",
+    "metaDescription": "Din personliga matdagbok. Logga måltider, följ din utveckling och väx som hemmakock. Upptäck recept och dela din kulinariska resa.",
     "heroTitle": "Dina recept, <highlight>utvecklade</highlight>",
     "heroSubtitle": "Dela dina recept, skapa variationer och följ din matresa. Gå med i en gemenskap av hemkockar som upptäcker nya smaker tillsammans.",
     "featuredRecipes": "Utvalda recept",

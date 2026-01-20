@@ -72,8 +72,8 @@
     "package": "봉지"
   },
   "home": {
-    "metaTitle": "쿡스테마 - 레시피를 공유하세요",
-    "metaDescription": "전 세계의 레시피를 발견하고 공유하세요. 변형을 만들고, 요리 여정을 기록하고, 홈 쿡 커뮤니티에 함께하세요.",
+    "metaTitle": "Cookstemma - 나만의 요리 여정",
+    "metaDescription": "나만의 요리 일지. 식사를 기록하고, 성장을 추적하고, 더 나은 홈 쿡이 되세요. 레시피를 발견하고 요리 여정을 공유하세요.",
     "heroTitle": "당신의 레시피, <highlight>진화하다</highlight>",
     "heroSubtitle": "레시피를 공유하고, 변형을 만들고, 요리 여정을 기록하세요. 새로운 맛을 발견하는 홈 쿡 커뮤니티에 함께하세요.",
     "featuredRecipes": "추천 레시피",
@@ -486,7 +486,9 @@
     "title": "요리 일지 수정",
     "backToLog": "요리 일지로 돌아가기",
     "cannotEdit": "일지 수정 불가",
-    "photosReadOnly": "사진 (변경 불가)",
+    "photos": "사진",
+    "photosCount": "{count}/{max}장",
+    "original": "원본",
     "rating": "평점",
     "ratingExcellent": "최고!",
     "ratingGreat": "훌륭함",
@@ -504,7 +506,8 @@
     "errorContent": "내용은 필수입니다",
     "errorLoad": "요리 일지를 불러오는데 실패했습니다",
     "errorNotOwner": "본인의 요리 일지만 수정할 수 있습니다",
-    "errorSave": "변경사항 저장에 실패했습니다. 다시 시도해 주세요."
+    "errorSave": "변경사항 저장에 실패했습니다. 다시 시도해 주세요.",
+    "errorUploading": "사진 업로드가 완료될 때까지 기다려주세요"
   },
   "variant": {
     "madeItYourWay": "나만의 방식으로 만드셨나요?",

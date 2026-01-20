@@ -71,6 +71,8 @@
     "package": "袋"
   },
   "home": {
+    "metaTitle": "Cookstemma - あなたの料理の旅",
+    "metaDescription": "あなただけの料理日記。食事を記録し、成長を追跡し、より良いホームクックになりましょう。レシピを発見し、料理の旅を共有しましょう。",
     "heroTitle": "あなたのレシピが、<highlight>進化する</highlight>",
     "heroSubtitle": "レシピを共有し、アレンジを作成し、料理の旅を記録しましょう。新しい味を発見するホームクックのコミュニティに参加しませんか。",
     "featuredRecipes": "おすすめレシピ",

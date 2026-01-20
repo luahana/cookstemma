@@ -71,6 +71,8 @@
     "package": "pakje"
   },
   "home": {
+    "metaTitle": "Cookstemma - Jouw culinaire reis",
+    "metaDescription": "Je persoonlijke kookdagboek. Log maaltijden, volg je voortgang en groei als thuiskok. Ontdek recepten en deel je culinaire reis.",
     "heroTitle": "Je recepten, <highlight>geëvolueerd</highlight>",
     "heroSubtitle": "Deel je recepten, maak variaties en volg je kookreis. Word lid van een community van thuiskoks die samen nieuwe smaken ontdekken.",
     "featuredRecipes": "Uitgelichte recepten",
