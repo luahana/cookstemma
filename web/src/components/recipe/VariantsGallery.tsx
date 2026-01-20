@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import type { RecipeSummary } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
 import { useDragScroll } from '@/hooks/useDragScroll';
@@ -13,6 +14,7 @@ interface VariantsGalleryProps {
 
 export function VariantsGallery({ variants, rootRecipePublicId }: VariantsGalleryProps) {
   const scrollRef = useDragScroll<HTMLDivElement>();
+  const t = useTranslations('variations');
   const displayVariants = variants.slice(0, 8);
   const hasMore = variants.length > 8;
 
@@ -25,14 +27,14 @@ export function VariantsGallery({ variants, rootRecipePublicId }: VariantsGaller
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold text-[var(--text-primary)]">
-          Variations ({variants.length})
+          {t('title', { count: variants.length })}
         </h2>
         {hasMore && (
           <Link
             href={`/search?type=recipes&root=${rootRecipePublicId}`}
             className="text-sm text-[var(--primary)] hover:underline flex items-center gap-1"
           >
-            View All
+            {t('viewAll')}
             <svg
               className="w-4 h-4"
               fill="none"
@@ -84,7 +86,7 @@ export function VariantsGallery({ variants, rootRecipePublicId }: VariantsGaller
 
                   {/* Variant Badge */}
                   <div className="absolute top-2 left-2 px-2 py-0.5 bg-[var(--primary)] text-white text-[10px] font-medium rounded-full">
-                    Variant
+                    {t('variant')}
                   </div>
                 </div>
 
@@ -95,7 +97,7 @@ export function VariantsGallery({ variants, rootRecipePublicId }: VariantsGaller
                   </p>
                   {variant.userName && (
                     <p className="text-xs text-[var(--text-secondary)] truncate">
-                      by {variant.userName}
+                      {t('byAuthor', { author: variant.userName })}
                     </p>
                   )}
                 </div>
@@ -114,7 +116,7 @@ export function VariantsGallery({ variants, rootRecipePublicId }: VariantsGaller
                   +{variants.length - 8}
                 </span>
                 <span className="text-xs text-[var(--text-secondary)]">
-                  more variations
+                  {t('moreVariations')}
                 </span>
               </div>
             </Link>

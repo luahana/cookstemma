@@ -136,14 +136,15 @@ public class LogPostService {
      * 특정 레시피에 달린 로그 목록 조회 (페이지네이션)
      * @param recipePublicId Recipe public ID
      * @param pageable Pagination info
+     * @param locale Content locale for translation
      */
     @Transactional(readOnly = true)
-    public Slice<LogPostSummaryDto> getLogsByRecipe(UUID recipePublicId, Pageable pageable) {
+    public Slice<LogPostSummaryDto> getLogsByRecipe(UUID recipePublicId, Pageable pageable, String locale) {
         Recipe recipe = recipeRepository.findByPublicId(recipePublicId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
 
         return recipeLogRepository.findByRecipeIdOrderByCreatedAtDesc(recipe.getId(), pageable)
-                .map(rl -> convertToLogSummary(rl.getLogPost()));
+                .map(rl -> convertToLogSummary(rl.getLogPost(), locale));
     }
 
     @Transactional(readOnly = true)
@@ -221,6 +222,10 @@ public class LogPostService {
     }
 
     private LogPostSummaryDto convertToLogSummary(LogPost log) {
+        return convertToLogSummary(log, LocaleUtils.DEFAULT_LOCALE);
+    }
+
+    private LogPostSummaryDto convertToLogSummary(LogPost log, String locale) {
         User creator = userRepository.findById(log.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
@@ -230,6 +235,15 @@ public class LogPostService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
+        // Normalize locale for consistent usage
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+
+        // Get localized title and content
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                log.getTitleTranslations(), normalizedLocale, log.getTitle());
+        String localizedContent = LocaleUtils.getLocalizedValue(
+                log.getContentTranslations(), normalizedLocale, log.getContent());
+
         // Get food name, recipe title, and variant status from linked recipe
         RecipeLog recipeLog = log.getRecipeLog();
         String foodName = null;
@@ -237,8 +251,14 @@ public class LogPostService {
         Boolean isVariant = null;
         if (recipeLog != null && recipeLog.getRecipe() != null) {
             Recipe recipe = recipeLog.getRecipe();
-            foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
-            recipeTitle = recipe.getTitle();
+            // Use locale-aware food name
+            foodName = LocaleUtils.getLocalizedValue(
+                    recipe.getFoodMaster().getName(),
+                    normalizedLocale,
+                    recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
+            // Use locale-aware recipe title
+            recipeTitle = LocaleUtils.getLocalizedValue(
+                    recipe.getTitleTranslations(), normalizedLocale, recipe.getTitle());
             isVariant = recipe.getRootRecipe() != null;
         }
 
@@ -249,8 +269,8 @@ public class LogPostService {
 
         return new LogPostSummaryDto(
                 log.getPublicId(),
-                log.getTitle(),
-                log.getContent(),
+                localizedTitle,
+                localizedContent,
                 log.getRecipeLog().getRating(),
                 thumbnailUrl,
                 creatorPublicId,
@@ -347,7 +367,7 @@ public class LogPostService {
      * 모든 로그 조회 (Cursor-based pagination)
      */
     @Transactional(readOnly = true)
-    public CursorPageResponse<LogPostSummaryDto> getAllLogsWithCursor(String cursor, int size) {
+    public CursorPageResponse<LogPostSummaryDto> getAllLogsWithCursor(String cursor, int size, String locale) {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
@@ -358,14 +378,14 @@ public class LogPostService {
             logs = logPostRepository.findAllLogsWithCursor(cursorData.createdAt(), cursorData.id(), pageable);
         }
 
-        return buildCursorResponse(logs, size);
+        return buildCursorResponse(logs, size, locale);
     }
 
     /**
      * 로그 목록 조회 with rating filter (Cursor-based pagination)
      */
     @Transactional(readOnly = true)
-    public CursorPageResponse<LogPostSummaryDto> getAllLogsByRatingWithCursor(Integer minRating, Integer maxRating, String cursor, int size) {
+    public CursorPageResponse<LogPostSummaryDto> getAllLogsByRatingWithCursor(Integer minRating, Integer maxRating, String cursor, int size, String locale) {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
@@ -376,14 +396,14 @@ public class LogPostService {
             logs = logPostRepository.findByRatingWithCursor(minRating, maxRating, cursorData.createdAt(), cursorData.id(), pageable);
         }
 
-        return buildCursorResponse(logs, size);
+        return buildCursorResponse(logs, size, locale);
     }
 
     /**
      * 내 로그 조회 (Cursor-based pagination)
      */
     @Transactional(readOnly = true)
-    public CursorPageResponse<LogPostSummaryDto> getMyLogsWithCursor(Long userId, Integer minRating, Integer maxRating, String cursor, int size) {
+    public CursorPageResponse<LogPostSummaryDto> getMyLogsWithCursor(Long userId, Integer minRating, Integer maxRating, String cursor, int size, String locale) {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
@@ -402,7 +422,7 @@ public class LogPostService {
             }
         }
 
-        return buildCursorResponse(logs, size);
+        return buildCursorResponse(logs, size, locale);
     }
 
     /**
@@ -410,19 +430,23 @@ public class LogPostService {
      * Note: Search still uses page-based internally for complex ordering, but returns cursor response
      */
     @Transactional(readOnly = true)
-    public CursorPageResponse<LogPostSummaryDto> searchLogPostsWithCursor(String keyword, String cursor, int size) {
+    public CursorPageResponse<LogPostSummaryDto> searchLogPostsWithCursor(String keyword, String cursor, int size, String locale) {
         if (keyword == null || keyword.trim().length() < 2) {
             return CursorPageResponse.empty(size);
         }
         // Search uses page-based due to complex ordering, cursor decodes to page number for simplicity
         Pageable pageable = PageRequest.of(0, size);
         Slice<LogPost> logs = logPostRepository.searchLogPosts(keyword.trim(), pageable);
-        return buildCursorResponse(logs, size);
+        return buildCursorResponse(logs, size, locale);
     }
 
     private CursorPageResponse<LogPostSummaryDto> buildCursorResponse(Slice<LogPost> logs, int size) {
+        return buildCursorResponse(logs, size, LocaleUtils.DEFAULT_LOCALE);
+    }
+
+    private CursorPageResponse<LogPostSummaryDto> buildCursorResponse(Slice<LogPost> logs, int size, String locale) {
         List<LogPostSummaryDto> content = logs.getContent().stream()
-                .map(this::convertToLogSummary)
+                .map(log -> convertToLogSummary(log, locale))
                 .toList();
 
         String nextCursor = null;
@@ -505,25 +529,29 @@ public class LogPostService {
      * - recent (default): order by createdAt DESC
      * - popular: order by popularity score (viewCount + savedCount * 5)
      * - trending: order by engagement with time decay
+     *
+     * @param locale Content locale from Accept-Language header for translation
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<LogPostSummaryDto> getAllLogsUnified(
-            Integer minRating, Integer maxRating, String sort, String cursor, Integer page, int size) {
+            Integer minRating, Integer maxRating, String sort, String cursor, Integer page, int size, String locale) {
+
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
 
         // For popular and trending sorts, use offset-based pagination (complex sorting)
         boolean isComplexSort = "popular".equalsIgnoreCase(sort) || "trending".equalsIgnoreCase(sort);
 
         if (isComplexSort) {
             int pageNum = (page != null) ? page : 0;
-            return getAllLogsWithOffsetSorted(minRating, maxRating, sort, pageNum, size);
+            return getAllLogsWithOffsetSorted(minRating, maxRating, sort, pageNum, size, normalizedLocale);
         }
 
         if (cursor != null && !cursor.isEmpty()) {
-            return getAllLogsWithCursorUnified(minRating, maxRating, cursor, size);
+            return getAllLogsWithCursorUnified(minRating, maxRating, cursor, size, normalizedLocale);
         } else if (page != null) {
-            return getAllLogsWithOffset(minRating, maxRating, page, size);
+            return getAllLogsWithOffset(minRating, maxRating, page, size, normalizedLocale);
         } else {
-            return getAllLogsWithCursorUnified(minRating, maxRating, null, size);
+            return getAllLogsWithCursorUnified(minRating, maxRating, null, size, normalizedLocale);
         }
     }
 
@@ -531,7 +559,7 @@ public class LogPostService {
      * Offset-based log list for web clients.
      */
     private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithOffset(
-            Integer minRating, Integer maxRating, int page, int size) {
+            Integer minRating, Integer maxRating, int page, int size, String locale) {
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -543,7 +571,7 @@ public class LogPostService {
             logs = logPostRepository.findAllLogsPage(pageable);
         }
 
-        Page<LogPostSummaryDto> mappedPage = logs.map(this::convertToLogSummary);
+        Page<LogPostSummaryDto> mappedPage = logs.map(log -> convertToLogSummary(log, locale));
         return UnifiedPageResponse.fromPage(mappedPage, size);
     }
 
@@ -552,7 +580,7 @@ public class LogPostService {
      * Note: rating filters are not combined with complex sorting for simplicity.
      */
     private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithOffsetSorted(
-            Integer minRating, Integer maxRating, String sort, int page, int size) {
+            Integer minRating, Integer maxRating, String sort, int page, int size, String locale) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<LogPost> logs;
@@ -568,7 +596,7 @@ public class LogPostService {
             logs = logPostRepository.findAllLogsPage(pageable);
         }
 
-        Page<LogPostSummaryDto> mappedPage = logs.map(this::convertToLogSummary);
+        Page<LogPostSummaryDto> mappedPage = logs.map(log -> convertToLogSummary(log, locale));
         return UnifiedPageResponse.fromPage(mappedPage, size);
     }
 
@@ -576,13 +604,13 @@ public class LogPostService {
      * Cursor-based log list wrapped in UnifiedPageResponse.
      */
     private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithCursorUnified(
-            Integer minRating, Integer maxRating, String cursor, int size) {
+            Integer minRating, Integer maxRating, String cursor, int size, String locale) {
 
         CursorPageResponse<LogPostSummaryDto> cursorResponse;
         if (minRating != null && maxRating != null) {
-            cursorResponse = getAllLogsByRatingWithCursor(minRating, maxRating, cursor, size);
+            cursorResponse = getAllLogsByRatingWithCursor(minRating, maxRating, cursor, size, locale);
         } else {
-            cursorResponse = getAllLogsWithCursor(cursor, size);
+            cursorResponse = getAllLogsWithCursor(cursor, size, locale);
         }
 
         return UnifiedPageResponse.fromCursor(
@@ -594,17 +622,20 @@ public class LogPostService {
 
     /**
      * Unified my logs with strategy-based pagination.
+     * @param locale Content locale from Accept-Language header for translation
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<LogPostSummaryDto> getMyLogsUnified(
-            Long userId, Integer minRating, Integer maxRating, String cursor, Integer page, int size) {
+            Long userId, Integer minRating, Integer maxRating, String cursor, Integer page, int size, String locale) {
+
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
 
         if (cursor != null && !cursor.isEmpty()) {
-            return getMyLogsWithCursorUnified(userId, minRating, maxRating, cursor, size);
+            return getMyLogsWithCursorUnified(userId, minRating, maxRating, cursor, size, normalizedLocale);
         } else if (page != null) {
-            return getMyLogsWithOffset(userId, minRating, maxRating, page, size);
+            return getMyLogsWithOffset(userId, minRating, maxRating, page, size, normalizedLocale);
         } else {
-            return getMyLogsWithCursorUnified(userId, minRating, maxRating, null, size);
+            return getMyLogsWithCursorUnified(userId, minRating, maxRating, null, size, normalizedLocale);
         }
     }
 
@@ -612,7 +643,7 @@ public class LogPostService {
      * Offset-based my logs for web clients.
      */
     private UnifiedPageResponse<LogPostSummaryDto> getMyLogsWithOffset(
-            Long userId, Integer minRating, Integer maxRating, int page, int size) {
+            Long userId, Integer minRating, Integer maxRating, int page, int size, String locale) {
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -624,7 +655,7 @@ public class LogPostService {
             logs = logPostRepository.findMyLogsPage(userId, pageable);
         }
 
-        Page<LogPostSummaryDto> mappedPage = logs.map(this::convertToLogSummary);
+        Page<LogPostSummaryDto> mappedPage = logs.map(log -> convertToLogSummary(log, locale));
         return UnifiedPageResponse.fromPage(mappedPage, size);
     }
 
@@ -632,10 +663,10 @@ public class LogPostService {
      * Cursor-based my logs wrapped in UnifiedPageResponse.
      */
     private UnifiedPageResponse<LogPostSummaryDto> getMyLogsWithCursorUnified(
-            Long userId, Integer minRating, Integer maxRating, String cursor, int size) {
+            Long userId, Integer minRating, Integer maxRating, String cursor, int size, String locale) {
 
         CursorPageResponse<LogPostSummaryDto> cursorResponse =
-                getMyLogsWithCursor(userId, minRating, maxRating, cursor, size);
+                getMyLogsWithCursor(userId, minRating, maxRating, cursor, size, locale);
 
         return UnifiedPageResponse.fromCursor(
                 cursorResponse.content(),
@@ -646,21 +677,24 @@ public class LogPostService {
 
     /**
      * Unified search logs with strategy-based pagination.
+     * @param locale Content locale from Accept-Language header for translation
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<LogPostSummaryDto> searchLogPostsUnified(
-            String keyword, String cursor, Integer page, int size) {
+            String keyword, String cursor, Integer page, int size, String locale) {
+
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
 
         if (keyword == null || keyword.trim().length() < 2) {
             return UnifiedPageResponse.emptyCursor(size);
         }
 
         if (cursor != null && !cursor.isEmpty()) {
-            return searchLogPostsWithCursorUnified(keyword, cursor, size);
+            return searchLogPostsWithCursorUnified(keyword, cursor, size, normalizedLocale);
         } else if (page != null) {
-            return searchLogPostsWithOffset(keyword, page, size);
+            return searchLogPostsWithOffset(keyword, page, size, normalizedLocale);
         } else {
-            return searchLogPostsWithCursorUnified(keyword, null, size);
+            return searchLogPostsWithCursorUnified(keyword, null, size, normalizedLocale);
         }
     }
 
@@ -668,12 +702,12 @@ public class LogPostService {
      * Offset-based search logs for web clients.
      */
     private UnifiedPageResponse<LogPostSummaryDto> searchLogPostsWithOffset(
-            String keyword, int page, int size) {
+            String keyword, int page, int size, String locale) {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword.trim(), pageable);
 
-        Page<LogPostSummaryDto> mappedPage = logs.map(this::convertToLogSummary);
+        Page<LogPostSummaryDto> mappedPage = logs.map(log -> convertToLogSummary(log, locale));
         return UnifiedPageResponse.fromPage(mappedPage, size);
     }
 
@@ -681,10 +715,10 @@ public class LogPostService {
      * Cursor-based search logs wrapped in UnifiedPageResponse.
      */
     private UnifiedPageResponse<LogPostSummaryDto> searchLogPostsWithCursorUnified(
-            String keyword, String cursor, int size) {
+            String keyword, String cursor, int size, String locale) {
 
         CursorPageResponse<LogPostSummaryDto> cursorResponse =
-                searchLogPostsWithCursor(keyword, cursor, size);
+                searchLogPostsWithCursor(keyword, cursor, size, locale);
 
         return UnifiedPageResponse.fromCursor(
                 cursorResponse.content(),

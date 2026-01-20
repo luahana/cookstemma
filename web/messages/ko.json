@@ -634,7 +634,7 @@
     "viewAll": "전체 보기",
     "variant": "변형",
     "moreVariations": "개의 변형 더 보기",
-    "by": "by"
+    "byAuthor": "{author}"
   },
   "hashtagCard": {
     "recipe": "레시피",

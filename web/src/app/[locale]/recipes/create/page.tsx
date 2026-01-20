@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { createRecipe, getRecipeDetail } from '@/lib/api/recipes';
@@ -172,6 +172,8 @@ function CreateRecipeContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useParams();
+  const locale = params.locale as string;
   const cookingStyleOptions = useCookingStyleOptions();
   const tFilters = useTranslations('filters');
   const t = useTranslations('recipeCreate');
@@ -226,7 +228,7 @@ function CreateRecipeContent() {
     const fetchParent = async () => {
       try {
         setIsLoadingParent(true);
-        const parent = await getRecipeDetail(parentPublicId);
+        const parent = await getRecipeDetail(parentPublicId, locale);
         setParentRecipe(parent);
 
         // Pre-populate form fields from parent
@@ -286,7 +288,7 @@ function CreateRecipeContent() {
     };
 
     fetchParent();
-  }, [parentPublicId, isAuthenticated, t]);
+  }, [parentPublicId, isAuthenticated, t, locale]);
 
   // Set default cooking style based on browser locale (only for non-variant mode)
   useEffect(() => {

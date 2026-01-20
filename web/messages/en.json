@@ -634,7 +634,7 @@
     "viewAll": "View All",
     "variant": "Variant",
     "moreVariations": "more variations",
-    "by": "by"
+    "byAuthor": "by {author}"
   },
   "hashtagCard": {
     "recipe": "recipe",
