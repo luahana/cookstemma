@@ -42,18 +42,23 @@ const INGREDIENT_LIMITS: Record<IngredientType, number> = {
   SEASONING: 10,
 };
 
-const INGREDIENT_CATEGORIES: {
+// Ingredient category config (labels are translated inside component)
+interface IngredientCategoryConfig {
   value: IngredientType;
-  label: string;
+  labelKey: 'categoryMain' | 'categorySecondary' | 'categorySeasoning';
+  addButtonKey: 'addMain' | 'addSecondary' | 'addSeasoning';
   max: number;
   icon: string;
   color: string;
   bgColor: string;
   borderColor: string;
-}[] = [
+}
+
+const INGREDIENT_CATEGORY_CONFIGS: IngredientCategoryConfig[] = [
   {
     value: 'MAIN',
-    label: 'Main',
+    labelKey: 'categoryMain',
+    addButtonKey: 'addMain',
     max: 5,
     icon: '🍲',
     color: 'var(--primary)',
@@ -62,7 +67,8 @@ const INGREDIENT_CATEGORIES: {
   },
   {
     value: 'SECONDARY',
-    label: 'Secondary',
+    labelKey: 'categorySecondary',
+    addButtonKey: 'addSecondary',
     max: 8,
     icon: '🥕',
     color: 'var(--success)',
@@ -71,7 +77,8 @@ const INGREDIENT_CATEGORIES: {
   },
   {
     value: 'SEASONING',
-    label: 'Sauce & Seasoning',
+    labelKey: 'categorySeasoning',
+    addButtonKey: 'addSeasoning',
     max: 10,
     icon: '🧂',
     color: 'var(--secondary)',
@@ -80,31 +87,40 @@ const INGREDIENT_CATEGORIES: {
   },
 ];
 
-const MEASUREMENT_UNITS: { value: MeasurementUnit | ''; label: string }[] = [
-  { value: '', label: 'Unit' },
+// Measurement unit config (labels are translated inside component using tUnits)
+// The labelKey maps to keys in the 'units' translation namespace
+type UnitLabelKey = 'cup' | 'tbsp' | 'tsp' | 'ml' | 'l' | 'flOz' | 'pint' | 'quart' | 'g' | 'kg' | 'oz' | 'lb' | 'piece' | 'clove' | 'bunch' | 'can' | 'package' | 'pinch' | 'dash' | 'toTaste';
+
+interface MeasurementUnitConfig {
+  value: MeasurementUnit | '';
+  labelKey: UnitLabelKey | null; // null for the "Unit" placeholder which uses t('unit')
+}
+
+const MEASUREMENT_UNIT_CONFIGS: MeasurementUnitConfig[] = [
+  { value: '', labelKey: null }, // Uses t('unit') for placeholder
   // Volume
-  { value: 'CUP', label: 'Cup' },
-  { value: 'TBSP', label: 'Tbsp' },
-  { value: 'TSP', label: 'Tsp' },
-  { value: 'ML', label: 'ml' },
-  { value: 'L', label: 'L' },
-  { value: 'FL_OZ', label: 'fl oz' },
-  { value: 'PINT', label: 'Pint' },
-  { value: 'QUART', label: 'Quart' },
+  { value: 'CUP', labelKey: 'cup' },
+  { value: 'TBSP', labelKey: 'tbsp' },
+  { value: 'TSP', labelKey: 'tsp' },
+  { value: 'ML', labelKey: 'ml' },
+  { value: 'L', labelKey: 'l' },
+  { value: 'FL_OZ', labelKey: 'flOz' },
+  { value: 'PINT', labelKey: 'pint' },
+  { value: 'QUART', labelKey: 'quart' },
   // Weight
-  { value: 'G', label: 'g' },
-  { value: 'KG', label: 'kg' },
-  { value: 'OZ', label: 'oz' },
-  { value: 'LB', label: 'lb' },
+  { value: 'G', labelKey: 'g' },
+  { value: 'KG', labelKey: 'kg' },
+  { value: 'OZ', labelKey: 'oz' },
+  { value: 'LB', labelKey: 'lb' },
   // Count/Other
-  { value: 'PIECE', label: 'Piece' },
-  { value: 'CLOVE', label: 'Clove' },
-  { value: 'BUNCH', label: 'Bunch' },
-  { value: 'CAN', label: 'Can' },
-  { value: 'PACKAGE', label: 'Package' },
-  { value: 'PINCH', label: 'Pinch' },
-  { value: 'DASH', label: 'Dash' },
-  { value: 'TO_TASTE', label: 'To Taste' },
+  { value: 'PIECE', labelKey: 'piece' },
+  { value: 'CLOVE', labelKey: 'clove' },
+  { value: 'BUNCH', labelKey: 'bunch' },
+  { value: 'CAN', labelKey: 'can' },
+  { value: 'PACKAGE', labelKey: 'package' },
+  { value: 'PINCH', labelKey: 'pinch' },
+  { value: 'DASH', labelKey: 'dash' },
+  { value: 'TO_TASTE', labelKey: 'toTaste' },
 ];
 
 interface UploadedImage {
@@ -158,6 +174,8 @@ function CreateRecipeContent() {
   const searchParams = useSearchParams();
   const cookingStyleOptions = useCookingStyleOptions();
   const tFilters = useTranslations('filters');
+  const t = useTranslations('recipeCreate');
+  const tUnits = useTranslations('units');
   const locale = useLocale();
   const recipeImageInputRef = useRef<HTMLInputElement>(null);
 
@@ -271,7 +289,7 @@ function CreateRecipeContent() {
         setPhotos(inheritedPhotos);
       } catch (err) {
         console.error('Failed to fetch parent recipe:', err);
-        setError('Failed to load parent recipe. Please try again.');
+        setError(t('errorLoadParent'));
       } finally {
         setIsLoadingParent(false);
       }
@@ -737,29 +755,29 @@ function CreateRecipeContent() {
 
     // Validation
     if (!title.trim()) {
-      setError('Please enter a recipe title');
+      setError(t('errorTitle'));
       return;
     }
 
     if (!foodName.trim()) {
-      setError('Please enter a food name');
+      setError(t('errorFoodName'));
       return;
     }
 
     if (!cookingStyle) {
-      setError('Please select a cooking style');
+      setError(t('errorCookingStyle'));
       return;
     }
 
     // Variant-specific validation
     if (isVariantMode && !changeReason.trim()) {
-      setError('Please explain what you changed in this variation');
+      setError(t('errorChangeReason'));
       return;
     }
 
     // Validate photos
     if (photos.length === 0) {
-      setError('Please add at least one photo of your dish');
+      setError(t('errorPhoto'));
       return;
     }
 
@@ -768,7 +786,7 @@ function CreateRecipeContent() {
       (p) => p.type === 'uploaded' && p.uploadedImage?.uploading
     );
     if (uploadingPhotos.length > 0) {
-      setError('Please wait for images to finish uploading');
+      setError(t('errorUploading'));
       return;
     }
 
@@ -777,33 +795,33 @@ function CreateRecipeContent() {
       (p) => p.type === 'uploaded' && p.uploadedImage?.error
     );
     if (failedPhotos.length > 0) {
-      setError('Some recipe images failed to upload. Please remove them and try again.');
+      setError(t('errorUploadFailed'));
       return;
     }
 
     // Filter out deleted items and validate
     const validIngredients = ingredients.filter((ing) => ing.name.trim() && !ing.isDeleted);
     if (validIngredients.length === 0) {
-      setError('Please add at least one ingredient');
+      setError(t('errorIngredients'));
       return;
     }
 
     const validSteps = steps.filter((step) => step.description.trim() && !step.isDeleted);
     if (validSteps.length === 0) {
-      setError('Please add at least one cooking step');
+      setError(t('errorSteps'));
       return;
     }
 
     // Check if any active step images are uploading
     const uploadingStepImages = validSteps.some((step) => step.image?.uploading);
     if (uploadingStepImages) {
-      setError('Please wait for step images to finish uploading');
+      setError(t('errorStepUploading'));
       return;
     }
 
     const failedStepImages = validSteps.filter((step) => step.image?.error);
     if (failedStepImages.length > 0) {
-      setError('Some step images failed to upload. Please remove them and try again.');
+      setError(t('errorStepUploadFailed'));
       return;
     }
 
@@ -864,7 +882,7 @@ function CreateRecipeContent() {
       router.push(`/recipes/${recipe.publicId}`);
     } catch (err) {
       console.error('Failed to create recipe:', err);
-      setError('Failed to create recipe. Please try again.');
+      setError(t('errorCreate'));
     } finally {
       setIsSubmitting(false);
     }
@@ -887,15 +905,13 @@ function CreateRecipeContent() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            {isVariantMode ? 'Back to Recipe' : 'Back to Recipes'}
+            {isVariantMode ? t('backToRecipe') : t('backToRecipes')}
           </Link>
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">
-            {isVariantMode ? 'Create Variation' : 'Create Recipe'}
+            {isVariantMode ? t('titleVariant') : t('title')}
           </h1>
           <p className="text-[var(--text-secondary)] mt-2">
-            {isVariantMode
-              ? 'Create your own version with modifications'
-              : 'Share your culinary creation with the community'}
+            {isVariantMode ? t('subtitleVariant') : t('subtitle')}
           </p>
         </div>
 
@@ -906,7 +922,7 @@ function CreateRecipeContent() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
               </svg>
-              <span className="font-medium">Creating variation of:</span>
+              <span className="font-medium">{t('variationOf')}</span>
             </div>
             <Link
               href={`/recipes/${parentRecipe.publicId}`}
@@ -915,7 +931,7 @@ function CreateRecipeContent() {
               {parentRecipe.title}
             </Link>
             <p className="text-sm text-[var(--text-secondary)] mt-1">
-              Modify the recipe below and add your own twist. Items marked as &quot;inherited&quot; come from the original recipe.
+              {t('variationHelp')}
             </p>
           </div>
         )}
@@ -924,18 +940,18 @@ function CreateRecipeContent() {
           {/* Recipe Photos Section */}
           <section className="bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)]">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
-              Photos <span className="text-[var(--error)]">*</span>
+              {t('photos')} <span className="text-[var(--error)]">*</span>
             </h2>
             <p className="text-sm text-[var(--text-secondary)] mb-2">
               {isVariantMode && photos.some((p) => p.type === 'inherited')
-                ? `Add photos of your finished dish (inherited from parent, up to ${MAX_RECIPE_PHOTOS} total)`
-                : `Add photos of your finished dish (at least 1, up to ${MAX_RECIPE_PHOTOS})`}
+                ? t('photosInherited', { max: MAX_RECIPE_PHOTOS })
+                : t('photosRequired', { max: MAX_RECIPE_PHOTOS })}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mb-4 flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
               </svg>
-              Drag photos to reorder them
+              {t('dragToReorder')}
             </p>
             <div className="flex gap-3 flex-wrap">
               {photos.map((photo, index) => {
@@ -969,7 +985,7 @@ function CreateRecipeContent() {
                     {/* Original badge for inherited images */}
                     {isInherited && (
                       <span className="absolute bottom-1 left-1 text-[8px] px-1.5 py-0.5 bg-[var(--primary-light)]/30 text-[var(--primary)] rounded border border-[var(--primary-light)] font-medium">
-                        original
+                        {t('original')}
                       </span>
                     )}
                     {/* Uploading indicator */}
@@ -1025,16 +1041,16 @@ function CreateRecipeContent() {
           {/* Basic Info Section */}
           <section className="bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)]">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Basic Information
+              {t('basicInfo')}
             </h2>
             <div className="space-y-4">
               {/* Food Name */}
               <div>
                 <label htmlFor="foodName" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                  Food Name <span className="text-[var(--error)]">*</span>
+                  {t('foodName')} <span className="text-[var(--error)]">*</span>
                   {isVariantMode && (
                     <span className="ml-2 text-xs font-normal text-[var(--text-secondary)]">
-                      (inherited from original)
+                      {t('inheritedFromOriginal')}
                     </span>
                   )}
                 </label>
@@ -1050,13 +1066,11 @@ function CreateRecipeContent() {
                       ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
                       : 'bg-[var(--background)] border-[var(--border)] focus:border-[var(--primary)]'
                   }`}
-                  placeholder="e.g., Kimchi Fried Rice"
+                  placeholder={t('foodNamePlaceholder')}
                 />
                 <div className="flex justify-between mt-1">
                   <p className="text-xs text-[var(--text-secondary)]">
-                    {isVariantMode
-                      ? 'Variations keep the same food category as the original'
-                      : 'The general name of the dish (used for categorization)'}
+                    {isVariantMode ? t('foodNameInheritedHelp') : t('foodNameHelp')}
                   </p>
                   {!isVariantMode && (
                     <p className="text-xs text-[var(--text-secondary)]">
@@ -1070,7 +1084,7 @@ function CreateRecipeContent() {
               {!isVariantMode && (
                 <div>
                   <label htmlFor="title" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                    Recipe Title <span className="text-[var(--error)]">*</span>
+                    {t('recipeTitle')} <span className="text-[var(--error)]">*</span>
                   </label>
                   <input
                     id="title"
@@ -1079,11 +1093,11 @@ function CreateRecipeContent() {
                     onChange={(e) => setTitle(e.target.value)}
                     maxLength={200}
                     className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
-                    placeholder="e.g., Grandma's Secret Kimchi Fried Rice"
+                    placeholder={t('recipeTitlePlaceholder')}
                   />
                   <div className="flex justify-between mt-1">
                     <p className="text-xs text-[var(--text-secondary)]">
-                      Your unique name for this recipe
+                      {t('recipeTitleHelp')}
                     </p>
                     <p className="text-xs text-[var(--text-secondary)]">
                       {title.length}/200
@@ -1095,7 +1109,7 @@ function CreateRecipeContent() {
               {/* Description */}
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                  Description
+                  {t('description')}
                 </label>
                 <textarea
                   id="description"
@@ -1104,7 +1118,7 @@ function CreateRecipeContent() {
                   maxLength={2000}
                   rows={3}
                   className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)] resize-none"
-                  placeholder="Tell us about your recipe..."
+                  placeholder={t('descriptionPlaceholder')}
                 />
                 <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">
                   {description.length}/2000
@@ -1115,19 +1129,19 @@ function CreateRecipeContent() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                    Cooking Style <span className="text-[var(--error)]">*</span>
+                    {t('cookingStyle')} <span className="text-[var(--error)]">*</span>
                   </label>
                   <CookingStyleSelect
                     value={cookingStyle}
                     onChange={setCookingStyle}
                     options={cookingStyleOptions}
-                    placeholder="Select cooking style"
+                    placeholder={t('selectCookingStyle')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="servings" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                    Servings
+                    {t('servings')}
                   </label>
                   <input
                     id="servings"
@@ -1144,7 +1158,7 @@ function CreateRecipeContent() {
               {/* Cooking Time */}
               <div>
                 <label htmlFor="cookingTime" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                  Cooking Time
+                  {t('cookingTime')}
                 </label>
                 <select
                   id="cookingTime"
@@ -1165,15 +1179,15 @@ function CreateRecipeContent() {
           {/* Ingredients Section */}
           <section className="bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)]">
             <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Ingredients <span className="text-[var(--error)]">*</span>
+              {t('ingredients')} <span className="text-[var(--error)]">*</span>
             </h2>
             <p className="text-sm text-[var(--text-secondary)] mb-4">
-              Add ingredients by category. Each category has a maximum limit.
+              {t('ingredientsHelp')}
             </p>
 
             {/* Ingredient Categories */}
             <div className="space-y-6">
-              {INGREDIENT_CATEGORIES.map((category) => {
+              {INGREDIENT_CATEGORY_CONFIGS.map((category) => {
                 const categoryIngredients = ingredients.filter((ing) => ing.type === category.value);
                 const activeIngredients = categoryIngredients.filter((ing) => !ing.isDeleted);
                 const deletedIngredients = categoryIngredients.filter((ing) => ing.isDeleted);
@@ -1192,7 +1206,7 @@ function CreateRecipeContent() {
                     <div className="flex justify-between items-center mb-3">
                       <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: category.color }}>
                         <span className="text-base">{category.icon}</span>
-                        {category.label}
+                        {t(category.labelKey)}
                       </h3>
                       <span
                         className="text-xs font-medium px-2 py-0.5 rounded-full"
@@ -1216,7 +1230,7 @@ function CreateRecipeContent() {
                           </span>
                           {ing.isOriginal && (
                             <span className="text-[10px] px-1.5 py-0.5 bg-[var(--primary-light)]/20 text-[var(--primary)] rounded">
-                              inherited
+                              {t('inherited')}
                             </span>
                           )}
                           <input
@@ -1230,7 +1244,7 @@ function CreateRecipeContent() {
                                 ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
                                 : 'bg-[var(--background)] border-[var(--border)] focus:outline-none focus:border-[var(--primary)]'
                             }`}
-                            placeholder="Ingredient name"
+                            placeholder={t('ingredientName')}
                           />
                           <input
                             type="text"
@@ -1243,7 +1257,7 @@ function CreateRecipeContent() {
                                 ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
                                 : 'bg-[var(--background)] border-[var(--border)] focus:outline-none focus:border-[var(--primary)]'
                             }`}
-                            placeholder="Qty"
+                            placeholder={t('qty')}
                           />
                           <select
                             value={ing.unit}
@@ -1255,9 +1269,9 @@ function CreateRecipeContent() {
                                 : 'bg-[var(--background)] border-[var(--border)] focus:outline-none focus:border-[var(--primary)]'
                             }`}
                           >
-                            {MEASUREMENT_UNITS.map((unit) => (
+                            {MEASUREMENT_UNIT_CONFIGS.map((unit) => (
                               <option key={unit.value} value={unit.value}>
-                                {unit.label}
+                                {unit.labelKey ? tUnits(unit.labelKey) : t('unit')}
                               </option>
                             ))}
                           </select>
@@ -1281,11 +1295,12 @@ function CreateRecipeContent() {
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
-                          <span>Removed ({deletedIngredients.length})</span>
+                          <span>{t('removed')} ({deletedIngredients.length})</span>
                         </div>
                         <div className="space-y-1.5">
                           {deletedIngredients.map((ing) => {
-                            const unitLabel = MEASUREMENT_UNITS.find((u) => u.value === ing.unit)?.label || '';
+                            const unitConfig = MEASUREMENT_UNIT_CONFIGS.find((u) => u.value === ing.unit);
+                            const unitLabel = unitConfig?.labelKey ? tUnits(unitConfig.labelKey) : '';
                             const displayText = `${ing.name}${ing.quantity ? ` - ${ing.quantity}` : ''}${unitLabel ? ` ${unitLabel}` : ''}`;
                             return (
                               <div
@@ -1303,7 +1318,7 @@ function CreateRecipeContent() {
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                   </svg>
-                                  Restore
+                                  {t('restore')}
                                 </button>
                               </div>
                             );
@@ -1322,11 +1337,11 @@ function CreateRecipeContent() {
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
-                        Add {category.label.replace(' Ingredients', '').replace('s', '')}
+                        {t(category.addButtonKey)}
                       </button>
                     ) : (
                       <p className="mt-3 text-xs text-[var(--text-secondary)]">
-                        Maximum {category.max} items reached
+                        {t('maxItemsReached', { max: category.max })}
                       </p>
                     )}
                   </div>
@@ -1348,7 +1363,7 @@ function CreateRecipeContent() {
                 <>
                   <div className="flex justify-between items-center mb-2">
                     <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                      Cooking Steps <span className="text-[var(--error)]">*</span>
+                      {t('cookingSteps')} <span className="text-[var(--error)]">*</span>
                     </h2>
                     <span className="text-sm text-[var(--text-secondary)]">
                       {activeCount}/{MAX_STEPS}
@@ -1358,7 +1373,7 @@ function CreateRecipeContent() {
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                     </svg>
-                    Drag steps to reorder them
+                    {t('dragStepsToReorder')}
                   </p>
                   <div className="space-y-4">
                     {activeSteps.map((step, index) => {
@@ -1395,7 +1410,7 @@ function CreateRecipeContent() {
                           <div className="flex-1 space-y-2">
                             {step.isOriginal && (
                               <span className="text-[10px] px-1.5 py-0.5 bg-[var(--primary-light)]/20 text-[var(--primary)] rounded inline-block mb-1">
-                                inherited
+                                {t('inherited')}
                               </span>
                             )}
                             <div>
@@ -1410,7 +1425,7 @@ function CreateRecipeContent() {
                                     ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
                                     : 'bg-[var(--background)] border-[var(--border)] focus:outline-none focus:border-[var(--primary)]'
                                 }`}
-                                placeholder="Describe this step..."
+                                placeholder={t('describeStep')}
                               />
                               <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">
                                 {step.description.length}/2000
@@ -1456,7 +1471,7 @@ function CreateRecipeContent() {
                                   {/* Badge for inherited image */}
                                   {isInheritedImage && (
                                     <span className="absolute -bottom-1 -right-1 text-[8px] px-1 py-0.5 bg-[var(--primary-light)]/30 text-[var(--primary)] rounded border border-[var(--primary-light)]">
-                                      original
+                                      {t('original')}
                                     </span>
                                   )}
                                 </div>
@@ -1473,7 +1488,7 @@ function CreateRecipeContent() {
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
-                                {displayImageUrl ? 'Change photo' : 'Add photo'}
+                                {displayImageUrl ? t('changePhoto') : t('addPhoto')}
                               </button>
                               <input
                                 ref={(el) => {
@@ -1508,7 +1523,7 @@ function CreateRecipeContent() {
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        <span>Removed Steps ({deletedSteps.length})</span>
+                        <span>{t('removedSteps')} ({deletedSteps.length})</span>
                       </div>
                       <div className="space-y-2">
                         {deletedSteps.map((step) => (
@@ -1529,7 +1544,7 @@ function CreateRecipeContent() {
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                               </svg>
-                              Restore
+                              {t('restore')}
                             </button>
                           </div>
                         ))}
@@ -1546,11 +1561,11 @@ function CreateRecipeContent() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
-                      Add Step
+                      {t('addStep')}
                     </button>
                   ) : (
                     <p className="mt-4 text-sm text-[var(--text-secondary)]">
-                      Maximum {MAX_STEPS} steps reached
+                      {t('maxStepsReached', { max: MAX_STEPS })}
                     </p>
                   )}
                 </>
@@ -1569,7 +1584,7 @@ function CreateRecipeContent() {
                 <>
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                      Hashtags
+                      {t('hashtags')}
                     </h2>
                     <span className="text-sm text-[var(--text-secondary)]">
                       {activeCount}/{MAX_HASHTAGS}
@@ -1594,7 +1609,7 @@ function CreateRecipeContent() {
                               className="text-[10px] px-1 py-0.5 rounded mr-1 text-hashtag"
                               style={{ backgroundColor: 'rgba(76, 175, 80, 0.1)' }}
                             >
-                              inherited
+                              {t('inherited')}
                             </span>
                           )}
                           #{hashtag.name}
@@ -1619,7 +1634,7 @@ function CreateRecipeContent() {
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        <span>Removed ({deletedHashtags.length})</span>
+                        <span>{t('removed')} ({deletedHashtags.length})</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {deletedHashtags.map((hashtag) => (
@@ -1636,7 +1651,7 @@ function CreateRecipeContent() {
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                               </svg>
-                              Restore
+                              {t('restore')}
                             </button>
                           </span>
                         ))}
@@ -1654,7 +1669,7 @@ function CreateRecipeContent() {
                         onKeyDown={handleHashtagKeyDown}
                         maxLength={MAX_HASHTAG_LENGTH}
                         className="flex-1 px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
-                        placeholder="Type a tag and press Enter"
+                        placeholder={t('hashtagPlaceholder')}
                       />
                       <button
                         type="button"
@@ -1662,13 +1677,13 @@ function CreateRecipeContent() {
                         disabled={!hashtagInput.trim()}
                         className="px-4 py-3 bg-[var(--primary)] dark:bg-[var(--secondary)] text-white rounded-xl hover:bg-[var(--primary-dark)] dark:hover:bg-[#6D4C41] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Add
+                        {t('add')}
                       </button>
                     </div>
                   )}
 
                   <p className="text-xs text-[var(--text-secondary)] mt-2">
-                    Help others find your recipe with relevant tags (max {MAX_HASHTAG_LENGTH} chars each)
+                    {t('hashtagHelp', { max: MAX_HASHTAG_LENGTH })}
                   </p>
                 </>
               );
@@ -1679,13 +1694,13 @@ function CreateRecipeContent() {
           {isVariantMode && (
             <section className="bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)]">
               <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-                Finish Your Variation
+                {t('finishVariation')}
               </h2>
               <div className="space-y-4">
                 {/* Recipe Title */}
                 <div>
                   <label htmlFor="variantTitle" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                    Recipe Title <span className="text-[var(--error)]">*</span>
+                    {t('recipeTitle')} <span className="text-[var(--error)]">*</span>
                   </label>
                   <input
                     id="variantTitle"
@@ -1694,7 +1709,7 @@ function CreateRecipeContent() {
                     onChange={(e) => setTitle(e.target.value)}
                     maxLength={200}
                     className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
-                    placeholder="e.g., Grandma's Secret Kimchi Fried Rice"
+                    placeholder={t('recipeTitlePlaceholder')}
                   />
                   <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">
                     {title.length}/200
@@ -1704,7 +1719,7 @@ function CreateRecipeContent() {
                 {/* What did you change? */}
                 <div>
                   <label htmlFor="changeReason" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                    What did you change? <span className="text-[var(--error)]">*</span>
+                    {t('whatDidYouChange')} <span className="text-[var(--error)]">*</span>
                   </label>
                   <textarea
                     id="changeReason"
@@ -1713,11 +1728,11 @@ function CreateRecipeContent() {
                     maxLength={2000}
                     rows={3}
                     className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)] resize-none"
-                    placeholder="e.g., Added more garlic and reduced sugar for a healthier version"
+                    placeholder={t('whatDidYouChangePlaceholder')}
                   />
                   <div className="flex justify-between mt-1">
                     <p className="text-xs text-[var(--text-secondary)]">
-                      Explain what makes your variation different
+                      {t('whatDidYouChangeHelp')}
                     </p>
                     <p className="text-xs text-[var(--text-secondary)]">
                       {changeReason.length}/2000
@@ -1741,7 +1756,7 @@ function CreateRecipeContent() {
               href={isVariantMode ? `/recipes/${parentRecipe.publicId}` : '/recipes'}
               className="flex-1 py-3 text-center text-[var(--text-primary)] border border-[var(--border)] rounded-xl font-medium hover:bg-[var(--surface)] transition-colors"
             >
-              Cancel
+              {t('cancel')}
             </Link>
             <button
               type="submit"
@@ -1754,10 +1769,10 @@ function CreateRecipeContent() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  {isVariantMode ? 'Creating Variation...' : 'Creating...'}
+                  {isVariantMode ? t('creatingVariation') : t('creating')}
                 </>
               ) : (
-                isVariantMode ? 'Create Variation' : 'Create Recipe'
+                isVariantMode ? t('createVariation') : t('createRecipe')
               )}
             </button>
           </div>
