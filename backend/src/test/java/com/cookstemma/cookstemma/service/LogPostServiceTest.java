@@ -239,7 +239,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
         @DisplayName("Should return logs for a specific recipe")
         void getLogsByRecipe_ReturnsLogs() {
             var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-            var result = logPostService.getLogsByRecipe(testRecipe.getPublicId(), pageable);
+            var result = logPostService.getLogsByRecipe(testRecipe.getPublicId(), pageable, "en");
 
             assertThat(result.getContent()).hasSize(1);
             assertThat(result.getContent().get(0).publicId()).isEqualTo(testLogPost.getPublicId());
@@ -265,7 +265,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
             recipeRepository.save(recipeWithNoLogs);
 
             var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-            var result = logPostService.getLogsByRecipe(recipeWithNoLogs.getPublicId(), pageable);
+            var result = logPostService.getLogsByRecipe(recipeWithNoLogs.getPublicId(), pageable, "en");
 
             assertThat(result.getContent()).isEmpty();
         }
@@ -277,7 +277,8 @@ class LogPostServiceTest extends BaseIntegrationTest {
 
             assertThatThrownBy(() -> logPostService.getLogsByRecipe(
                     java.util.UUID.randomUUID(),
-                    pageable
+                    pageable,
+                    "en"
             )).isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Recipe not found");
         }
@@ -290,7 +291,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
             logPostRepository.save(testLogPost);
 
             var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-            var result = logPostService.getLogsByRecipe(testRecipe.getPublicId(), pageable);
+            var result = logPostService.getLogsByRecipe(testRecipe.getPublicId(), pageable, "en");
 
             assertThat(result.getContent()).isEmpty();
         }
@@ -318,14 +319,14 @@ class LogPostServiceTest extends BaseIntegrationTest {
 
             // First page (size 3)
             var page1 = org.springframework.data.domain.PageRequest.of(0, 3);
-            var result1 = logPostService.getLogsByRecipe(testRecipe.getPublicId(), page1);
+            var result1 = logPostService.getLogsByRecipe(testRecipe.getPublicId(), page1, "en");
 
             assertThat(result1.getContent()).hasSize(3);
             assertThat(result1.hasNext()).isTrue();
 
             // Second page
             var page2 = org.springframework.data.domain.PageRequest.of(1, 3);
-            var result2 = logPostService.getLogsByRecipe(testRecipe.getPublicId(), page2);
+            var result2 = logPostService.getLogsByRecipe(testRecipe.getPublicId(), page2, "en");
 
             assertThat(result2.getContent()).hasSize(3);
             assertThat(result2.hasNext()).isFalse();
@@ -351,7 +352,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
             logPostRepository.save(newerLog);
 
             var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-            var result = logPostService.getLogsByRecipe(testRecipe.getPublicId(), pageable);
+            var result = logPostService.getLogsByRecipe(testRecipe.getPublicId(), pageable, "en");
 
             assertThat(result.getContent()).hasSize(2);
             // Newer log should come first
