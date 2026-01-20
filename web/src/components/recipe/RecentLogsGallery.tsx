@@ -171,9 +171,14 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
                 )}
 
                 {/* Username */}
-                <p className="mt-1 text-xs text-[var(--text-secondary)] truncate w-28 text-center">
-                  @{log.userName || tCommon('anonymous')}
-                </p>
+                <div className="mt-1 flex items-center justify-center gap-1 w-28">
+                  <div className="w-4 h-4 rounded-full bg-[var(--primary-light)] flex items-center justify-center flex-shrink-0">
+                    <span className="text-[var(--primary)] text-[10px] font-medium">
+                      {(log.userName || tCommon('anonymous')).charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-xs text-[var(--text-secondary)] truncate">{log.userName || tCommon('anonymous')}</span>
+                </div>
               </Link>
             );
           })}

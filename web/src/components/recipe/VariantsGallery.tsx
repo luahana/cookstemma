@@ -96,9 +96,14 @@ export function VariantsGallery({ variants, rootRecipePublicId }: VariantsGaller
                     {variant.title}
                   </p>
                   {variant.userName && (
-                    <p className="text-xs text-[var(--text-secondary)] truncate">
-                      {t('byAuthor', { author: variant.userName })}
-                    </p>
+                    <div className="flex items-center gap-1 text-xs">
+                      <div className="w-4 h-4 rounded-full bg-[var(--primary-light)] flex items-center justify-center flex-shrink-0">
+                        <span className="text-[var(--primary)] text-[10px] font-medium">
+                          {variant.userName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="text-[var(--text-secondary)] truncate">{variant.userName}</span>
+                    </div>
                   )}
                 </div>
               </Link>
