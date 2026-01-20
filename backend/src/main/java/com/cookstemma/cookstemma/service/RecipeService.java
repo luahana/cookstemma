@@ -973,7 +973,7 @@ public class RecipeService {
      * Get my recipes with cursor-based pagination
      */
     @Transactional(readOnly = true)
-    public CursorPageResponse<RecipeSummaryDto> getMyRecipesWithCursor(Long userId, String typeFilter, String cursor, int size) {
+    public CursorPageResponse<RecipeSummaryDto> getMyRecipesWithCursor(Long userId, String typeFilter, String cursor, int size, String locale) {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
@@ -999,7 +999,7 @@ public class RecipeService {
             }
         }
 
-        return buildCursorResponse(recipes, size);
+        return buildCursorResponse(recipes, size, locale);
     }
 
     /**
@@ -1193,17 +1193,20 @@ public class RecipeService {
 
     /**
      * Unified my recipes with strategy-based pagination.
+     * @param contentLocale Content locale from Accept-Language header for translation
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<RecipeSummaryDto> getMyRecipesUnified(
-            Long userId, String typeFilter, String cursor, Integer page, int size) {
+            Long userId, String typeFilter, String cursor, Integer page, int size, String contentLocale) {
+
+        String normalizedLocale = LocaleUtils.normalizeLocale(contentLocale);
 
         if (cursor != null && !cursor.isEmpty()) {
-            return getMyRecipesWithCursorUnified(userId, typeFilter, cursor, size);
+            return getMyRecipesWithCursorUnified(userId, typeFilter, cursor, size, normalizedLocale);
         } else if (page != null) {
-            return getMyRecipesWithOffset(userId, typeFilter, page, size);
+            return getMyRecipesWithOffset(userId, typeFilter, page, size, normalizedLocale);
         } else {
-            return getMyRecipesWithCursorUnified(userId, typeFilter, null, size);
+            return getMyRecipesWithCursorUnified(userId, typeFilter, null, size, normalizedLocale);
         }
     }
 
@@ -1211,7 +1214,7 @@ public class RecipeService {
      * Offset-based my recipes for web clients.
      */
     private UnifiedPageResponse<RecipeSummaryDto> getMyRecipesWithOffset(
-            Long userId, String typeFilter, int page, int size) {
+            Long userId, String typeFilter, int page, int size, String locale) {
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -1226,7 +1229,7 @@ public class RecipeService {
             recipes = recipeRepository.findMyRecipesPage(userId, pageable);
         }
 
-        Page<RecipeSummaryDto> mappedPage = recipes.map(this::convertToSummary);
+        Page<RecipeSummaryDto> mappedPage = recipes.map(r -> convertToSummary(r, locale));
         return UnifiedPageResponse.fromPage(mappedPage, size);
     }
 
@@ -1234,10 +1237,10 @@ public class RecipeService {
      * Cursor-based my recipes wrapped in UnifiedPageResponse.
      */
     private UnifiedPageResponse<RecipeSummaryDto> getMyRecipesWithCursorUnified(
-            Long userId, String typeFilter, String cursor, int size) {
+            Long userId, String typeFilter, String cursor, int size, String locale) {
 
         CursorPageResponse<RecipeSummaryDto> cursorResponse =
-                getMyRecipesWithCursor(userId, typeFilter, cursor, size);
+                getMyRecipesWithCursor(userId, typeFilter, cursor, size, locale);
 
         return UnifiedPageResponse.fromCursor(
                 cursorResponse.content(),

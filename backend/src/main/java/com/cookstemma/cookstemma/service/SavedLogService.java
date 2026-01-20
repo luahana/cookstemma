@@ -12,6 +12,7 @@ import com.cookstemma.cookstemma.repository.log_post.LogPostRepository;
 import com.cookstemma.cookstemma.repository.log_post.SavedLogRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
 import com.cookstemma.cookstemma.util.CursorUtil;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -82,7 +83,7 @@ public class SavedLogService {
     /**
      * Get saved logs with cursor-based pagination
      */
-    public CursorPageResponse<LogPostSummaryDto> getSavedLogsWithCursor(Long userId, String cursor, int size) {
+    public CursorPageResponse<LogPostSummaryDto> getSavedLogsWithCursor(Long userId, String cursor, int size, String locale) {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
@@ -94,7 +95,7 @@ public class SavedLogService {
         }
 
         List<LogPostSummaryDto> content = savedLogs.getContent().stream()
-                .map(sl -> convertToSummary(sl.getLogPost()))
+                .map(sl -> convertToSummary(sl.getLogPost(), locale))
                 .toList();
 
         String nextCursor = null;
@@ -107,6 +108,10 @@ public class SavedLogService {
     }
 
     private LogPostSummaryDto convertToSummary(LogPost log) {
+        return convertToSummary(log, LocaleUtils.DEFAULT_LOCALE);
+    }
+
+    private LogPostSummaryDto convertToSummary(LogPost log, String locale) {
         User creator = userRepository.findById(log.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
@@ -116,14 +121,29 @@ public class SavedLogService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
+        // Normalize locale for consistent usage
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+
+        // Get localized title and content
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                log.getTitleTranslations(), normalizedLocale, log.getTitle());
+        String localizedContent = LocaleUtils.getLocalizedValue(
+                log.getContentTranslations(), normalizedLocale, log.getContent());
+
         // Get food name, recipe title, and variant status from linked recipe
         String foodName = null;
         String recipeTitle = null;
         Boolean isVariant = null;
         if (log.getRecipeLog() != null && log.getRecipeLog().getRecipe() != null) {
             Recipe recipe = log.getRecipeLog().getRecipe();
-            foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
-            recipeTitle = recipe.getTitle();
+            // Use locale-aware food name
+            foodName = LocaleUtils.getLocalizedValue(
+                    recipe.getFoodMaster().getName(),
+                    normalizedLocale,
+                    recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
+            // Use locale-aware recipe title
+            recipeTitle = LocaleUtils.getLocalizedValue(
+                    recipe.getTitleTranslations(), normalizedLocale, recipe.getTitle());
             isVariant = recipe.getRootRecipe() != null;
         }
 
@@ -134,8 +154,8 @@ public class SavedLogService {
 
         return new LogPostSummaryDto(
                 log.getPublicId(),
-                log.getTitle(),
-                log.getContent(),
+                localizedTitle,
+                localizedContent,
                 log.getRecipeLog() != null ? log.getRecipeLog().getRating() : null,
                 thumbnailUrl,
                 creatorPublicId,
@@ -156,26 +176,29 @@ public class SavedLogService {
      * - If cursor is provided → cursor-based pagination (mobile)
      * - If page is provided → offset-based pagination (web)
      * - Default → cursor-based initial page
+     * @param locale Content locale from Accept-Language header for translation
      */
-    public UnifiedPageResponse<LogPostSummaryDto> getSavedLogsUnified(Long userId, String cursor, Integer page, int size) {
+    public UnifiedPageResponse<LogPostSummaryDto> getSavedLogsUnified(Long userId, String cursor, Integer page, int size, String locale) {
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+
         if (cursor != null && !cursor.isEmpty()) {
-            return getSavedLogsWithCursorUnified(userId, cursor, size);
+            return getSavedLogsWithCursorUnified(userId, cursor, size, normalizedLocale);
         } else if (page != null) {
-            return getSavedLogsWithOffset(userId, page, size);
+            return getSavedLogsWithOffset(userId, page, size, normalizedLocale);
         } else {
-            return getSavedLogsWithCursorUnified(userId, null, size);
+            return getSavedLogsWithCursorUnified(userId, null, size, normalizedLocale);
         }
     }
 
     /**
      * Offset-based saved logs for web clients.
      */
-    private UnifiedPageResponse<LogPostSummaryDto> getSavedLogsWithOffset(Long userId, int page, int size) {
+    private UnifiedPageResponse<LogPostSummaryDto> getSavedLogsWithOffset(Long userId, int page, int size, String locale) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<SavedLog> savedLogs = savedLogRepository.findSavedLogsPage(userId, pageable);
-        Page<LogPostSummaryDto> mappedPage = savedLogs.map(sl -> convertToSummary(sl.getLogPost()));
+        Page<LogPostSummaryDto> mappedPage = savedLogs.map(sl -> convertToSummary(sl.getLogPost(), locale));
 
         return UnifiedPageResponse.fromPage(mappedPage, size);
     }
@@ -183,8 +206,8 @@ public class SavedLogService {
     /**
      * Cursor-based saved logs wrapped in UnifiedPageResponse.
      */
-    private UnifiedPageResponse<LogPostSummaryDto> getSavedLogsWithCursorUnified(Long userId, String cursor, int size) {
-        CursorPageResponse<LogPostSummaryDto> cursorResponse = getSavedLogsWithCursor(userId, cursor, size);
+    private UnifiedPageResponse<LogPostSummaryDto> getSavedLogsWithCursorUnified(Long userId, String cursor, int size, String locale) {
+        CursorPageResponse<LogPostSummaryDto> cursorResponse = getSavedLogsWithCursor(userId, cursor, size, locale);
 
         return UnifiedPageResponse.fromCursor(
                 cursorResponse.content(),

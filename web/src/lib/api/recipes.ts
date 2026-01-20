@@ -58,10 +58,16 @@ export async function getRecipes(
 
 /**
  * Get recipe detail by publicId
+ * @param publicId Recipe public ID
+ * @param contentLocale Optional locale for content translation (from Accept-Language header for SSR)
  */
-export async function getRecipeDetail(publicId: string): Promise<RecipeDetail> {
+export async function getRecipeDetail(
+  publicId: string,
+  contentLocale?: string,
+): Promise<RecipeDetail> {
   return apiFetch<RecipeDetail>(`/recipes/${publicId}`, {
     next: { revalidate: 300 }, // Cache for 5 minutes
+    locale: contentLocale, // Pass to Accept-Language header for translation
   });
 }
 

@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { publicId, locale } = await params;
 
   try {
-    const recipe = await getRecipeDetail(publicId);
+    const recipe = await getRecipeDetail(publicId, locale);
     // title and description are pre-localized by the backend based on Accept-Language header
 
     return {
@@ -70,7 +70,7 @@ export default async function RecipeDetailPage({ params }: Props) {
 
   let recipe;
   try {
-    recipe = await getRecipeDetail(publicId);
+    recipe = await getRecipeDetail(publicId, locale);
   } catch {
     notFound();
   }

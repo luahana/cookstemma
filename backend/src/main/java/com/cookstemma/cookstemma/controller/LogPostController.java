@@ -52,11 +52,13 @@ public class LogPostController {
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
+        // Get content locale from Accept-Language header for translation
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
         // 검색어가 있으면 검색 모드
         if (searchKeyword != null && !searchKeyword.isBlank()) {
-            return ResponseEntity.ok(logPostService.searchLogPostsUnified(searchKeyword, cursor, page, size));
+            return ResponseEntity.ok(logPostService.searchLogPostsUnified(searchKeyword, cursor, page, size, locale));
         }
-        return ResponseEntity.ok(logPostService.getAllLogsUnified(minRating, maxRating, sort, cursor, page, size));
+        return ResponseEntity.ok(logPostService.getAllLogsUnified(minRating, maxRating, sort, cursor, page, size, locale));
     }
 
     /**
@@ -72,7 +74,8 @@ public class LogPostController {
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
-        return ResponseEntity.ok(logPostService.getMyLogsUnified(principal.getId(), minRating, maxRating, cursor, page, size));
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        return ResponseEntity.ok(logPostService.getMyLogsUnified(principal.getId(), minRating, maxRating, cursor, page, size, locale));
     }
 
     /**
@@ -83,7 +86,8 @@ public class LogPostController {
     public ResponseEntity<Slice<LogPostSummaryDto>> getLogsByRecipe(
             @PathVariable("recipePublicId") UUID recipePublicId,
             Pageable pageable) {
-        return ResponseEntity.ok(logPostService.getLogsByRecipe(recipePublicId, pageable));
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        return ResponseEntity.ok(logPostService.getLogsByRecipe(recipePublicId, pageable, locale));
     }
 
     // --- [LOG DETAIL] ---
@@ -137,7 +141,8 @@ public class LogPostController {
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
-        return ResponseEntity.ok(savedLogService.getSavedLogsUnified(principal.getId(), cursor, page, size));
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        return ResponseEntity.ok(savedLogService.getSavedLogsUnified(principal.getId(), cursor, page, size, locale));
     }
 
     /**
