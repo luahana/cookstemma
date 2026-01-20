@@ -51,8 +51,8 @@ public record RecipeDetailResponseDto(
         UUID currentFoodMasterPublicId = recipe.getFoodMaster().getPublicId();
 
         // 2. 루트 레시피 정보 생성 (17개 필드 생성자 대응)
-        // Get root recipe thumbnail
-        String rootThumbnail = (root != null) ? root.getImages().stream()
+        // Get root recipe thumbnail (use getCoverImages for join table access)
+        String rootThumbnail = (root != null) ? root.getCoverImages().stream()
                 .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
                 .findFirst()
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
@@ -107,8 +107,8 @@ public record RecipeDetailResponseDto(
         ) : null;
 
         // 4. 이미지 리스트 변환 (COVER 타입만 반환, STEP 이미지는 steps[].imageUrl로 반환됨)
-        // Note: distinct() is needed because EntityGraph with multiple *ToMany relations causes Cartesian product
-        List<ImageResponseDto> imageResponses = recipe.getImages().stream()
+        // Use getCoverImages() to get images from join table (supports image sharing across variants)
+        List<ImageResponseDto> imageResponses = recipe.getCoverImages().stream()
                 .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
                 .distinct()
                 .map(img -> new ImageResponseDto(

@@ -264,7 +264,7 @@ public class UnifiedSearchService {
 
         String foodName = getFoodName(recipe);
 
-        String thumbnail = recipe.getImages().stream()
+        String thumbnail = recipe.getCoverImages().stream()
             .filter(img -> img.getType() == ImageType.COVER)
             .findFirst()
             .map(img -> urlPrefix + "/" + img.getStoredFilename())
@@ -317,10 +317,12 @@ public class UnifiedSearchService {
 
         RecipeLog recipeLog = log.getRecipeLog();
         String foodName = null;
+        String recipeTitle = null;
         Boolean isVariant = null;
         if (recipeLog != null && recipeLog.getRecipe() != null) {
             Recipe recipe = recipeLog.getRecipe();
             foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
+            recipeTitle = recipe.getTitle();
             isVariant = recipe.getRootRecipe() != null;
         }
 
@@ -331,11 +333,13 @@ public class UnifiedSearchService {
         return new LogPostSummaryDto(
             log.getPublicId(),
             log.getTitle(),
+            log.getContent(),
             recipeLog != null ? recipeLog.getRating() : null,
             thumbnailUrl,
             creatorPublicId,
             userName,
             foodName,
+            recipeTitle,
             hashtags,
             isVariant
         );

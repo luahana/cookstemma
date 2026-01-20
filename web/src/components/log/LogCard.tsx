@@ -93,10 +93,19 @@ export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCard
           </div>
         )}
 
-        {/* Title */}
-        <h3 className="font-semibold text-[var(--text-primary)] mt-1 line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
-          {log.title}
-        </h3>
+        {/* Recipe Title */}
+        {log.recipeTitle && (
+          <h3 className="font-semibold text-[var(--text-primary)] mt-1 line-clamp-1 group-hover:text-[var(--primary)] transition-colors">
+            {log.recipeTitle}
+          </h3>
+        )}
+
+        {/* Cooking Notes - 2 lines with ellipsis */}
+        {log.content && (
+          <p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2">
+            {log.content}
+          </p>
+        )}
 
         {/* Creator */}
         {log.userName && (

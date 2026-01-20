@@ -1,6 +1,7 @@
 package com.cookstemma.cookstemma.service;
 
 import com.cookstemma.cookstemma.domain.entity.image.Image;
+import com.cookstemma.cookstemma.domain.entity.image.RecipeImage;
 import com.cookstemma.cookstemma.domain.entity.log_post.LogPost;
 import com.cookstemma.cookstemma.domain.entity.recipe.Recipe;
 import com.cookstemma.cookstemma.domain.entity.user.User;
@@ -8,6 +9,7 @@ import com.cookstemma.cookstemma.domain.enums.ImageStatus;
 import com.cookstemma.cookstemma.domain.enums.ImageType;
 import com.cookstemma.cookstemma.dto.image.ImageUploadResponseDto;
 import com.cookstemma.cookstemma.repository.image.ImageRepository;
+import com.cookstemma.cookstemma.repository.image.RecipeImageRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
 import com.cookstemma.cookstemma.security.UserPrincipal;
 import jakarta.annotation.PostConstruct;
@@ -38,6 +40,7 @@ public class ImageService {
 
     private final S3Client s3Client;
     private final ImageRepository imageRepository;
+    private final RecipeImageRepository recipeImageRepository;
     private final UserRepository userRepository;
     private final ImageProcessingService imageProcessingService;
 
@@ -89,37 +92,52 @@ public class ImageService {
         }
     }
 
-    // [수정] 이미지 활성화 시 연관 엔티티와 순서(displayOrder) 부여
+    /**
+     * Activates images and links them to their target entity.
+     * For recipes, uses the join table (recipe_image_map) to allow image sharing across variants.
+     * For log posts and users, uses direct FK relationship.
+     */
     @Transactional
     public void activateImages(List<UUID> imagePublicIds, Object target) {
         if (imagePublicIds == null || imagePublicIds.isEmpty()) return;
 
         for (int i = 0; i < imagePublicIds.size(); i++) {
-            // [해결] 람다 내부에서 사용하기 위해 effectively final 변수로 복사합니다.
             final int index = i;
             final UUID currentId = imagePublicIds.get(i);
 
-            // 이제 람다 안에서 index나 currentId를 안전하게 참조할 수 있습니다.
             Image image = imageRepository.findByPublicId(currentId)
                     .orElseThrow(() -> new IllegalArgumentException("Image not found: " + currentId));
 
             if (target instanceof Recipe recipe) {
-                image.setRecipe(recipe);
-                // Maintain bidirectional relationship for proper JPA consistency
-                recipe.getImages().add(image);
+                // Use join table for recipe images (allows sharing across variants)
+                RecipeImage recipeImage = RecipeImage.of(recipe, image, index);
+                RecipeImage savedRecipeImage = recipeImageRepository.save(recipeImage);
+                // Add to in-memory collection for immediate access (within same transaction)
+                // This ensures getCoverImages() works without requiring a DB reload
+                recipe.getRecipeImages().add(savedRecipeImage);
+
+                // Set recipe_id and displayOrder on image for backward compatibility
+                // This ensures:
+                // 1. Constraint satisfaction (images need a parent reference)
+                // 2. Legacy code/tests that use recipe.getImages() still work
+                // 3. displayOrder is accessible from the Image entity
+                if (image.getRecipe() == null) {
+                    image.setRecipe(recipe);
+                    image.setDisplayOrder(index);
+                    recipe.getImages().add(image);
+                }
             } else if (target instanceof LogPost logPost) {
                 image.setLogPost(logPost);
+                image.setDisplayOrder(index);
                 // Maintain bidirectional relationship
                 logPost.getImages().add(image);
             } else if (target instanceof User user) {
-                // 유저 프로필 이미지의 경우, 파일명은 User 엔티티에 저장되므로
-                // 여기서는 상태만 ACTIVE로 변경하여 가비지 컬렉션을 방지합니다.
+                // Profile images: just activate, filename stored in User entity
             }
 
             image.setStatus(ImageStatus.ACTIVE);
-            image.setDisplayOrder(index); // 복사한 상수를 사용
 
-            // Explicitly save to ensure changes are persisted
+            // Save image (needed for log posts and constraint satisfaction)
             imageRepository.save(image);
 
             // Trigger async variant generation
@@ -128,24 +146,40 @@ public class ImageService {
     }
 
     /**
-     * Update recipe images: deactivate old images and activate new ones.
-     * Used when editing a recipe.
+     * Update recipe images: removes old mappings and creates new ones.
+     * Uses the join table to track recipe-image relationships.
+     * Images that are no longer used by any recipe will be garbage collected.
      */
     @Transactional
     public void updateRecipeImages(Recipe recipe, List<UUID> newImagePublicIds) {
-        // 1. Mark old images as PROCESSING (will be garbage collected)
-        List<Image> oldImages = imageRepository.findByRecipeIdAndStatusOrderByDisplayOrderAsc(
-                recipe.getId(), ImageStatus.ACTIVE);
-        for (Image oldImage : oldImages) {
-            // Only deactivate if not in the new list
-            if (newImagePublicIds == null || !newImagePublicIds.contains(oldImage.getPublicId())) {
-                oldImage.setRecipe(null);
-                oldImage.setStatus(ImageStatus.PROCESSING);
+        // 1. Get old image mappings and clear them
+        List<RecipeImage> oldMappings = recipeImageRepository.findByRecipeIdOrderByDisplayOrderAsc(recipe.getId());
+        List<Long> oldImageIds = oldMappings.stream()
+                .map(ri -> ri.getImage().getId())
+                .toList();
+
+        // Clear all existing mappings for this recipe
+        recipeImageRepository.deleteByRecipeId(recipe.getId());
+        recipe.getRecipeImages().clear();
+
+        // 2. Activate new images (creates new mappings)
+        activateImages(newImagePublicIds, recipe);
+
+        // 3. Check if any old images are orphaned (not used by any recipe)
+        // and mark them for garbage collection
+        for (Long oldImageId : oldImageIds) {
+            boolean stillUsed = recipeImageRepository.existsByImageId(oldImageId);
+            if (!stillUsed) {
+                imageRepository.findById(oldImageId).ifPresent(image -> {
+                    // Check if this image is used as a step image
+                    if (image.getType() != ImageType.STEP) {
+                        image.setRecipe(null);
+                        image.setStatus(ImageStatus.PROCESSING);
+                        imageRepository.save(image);
+                    }
+                });
             }
         }
-
-        // 2. Activate new images
-        activateImages(newImagePublicIds, recipe);
     }
 
     /**

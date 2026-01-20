@@ -1,11 +1,15 @@
 package com.cookstemma.cookstemma.service;
 
+import com.cookstemma.cookstemma.domain.entity.food.FoodMaster;
 import com.cookstemma.cookstemma.domain.entity.image.Image;
+import com.cookstemma.cookstemma.domain.entity.recipe.Recipe;
 import com.cookstemma.cookstemma.domain.entity.user.User;
 import com.cookstemma.cookstemma.domain.enums.AccountStatus;
 import com.cookstemma.cookstemma.domain.enums.ImageStatus;
 import com.cookstemma.cookstemma.domain.enums.ImageType;
+import com.cookstemma.cookstemma.repository.food.FoodMasterRepository;
 import com.cookstemma.cookstemma.repository.image.ImageRepository;
+import com.cookstemma.cookstemma.repository.recipe.RecipeRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
 import com.cookstemma.cookstemma.security.UserPrincipal;
 import com.cookstemma.cookstemma.support.BaseIntegrationTest;
@@ -19,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,6 +40,12 @@ class ImageSoftDeleteTest extends BaseIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RecipeRepository recipeRepository;
+
+    @Autowired
+    private FoodMasterRepository foodMasterRepository;
 
     @Autowired
     private TestUserFactory testUserFactory;
@@ -277,6 +288,177 @@ class ImageSoftDeleteTest extends BaseIntegrationTest {
                 assertThat(image.getDeletedAt()).isNull();
                 assertThat(image.getDeleteScheduledAt()).isNull();
             }
+        }
+    }
+
+    /**
+     * Tests for variant creator account deletion scenarios.
+     * Verifies that image deletion is based on uploaderId, not recipe ownership.
+     * When a variant creator closes their account, they should NOT delete
+     * images that were uploaded by the parent recipe creator.
+     */
+    @Nested
+    @DisplayName("Variant Creator Account Deletion")
+    class VariantCreatorAccountDeletion {
+
+        private User parentCreator;
+        private User variantCreator;
+        private FoodMaster testFood;
+
+        @BeforeEach
+        void setUpVariantScenario() {
+            parentCreator = testUserFactory.createTestUser("parent_creator");
+            variantCreator = testUserFactory.createTestUser("variant_creator");
+
+            testFood = FoodMaster.builder()
+                    .name(Map.of("ko-KR", "테스트음식"))
+                    .isVerified(true)
+                    .build();
+            foodMasterRepository.save(testFood);
+        }
+
+        private Image createImageForUser(User user) {
+            Image image = Image.builder()
+                    .storedFilename("cover/" + user.getUsername() + "_test.jpg")
+                    .originalFilename("test.jpg")
+                    .type(ImageType.COVER)
+                    .status(ImageStatus.ACTIVE)
+                    .uploaderId(user.getId())
+                    .build();
+            return imageRepository.save(image);
+        }
+
+        private Recipe createRecipeForUser(User user, String title) {
+            Recipe recipe = Recipe.builder()
+                    .title(title)
+                    .cookingStyle("ko-KR")
+                    .foodMaster(testFood)
+                    .creatorId(user.getId())
+                    .build();
+            return recipeRepository.save(recipe);
+        }
+
+        @Test
+        @DisplayName("Closing variant creator account should NOT delete parent's images")
+        void closingVariantCreatorAccount_ShouldNotDeleteParentImages() {
+            // Given: Parent creator uploads photo and creates recipe
+            Image parentPhoto = createImageForUser(parentCreator);
+            Recipe parentRecipe = createRecipeForUser(parentCreator, "Parent Recipe");
+            parentPhoto.setRecipe(parentRecipe);
+            imageRepository.save(parentPhoto);
+
+            // Given: Variant creator creates variant using parent's photo
+            // (In reality, they would reference the same image via recipe_image_map)
+            Recipe variant = createRecipeForUser(variantCreator, "Variant Recipe");
+            variant.setParentRecipe(parentRecipe);
+            recipeRepository.save(variant);
+
+            // Verify setup: photo belongs to parent creator
+            assertThat(parentPhoto.getUploaderId()).isEqualTo(parentCreator.getId());
+
+            // When: Variant creator closes their account
+            userService.deleteAccount(new UserPrincipal(variantCreator));
+
+            // Then: Parent's photo is NOT soft-deleted (uploaderId != variantCreator.id)
+            Image reloadedPhoto = imageRepository.findByPublicId(parentPhoto.getPublicId())
+                    .orElseThrow();
+            assertThat(reloadedPhoto.getDeletedAt()).isNull();
+            assertThat(reloadedPhoto.getUploaderId()).isEqualTo(parentCreator.getId());
+        }
+
+        @Test
+        @DisplayName("Closing original uploader account should soft-delete their images")
+        void closingOriginalUploaderAccount_ShouldSoftDeleteImages() {
+            // Given: Parent creator uploads photo and creates recipe
+            Image parentPhoto = createImageForUser(parentCreator);
+            Recipe parentRecipe = createRecipeForUser(parentCreator, "Parent Recipe");
+            parentPhoto.setRecipe(parentRecipe);
+            imageRepository.save(parentPhoto);
+
+            // Given: Variant creator creates variant (referencing parent's photo)
+            Recipe variant = createRecipeForUser(variantCreator, "Variant Recipe");
+            variant.setParentRecipe(parentRecipe);
+            recipeRepository.save(variant);
+
+            // Verify setup
+            assertThat(parentPhoto.getUploaderId()).isEqualTo(parentCreator.getId());
+
+            // When: Original uploader (parent creator) closes their account
+            userService.deleteAccount(new UserPrincipal(parentCreator));
+
+            // Then: Photo IS soft-deleted (uploaderId matches)
+            Image reloadedPhoto = imageRepository.findByPublicId(parentPhoto.getPublicId())
+                    .orElseThrow();
+            assertThat(reloadedPhoto.getDeletedAt()).isNotNull();
+            assertThat(reloadedPhoto.getDeleteScheduledAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Closing account deletes only photos uploaded by that user")
+        void closingAccount_OnlyDeletesOwnUploadedPhotos() {
+            // Given: Parent creator uploads photo
+            Image parentPhoto = createImageForUser(parentCreator);
+            Recipe parentRecipe = createRecipeForUser(parentCreator, "Parent Recipe");
+            parentPhoto.setRecipe(parentRecipe);
+            imageRepository.save(parentPhoto);
+
+            // Given: Variant creator creates variant with their OWN new photo
+            Image variantOwnPhoto = createImageForUser(variantCreator);
+            Recipe variant = createRecipeForUser(variantCreator, "Variant Recipe");
+            variant.setParentRecipe(parentRecipe);
+            recipeRepository.save(variant);
+            variantOwnPhoto.setRecipe(variant);
+            imageRepository.save(variantOwnPhoto);
+
+            // Verify setup: different uploaders
+            assertThat(parentPhoto.getUploaderId()).isEqualTo(parentCreator.getId());
+            assertThat(variantOwnPhoto.getUploaderId()).isEqualTo(variantCreator.getId());
+
+            // When: Variant creator closes their account
+            userService.deleteAccount(new UserPrincipal(variantCreator));
+
+            // Then: Only variant's own photo is soft-deleted
+            Image reloadedParentPhoto = imageRepository.findByPublicId(parentPhoto.getPublicId())
+                    .orElseThrow();
+            Image reloadedVariantPhoto = imageRepository.findByPublicId(variantOwnPhoto.getPublicId())
+                    .orElseThrow();
+
+            // Parent's photo is safe (uploaded by different user)
+            assertThat(reloadedParentPhoto.getDeletedAt()).isNull();
+
+            // Variant's own photo is deleted (uploaded by variant creator)
+            assertThat(reloadedVariantPhoto.getDeletedAt()).isNotNull();
+            assertThat(reloadedVariantPhoto.getDeleteScheduledAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Multiple variants sharing parent's photo - photo safe when any variant creator closes account")
+        void multipleVariantsSharing_PhotoSafeWhenVariantCreatorCloses() {
+            // Given: Parent creator uploads photo
+            Image parentPhoto = createImageForUser(parentCreator);
+            Recipe parentRecipe = createRecipeForUser(parentCreator, "Parent Recipe");
+            parentPhoto.setRecipe(parentRecipe);
+            imageRepository.save(parentPhoto);
+
+            // Given: Another user creates a variant (using parent's photo reference)
+            User anotherVariantCreator = testUserFactory.createTestUser("another_variant");
+            Recipe anotherVariant = createRecipeForUser(anotherVariantCreator, "Another Variant");
+            anotherVariant.setParentRecipe(parentRecipe);
+            recipeRepository.save(anotherVariant);
+
+            // When: The variant creator closes their account
+            userService.deleteAccount(new UserPrincipal(anotherVariantCreator));
+
+            // Then: Parent's photo remains unaffected
+            Image reloadedPhoto = imageRepository.findByPublicId(parentPhoto.getPublicId())
+                    .orElseThrow();
+            assertThat(reloadedPhoto.getDeletedAt()).isNull();
+            assertThat(reloadedPhoto.getUploaderId()).isEqualTo(parentCreator.getId());
+
+            // And: Parent creator's account is still active
+            User reloadedParentCreator = userRepository.findById(parentCreator.getId())
+                    .orElseThrow();
+            assertThat(reloadedParentCreator.getStatus()).isEqualTo(AccountStatus.ACTIVE);
         }
     }
 }

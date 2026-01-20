@@ -217,13 +217,15 @@ public class LogPostService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        // Get food name and variant status from linked recipe
+        // Get food name, recipe title, and variant status from linked recipe
         RecipeLog recipeLog = log.getRecipeLog();
         String foodName = null;
+        String recipeTitle = null;
         Boolean isVariant = null;
         if (recipeLog != null && recipeLog.getRecipe() != null) {
             Recipe recipe = recipeLog.getRecipe();
             foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
+            recipeTitle = recipe.getTitle();
             isVariant = recipe.getRootRecipe() != null;
         }
 
@@ -235,11 +237,13 @@ public class LogPostService {
         return new LogPostSummaryDto(
                 log.getPublicId(),
                 log.getTitle(),
+                log.getContent(),
                 log.getRecipeLog().getRating(),
                 thumbnailUrl,
                 creatorPublicId,
                 userName,
                 foodName,
+                recipeTitle,
                 hashtags,
                 isVariant
         );
@@ -255,7 +259,7 @@ public class LogPostService {
         String foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
 
         // 3. 썸네일 URL 추출 (첫 번째 커버 이미지 사용, displayOrder로 정렬됨)
-        String thumbnail = recipe.getImages().stream()
+        String thumbnail = recipe.getCoverImages().stream()
                 .findFirst()
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);

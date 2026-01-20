@@ -9,6 +9,7 @@ interface ViewTrackerProps {
   publicId: string;
   type: 'recipe' | 'log';
   title: string;
+  titleTranslations?: Record<string, string> | null;
   thumbnail: string | null;
   foodName: string | null;
   rating?: number | null;
@@ -22,6 +23,7 @@ export function ViewTracker({
   publicId,
   type,
   title,
+  titleTranslations,
   thumbnail,
   foodName,
   rating,
@@ -39,11 +41,12 @@ export function ViewTracker({
       type,
       publicId,
       title,
+      titleTranslations,
       thumbnail,
       foodName,
       rating,
     });
-  }, [type, publicId, title, thumbnail, foodName, rating]);
+  }, [type, publicId, title, titleTranslations, thumbnail, foodName, rating]);
 
   // Save to backend after auth is determined (only for authenticated users)
   useEffect(() => {

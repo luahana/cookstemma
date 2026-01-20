@@ -116,12 +116,14 @@ public class SavedLogService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        // Get food name and variant status from linked recipe
+        // Get food name, recipe title, and variant status from linked recipe
         String foodName = null;
+        String recipeTitle = null;
         Boolean isVariant = null;
         if (log.getRecipeLog() != null && log.getRecipeLog().getRecipe() != null) {
             Recipe recipe = log.getRecipeLog().getRecipe();
             foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
+            recipeTitle = recipe.getTitle();
             isVariant = recipe.getRootRecipe() != null;
         }
 
@@ -133,11 +135,13 @@ public class SavedLogService {
         return new LogPostSummaryDto(
                 log.getPublicId(),
                 log.getTitle(),
+                log.getContent(),
                 log.getRecipeLog() != null ? log.getRecipeLog().getRating() : null,
                 thumbnailUrl,
                 creatorPublicId,
                 userName,
                 foodName,
+                recipeTitle,
                 hashtags,
                 isVariant
         );

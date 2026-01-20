@@ -240,8 +240,8 @@ public class HashtagService {
         // 2. Food name from JSONB map
         String foodName = getFoodName(recipe);
 
-        // 3. Thumbnail URL (first cover image)
-        String thumbnail = recipe.getImages().stream()
+        // 3. Thumbnail URL (first cover image from join table)
+        String thumbnail = recipe.getCoverImages().stream()
                 .filter(img -> img.getType() == ImageType.COVER)
                 .findFirst()
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
@@ -310,14 +310,16 @@ public class HashtagService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        // 3. Rating and food name from recipe log
+        // 3. Rating, food name, and recipe title from recipe log
         Integer rating = logPost.getRecipeLog() != null ? logPost.getRecipeLog().getRating() : null;
         String foodName = null;
+        String recipeTitle = null;
         boolean isVariant = false;
 
         if (logPost.getRecipeLog() != null && logPost.getRecipeLog().getRecipe() != null) {
             Recipe linkedRecipe = logPost.getRecipeLog().getRecipe();
             foodName = getFoodName(linkedRecipe);
+            recipeTitle = linkedRecipe.getTitle();
             isVariant = linkedRecipe.getParentRecipe() != null;
         }
 
@@ -330,11 +332,13 @@ public class HashtagService {
         return new LogPostSummaryDto(
                 logPost.getPublicId(),
                 logPost.getTitle(),
+                logPost.getContent(),
                 rating,
                 thumbnailUrl,
                 creatorPublicId,
                 userName,
                 foodName,
+                recipeTitle,
                 hashtags,
                 isVariant
         );

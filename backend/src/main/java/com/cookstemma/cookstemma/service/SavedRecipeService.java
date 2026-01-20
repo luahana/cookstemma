@@ -88,7 +88,7 @@ public class SavedRecipeService {
 
         String foodName = getFoodName(recipe);
 
-        String thumbnail = recipe.getImages().stream()
+        String thumbnail = recipe.getCoverImages().stream()
                 .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
                 .findFirst()
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())

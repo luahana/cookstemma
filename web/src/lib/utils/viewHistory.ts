@@ -5,6 +5,7 @@ export interface ViewHistoryItem {
   type: 'recipe' | 'log';
   publicId: string;
   title: string;
+  titleTranslations?: Record<string, string> | null;
   thumbnail: string | null;
   foodName: string | null;
   rating?: number | null;

@@ -170,7 +170,7 @@ public class ViewHistoryService {
 
         String foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
 
-        String thumbnail = recipe.getImages().stream()
+        String thumbnail = recipe.getCoverImages().stream()
                 .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
                 .findFirst()
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
@@ -218,13 +218,15 @@ public class ViewHistoryService {
                 ? null
                 : urlPrefix + "/" + logPost.getImages().get(0).getStoredFilename();
 
-        // Get food name and variant status from linked recipe
+        // Get food name, recipe title, and variant status from linked recipe
         var recipeLog = logPost.getRecipeLog();
         String foodName = null;
+        String recipeTitle = null;
         Boolean isVariant = false;
         if (recipeLog != null && recipeLog.getRecipe() != null) {
             Recipe recipe = recipeLog.getRecipe();
             foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
+            recipeTitle = recipe.getTitle();
             isVariant = recipe.getRootRecipe() != null;
         }
 
@@ -236,11 +238,13 @@ public class ViewHistoryService {
         return new LogPostSummaryDto(
                 logPost.getPublicId(),
                 logPost.getTitle(),
+                logPost.getContent(),
                 recipeLog != null ? recipeLog.getRating() : null,
                 thumbnailUrl,
                 creatorPublicId,
                 userName,
                 foodName,
+                recipeTitle,
                 hashtags,
                 isVariant
         );

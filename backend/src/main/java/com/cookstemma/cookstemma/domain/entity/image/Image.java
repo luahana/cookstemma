@@ -6,7 +6,16 @@ import com.cookstemma.cookstemma.domain.entity.recipe.Recipe;
 import com.cookstemma.cookstemma.domain.enums.ImageStatus;
 import com.cookstemma.cookstemma.domain.enums.ImageType;
 import com.cookstemma.cookstemma.domain.enums.ImageVariant;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -23,6 +32,11 @@ import java.util.UUID;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @SuperBuilder
 public class Image extends BaseEntity {
+
+    // Many-to-many relationship with recipes via join table (for cover images)
+    @OneToMany(mappedBy = "image", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<RecipeImage> recipeImages = new ArrayList<>();
     private String storedFilename;
     private String originalFilename;
 

@@ -10,6 +10,7 @@ import { StarRating } from '@/components/log/StarRating';
 interface LogSummary {
   publicId: string;
   title: string;
+  content: string | null;
   rating: number | null;
   thumbnailUrl?: string | null;
   userName?: string | null;
@@ -153,16 +154,24 @@ export function RecentLogsGallery({ logs, recipePublicId }: RecentLogsGalleryPro
                     </div>
                   )}
 
-                  {/* Star Rating Badge */}
-                  {log.rating && (
-                    <div className="absolute bottom-2 right-2 bg-white/90 rounded-full px-1.5 py-0.5 shadow-md">
-                      <StarRating rating={log.rating} size="sm" />
-                    </div>
-                  )}
                 </div>
 
+                {/* Star Rating - below photo */}
+                {log.rating && (
+                  <div className="mt-1.5 flex justify-center">
+                    <StarRating rating={log.rating} size="sm" />
+                  </div>
+                )}
+
+                {/* Cooking Notes - 2 lines with ellipsis */}
+                {log.content && (
+                  <p className="mt-1 text-xs text-[var(--text-primary)] w-28 line-clamp-2">
+                    {log.content}
+                  </p>
+                )}
+
                 {/* Username */}
-                <p className="mt-2 text-xs text-[var(--text-secondary)] truncate w-28 text-center">
+                <p className="mt-1 text-xs text-[var(--text-secondary)] truncate w-28 text-center">
                   @{log.userName || tCommon('anonymous')}
                 </p>
               </Link>

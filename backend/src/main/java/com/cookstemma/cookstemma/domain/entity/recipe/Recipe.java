@@ -4,6 +4,7 @@ import com.cookstemma.cookstemma.domain.entity.common.BaseEntity;
 import com.cookstemma.cookstemma.domain.entity.food.FoodMaster;
 import com.cookstemma.cookstemma.domain.entity.hashtag.Hashtag;
 import com.cookstemma.cookstemma.domain.entity.image.Image;
+import com.cookstemma.cookstemma.domain.entity.image.RecipeImage;
 import com.cookstemma.cookstemma.domain.enums.CookingTimeRange;
 import jakarta.persistence.*;
 import lombok.*;
@@ -105,10 +106,17 @@ public class Recipe extends BaseEntity {
     @OrderBy("stepNumber ASC")
     private List<RecipeStep> steps = new ArrayList<>();
 
+    // Legacy: Direct image relationship (used for step images and backward compatibility)
     @Builder.Default
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @OrderBy("displayOrder ASC")
     private List<Image> images = new ArrayList<>();
+
+    // New: Many-to-many relationship for cover images (allows sharing across variants)
+    @Builder.Default
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private List<RecipeImage> recipeImages = new ArrayList<>();
 
     @Builder.Default
     @ManyToMany
@@ -139,5 +147,35 @@ public class Recipe extends BaseEntity {
 
     public void softDelete() {
         this.deletedAt = Instant.now();
+    }
+
+    /**
+     * Gets cover images via the many-to-many join table.
+     * Falls back to the legacy images collection if recipeImages is empty
+     * (for backward compatibility during migration period).
+     * Images are ordered by their recipe-specific display order.
+     *
+     * @return List of cover images for this recipe
+     */
+    public List<Image> getCoverImages() {
+        // If recipeImages collection is populated (loaded from DB), use it
+        if (recipeImages != null && !recipeImages.isEmpty()) {
+            return recipeImages.stream()
+                    .sorted((a, b) -> Integer.compare(
+                            a.getDisplayOrder() != null ? a.getDisplayOrder() : 0,
+                            b.getDisplayOrder() != null ? b.getDisplayOrder() : 0))
+                    .map(RecipeImage::getImage)
+                    .toList();
+        }
+        // Fall back to legacy images collection
+        // This handles:
+        // 1. Same-transaction access before recipeImages is loaded
+        // 2. Existing data not yet migrated
+        return images.stream()
+                .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
+                .sorted((a, b) -> Integer.compare(
+                        a.getDisplayOrder() != null ? a.getDisplayOrder() : 0,
+                        b.getDisplayOrder() != null ? b.getDisplayOrder() : 0))
+                .toList();
     }
 }

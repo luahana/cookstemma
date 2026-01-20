@@ -271,8 +271,8 @@ public class ShareService {
      * Get the image URL for a recipe, or default if none.
      */
     private String getImageUrl(Recipe recipe) {
-        // Get cover image from recipe's images
-        return recipe.getImages().stream()
+        // Get cover image from recipe's images (via join table)
+        return recipe.getCoverImages().stream()
                 .filter(img -> img.getType() == ImageType.COVER)
                 .findFirst()
                 .map(img -> {
