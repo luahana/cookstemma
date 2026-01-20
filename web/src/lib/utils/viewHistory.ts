@@ -9,6 +9,7 @@ export interface ViewHistoryItem {
   foodName: string | null;
   rating?: number | null;
   viewedAt: number;
+  locale: string; // Locale when item was viewed
 }
 
 /**
@@ -78,4 +79,13 @@ export function getViewHistory(): ViewHistoryItem[] {
 export function clearViewHistory(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(VIEW_HISTORY_KEY);
+}
+
+/**
+ * Save updated view history to localStorage.
+ * Used to update items (e.g., after re-fetching for locale changes).
+ */
+export function saveViewHistory(items: ViewHistoryItem[]): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(VIEW_HISTORY_KEY, JSON.stringify(items.slice(0, MAX_ITEMS)));
 }

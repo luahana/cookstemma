@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useLocale } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { recordRecipeView, recordLogView } from '@/lib/api/history';
 import { addToViewHistory } from '@/lib/utils/viewHistory';
@@ -26,6 +27,7 @@ export function ViewTracker({
   foodName,
   rating,
 }: ViewTrackerProps) {
+  const locale = useLocale();
   const { isAuthenticated, isLoading } = useAuth();
   const hasTrackedLocal = useRef(false);
   const hasTrackedBackend = useRef(false);
@@ -42,8 +44,9 @@ export function ViewTracker({
       thumbnail,
       foodName,
       rating,
+      locale,
     });
-  }, [type, publicId, title, thumbnail, foodName, rating]);
+  }, [type, publicId, title, thumbnail, foodName, rating, locale]);
 
   // Save to backend after auth is determined (only for authenticated users)
   useEffect(() => {

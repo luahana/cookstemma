@@ -3,24 +3,89 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   getViewHistory,
   clearViewHistory as clearLocalViewHistory,
+  saveViewHistory,
   type ViewHistoryItem,
 } from '@/lib/utils/viewHistory';
 import { getImageUrl } from '@/lib/utils/image';
 import { StarRating } from '@/components/log/StarRating';
+import { getRecipeDetail } from '@/lib/api/recipes';
+import { getLogDetail } from '@/lib/api/logs';
 
 export function RecentlyViewedCompact() {
   const t = useTranslations('search');
+  const locale = useLocale();
   // Initialize with null to detect if we've loaded from localStorage yet
   const [items, setItems] = useState<ViewHistoryItem[] | null>(null);
   const [isClearing, setIsClearing] = useState(false);
 
-  const loadHistory = useCallback(() => {
-    setItems(getViewHistory());
-  }, []);
+  const loadHistory = useCallback(async () => {
+    const history = getViewHistory();
+    if (history.length === 0) {
+      setItems([]);
+      return;
+    }
+
+    // Check for locale mismatches and re-fetch if needed
+    const itemsNeedingUpdate = history.filter(
+      (item) => item.locale !== locale && item.locale !== undefined
+    );
+
+    // Also handle legacy items without locale field (treat as mismatch)
+    const legacyItems = history.filter((item) => item.locale === undefined);
+
+    if (itemsNeedingUpdate.length === 0 && legacyItems.length === 0) {
+      setItems(history);
+      return;
+    }
+
+    // Re-fetch items with mismatched locales
+    const updatedItems = await Promise.all(
+      history.map(async (item) => {
+        // Skip if locale matches
+        if (item.locale === locale) {
+          return item;
+        }
+
+        // Re-fetch with current locale
+        try {
+          if (item.type === 'recipe') {
+            const recipe = await getRecipeDetail(item.publicId, locale);
+            return {
+              ...item,
+              title: recipe.title,
+              foodName: recipe.foodName,
+              locale,
+            };
+          } else {
+            const log = await getLogDetail(item.publicId, locale);
+            return {
+              ...item,
+              title: log.title,
+              foodName: log.foodName,
+              locale,
+            };
+          }
+        } catch {
+          // Keep old data if fetch fails (graceful degradation)
+          return item;
+        }
+      })
+    );
+
+    // Update localStorage with re-fetched data
+    const hasUpdates = updatedItems.some(
+      (item, i) => item.locale !== history[i].locale
+    );
+    if (hasUpdates) {
+      saveViewHistory(updatedItems);
+    }
+
+    setItems(updatedItems);
+  }, [locale]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- valid for client-only hydration from localStorage
