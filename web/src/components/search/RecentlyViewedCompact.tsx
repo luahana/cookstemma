@@ -66,7 +66,7 @@ export function RecentlyViewedCompact() {
             return {
               ...item,
               title: log.title,
-              foodName: log.foodName,
+              foodName: log.linkedRecipe?.foodName ?? item.foodName,
               locale,
             };
           }
