@@ -27,4 +27,7 @@ public interface TranslationEventRepository extends JpaRepository<TranslationEve
 
     boolean existsByEntityTypeAndEntityIdAndStatusIn(
             TranslatableEntity entityType, Long entityId, List<TranslationStatus> statuses);
+
+    List<TranslationEvent> findByEntityTypeAndEntityIdAndStatusIn(
+            TranslatableEntity entityType, Long entityId, List<TranslationStatus> statuses);
 }

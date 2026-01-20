@@ -258,6 +258,88 @@ public class TranslationEventService {
         translationEventRepository.save(event);
     }
 
+    /**
+     * Force re-translation of a recipe with a specified source locale.
+     * This is useful when the recipe's cookingStyle doesn't match the actual content language.
+     *
+     * @param recipe The recipe to re-translate
+     * @param sourceLocale The actual language of the content (e.g., "en" if content is English)
+     */
+    @Transactional
+    public void forceRecipeTranslation(Recipe recipe, String sourceLocale) {
+        String normalized = normalizeLocale(sourceLocale);
+
+        // Translate to ALL locales (not excluding source, since we want full coverage)
+        List<String> targetLocales = new ArrayList<>(ALL_LOCALES);
+
+        // Cancel any existing pending translations for this recipe
+        cancelPendingTranslations(TranslatableEntity.RECIPE, recipe.getId());
+
+        // Queue main recipe translation
+        TranslationEvent event = TranslationEvent.builder()
+                .entityType(TranslatableEntity.RECIPE)
+                .entityId(recipe.getId())
+                .sourceLocale(normalized)
+                .targetLocales(targetLocales)
+                .build();
+
+        translationEventRepository.save(event);
+        log.info("Force-queued translation for recipe {} (source: {}, targets: all {})",
+                recipe.getId(), normalized, targetLocales.size());
+
+        // Also queue translations for steps and ingredients
+        for (RecipeStep step : recipe.getSteps()) {
+            forceRecipeStepTranslation(step, normalized);
+        }
+        for (RecipeIngredient ingredient : recipe.getIngredients()) {
+            forceRecipeIngredientTranslation(ingredient, normalized);
+        }
+    }
+
+    @Transactional
+    public void forceRecipeStepTranslation(RecipeStep step, String sourceLocale) {
+        String normalized = normalizeLocale(sourceLocale);
+        List<String> targetLocales = new ArrayList<>(ALL_LOCALES);
+
+        cancelPendingTranslations(TranslatableEntity.RECIPE_STEP, step.getId());
+
+        TranslationEvent event = TranslationEvent.builder()
+                .entityType(TranslatableEntity.RECIPE_STEP)
+                .entityId(step.getId())
+                .sourceLocale(normalized)
+                .targetLocales(targetLocales)
+                .build();
+
+        translationEventRepository.save(event);
+    }
+
+    @Transactional
+    public void forceRecipeIngredientTranslation(RecipeIngredient ingredient, String sourceLocale) {
+        String normalized = normalizeLocale(sourceLocale);
+        List<String> targetLocales = new ArrayList<>(ALL_LOCALES);
+
+        cancelPendingTranslations(TranslatableEntity.RECIPE_INGREDIENT, ingredient.getId());
+
+        TranslationEvent event = TranslationEvent.builder()
+                .entityType(TranslatableEntity.RECIPE_INGREDIENT)
+                .entityId(ingredient.getId())
+                .sourceLocale(normalized)
+                .targetLocales(targetLocales)
+                .build();
+
+        translationEventRepository.save(event);
+    }
+
+    private void cancelPendingTranslations(TranslatableEntity entityType, Long entityId) {
+        List<TranslationEvent> pendingEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                entityType, entityId, List.of(TranslationStatus.PENDING, TranslationStatus.PROCESSING));
+
+        for (TranslationEvent event : pendingEvents) {
+            event.markFailed("Cancelled for re-translation");
+            translationEventRepository.save(event);
+        }
+    }
+
     private boolean isTranslationPending(TranslatableEntity entityType, Long entityId) {
         return translationEventRepository.existsByEntityTypeAndEntityIdAndStatusIn(
                 entityType, entityId, List.of(TranslationStatus.PENDING, TranslationStatus.PROCESSING));

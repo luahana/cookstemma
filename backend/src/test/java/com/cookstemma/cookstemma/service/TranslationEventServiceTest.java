@@ -1,9 +1,15 @@
 package com.cookstemma.cookstemma.service;
 
 import com.cookstemma.cookstemma.domain.entity.food.FoodMaster;
+import com.cookstemma.cookstemma.domain.entity.recipe.Recipe;
+import com.cookstemma.cookstemma.domain.entity.recipe.RecipeIngredient;
+import com.cookstemma.cookstemma.domain.entity.recipe.RecipeStep;
 import com.cookstemma.cookstemma.domain.entity.translation.TranslationEvent;
+import com.cookstemma.cookstemma.domain.entity.user.User;
 import com.cookstemma.cookstemma.domain.enums.TranslatableEntity;
 import com.cookstemma.cookstemma.domain.enums.TranslationStatus;
+import com.cookstemma.cookstemma.repository.RecipeRepository;
+import com.cookstemma.cookstemma.repository.UserRepository;
 import com.cookstemma.cookstemma.repository.food.FoodMasterRepository;
 import com.cookstemma.cookstemma.repository.translation.TranslationEventRepository;
 import com.cookstemma.cookstemma.support.BaseIntegrationTest;
@@ -13,6 +19,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -163,6 +170,133 @@ class TranslationEventServiceTest extends BaseIntegrationTest {
                     .orElseThrow();
 
             assertThat(event.getSourceLocale()).isEqualTo("ko");
+        }
+    }
+
+    @Nested
+    @DisplayName("Force Recipe Translation")
+    class ForceRecipeTranslationTests {
+
+        @Autowired
+        private RecipeRepository recipeRepository;
+
+        @Autowired
+        private UserRepository userRepository;
+
+        private Recipe testRecipe;
+
+        @BeforeEach
+        void setUpRecipe() {
+            User testUser = User.builder()
+                    .username("testuser")
+                    .firebaseUid("test-firebase-uid-" + System.currentTimeMillis())
+                    .build();
+            userRepository.saveAndFlush(testUser);
+
+            testRecipe = Recipe.builder()
+                    .title("Test Recipe Title")
+                    .description("Test description")
+                    .cookingStyle("JP")
+                    .foodMaster(testFoodMaster)
+                    .creator(testUser)
+                    .build();
+
+            RecipeStep step = RecipeStep.builder()
+                    .stepNumber(1)
+                    .description("Step 1 description")
+                    .recipe(testRecipe)
+                    .build();
+            testRecipe.getSteps().add(step);
+
+            RecipeIngredient ingredient = RecipeIngredient.builder()
+                    .name("Ingredient 1")
+                    .quantity(1.0)
+                    .recipe(testRecipe)
+                    .build();
+            testRecipe.getIngredients().add(ingredient);
+
+            recipeRepository.saveAndFlush(testRecipe);
+        }
+
+        @Test
+        @DisplayName("Should create translation event for recipe with specified source locale")
+        void forceRecipeTranslation_CreatesEvent() {
+            translationEventService.forceRecipeTranslation(testRecipe, "en");
+
+            List<TranslationEvent> events = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                    TranslatableEntity.RECIPE, testRecipe.getId(),
+                    List.of(TranslationStatus.PENDING));
+
+            assertThat(events).hasSize(1);
+            assertThat(events.get(0).getSourceLocale()).isEqualTo("en");
+        }
+
+        @Test
+        @DisplayName("Should target ALL 20 locales when force translating")
+        void forceRecipeTranslation_TargetsAllLocales() {
+            translationEventService.forceRecipeTranslation(testRecipe, "en");
+
+            TranslationEvent event = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                    TranslatableEntity.RECIPE, testRecipe.getId(),
+                    List.of(TranslationStatus.PENDING)).get(0);
+
+            // Force translation includes ALL locales (including source)
+            assertThat(event.getTargetLocales()).hasSize(20);
+            assertThat(event.getTargetLocales()).contains("ja", "ko", "zh", "en");
+        }
+
+        @Test
+        @DisplayName("Should also queue translations for recipe steps")
+        void forceRecipeTranslation_QueuesStepTranslations() {
+            translationEventService.forceRecipeTranslation(testRecipe, "en");
+
+            List<TranslationEvent> stepEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                    TranslatableEntity.RECIPE_STEP, testRecipe.getSteps().get(0).getId(),
+                    List.of(TranslationStatus.PENDING));
+
+            assertThat(stepEvents).hasSize(1);
+            assertThat(stepEvents.get(0).getSourceLocale()).isEqualTo("en");
+        }
+
+        @Test
+        @DisplayName("Should also queue translations for recipe ingredients")
+        void forceRecipeTranslation_QueuesIngredientTranslations() {
+            translationEventService.forceRecipeTranslation(testRecipe, "en");
+
+            List<TranslationEvent> ingredientEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                    TranslatableEntity.RECIPE_INGREDIENT, testRecipe.getIngredients().get(0).getId(),
+                    List.of(TranslationStatus.PENDING));
+
+            assertThat(ingredientEvents).hasSize(1);
+            assertThat(ingredientEvents.get(0).getSourceLocale()).isEqualTo("en");
+        }
+
+        @Test
+        @DisplayName("Should cancel existing pending events when force re-translating")
+        void forceRecipeTranslation_CancelsExistingPending() {
+            // First translation
+            translationEventService.queueRecipeTranslation(testRecipe);
+
+            List<TranslationEvent> initialEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                    TranslatableEntity.RECIPE, testRecipe.getId(),
+                    List.of(TranslationStatus.PENDING));
+            assertThat(initialEvents).hasSize(1);
+            Long initialEventId = initialEvents.get(0).getId();
+
+            // Force re-translation with different source
+            translationEventService.forceRecipeTranslation(testRecipe, "en");
+
+            // Check initial event is now FAILED
+            TranslationEvent initialEvent = translationEventRepository.findById(initialEventId).orElseThrow();
+            assertThat(initialEvent.getStatus()).isEqualTo(TranslationStatus.FAILED);
+            assertThat(initialEvent.getLastError()).contains("Cancelled for re-translation");
+
+            // Check new event is PENDING with new source
+            List<TranslationEvent> newEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                    TranslatableEntity.RECIPE, testRecipe.getId(),
+                    List.of(TranslationStatus.PENDING));
+            assertThat(newEvents).hasSize(1);
+            assertThat(newEvents.get(0).getSourceLocale()).isEqualTo("en");
         }
     }
 }
