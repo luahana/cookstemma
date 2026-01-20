@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import {
   Geist,
   Geist_Mono,
@@ -217,7 +218,9 @@ export default async function LocaleLayout({
           <NextIntlClientProvider messages={messages}>
             <AuthProvider>
               <NavigationProgressProvider>
-                <NavigationProgress />
+                <Suspense fallback={null}>
+                  <NavigationProgress />
+                </Suspense>
                 <LocaleSync />
                 <Header />
                 <main className="flex-1">{children}</main>
