@@ -20,6 +20,7 @@ interface LogSearchParams extends PaginationParams {
  */
 export async function getLogs(
   params: LogSearchParams = {},
+  locale?: string,
 ): Promise<UnifiedPageResponse<LogPostSummary>> {
   const queryString = buildQueryString({
     page: params.page ?? 0,
@@ -32,15 +33,20 @@ export async function getLogs(
 
   return apiFetch<UnifiedPageResponse<LogPostSummary>>(`/log_posts${queryString}`, {
     next: { revalidate: 60 },
+    locale,
   });
 }
 
 /**
  * Get log post detail by publicId
  */
-export async function getLogDetail(publicId: string): Promise<LogPostDetail> {
+export async function getLogDetail(
+  publicId: string,
+  locale?: string,
+): Promise<LogPostDetail> {
   return apiFetch<LogPostDetail>(`/log_posts/${publicId}`, {
     next: { revalidate: 300 },
+    locale,
   });
 }
 

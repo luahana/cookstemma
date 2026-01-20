@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { publicId, locale } = await params;
 
   try {
-    const log = await getLogDetail(publicId);
+    const log = await getLogDetail(publicId, locale);
     // title and content are pre-localized by the backend based on Accept-Language header
 
     return {
@@ -64,7 +64,7 @@ export default async function LogDetailPage({ params }: Props) {
 
   let log;
   try {
-    log = await getLogDetail(publicId);
+    log = await getLogDetail(publicId, locale);
   } catch {
     notFound();
   }

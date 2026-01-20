@@ -35,7 +35,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   };
 }
 
-export default async function LogsPage({ searchParams }: Props) {
+export default async function LogsPage({ params, searchParams }: Props) {
+  const { locale } = await params;
   const queryParams = await searchParams;
   const t = await getTranslations('logs');
   const page = parseInt(queryParams.page || '0', 10);
@@ -49,7 +50,7 @@ export default async function LogsPage({ searchParams }: Props) {
     sort,
     minRating,
     maxRating,
-  });
+  }, locale);
 
   // Build base URL with current filters for pagination
   const filterParams = new URLSearchParams();

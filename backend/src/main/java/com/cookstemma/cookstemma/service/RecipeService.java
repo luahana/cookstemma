@@ -225,7 +225,7 @@ public class RecipeService {
                     UUID logCreatorPublicId = logCreator != null ? logCreator.getPublicId() : null;
                     String logCreatorName = logCreator != null ? logCreator.getUsername() : null;
                     // Get food name and variant status from linked recipe
-                    String foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
+                    String foodName = recipe.getFoodMaster().getNameByLocale(normalizedLocale);
                     Boolean isVariant = recipe.getRootRecipe() != null;
 
                     // Get hashtag names
