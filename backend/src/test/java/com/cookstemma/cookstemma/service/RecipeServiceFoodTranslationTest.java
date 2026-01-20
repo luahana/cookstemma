@@ -45,7 +45,7 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
     @BeforeEach
     void setUp() {
         testUser = testUserFactory.createTestUser();
-        principal = UserPrincipal.create(testUser);
+        principal = new UserPrincipal(testUser);
     }
 
     @Nested
@@ -57,21 +57,22 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
         void createRecipe_WithNewFoodName_QueuesFoodMasterTranslation() {
             // Arrange
             CreateRecipeRequestDto request = new CreateRecipeRequestDto(
-                    null,  // no parentPublicId
-                    null,  // no food1MasterPublicId (new food)
-                    "New Test Food",  // newFoodName
-                    "Test Recipe Title",
-                    "Test description",
-                    "ko-KR",  // cookingStyle
-                    List.of(),  // ingredients
-                    List.of(),  // steps
-                    List.of(),  // imagePublicIds
-                    null,  // changeCategory
-                    null,  // changeDiff
-                    null,  // changeReason
-                    2,     // servings
-                    "MIN_30_TO_60",  // cookingTimeRange
-                    List.of()  // hashtags
+                    "Test Recipe Title",  // title
+                    "Test description",   // description
+                    "ko-KR",              // cookingStyle
+                    null,                 // food1MasterPublicId (new food)
+                    "New Test Food",      // newFoodName
+                    List.of(),            // ingredients
+                    List.of(),            // steps
+                    List.of(),            // imagePublicIds
+                    null,                 // changeCategory
+                    null,                 // parentPublicId
+                    null,                 // rootPublicId
+                    null,                 // changeDiff
+                    null,                 // changeReason
+                    List.of(),            // hashtags
+                    2,                    // servings
+                    "MIN_30_TO_60"        // cookingTimeRange
             );
 
             // Act
@@ -96,8 +97,8 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
         void createRecipe_WithExistingFood_DoesNotQueueDuplicateTranslation() {
             // Arrange - Create first recipe with new food
             CreateRecipeRequestDto request1 = new CreateRecipeRequestDto(
-                    null, null, "Unique Food Name", "Recipe 1", "Desc 1", "ko-KR",
-                    List.of(), List.of(), List.of(), null, null, null, 2, null, List.of()
+                    "Recipe 1", "Desc 1", "ko-KR", null, "Unique Food Name",
+                    List.of(), List.of(), List.of(), null, null, null, null, null, List.of(), 2, null
             );
             recipeService.createRecipe(request1, principal);
 
@@ -113,8 +114,8 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
 
             // Act - Create second recipe with same food name
             CreateRecipeRequestDto request2 = new CreateRecipeRequestDto(
-                    null, null, "Unique Food Name", "Recipe 2", "Desc 2", "ko-KR",
-                    List.of(), List.of(), List.of(), null, null, null, 2, null, List.of()
+                    "Recipe 2", "Desc 2", "ko-KR", null, "Unique Food Name",
+                    List.of(), List.of(), List.of(), null, null, null, null, null, List.of(), 2, null
             );
             recipeService.createRecipe(request2, principal);
 
@@ -132,8 +133,8 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
         void createRecipe_WithNewFood_SetsCorrectTargetLocales() {
             // Arrange
             CreateRecipeRequestDto request = new CreateRecipeRequestDto(
-                    null, null, "Another Test Food", "Test Recipe", "Desc", "ja-JP",
-                    List.of(), List.of(), List.of(), null, null, null, 2, null, List.of()
+                    "Test Recipe", "Desc", "ja-JP", null, "Another Test Food",
+                    List.of(), List.of(), List.of(), null, null, null, null, null, List.of(), 2, null
             );
 
             // Act
