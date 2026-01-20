@@ -19,10 +19,13 @@ public record SuggestedIngredientAdminDto(
         UUID userPublicId,
         String username,
         UUID autocompleteItemPublicId,
+        String autocompleteItemNameKo,
+        String autocompleteItemNameEn,
         Instant createdAt,
         Instant updatedAt
 ) {
     public static SuggestedIngredientAdminDto from(UserSuggestedIngredient entity) {
+        var item = entity.getAutocompleteItemRef();
         return SuggestedIngredientAdminDto.builder()
                 .publicId(entity.getPublicId())
                 .suggestedName(entity.getSuggestedName())
@@ -32,9 +35,9 @@ public record SuggestedIngredientAdminDto(
                 .rejectionReason(entity.getRejectionReason())
                 .userPublicId(entity.getUser() != null ? entity.getUser().getPublicId() : null)
                 .username(entity.getUser() != null ? entity.getUser().getUsername() : null)
-                .autocompleteItemPublicId(entity.getAutocompleteItemRef() != null
-                        ? entity.getAutocompleteItemRef().getPublicId()
-                        : null)
+                .autocompleteItemPublicId(item != null ? item.getPublicId() : null)
+                .autocompleteItemNameKo(item != null ? item.getNameByLocale("ko-KR") : null)
+                .autocompleteItemNameEn(item != null ? item.getNameByLocale("en-US") : null)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
