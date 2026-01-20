@@ -16,6 +16,7 @@ public record RecipeDetailResponseDto(
         String description,
         String cookingStyle,
         String foodName,              // [추가] UI 상단 표시용
+        Map<String, String> foodNameTranslations, // [추가] 음식명 다국어 번역
         UUID foodMasterPublicId,      // [추가] 음식 상세 이동용
         UUID creatorPublicId,         // Creator's publicId for profile navigation
         String userName,           // [추가] 레시피 작성자 이름
@@ -128,6 +129,7 @@ public record RecipeDetailResponseDto(
                 .description(recipe.getDescription())
                 .cookingStyle(recipe.getCookingStyle())
                 .foodName(currentFoodName) // [적용]
+                .foodNameTranslations(recipe.getFoodMaster().getName()) // [적용] 다국어 번역
                 .foodMasterPublicId(currentFoodMasterPublicId) // [적용]
                 .creatorPublicId(creatorPublicId) // Creator's publicId for profile navigation
                 .userName(userName) // [적용]

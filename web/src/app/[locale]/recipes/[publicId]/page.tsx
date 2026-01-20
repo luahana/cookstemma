@@ -79,6 +79,7 @@ export default async function RecipeDetailPage({ params }: Props) {
 
   const localizedTitle = getLocalizedContent(recipe.titleTranslations, locale, recipe.title);
   const localizedDescription = getLocalizedContent(recipe.descriptionTranslations, locale, recipe.description);
+  const localizedFoodName = getLocalizedContent(recipe.foodNameTranslations, locale, recipe.foodName);
 
   const t = await getTranslations('recipes');
   const tNav = await getTranslations('nav');
@@ -113,7 +114,7 @@ export default async function RecipeDetailPage({ params }: Props) {
             {tNav('recipes')}
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-[var(--text-primary)]">{recipe.foodName}</span>
+          <span className="text-[var(--text-primary)]">{localizedFoodName}</span>
         </nav>
 
         {/* Hero image carousel */}
@@ -126,7 +127,7 @@ export default async function RecipeDetailPage({ params }: Props) {
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <p className="text-[var(--primary)] font-medium mb-2">
-                {recipe.foodName}
+                {localizedFoodName}
               </p>
               <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-4">
                 {localizedTitle}

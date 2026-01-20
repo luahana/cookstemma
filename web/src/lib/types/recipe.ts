@@ -87,6 +87,7 @@ export interface RecipeDetail {
   description: string;
   cookingStyle: string;
   foodName: string;
+  foodNameTranslations: Record<string, string> | null;
   foodMasterPublicId: string;
   creatorPublicId: string | null;
   userName: string | null;
