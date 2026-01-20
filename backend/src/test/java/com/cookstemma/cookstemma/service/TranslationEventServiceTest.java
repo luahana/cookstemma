@@ -9,10 +9,10 @@ import com.cookstemma.cookstemma.domain.entity.user.User;
 import com.cookstemma.cookstemma.domain.enums.TranslatableEntity;
 import com.cookstemma.cookstemma.domain.enums.TranslationStatus;
 import com.cookstemma.cookstemma.repository.recipe.RecipeRepository;
-import com.cookstemma.cookstemma.repository.UserRepository;
 import com.cookstemma.cookstemma.repository.food.FoodMasterRepository;
 import com.cookstemma.cookstemma.repository.translation.TranslationEventRepository;
 import com.cookstemma.cookstemma.support.BaseIntegrationTest;
+import com.cookstemma.cookstemma.support.TestUserFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -181,24 +181,21 @@ class TranslationEventServiceTest extends BaseIntegrationTest {
         private RecipeRepository recipeRepository;
 
         @Autowired
-        private UserRepository userRepository;
+        private TestUserFactory testUserFactory;
 
         private Recipe testRecipe;
+        private User testUser;
 
         @BeforeEach
         void setUpRecipe() {
-            User testUser = User.builder()
-                    .username("testuser")
-                    .firebaseUid("test-firebase-uid-" + System.currentTimeMillis())
-                    .build();
-            userRepository.saveAndFlush(testUser);
+            testUser = testUserFactory.createTestUser();
 
             testRecipe = Recipe.builder()
                     .title("Test Recipe Title")
                     .description("Test description")
                     .cookingStyle("JP")
                     .foodMaster(testFoodMaster)
-                    .creator(testUser)
+                    .creatorId(testUser.getId())
                     .build();
 
             RecipeStep step = RecipeStep.builder()
