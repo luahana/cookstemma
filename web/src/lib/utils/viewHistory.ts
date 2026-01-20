@@ -4,8 +4,7 @@ const MAX_ITEMS = 8;
 export interface ViewHistoryItem {
   type: 'recipe' | 'log';
   publicId: string;
-  title: string;
-  titleTranslations?: Record<string, string> | null;
+  title: string; // Pre-localized title from backend
   thumbnail: string | null;
   foodName: string | null;
   rating?: number | null;

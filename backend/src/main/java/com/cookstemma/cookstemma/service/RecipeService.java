@@ -20,6 +20,7 @@ import com.cookstemma.cookstemma.dto.log_post.LogPostSummaryDto;
 import com.cookstemma.cookstemma.dto.log_post.RecentActivityDto;
 import com.cookstemma.cookstemma.dto.recipe.*;
 import com.cookstemma.cookstemma.util.CursorUtil;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import com.cookstemma.cookstemma.repository.autocomplete.AutocompleteItemRepository;
 import com.cookstemma.cookstemma.repository.food.FoodMasterRepository;
 import com.cookstemma.cookstemma.repository.log_post.LogPostRepository;
@@ -170,16 +171,25 @@ public class RecipeService {
      * 비로그인 사용자용 (isSavedByCurrentUser = null)
      */
     public RecipeDetailResponseDto getRecipeDetail(UUID publicId) {
-        return getRecipeDetail(publicId, null);
+        return getRecipeDetail(publicId, null, LocaleUtils.DEFAULT_LOCALE);
     }
 
     /**
      * 레시피 상세 조회 (기획 원칙 1 반영: 상단 루트 고정)
-     * 로그인 사용자용 (저장 여부 확인)
-     * Increments view count for analytics.
+     * 로그인 사용자용, default locale
      */
     @Transactional
     public RecipeDetailResponseDto getRecipeDetail(UUID publicId, Long userId) {
+        return getRecipeDetail(publicId, userId, LocaleUtils.DEFAULT_LOCALE);
+    }
+
+    /**
+     * 레시피 상세 조회 (기획 원칙 1 반영: 상단 루트 고정)
+     * 로그인 사용자용, with locale
+     * Increments view count for analytics.
+     */
+    @Transactional
+    public RecipeDetailResponseDto getRecipeDetail(UUID publicId, Long userId, String locale) {
         Recipe recipe = recipeRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
 
@@ -190,12 +200,15 @@ public class RecipeService {
         // [원칙 1] 어디서든 루트 레시피 정보 포함
         Recipe root = (recipe.getRootRecipe() != null) ? recipe.getRootRecipe() : recipe;
 
+        // Normalize locale for consistent usage
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+
         // 변형 및 로그 리스트 조회 - 루트에 연결된 모든 변형을 가져옴
         List<RecipeSummaryDto> variants = recipeRepository.findByRootRecipeIdAndDeletedAtIsNull(root.getId())
                 .stream()
                 .filter(v -> !v.getId().equals(recipe.getId())) // Exclude current recipe
                 .limit(6)  // Limit to 6 for "View All" detection (show 5, detect more if 6)
-                .map(this::convertToSummary)
+                .map(v -> convertToSummary(v, normalizedLocale))
                 .toList();
 
         List<LogPostSummaryDto> logs = recipeLogRepository.findAllByRecipeId(recipe.getId())
@@ -255,7 +268,7 @@ public class RecipeService {
             rootCreatorName = rootCreator != null ? rootCreator.getUsername() : "Unknown";
         }
 
-        return RecipeDetailResponseDto.from(recipe, variants, logs, this.urlPrefix, isSavedByCurrentUser, creatorPublicId, userName, rootCreatorPublicId, rootCreatorName);
+        return RecipeDetailResponseDto.from(recipe, variants, logs, this.urlPrefix, isSavedByCurrentUser, creatorPublicId, userName, rootCreatorPublicId, rootCreatorName, normalizedLocale);
     }
 
     @Transactional(readOnly = true)
@@ -478,33 +491,58 @@ public class RecipeService {
         return nameMap.values().stream().findFirst().orElse("Unknown Food");
     }
 
+    /**
+     * Convert recipe to summary DTO without locale (uses default locale).
+     * For backward compatibility with methods that don't have locale context.
+     */
     private RecipeSummaryDto convertToSummary(Recipe recipe) {
+        return convertToSummary(recipe, LocaleUtils.DEFAULT_LOCALE);
+    }
+
+    /**
+     * Convert recipe to summary DTO with locale-aware field resolution.
+     */
+    private RecipeSummaryDto convertToSummary(Recipe recipe, String locale) {
         // 1. 작성자 정보 조회
         User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
 
-        // 2. 음식 이름 추출 (JSONB 맵에서 현재 로케일에 맞는 이름 찾기)
-        String foodName = getFoodName(recipe);
+        // 2. 음식 이름 추출 (locale 기반)
+        String foodName = LocaleUtils.getLocalizedValue(
+                recipe.getFoodMaster().getName(),
+                locale,
+                recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
 
-        // 3. 썸네일 URL 추출 (첫 번째 커버 이미지 사용, displayOrder로 정렬됨)
-        // Use getCoverImages() which gets images from the join table (supports image sharing across variants)
+        // 3. 제목/설명 locale 기반 추출
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                recipe.getTitleTranslations(), locale, recipe.getTitle());
+        String localizedDescription = LocaleUtils.getLocalizedValue(
+                recipe.getDescriptionTranslations(), locale, recipe.getDescription());
+
+        // 4. 썸네일 URL 추출 (첫 번째 커버 이미지 사용)
         String thumbnail = recipe.getCoverImages().stream()
                 .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
                 .findFirst()
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        // 4. 변형 수 조회
+        // 5. 변형 수 조회
         int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
 
-        // 5. 로그 수 조회 (Activity count)
+        // 6. 로그 수 조회 (Activity count)
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
 
-        // 6. 루트 레시피 제목 추출 (for lineage display in variants)
-        String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
+        // 7. 루트 레시피 제목 추출 (locale 기반)
+        String rootTitle = null;
+        if (recipe.getRootRecipe() != null) {
+            rootTitle = LocaleUtils.getLocalizedValue(
+                    recipe.getRootRecipe().getTitleTranslations(),
+                    locale,
+                    recipe.getRootRecipe().getTitle());
+        }
 
-        // 7. 해시태그 추출 (first 3)
+        // 8. 해시태그 추출 (first 3)
         List<String> hashtags = recipe.getHashtags().stream()
                 .map(Hashtag::getName)
                 .limit(3)
@@ -514,8 +552,8 @@ public class RecipeService {
                 recipe.getPublicId(),
                 foodName,
                 recipe.getFoodMaster().getPublicId(),
-                recipe.getTitle(),
-                recipe.getDescription(),
+                localizedTitle,
+                localizedDescription,
                 recipe.getCookingStyle(),
                 creatorPublicId,
                 userName,
@@ -527,9 +565,7 @@ public class RecipeService {
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
                 recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-                hashtags,
-                recipe.getTitleTranslations(),
-                recipe.getDescriptionTranslations()
+                hashtags
         );
     }
 

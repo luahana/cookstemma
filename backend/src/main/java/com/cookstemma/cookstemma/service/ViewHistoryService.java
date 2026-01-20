@@ -12,6 +12,7 @@ import com.cookstemma.cookstemma.repository.log_post.LogPostRepository;
 import com.cookstemma.cookstemma.repository.recipe.RecipeRepository;
 import com.cookstemma.cookstemma.repository.recipe.RecipeLogRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -111,9 +112,10 @@ public class ViewHistoryService {
 
     /**
      * Get recently viewed recipes for a user.
+     * @param locale locale for translations
      */
     @Transactional(readOnly = true)
-    public List<RecipeSummaryDto> getRecentlyViewedRecipes(Long userId, int limit) {
+    public List<RecipeSummaryDto> getRecentlyViewedRecipes(Long userId, int limit, String locale) {
         List<Long> recipeIds = viewHistoryRepository.findRecentEntityIdsByUserAndType(
                 userId,
                 ViewableEntityType.RECIPE,
@@ -130,17 +132,19 @@ public class ViewHistoryService {
                 .filter(r -> r.getDeletedAt() == null && !Boolean.TRUE.equals(r.getIsPrivate()))
                 .collect(Collectors.toMap(Recipe::getId, Function.identity()));
 
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
         return recipeIds.stream()
                 .filter(recipeMap::containsKey)
-                .map(id -> convertRecipeToSummary(recipeMap.get(id)))
+                .map(id -> convertRecipeToSummary(recipeMap.get(id), normalizedLocale))
                 .toList();
     }
 
     /**
      * Get recently viewed log posts for a user.
+     * @param locale locale for translations
      */
     @Transactional(readOnly = true)
-    public List<LogPostSummaryDto> getRecentlyViewedLogs(Long userId, int limit) {
+    public List<LogPostSummaryDto> getRecentlyViewedLogs(Long userId, int limit, String locale) {
         List<Long> logIds = viewHistoryRepository.findRecentEntityIdsByUserAndType(
                 userId,
                 ViewableEntityType.LOG_POST,
@@ -157,18 +161,23 @@ public class ViewHistoryService {
                 .filter(lp -> lp.getDeletedAt() == null)
                 .collect(Collectors.toMap(LogPost::getId, Function.identity()));
 
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
         return logIds.stream()
                 .filter(logMap::containsKey)
-                .map(id -> convertLogToSummary(logMap.get(id)))
+                .map(id -> convertLogToSummary(logMap.get(id), normalizedLocale))
                 .toList();
     }
 
-    private RecipeSummaryDto convertRecipeToSummary(Recipe recipe) {
+    private RecipeSummaryDto convertRecipeToSummary(Recipe recipe, String locale) {
         User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
 
-        String foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
+        // Locale-aware food name
+        String foodName = LocaleUtils.getLocalizedValue(
+                recipe.getFoodMaster().getName(),
+                locale,
+                recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
 
         String thumbnail = recipe.getCoverImages().stream()
                 .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
@@ -179,19 +188,32 @@ public class ViewHistoryService {
         int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
 
-        String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
+        // Locale-aware root title
+        String rootTitle = null;
+        if (recipe.getRootRecipe() != null) {
+            rootTitle = LocaleUtils.getLocalizedValue(
+                    recipe.getRootRecipe().getTitleTranslations(),
+                    locale,
+                    recipe.getRootRecipe().getTitle());
+        }
 
         List<String> hashtags = recipe.getHashtags().stream()
                 .map(h -> h.getName())
                 .limit(3)
                 .toList();
 
+        // Locale-aware title and description
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                recipe.getTitleTranslations(), locale, recipe.getTitle());
+        String localizedDescription = LocaleUtils.getLocalizedValue(
+                recipe.getDescriptionTranslations(), locale, recipe.getDescription());
+
         return new RecipeSummaryDto(
                 recipe.getPublicId(),
                 foodName,
                 recipe.getFoodMaster().getPublicId(),
-                recipe.getTitle(),
-                recipe.getDescription(),
+                localizedTitle,
+                localizedDescription,
                 recipe.getCookingStyle(),
                 creatorPublicId,
                 userName,
@@ -203,13 +225,11 @@ public class ViewHistoryService {
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
                 recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-                hashtags,
-                recipe.getTitleTranslations(),
-                recipe.getDescriptionTranslations()
+                hashtags
         );
     }
 
-    private LogPostSummaryDto convertLogToSummary(LogPost logPost) {
+    private LogPostSummaryDto convertLogToSummary(LogPost logPost, String locale) {
         User creator = userRepository.findById(logPost.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
@@ -218,15 +238,19 @@ public class ViewHistoryService {
                 ? null
                 : urlPrefix + "/" + logPost.getImages().get(0).getStoredFilename();
 
-        // Get food name, recipe title, and variant status from linked recipe
+        // Get food name, recipe title, and variant status from linked recipe (locale-aware)
         var recipeLog = logPost.getRecipeLog();
         String foodName = null;
         String recipeTitle = null;
         Boolean isVariant = false;
         if (recipeLog != null && recipeLog.getRecipe() != null) {
             Recipe recipe = recipeLog.getRecipe();
-            foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
-            recipeTitle = recipe.getTitle();
+            foodName = LocaleUtils.getLocalizedValue(
+                    recipe.getFoodMaster().getName(),
+                    locale,
+                    recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
+            recipeTitle = LocaleUtils.getLocalizedValue(
+                    recipe.getTitleTranslations(), locale, recipe.getTitle());
             isVariant = recipe.getRootRecipe() != null;
         }
 
@@ -235,10 +259,16 @@ public class ViewHistoryService {
                 .limit(3)
                 .toList();
 
+        // Locale-aware title and content
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                logPost.getTitleTranslations(), locale, logPost.getTitle());
+        String localizedContent = LocaleUtils.getLocalizedValue(
+                logPost.getContentTranslations(), locale, logPost.getContent());
+
         return new LogPostSummaryDto(
                 logPost.getPublicId(),
-                logPost.getTitle(),
-                logPost.getContent(),
+                localizedTitle,
+                localizedContent,
                 recipeLog != null ? recipeLog.getRating() : null,
                 thumbnailUrl,
                 creatorPublicId,

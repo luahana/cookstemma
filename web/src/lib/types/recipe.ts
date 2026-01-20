@@ -2,14 +2,16 @@ import type { LogPostSummary } from './log';
 import type { HashtagDto, ImageResponseDto } from './common';
 
 /**
- * Recipe summary for list/card views
+ * Recipe summary for list/card views.
+ * All string fields (title, description, foodName, rootTitle) are pre-localized
+ * by the backend based on the Accept-Language header.
  */
 export interface RecipeSummary {
   publicId: string;
-  foodName: string;
+  foodName: string; // Localized food name
   foodMasterPublicId: string;
-  title: string;
-  description: string;
+  title: string; // Localized title
+  description: string; // Localized description
   cookingStyle: string;
   creatorPublicId: string | null;
   userName: string | null;
@@ -18,12 +20,10 @@ export interface RecipeSummary {
   logCount: number;
   parentPublicId: string | null;
   rootPublicId: string | null;
-  rootTitle: string | null;
+  rootTitle: string | null; // Localized root title
   servings: number;
   cookingTimeRange: string;
   hashtags: string[];
-  titleTranslations?: Record<string, string> | null;
-  descriptionTranslations?: Record<string, string> | null;
 }
 
 /**
@@ -57,37 +57,38 @@ export type MeasurementUnit =
   | 'PACKAGE';
 
 /**
- * Recipe ingredient
+ * Recipe ingredient.
+ * The name field is pre-localized by the backend.
  */
 export interface IngredientDto {
-  name: string;
+  name: string; // Localized ingredient name
   quantity: number | null; // Numeric quantity
   unit: MeasurementUnit | null; // Standardized unit
   type: IngredientType;
-  nameTranslations?: Record<string, string> | null; // Translations by locale (optional, populated by backend)
 }
 
 /**
- * Recipe step
+ * Recipe step.
+ * The description field is pre-localized by the backend.
  */
 export interface StepDto {
   stepNumber: number;
-  description: string;
+  description: string; // Localized step description
   imagePublicId: string | null;
   imageUrl: string | null;
-  descriptionTranslations?: Record<string, string> | null; // Translations by locale (optional, populated by backend)
 }
 
 /**
- * Full recipe detail response
+ * Full recipe detail response.
+ * All string fields (title, description, foodName) are pre-localized
+ * by the backend based on the Accept-Language header.
  */
 export interface RecipeDetail {
   publicId: string;
-  title: string;
-  description: string;
+  title: string; // Localized title
+  description: string; // Localized description
   cookingStyle: string;
-  foodName: string;
-  foodNameTranslations: Record<string, string> | null;
+  foodName: string; // Localized food name
   foodMasterPublicId: string;
   creatorPublicId: string | null;
   userName: string | null;
@@ -106,8 +107,6 @@ export interface RecipeDetail {
   changeReason: string | null;
   servings: number;
   cookingTimeRange: string;
-  titleTranslations: Record<string, string> | null;
-  descriptionTranslations: Record<string, string> | null;
 }
 
 /**

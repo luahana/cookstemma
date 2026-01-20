@@ -9,50 +9,81 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Recipe detail DTO with pre-localized title/description.
+ * All translatable string fields contain values for the requested locale,
+ * resolved server-side from the translations maps.
+ */
 @Builder
 public record RecipeDetailResponseDto(
         UUID publicId,
-        String title,
-        String description,
+        String title,                 // Localized title
+        String description,           // Localized description
         String cookingStyle,
-        String foodName,              // [추가] UI 상단 표시용
-        Map<String, String> foodNameTranslations, // [추가] 음식명 다국어 번역
-        UUID foodMasterPublicId,      // [추가] 음식 상세 이동용
+        String foodName,              // Localized food name
+        UUID foodMasterPublicId,      // Food detail navigation
         UUID creatorPublicId,         // Creator's publicId for profile navigation
-        String userName,           // [추가] 레시피 작성자 이름
+        String userName,              // Recipe creator name
         String changeCategory,
-        RecipeSummaryDto rootInfo,    // 11개 필드 규격 적용 필요
-        RecipeSummaryDto parentInfo,  // 11개 필드 규격 적용 필요
+        RecipeSummaryDto rootInfo,    // Root recipe info
+        RecipeSummaryDto parentInfo,  // Parent recipe info
         List<IngredientDto> ingredients,
         List<StepDto> steps,
         List<ImageResponseDto> images,
         List<RecipeSummaryDto> variants,
         List<LogPostSummaryDto> logs,
         List<HashtagDto> hashtags,    // Hashtags for this recipe
-        Boolean isSavedByCurrentUser, // P1: 북마크 저장 여부
+        Boolean isSavedByCurrentUser, // P1: bookmark status
         // Living Blueprint: Diff fields for variation tracking
         Map<String, Object> changeDiff,      // Ingredient/step changes from parent
         List<String> changeCategories,       // Auto-detected: INGREDIENT, TECHNIQUE, AMOUNT, SEASONING
         String changeReason,                 // User-provided reason for changes
         // Servings and cooking time
         Integer servings,                    // Number of servings (default: 2)
-        String cookingTimeRange,             // Cooking time range enum (e.g., "MIN_30_TO_60")
-        // Translations (async populated by OpenAI GPT)
-        Map<String, String> titleTranslations,        // {"en": "...", "ja": "...", ...}
-        Map<String, String> descriptionTranslations   // {"en": "...", "ja": "...", ...}
+        String cookingTimeRange              // Cooking time range enum (e.g., "MIN_30_TO_60")
 ) {
-    public static RecipeDetailResponseDto from(Recipe recipe, List<RecipeSummaryDto> variants, List<LogPostSummaryDto> logs, String urlPrefix, Boolean isSavedByCurrentUser, UUID creatorPublicId, String userName, UUID rootCreatorPublicId, String rootCreatorName) {
+    /**
+     * Build RecipeDetailResponseDto with locale-aware field resolution.
+     *
+     * @param recipe                The recipe entity
+     * @param variants              List of variant recipes
+     * @param logs                  List of cooking logs
+     * @param urlPrefix             URL prefix for images
+     * @param isSavedByCurrentUser  Whether the current user has saved this recipe
+     * @param creatorPublicId       Recipe creator's public ID
+     * @param userName              Recipe creator's username
+     * @param rootCreatorPublicId   Root recipe creator's public ID
+     * @param rootCreatorName       Root recipe creator's username
+     * @param locale                Requested locale for translations (e.g., "ko-KR", "en-US")
+     */
+    public static RecipeDetailResponseDto from(
+            Recipe recipe,
+            List<RecipeSummaryDto> variants,
+            List<LogPostSummaryDto> logs,
+            String urlPrefix,
+            Boolean isSavedByCurrentUser,
+            UUID creatorPublicId,
+            String userName,
+            UUID rootCreatorPublicId,
+            String rootCreatorName,
+            String locale
+    ) {
         Recipe root = recipe.getRootRecipe();
         Recipe parent = recipe.getParentRecipe();
 
+        // Get localized food name
         Map<String, String> nameMap = recipe.getFoodMaster().getName();
-        String currentFoodName = nameMap.getOrDefault(recipe.getCookingStyle(),
-                nameMap.getOrDefault("ko-KR",
-                        nameMap.values().stream().findFirst().orElse("Unknown Food")));
+        String currentFoodName = com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                nameMap, locale, nameMap.values().stream().findFirst().orElse("Unknown Food"));
         UUID currentFoodMasterPublicId = recipe.getFoodMaster().getPublicId();
 
-        // 2. 루트 레시피 정보 생성 (17개 필드 생성자 대응)
-        // Get root recipe thumbnail (use getCoverImages for join table access)
+        // Get localized title and description for main recipe
+        String localizedTitle = com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                recipe.getTitleTranslations(), locale, recipe.getTitle());
+        String localizedDescription = com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                recipe.getDescriptionTranslations(), locale, recipe.getDescription());
+
+        // Build root recipe info with localized fields
         String rootThumbnail = (root != null) ? root.getCoverImages().stream()
                 .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
                 .findFirst()
@@ -60,55 +91,43 @@ public record RecipeDetailResponseDto(
                 .orElse(null) : null;
 
         RecipeSummaryDto rootInfo = (root != null) ? new RecipeSummaryDto(
-                root.getPublicId(), // 1. publicId (UUID)
-                // 2. foodName (String): 현재 로케일 -> 한국어 -> 첫 번째 이름 순으로 시도
-                root.getFoodMaster().getName().getOrDefault(root.getCookingStyle(),
-                        root.getFoodMaster().getName().getOrDefault("ko-KR",
-                                root.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"))),
-                root.getFoodMaster().getPublicId(), // 3. foodMasterPublicId (UUID)
-                root.getTitle(),       // 4. title
-                root.getDescription(), // 5. description
-                root.getCookingStyle(), // 6. cookingStyle
-                rootCreatorPublicId, // 7. creatorPublicId
-                rootCreatorName, // 8. userName
-                rootThumbnail, // 9. thumbnail
-                0,    // 10. variantCount (상세 카드 내 생략)
-                0,    // 11. logCount (상세 카드 내 생략)
-                null, // 12. parentPublicId
-                null, // 13. rootPublicId
-                null, // 14. rootTitle (root itself has no root)
-                root.getServings() != null ? root.getServings() : 2, // 15. servings
-                root.getCookingTimeRange() != null ? root.getCookingTimeRange().name() : "MIN_30_TO_60", // 16. cookingTimeRange
-                List.of(), // 17. hashtags (상세 카드 내 생략)
-                root.getTitleTranslations(), // 18. titleTranslations
-                root.getDescriptionTranslations() // 19. descriptionTranslations
+                root.getPublicId(),
+                com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                        root.getFoodMaster().getName(), locale,
+                        root.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food")),
+                root.getFoodMaster().getPublicId(),
+                com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                        root.getTitleTranslations(), locale, root.getTitle()),
+                com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                        root.getDescriptionTranslations(), locale, root.getDescription()),
+                root.getCookingStyle(),
+                rootCreatorPublicId,
+                rootCreatorName,
+                rootThumbnail,
+                0, 0, null, null, null,
+                root.getServings() != null ? root.getServings() : 2,
+                root.getCookingTimeRange() != null ? root.getCookingTimeRange().name() : "MIN_30_TO_60",
+                List.of()
         ) : null;
 
-        // 3. 부모 레시피 정보 생성 (17개 필드 생성자 대응)
+        // Build parent recipe info with localized fields
         RecipeSummaryDto parentInfo = (parent != null) ? new RecipeSummaryDto(
                 parent.getPublicId(),
-                parent.getFoodMaster().getName().getOrDefault(parent.getCookingStyle(), "Unknown Food"),
+                com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                        parent.getFoodMaster().getName(), locale, "Unknown Food"),
                 parent.getFoodMaster().getPublicId(),
-                parent.getTitle(),
-                parent.getDescription(),
+                com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                        parent.getTitleTranslations(), locale, parent.getTitle()),
+                com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                        parent.getDescriptionTranslations(), locale, parent.getDescription()),
                 parent.getCookingStyle(),
-                null, // creatorPublicId
-                null, // userName
-                null, // thumbnail
-                0,    // variantCount
-                0,    // logCount
-                null, // parentPublicId
-                null, // rootPublicId
-                null, // rootTitle
-                parent.getServings() != null ? parent.getServings() : 2, // servings
-                parent.getCookingTimeRange() != null ? parent.getCookingTimeRange().name() : "MIN_30_TO_60", // cookingTimeRange
-                List.of(), // hashtags (상세 카드 내 생략)
-                parent.getTitleTranslations(), // titleTranslations
-                parent.getDescriptionTranslations() // descriptionTranslations
+                null, null, null, 0, 0, null, null, null,
+                parent.getServings() != null ? parent.getServings() : 2,
+                parent.getCookingTimeRange() != null ? parent.getCookingTimeRange().name() : "MIN_30_TO_60",
+                List.of()
         ) : null;
 
-        // 4. 이미지 리스트 변환 (COVER 타입만 반환, STEP 이미지는 steps[].imageUrl로 반환됨)
-        // Use getCoverImages() to get images from join table (supports image sharing across variants)
+        // Build image responses (COVER type only)
         List<ImageResponseDto> imageResponses = recipe.getCoverImages().stream()
                 .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
                 .distinct()
@@ -118,32 +137,41 @@ public record RecipeDetailResponseDto(
                 ))
                 .toList();
 
-        // 5. 해시태그 리스트 변환
+        // Build hashtag DTOs
         List<HashtagDto> hashtagDtos = recipe.getHashtags().stream()
                 .map(HashtagDto::from)
                 .toList();
 
         return RecipeDetailResponseDto.builder()
                 .publicId(recipe.getPublicId())
-                .title(recipe.getTitle())
-                .description(recipe.getDescription())
+                .title(localizedTitle)
+                .description(localizedDescription)
                 .cookingStyle(recipe.getCookingStyle())
-                .foodName(currentFoodName) // [적용]
-                .foodNameTranslations(recipe.getFoodMaster().getName()) // [적용] 다국어 번역
-                .foodMasterPublicId(currentFoodMasterPublicId) // [적용]
-                .creatorPublicId(creatorPublicId) // Creator's publicId for profile navigation
-                .userName(userName) // [적용]
+                .foodName(currentFoodName)
+                .foodMasterPublicId(currentFoodMasterPublicId)
+                .creatorPublicId(creatorPublicId)
+                .userName(userName)
                 .changeCategory(recipe.getChangeCategory())
                 .rootInfo(rootInfo)
                 .parentInfo(parentInfo)
                 .ingredients(recipe.getIngredients().stream()
-                        .map(i -> new IngredientDto(i.getName(), i.getQuantity(), i.getUnit(), i.getType(), i.getNameTranslations()))
+                        .map(i -> new IngredientDto(
+                                com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                                        i.getNameTranslations(), locale, i.getName()),
+                                i.getQuantity(),
+                                i.getUnit(),
+                                i.getType()))
                         .toList())
                 .steps(recipe.getSteps().stream()
                         .map(s -> {
                             UUID imgId = (s.getImage() != null) ? s.getImage().getPublicId() : null;
                             String imgUrl = (s.getImage() != null) ? urlPrefix + "/" + s.getImage().getStoredFilename() : null;
-                            return new StepDto(s.getStepNumber(), s.getDescription(), imgId, imgUrl, s.getDescriptionTranslations());
+                            return new StepDto(
+                                    s.getStepNumber(),
+                                    com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                                            s.getDescriptionTranslations(), locale, s.getDescription()),
+                                    imgId,
+                                    imgUrl);
                         })
                         .toList())
                 .images(imageResponses)
@@ -156,8 +184,6 @@ public record RecipeDetailResponseDto(
                 .changeReason(recipe.getChangeReason())
                 .servings(recipe.getServings() != null ? recipe.getServings() : 2)
                 .cookingTimeRange(recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60")
-                .titleTranslations(recipe.getTitleTranslations())
-                .descriptionTranslations(recipe.getDescriptionTranslations())
                 .build();
     }
 }

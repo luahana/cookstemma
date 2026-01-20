@@ -2,10 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
 import type { RecipeSummary } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
-import { getLocalizedContent } from '@/lib/utils/localization';
 import { useDragScroll } from '@/hooks/useDragScroll';
 
 interface VariantsGalleryProps {
@@ -14,7 +12,6 @@ interface VariantsGalleryProps {
 }
 
 export function VariantsGallery({ variants, rootRecipePublicId }: VariantsGalleryProps) {
-  const locale = useLocale();
   const scrollRef = useDragScroll<HTMLDivElement>();
   const displayVariants = variants.slice(0, 8);
   const hasMore = variants.length > 8;
@@ -94,7 +91,7 @@ export function VariantsGallery({ variants, rootRecipePublicId }: VariantsGaller
                 {/* Title & Author */}
                 <div className="mt-2 w-36">
                   <p className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--primary)] transition-colors">
-                    {getLocalizedContent(variant.titleTranslations, locale, variant.title)}
+                    {variant.title}
                   </p>
                   {variant.userName && (
                     <p className="text-xs text-[var(--text-secondary)] truncate">

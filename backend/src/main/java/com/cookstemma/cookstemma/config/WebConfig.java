@@ -17,4 +17,6 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(internalApiKeyInterceptor)
                 .addPathPatterns("/internal/api/**");
     }
+
+    // Note: LocaleResolver bean is defined in LocaleConfig.java
 }

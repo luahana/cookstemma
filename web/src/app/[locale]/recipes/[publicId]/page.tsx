@@ -20,7 +20,6 @@ import { CookingStyleBadge } from '@/components/common/CookingStyleBadge';
 import { COOKING_TIME_TRANSLATION_KEYS } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
 import { getAvatarInitial } from '@/lib/utils/string';
-import { getLocalizedContent } from '@/lib/utils/localization';
 import { siteConfig } from '@/config/site';
 import { ViewTracker } from '@/components/common/ViewTracker';
 
@@ -33,30 +32,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
     const recipe = await getRecipeDetail(publicId);
-    const title = getLocalizedContent(recipe.titleTranslations, locale, recipe.title);
-    const description = getLocalizedContent(recipe.descriptionTranslations, locale, recipe.description);
+    // title and description are pre-localized by the backend based on Accept-Language header
 
     return {
-      title,
-      description: description.slice(0, 160),
+      title: recipe.title,
+      description: recipe.description.slice(0, 160),
       alternates: {
         canonical: `${siteConfig.url}/${locale}/recipes/${publicId}`,
       },
       openGraph: {
-        title,
-        description,
+        title: recipe.title,
+        description: recipe.description,
         type: 'article',
         images: recipe.images.map((img) => ({
           url: img.imageUrl,
           width: 800,
           height: 600,
-          alt: title,
+          alt: recipe.title,
         })),
       },
       twitter: {
         card: 'summary_large_image',
-        title,
-        description,
+        title: recipe.title,
+        description: recipe.description,
         images: recipe.images[0]?.imageUrl,
       },
     };
@@ -77,10 +75,8 @@ export default async function RecipeDetailPage({ params }: Props) {
     notFound();
   }
 
-  const localizedTitle = getLocalizedContent(recipe.titleTranslations, locale, recipe.title);
-  const localizedDescription = getLocalizedContent(recipe.descriptionTranslations, locale, recipe.description);
-  const localizedFoodName = getLocalizedContent(recipe.foodNameTranslations, locale, recipe.foodName);
-
+  // All string fields (title, description, foodName) are pre-localized by the backend
+  // based on the Accept-Language header
   const t = await getTranslations('recipes');
   const tNav = await getTranslations('nav');
   const tFilters = await getTranslations('filters');
@@ -93,8 +89,7 @@ export default async function RecipeDetailPage({ params }: Props) {
       <ViewTracker
         publicId={publicId}
         type="recipe"
-        title={localizedTitle}
-        titleTranslations={recipe.titleTranslations}
+        title={recipe.title}
         thumbnail={recipe.images[0]?.imageUrl || null}
         foodName={recipe.foodName}
       />
@@ -104,7 +99,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         items={[
           { name: tNav('home') || 'Home', href: '/' },
           { name: tNav('recipes'), href: '/recipes' },
-          { name: localizedTitle, href: `/recipes/${publicId}` },
+          { name: recipe.title, href: `/recipes/${publicId}` },
         ]}
       />
 
@@ -115,12 +110,12 @@ export default async function RecipeDetailPage({ params }: Props) {
             {tNav('recipes')}
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-[var(--text-primary)]">{localizedFoodName}</span>
+          <span className="text-[var(--text-primary)]">{recipe.foodName}</span>
         </nav>
 
         {/* Hero image carousel */}
         {recipe.images.length > 0 && (
-          <ImageCarousel images={recipe.images} alt={localizedTitle} />
+          <ImageCarousel images={recipe.images} alt={recipe.title} />
         )}
 
         {/* Header */}
@@ -128,10 +123,10 @@ export default async function RecipeDetailPage({ params }: Props) {
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <p className="text-[var(--primary)] font-medium mb-2">
-                {localizedFoodName}
+                {recipe.foodName}
               </p>
               <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-4">
-                {localizedTitle}
+                {recipe.title}
               </h1>
             </div>
             <div className="flex items-center gap-2">
@@ -143,18 +138,18 @@ export default async function RecipeDetailPage({ params }: Props) {
               <RecipeActions
                 recipePublicId={publicId}
                 creatorPublicId={recipe.creatorPublicId}
-                recipeTitle={localizedTitle}
+                recipeTitle={recipe.title}
               />
               <ContentActions
                 contentType="recipe"
-                contentTitle={localizedTitle}
+                contentTitle={recipe.title}
                 authorPublicId={recipe.creatorPublicId}
                 authorName={recipe.userName}
               />
             </div>
           </div>
           <p className="text-[var(--text-secondary)] text-lg">
-            {localizedDescription}
+            {recipe.description}
           </p>
 
           {/* Meta */}
@@ -196,8 +191,8 @@ export default async function RecipeDetailPage({ params }: Props) {
           <div className="mt-6 pt-4 border-t border-[var(--border)]">
             <ShareButtons
               url={`/recipes/${publicId}`}
-              title={localizedTitle}
-              description={localizedDescription}
+              title={recipe.title}
+              description={recipe.description}
             />
           </div>
         </header>
@@ -255,7 +250,7 @@ export default async function RecipeDetailPage({ params }: Props) {
                   {step.stepNumber}
                 </span>
                 <div className="flex-1">
-                  <p className="text-[var(--text-primary)]">{getLocalizedContent(step.descriptionTranslations, locale, step.description)}</p>
+                  <p className="text-[var(--text-primary)]">{step.description}</p>
                   {getImageUrl(step.imageUrl) && (
                     <div className="relative aspect-video rounded-lg overflow-hidden mt-3 max-w-md">
                       <Image

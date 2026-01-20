@@ -8,8 +8,10 @@ import com.cookstemma.cookstemma.dto.log_post.*;
 import com.cookstemma.cookstemma.security.UserPrincipal;
 import com.cookstemma.cookstemma.service.RecipeService;
 import com.cookstemma.cookstemma.service.SavedRecipeService;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -63,13 +65,15 @@ public class RecipeController {
     /**
      * 레시피 상세: 상단에 루트 레시피 고정 + 변형 리스트 + 로그 포함
      * 로그인 시 isSavedByCurrentUser 정보 포함
+     * Locale resolved from Accept-Language header.
      */
     @GetMapping("/{publicId}")
     public ResponseEntity<RecipeDetailResponseDto> getRecipeDetail(
             @PathVariable("publicId") UUID publicId,
             @AuthenticationPrincipal UserPrincipal principal) {
         Long userId = (principal != null) ? principal.getId() : null;
-        return ResponseEntity.ok(recipeService.getRecipeDetail(publicId, userId));
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        return ResponseEntity.ok(recipeService.getRecipeDetail(publicId, userId, locale));
     }
 
     // --- [TAB 3: CREATE (+)] ---
@@ -111,7 +115,8 @@ public class RecipeController {
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
-        return ResponseEntity.ok(savedRecipeService.getSavedRecipesUnified(principal.getId(), cursor, page, size));
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        return ResponseEntity.ok(savedRecipeService.getSavedRecipesUnified(principal.getId(), cursor, page, size, locale));
     }
 
     // --- [SAVE/BOOKMARK] ---

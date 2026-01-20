@@ -14,7 +14,6 @@ import { ShareButtons } from '@/components/common/ShareButtons';
 import { BookmarkButton } from '@/components/common/BookmarkButton';
 import { getImageUrl } from '@/lib/utils/image';
 import { getAvatarInitial } from '@/lib/utils/string';
-import { getLocalizedContent } from '@/lib/utils/localization';
 import { siteConfig } from '@/config/site';
 import { ViewTracker } from '@/components/common/ViewTracker';
 
@@ -27,30 +26,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
     const log = await getLogDetail(publicId);
-    const title = getLocalizedContent(log.titleTranslations, locale, log.title);
-    const content = getLocalizedContent(log.contentTranslations, locale, log.content);
+    // title and content are pre-localized by the backend based on Accept-Language header
 
     return {
-      title,
-      description: content.slice(0, 160),
+      title: log.title,
+      description: log.content.slice(0, 160),
       alternates: {
         canonical: `${siteConfig.url}/${locale}/logs/${publicId}`,
       },
       openGraph: {
-        title,
-        description: content.slice(0, 160),
+        title: log.title,
+        description: log.content.slice(0, 160),
         type: 'article',
         images: log.images.map((img) => ({
           url: img.imageUrl,
           width: 800,
           height: 600,
-          alt: title,
+          alt: log.title,
         })),
       },
       twitter: {
         card: 'summary_large_image',
-        title,
-        description: content.slice(0, 160),
+        title: log.title,
+        description: log.content.slice(0, 160),
         images: log.images[0]?.imageUrl,
       },
     };
@@ -78,9 +76,7 @@ export default async function LogDetailPage({ params }: Props) {
     day: 'numeric',
   });
 
-  const localizedTitle = getLocalizedContent(log.titleTranslations, locale, log.title);
-  const localizedContent = getLocalizedContent(log.contentTranslations, locale, log.content);
-
+  // title and content are pre-localized by the backend based on Accept-Language header
   const t = await getTranslations('logs');
   const tNav = await getTranslations('nav');
 
@@ -89,8 +85,7 @@ export default async function LogDetailPage({ params }: Props) {
       <ViewTracker
         publicId={publicId}
         type="log"
-        title={localizedTitle}
-        titleTranslations={log.titleTranslations}
+        title={log.title}
         thumbnail={log.images[0]?.imageUrl || null}
         foodName={log.linkedRecipe?.foodName || null}
         rating={log.rating}
@@ -101,7 +96,7 @@ export default async function LogDetailPage({ params }: Props) {
         items={[
           { name: tNav('home') || 'Home', href: '/' },
           { name: tNav('cookingLogs'), href: '/logs' },
-          { name: localizedTitle, href: `/logs/${publicId}` },
+          { name: log.title, href: `/logs/${publicId}` },
         ]}
       />
 
@@ -112,7 +107,7 @@ export default async function LogDetailPage({ params }: Props) {
             {tNav('cookingLogs')}
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-[var(--text-primary)]">{localizedTitle}</span>
+          <span className="text-[var(--text-primary)]">{log.title}</span>
         </nav>
 
         {/* Hero section */}
@@ -130,7 +125,7 @@ export default async function LogDetailPage({ params }: Props) {
               <LogDetailClient log={log} />
               <ContentActions
                 contentType="log"
-                contentTitle={localizedTitle}
+                contentTitle={log.title}
                 authorPublicId={log.creatorPublicId}
                 authorName={log.userName}
               />
@@ -145,7 +140,7 @@ export default async function LogDetailPage({ params }: Props) {
           )}
 
           <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-4">
-            {localizedTitle}
+            {log.title}
           </h1>
 
           {/* Creator */}
@@ -180,8 +175,8 @@ export default async function LogDetailPage({ params }: Props) {
           <div className="mt-6 pt-4 border-t border-[var(--border)]">
             <ShareButtons
               url={`/logs/${publicId}`}
-              title={localizedTitle}
-              description={localizedContent.slice(0, 160)}
+              title={log.title}
+              description={log.content.slice(0, 160)}
             />
           </div>
         </header>
@@ -193,7 +188,7 @@ export default async function LogDetailPage({ params }: Props) {
               <div className="relative aspect-video rounded-2xl overflow-hidden">
                 <Image
                   src={getImageUrl(log.images[0].imageUrl)!}
-                  alt={localizedTitle}
+                  alt={log.title}
                   fill
                   className="object-cover"
                   priority
@@ -211,7 +206,7 @@ export default async function LogDetailPage({ params }: Props) {
                   >
                     <Image
                       src={getImageUrl(img.imageUrl)!}
-                      alt={`${localizedTitle} - Image ${idx + 1}`}
+                      alt={`${log.title} - Image ${idx + 1}`}
                       fill
                       className="object-cover"
                       priority={idx === 0}
@@ -236,7 +231,7 @@ export default async function LogDetailPage({ params }: Props) {
         <section className="mb-8">
           <div className="prose prose-lg max-w-none">
             <p className="text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed">
-              {localizedContent}
+              {log.content}
             </p>
           </div>
         </section>

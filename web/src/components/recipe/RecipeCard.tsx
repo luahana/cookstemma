@@ -6,7 +6,6 @@ import { useTranslations } from 'next-intl';
 import type { RecipeSummary } from '@/lib/types';
 import { COOKING_TIME_TRANSLATION_KEYS } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
-import { getLocalizedContent } from '@/lib/utils/localization';
 import { CookingStyleBadge } from '@/components/common/CookingStyleBadge';
 import { BookmarkButton } from '@/components/common/BookmarkButton';
 
@@ -14,16 +13,14 @@ interface RecipeCardProps {
   recipe: RecipeSummary;
   isSaved?: boolean;
   showTypeLabel?: boolean;
-  locale?: string;
 }
 
-export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false, locale = 'ko' }: RecipeCardProps) {
+export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false }: RecipeCardProps) {
   const t = useTranslations('recipes');
   const tCommon = useTranslations('common');
   const tCard = useTranslations('card');
   const tFilters = useTranslations('filters');
-  const localizedTitle = getLocalizedContent(recipe.titleTranslations, locale, recipe.title);
-  const localizedDescription = getLocalizedContent(recipe.descriptionTranslations, locale, recipe.description);
+  // title and description are pre-localized by the backend based on Accept-Language header
   const cookingTimeKey = COOKING_TIME_TRANSLATION_KEYS[recipe.cookingTimeRange];
   const cookingTime = cookingTimeKey ? tFilters(cookingTimeKey) : recipe.cookingTimeRange;
 
@@ -37,7 +34,7 @@ export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false, loc
         {getImageUrl(recipe.thumbnail) ? (
           <Image
             src={getImageUrl(recipe.thumbnail)!}
-            alt={localizedTitle}
+            alt={recipe.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -85,12 +82,12 @@ export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false, loc
 
         {/* Title */}
         <h3 className="font-semibold text-[var(--text-primary)] mt-1 line-clamp-1 group-hover:text-[var(--primary)] transition-colors">
-          {localizedTitle}
+          {recipe.title}
         </h3>
 
         {/* Description */}
         <p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2">
-          {localizedDescription}
+          {recipe.description}
         </p>
 
         {/* Meta info */}

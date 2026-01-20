@@ -21,6 +21,7 @@ import com.cookstemma.cookstemma.repository.recipe.RecipeRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
 import com.cookstemma.cookstemma.security.UserPrincipal;
 import com.cookstemma.cookstemma.util.CursorUtil;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -147,17 +148,25 @@ public class LogPostService {
 
     @Transactional(readOnly = true)
     public LogPostDetailResponseDto getLogDetail(UUID publicId) {
-        return getLogDetail(publicId, null);
+        return getLogDetail(publicId, null, LocaleUtils.DEFAULT_LOCALE);
     }
 
     @Transactional
     public LogPostDetailResponseDto getLogDetail(UUID publicId, Long userId) {
+        return getLogDetail(publicId, userId, LocaleUtils.DEFAULT_LOCALE);
+    }
+
+    @Transactional
+    public LogPostDetailResponseDto getLogDetail(UUID publicId, Long userId, String locale) {
         LogPost logPost = logPostRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("Log not found"));
 
         // Increment view count for analytics
         logPost.incrementViewCount();
         logPostRepository.save(logPost);
+
+        // Normalize locale
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
 
         RecipeLog recipeLog = logPost.getRecipeLog();
         Recipe linkedRecipe = recipeLog.getRecipe();
@@ -170,8 +179,8 @@ public class LogPostService {
                 ))
                 .toList();
 
-        // 2. 연결된 레시피 요약 정보 생성 (11개 필드 대응)
-        RecipeSummaryDto linkedRecipeSummary = convertToRecipeSummary(linkedRecipe);
+        // 2. 연결된 레시피 요약 정보 생성 (locale-aware)
+        RecipeSummaryDto linkedRecipeSummary = convertToRecipeSummary(linkedRecipe, normalizedLocale);
 
         // 3. 해시태그 리스트 변환
         List<HashtagDto> hashtagDtos = logPost.getHashtags().stream()
@@ -189,11 +198,17 @@ public class LogPostService {
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
 
-        // 6. 최종 DTO 생성
+        // 6. Get localized title and content
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                logPost.getTitleTranslations(), normalizedLocale, logPost.getTitle());
+        String localizedContent = LocaleUtils.getLocalizedValue(
+                logPost.getContentTranslations(), normalizedLocale, logPost.getContent());
+
+        // 7. 최종 DTO 생성
         return new LogPostDetailResponseDto(
                 logPost.getPublicId(),
-                logPost.getTitle(),
-                logPost.getContent(),
+                localizedTitle,
+                localizedContent,
                 recipeLog.getRating(),
                 imageResponses,
                 linkedRecipeSummary,
@@ -201,9 +216,7 @@ public class LogPostService {
                 hashtagDtos,
                 isSavedByCurrentUser,
                 creatorPublicId,
-                userName,
-                logPost.getTitleTranslations(),
-                logPost.getContentTranslations()
+                userName
         );
     }
 
@@ -249,31 +262,46 @@ public class LogPostService {
         );
     }
 
-    private RecipeSummaryDto convertToRecipeSummary(Recipe recipe) {
+    private RecipeSummaryDto convertToRecipeSummary(Recipe recipe, String locale) {
         // 1. 작성자 정보 조회
         User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
 
-        // 2. [추가] 음식 이름 추출 (FoodMaster의 fallback 로직 사용)
-        String foodName = recipe.getFoodMaster().getNameByLocale(recipe.getCookingStyle());
+        // 2. 음식 이름 추출 (locale 기반)
+        String foodName = LocaleUtils.getLocalizedValue(
+                recipe.getFoodMaster().getName(),
+                locale,
+                recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
 
-        // 3. 썸네일 URL 추출 (첫 번째 커버 이미지 사용, displayOrder로 정렬됨)
+        // 3. 제목/설명 locale 기반 추출
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                recipe.getTitleTranslations(), locale, recipe.getTitle());
+        String localizedDescription = LocaleUtils.getLocalizedValue(
+                recipe.getDescriptionTranslations(), locale, recipe.getDescription());
+
+        // 4. 썸네일 URL 추출 (첫 번째 커버 이미지 사용)
         String thumbnail = recipe.getCoverImages().stream()
                 .findFirst()
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        // 4. 변형 수 조회
+        // 5. 변형 수 조회
         int variantCount = (int) recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(recipe.getId());
 
-        // 5. 로그 수 조회 (Activity count)
+        // 6. 로그 수 조회 (Activity count)
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
 
-        // 6. 루트 레시피 제목 추출 (for lineage display in variants)
-        String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
+        // 7. 루트 레시피 제목 추출 (locale 기반)
+        String rootTitle = null;
+        if (recipe.getRootRecipe() != null) {
+            rootTitle = LocaleUtils.getLocalizedValue(
+                    recipe.getRootRecipe().getTitleTranslations(),
+                    locale,
+                    recipe.getRootRecipe().getTitle());
+        }
 
-        // 7. 해시태그 추출 (first 3)
+        // 8. 해시태그 추출 (first 3)
         List<String> hashtags = recipe.getHashtags().stream()
                 .map(Hashtag::getName)
                 .limit(3)
@@ -283,8 +311,8 @@ public class LogPostService {
                 recipe.getPublicId(),
                 foodName,
                 recipe.getFoodMaster().getPublicId(),
-                recipe.getTitle(),
-                recipe.getDescription(),
+                localizedTitle,
+                localizedDescription,
                 recipe.getCookingStyle(),
                 creatorPublicId,
                 userName,
@@ -296,9 +324,7 @@ public class LogPostService {
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
                 recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-                hashtags,
-                recipe.getTitleTranslations(),
-                recipe.getDescriptionTranslations()
+                hashtags
         );
     }
 

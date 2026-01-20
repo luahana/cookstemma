@@ -25,12 +25,14 @@ export interface LogPostSummary {
 }
 
 /**
- * Full log post detail response
+ * Full log post detail response.
+ * All string fields (title, content) are pre-localized
+ * by the backend based on the Accept-Language header.
  */
 export interface LogPostDetail {
   publicId: string;
-  title: string;
-  content: string;
+  title: string; // Localized title
+  content: string; // Localized content
   rating: number | null; // 1-5 star rating
   images: ImageResponseDto[];
   linkedRecipe: RecipeSummary | null;
@@ -39,8 +41,6 @@ export interface LogPostDetail {
   isSavedByCurrentUser: boolean | null;
   creatorPublicId: string | null;
   userName: string | null;
-  titleTranslations: Record<string, string> | null;
-  contentTranslations: Record<string, string> | null;
 }
 
 /**

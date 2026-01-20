@@ -6,8 +6,10 @@ import com.cookstemma.cookstemma.dto.log_post.*;
 import com.cookstemma.cookstemma.security.UserPrincipal;
 import com.cookstemma.cookstemma.service.LogPostService;
 import com.cookstemma.cookstemma.service.SavedLogService;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
@@ -87,13 +89,15 @@ public class LogPostController {
     // --- [LOG DETAIL] ---
     /**
      * 로그 상세: 사진, 메모, 연결된 레시피 카드 포함
+     * Locale resolved from Accept-Language header.
      */
     @GetMapping("/{publicId}")
     public ResponseEntity<LogPostDetailResponseDto> getLogDetail(
             @PathVariable("publicId") UUID publicId,
             @AuthenticationPrincipal UserPrincipal principal) {
         Long userId = principal != null ? principal.getId() : null;
-        return ResponseEntity.ok(logPostService.getLogDetail(publicId, userId));
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        return ResponseEntity.ok(logPostService.getLogDetail(publicId, userId, locale));
     }
 
     /**

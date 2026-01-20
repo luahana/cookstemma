@@ -1,9 +1,20 @@
+/**
+ * Localization utility module.
+ *
+ * Note: As of the DTO locale filtering update, the backend now returns
+ * pre-localized content based on the Accept-Language header. The
+ * `getLocalizedContent` function is no longer needed for most use cases
+ * since DTOs already contain localized strings.
+ */
+
 export type TranslationMap = Record<string, string> | null | undefined;
 
 /**
  * Get localized content from a translations map.
- * Returns the translation for the given locale if available,
- * otherwise falls back to the default content.
+ *
+ * @deprecated Backend DTOs now return pre-localized content based on
+ * the Accept-Language header. Direct usage of `title`, `description`,
+ * etc. fields is preferred.
  *
  * @param translations - Map of locale codes to translated strings
  * @param locale - The target locale (e.g., 'ja', 'ko', 'en')

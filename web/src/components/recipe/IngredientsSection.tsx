@@ -10,7 +10,6 @@ import {
   getMeasurementPreference,
   MEASUREMENT_STORAGE_KEY,
 } from '@/lib/utils/measurement';
-import { getLocalizedContent } from '@/lib/utils/localization';
 
 // Languages where ingredient name comes BEFORE quantity (e.g., "쌀 400g" not "400g 쌀")
 // Based on natural language patterns in recipes
@@ -183,7 +182,8 @@ export function IngredientsSection({ ingredients, locale }: IngredientsSectionPr
               <ul className="space-y-2">
                 {ingredientsByType[category.type].map((ing, idx) => {
                   const amount = formatIngredientAmount(ing);
-                  const name = getLocalizedContent(ing.nameTranslations, locale, ing.name);
+                  // Ingredient name is pre-localized by the backend based on Accept-Language header
+                  const name = ing.name;
                   const nameFirst = isNameFirstLocale(locale);
 
                   return (

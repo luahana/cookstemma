@@ -15,6 +15,7 @@ import com.cookstemma.cookstemma.repository.recipe.RecipeLogRepository;
 import com.cookstemma.cookstemma.repository.recipe.RecipeRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
 import com.cookstemma.cookstemma.util.CursorUtil;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -128,7 +129,7 @@ public class HashtagService {
      * Get recipes tagged with a specific hashtag (unified pagination)
      */
     public UnifiedPageResponse<RecipeSummaryDto> getRecipesByHashtag(
-            String hashtagName, String cursor, Integer page, int size) {
+            String hashtagName, String cursor, Integer page, int size, String locale) {
 
         String normalizedName = normalizeHashtagName(hashtagName);
         if (normalizedName.isBlank()) {
@@ -151,8 +152,9 @@ public class HashtagService {
                     normalizedName, cursorData.createdAt(), cursorData.id(), pageable);
         }
 
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
         List<RecipeSummaryDto> content = recipes.getContent().stream()
-                .map(this::convertToRecipeSummary)
+                .map(recipe -> convertToRecipeSummary(recipe, normalizedLocale))
                 .toList();
 
         String nextCursor = null;
@@ -168,7 +170,7 @@ public class HashtagService {
      * Get log posts tagged with a specific hashtag (unified pagination)
      */
     public UnifiedPageResponse<LogPostSummaryDto> getLogPostsByHashtag(
-            String hashtagName, String cursor, Integer page, int size) {
+            String hashtagName, String cursor, Integer page, int size, String locale) {
 
         String normalizedName = normalizeHashtagName(hashtagName);
         if (normalizedName.isBlank()) {
@@ -191,8 +193,9 @@ public class HashtagService {
                     normalizedName, cursorData.createdAt(), cursorData.id(), pageable);
         }
 
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
         List<LogPostSummaryDto> content = logPosts.getContent().stream()
-                .map(this::convertToLogPostSummary)
+                .map(logPost -> convertToLogPostSummary(logPost, normalizedLocale))
                 .toList();
 
         String nextCursor = null;
@@ -231,14 +234,17 @@ public class HashtagService {
 
     // ==================== PRIVATE HELPER METHODS ====================
 
-    private RecipeSummaryDto convertToRecipeSummary(Recipe recipe) {
+    private RecipeSummaryDto convertToRecipeSummary(Recipe recipe, String locale) {
         // 1. Creator info
         User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
         String userName = creator != null ? creator.getUsername() : "Unknown";
 
-        // 2. Food name from JSONB map
-        String foodName = getFoodName(recipe);
+        // 2. Food name from JSONB map (locale-aware)
+        String foodName = LocaleUtils.getLocalizedValue(
+                recipe.getFoodMaster().getName(),
+                locale,
+                recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
 
         // 3. Thumbnail URL (first cover image from join table)
         String thumbnail = recipe.getCoverImages().stream()
@@ -253,8 +259,14 @@ public class HashtagService {
         // 5. Log count
         int logCount = (int) recipeLogRepository.countByRecipeId(recipe.getId());
 
-        // 6. Root recipe title
-        String rootTitle = recipe.getRootRecipe() != null ? recipe.getRootRecipe().getTitle() : null;
+        // 6. Root recipe title (locale-aware)
+        String rootTitle = null;
+        if (recipe.getRootRecipe() != null) {
+            rootTitle = LocaleUtils.getLocalizedValue(
+                    recipe.getRootRecipe().getTitleTranslations(),
+                    locale,
+                    recipe.getRootRecipe().getTitle());
+        }
 
         // 7. Hashtags (first 3)
         List<String> hashtags = recipe.getHashtags().stream()
@@ -262,12 +274,18 @@ public class HashtagService {
                 .limit(3)
                 .toList();
 
+        // 8. Locale-aware title and description
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                recipe.getTitleTranslations(), locale, recipe.getTitle());
+        String localizedDescription = LocaleUtils.getLocalizedValue(
+                recipe.getDescriptionTranslations(), locale, recipe.getDescription());
+
         return new RecipeSummaryDto(
                 recipe.getPublicId(),
                 foodName,
                 recipe.getFoodMaster().getPublicId(),
-                recipe.getTitle(),
-                recipe.getDescription(),
+                localizedTitle,
+                localizedDescription,
                 recipe.getCookingStyle(),
                 creatorPublicId,
                 userName,
@@ -279,26 +297,11 @@ public class HashtagService {
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
                 recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-                hashtags,
-                recipe.getTitleTranslations(),
-                recipe.getDescriptionTranslations()
+                hashtags
         );
     }
 
-    private String getFoodName(Recipe recipe) {
-        Map<String, String> nameMap = recipe.getFoodMaster().getName();
-        String locale = recipe.getCookingStyle();
-
-        if (locale != null && nameMap.containsKey(locale)) {
-            return nameMap.get(locale);
-        }
-        if (nameMap.containsKey("ko-KR")) {
-            return nameMap.get("ko-KR");
-        }
-        return nameMap.values().stream().findFirst().orElse("Unknown Food");
-    }
-
-    private LogPostSummaryDto convertToLogPostSummary(LogPost logPost) {
+    private LogPostSummaryDto convertToLogPostSummary(LogPost logPost, String locale) {
         // 1. Creator info
         User creator = userRepository.findById(logPost.getCreatorId()).orElse(null);
         UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
@@ -310,7 +313,7 @@ public class HashtagService {
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
                 .orElse(null);
 
-        // 3. Rating, food name, and recipe title from recipe log
+        // 3. Rating, food name, and recipe title from recipe log (locale-aware)
         Integer rating = logPost.getRecipeLog() != null ? logPost.getRecipeLog().getRating() : null;
         String foodName = null;
         String recipeTitle = null;
@@ -318,8 +321,12 @@ public class HashtagService {
 
         if (logPost.getRecipeLog() != null && logPost.getRecipeLog().getRecipe() != null) {
             Recipe linkedRecipe = logPost.getRecipeLog().getRecipe();
-            foodName = getFoodName(linkedRecipe);
-            recipeTitle = linkedRecipe.getTitle();
+            foodName = LocaleUtils.getLocalizedValue(
+                    linkedRecipe.getFoodMaster().getName(),
+                    locale,
+                    linkedRecipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
+            recipeTitle = LocaleUtils.getLocalizedValue(
+                    linkedRecipe.getTitleTranslations(), locale, linkedRecipe.getTitle());
             isVariant = linkedRecipe.getParentRecipe() != null;
         }
 
@@ -329,10 +336,16 @@ public class HashtagService {
                 .limit(3)
                 .toList();
 
+        // 5. Locale-aware title and content
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                logPost.getTitleTranslations(), locale, logPost.getTitle());
+        String localizedContent = LocaleUtils.getLocalizedValue(
+                logPost.getContentTranslations(), locale, logPost.getContent());
+
         return new LogPostSummaryDto(
                 logPost.getPublicId(),
-                logPost.getTitle(),
-                logPost.getContent(),
+                localizedTitle,
+                localizedContent,
                 rating,
                 thumbnailUrl,
                 creatorPublicId,
