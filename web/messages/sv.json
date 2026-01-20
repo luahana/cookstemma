@@ -495,7 +495,16 @@
     "saveChanges": "Spara ändringar",
     "saving": "Sparar...",
     "errorContent": "Innehåll krävs",
-    "errorSave": "Kunde inte spara ändringar. Försök igen."
+    "errorLoad": "Kunde inte ladda matlagningsdagbok",
+    "errorNotOwner": "Du kan bara redigera dina egna matlagningsdagböcker",
+    "errorSave": "Kunde inte spara ändringar. Försök igen.",
+    "errorUploading": "Vänta tills bilderna har laddats upp",
+    "errorFailedImages": "Ta bort misslyckade bilder innan du sparar",
+    "errorUpload": "Uppladdning misslyckades",
+    "backToLog": "Tillbaka till matlagningsdagbok",
+    "cannotEdit": "Kan inte redigera dagbok",
+    "photos": "Bilder",
+    "photosCount": "{count}/{max} bilder"
   },
   "variant": {
     "madeItYourWay": "Gjort det på ditt sätt?",

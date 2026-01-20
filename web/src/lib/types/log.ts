@@ -76,7 +76,7 @@ export interface UpdateLogRequest {
   content: string;
   rating: Rating;
   hashtags?: string[];
-  // Note: images are read-only after creation
+  imagePublicIds?: string[];
 }
 
 /**

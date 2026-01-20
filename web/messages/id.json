@@ -495,7 +495,16 @@
     "saveChanges": "Simpan Perubahan",
     "saving": "Menyimpan...",
     "errorContent": "Konten wajib diisi",
-    "errorSave": "Gagal menyimpan perubahan. Coba lagi."
+    "errorLoad": "Gagal memuat catatan memasak",
+    "errorNotOwner": "Anda hanya dapat mengedit catatan memasak Anda sendiri",
+    "errorSave": "Gagal menyimpan perubahan. Coba lagi.",
+    "errorUploading": "Harap tunggu hingga foto selesai diunggah",
+    "errorFailedImages": "Harap hapus foto yang gagal sebelum menyimpan",
+    "errorUpload": "Gagal mengunggah",
+    "backToLog": "Kembali ke catatan memasak",
+    "cannotEdit": "Tidak dapat mengedit catatan",
+    "photos": "Foto",
+    "photosCount": "{count}/{max} foto"
   },
   "variant": {
     "madeItYourWay": "Membuat dengan cara Anda sendiri?",

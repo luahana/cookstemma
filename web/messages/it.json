@@ -495,7 +495,16 @@
     "saveChanges": "Salva modifiche",
     "saving": "Salvataggio...",
     "errorContent": "Il contenuto è obbligatorio",
-    "errorSave": "Impossibile salvare le modifiche. Riprova."
+    "errorLoad": "Impossibile caricare il diario di cucina",
+    "errorNotOwner": "Puoi modificare solo i tuoi diari di cucina",
+    "errorSave": "Impossibile salvare le modifiche. Riprova.",
+    "errorUploading": "Attendi il caricamento delle foto",
+    "errorFailedImages": "Rimuovi le foto non riuscite prima di salvare",
+    "errorUpload": "Caricamento non riuscito",
+    "backToLog": "Torna al diario di cucina",
+    "cannotEdit": "Impossibile modificare il diario",
+    "photos": "Foto",
+    "photosCount": "{count}/{max} foto"
   },
   "variant": {
     "madeItYourWay": "L'hai fatto a modo tuo?",

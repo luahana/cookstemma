@@ -495,7 +495,16 @@
     "saveChanges": "حفظ التغييرات",
     "saving": "جار الحفظ...",
     "errorContent": "المحتوى مطلوب",
-    "errorSave": "فشل حفظ التغييرات. يرجى المحاولة مرة أخرى."
+    "errorLoad": "فشل تحميل سجل الطبخ",
+    "errorNotOwner": "يمكنك تعديل سجلات الطبخ الخاصة بك فقط",
+    "errorSave": "فشل حفظ التغييرات. يرجى المحاولة مرة أخرى.",
+    "errorUploading": "يرجى الانتظار حتى اكتمال رفع الصور",
+    "errorFailedImages": "يرجى إزالة الصور الفاشلة قبل الحفظ",
+    "errorUpload": "فشل الرفع",
+    "backToLog": "العودة إلى سجل الطبخ",
+    "cannotEdit": "لا يمكن تعديل السجل",
+    "photos": "الصور",
+    "photosCount": "{count}/{max} صور"
   },
   "variant": {
     "madeItYourWay": "طبختها بطريقتك؟",

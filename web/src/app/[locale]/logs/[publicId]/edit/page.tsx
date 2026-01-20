@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { getLogDetail, updateLog } from '@/lib/api/logs';
+import { uploadImage } from '@/lib/api/images';
 import { getImageUrl } from '@/lib/utils/image';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { StarRatingSelector } from '@/components/log/StarRating';
@@ -15,13 +16,22 @@ import type { LogPostDetail, Rating } from '@/lib/types';
 const MAX_HASHTAGS = 10;
 const MAX_HASHTAG_LENGTH = 30;
 
+interface UploadedImage {
+  file: File | null; // null for existing images
+  preview: string;
+  publicId: string | null;
+  uploading: boolean;
+  error: string | null;
+}
+
 export default function LogEditPage() {
   const { publicId } = useParams<{ publicId: string }>();
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const t = useTranslations('logEdit');
   const tCommon = useTranslations('common');
-  const tNav = useTranslations('nav');
+  const tErrors = useTranslations('errors');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [log, setLog] = useState<LogPostDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,6 +42,7 @@ export default function LogEditPage() {
   const [content, setContent] = useState('');
   const [rating, setRating] = useState<number>(3);
   const [hashtags, setHashtags] = useState('');
+  const [images, setImages] = useState<UploadedImage[]>([]);
 
   // Load log data
   useEffect(() => {
@@ -46,6 +57,16 @@ export default function LogEditPage() {
         setContent(logData.content);
         setRating(logData.rating ?? 3);
         setHashtags(logData.hashtags.map((h) => h.name).join(', '));
+
+        // Initialize images from existing log
+        const existingImages: UploadedImage[] = logData.images.map((img) => ({
+          file: null,
+          preview: getImageUrl(img.imageUrl) || '',
+          publicId: img.imagePublicId,
+          uploading: false,
+          error: null,
+        }));
+        setImages(existingImages);
       } catch (err) {
         console.error('Failed to load log:', err);
         setError(t('errorLoad'));
@@ -73,11 +94,92 @@ export default function LogEditPage() {
     }
   }, [authLoading, isAuthenticated, log, user, t]);
 
+  // Handle image selection
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Limit to 3 images total
+    const remaining = 3 - images.length;
+    const filesToAdd = files.slice(0, remaining);
+
+    // Add images to state with preview
+    const newImages: UploadedImage[] = filesToAdd.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      publicId: null,
+      uploading: true,
+      error: null,
+    }));
+
+    setImages((prev) => [...prev, ...newImages]);
+
+    // Upload each image
+    for (let i = 0; i < newImages.length; i++) {
+      const img = newImages[i];
+      try {
+        const response = await uploadImage(img.file!, 'LOG_POST');
+        setImages((prev) =>
+          prev.map((p) =>
+            p.preview === img.preview
+              ? { ...p, publicId: response.imagePublicId, uploading: false }
+              : p
+          )
+        );
+      } catch {
+        setImages((prev) =>
+          prev.map((p) =>
+            p.preview === img.preview
+              ? { ...p, uploading: false, error: t('errorUpload') }
+              : p
+          )
+        );
+      }
+    }
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Remove image
+  const removeImage = (preview: string) => {
+    setImages((prev) => {
+      const img = prev.find((p) => p.preview === preview);
+      // Only revoke blob URLs (new uploads), not external URLs (existing images)
+      if (img && img.file) {
+        URL.revokeObjectURL(img.preview);
+      }
+      return prev.filter((p) => p.preview !== preview);
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!content.trim()) {
       setError(t('errorContent'));
+      return;
+    }
+
+    // Check if any images are still uploading
+    if (images.some((img) => img.uploading)) {
+      setError(t('errorUploading'));
+      return;
+    }
+
+    // Check for failed uploads
+    const failedImages = images.filter((img) => img.error);
+    if (failedImages.length > 0) {
+      setError(t('errorFailedImages'));
+      return;
+    }
+
+    // Check for at least one successfully uploaded image
+    const successfulImages = images.filter((img) => img.publicId && !img.error);
+    if (successfulImages.length === 0) {
+      setError(tErrors('photoRequired'));
       return;
     }
 
@@ -92,10 +194,15 @@ export default function LogEditPage() {
         .slice(0, MAX_HASHTAGS)
         .map((h) => h.slice(0, MAX_HASHTAG_LENGTH));
 
+      const imagePublicIds = images
+        .filter((img) => img.publicId && !img.error)
+        .map((img) => img.publicId!);
+
       await updateLog(publicId!, {
         content: content.trim(),
         rating: rating as Rating,
         hashtags: hashtagList,
+        imagePublicIds,
       });
 
       router.push(`/logs/${publicId}`);
@@ -177,40 +284,73 @@ export default function LogEditPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Photos Section (read-only) */}
-          {log.images.length > 0 && (
-            <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                  {t('photosReadOnly')}
-                </h2>
-                <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-2">
-                {log.images.map((img) => (
-                  <div
-                    key={img.imagePublicId}
-                    className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-[var(--background)]"
-                  >
-                    <Image
-                      src={getImageUrl(img.imageUrl) || ''}
-                      alt="Log photo"
-                      fill
-                      className="object-cover opacity-75"
-                      sizes="96px"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <svg className="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          {/* Photos Section */}
+          <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                {t('photos')} <span className="text-[var(--error)]">*</span>
+              </h2>
+              <span className="text-xs text-[var(--text-secondary)]">
+                {t('photosCount', { count: images.length, max: 3 })}
+              </span>
+            </div>
+            <div className="flex gap-3 flex-wrap">
+              {images.map((img) => (
+                <div
+                  key={img.preview}
+                  className="relative w-24 h-24 rounded-lg overflow-hidden bg-[var(--background)]"
+                >
+                  <Image
+                    src={img.preview}
+                    alt="Log photo"
+                    fill
+                    className="object-cover"
+                    sizes="96px"
+                  />
+                  {img.uploading && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="animate-spin w-6 h-6 border-2 border-white border-t-transparent rounded-full" />
+                    </div>
+                  )}
+                  {img.error && (
+                    <div className="absolute inset-0 bg-[var(--error)]/50 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                       </svg>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeImage(img.preview)}
+                    className="absolute top-1 right-1 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+              {images.length < 3 && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-24 h-24 rounded-lg border-2 border-dashed border-[var(--border)] hover:border-[var(--primary)] transition-colors flex items-center justify-center"
+                >
+                  <svg className="w-8 h-8 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+          </section>
 
           {/* Rating Section */}
           <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
@@ -285,7 +425,7 @@ export default function LogEditPage() {
             </Link>
             <button
               type="submit"
-              disabled={isSaving || !content.trim()}
+              disabled={isSaving || !content.trim() || images.some((img) => img.uploading)}
               className="px-8 py-3 text-sm font-medium text-white bg-[var(--primary)] hover:bg-[var(--primary-dark)] rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {isSaving ? (

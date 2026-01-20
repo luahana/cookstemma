@@ -483,7 +483,16 @@
     "saveChanges": "Guardar cambios",
     "saving": "Guardando...",
     "errorContent": "El contenido es requerido",
-    "errorSave": "Error al guardar los cambios. Por favor intenta de nuevo."
+    "errorLoad": "Error al cargar el registro de cocina",
+    "errorNotOwner": "Solo puedes editar tus propios registros de cocina",
+    "errorSave": "Error al guardar los cambios. Por favor intenta de nuevo.",
+    "errorUploading": "Por favor espera a que las fotos terminen de subirse",
+    "errorFailedImages": "Por favor elimina las fotos fallidas antes de guardar",
+    "errorUpload": "Error al subir",
+    "backToLog": "Volver al registro de cocina",
+    "cannotEdit": "No se puede editar el registro",
+    "photos": "Fotos",
+    "photosCount": "{count}/{max} fotos"
   },
   "variant": {
     "madeItYourWay": "¿Lo hiciste a tu manera?",

@@ -483,7 +483,16 @@
     "saveChanges": "Enregistrer les modifications",
     "saving": "Enregistrement...",
     "errorContent": "Le contenu est requis",
-    "errorSave": "Échec de l'enregistrement des modifications. Veuillez réessayer."
+    "errorLoad": "Échec du chargement du journal de cuisine",
+    "errorNotOwner": "Vous ne pouvez modifier que vos propres journaux de cuisine",
+    "errorSave": "Échec de l'enregistrement des modifications. Veuillez réessayer.",
+    "errorUploading": "Veuillez attendre que les photos soient téléchargées",
+    "errorFailedImages": "Veuillez supprimer les photos échouées avant d'enregistrer",
+    "errorUpload": "Échec du téléchargement",
+    "backToLog": "Retour au journal de cuisine",
+    "cannotEdit": "Impossible de modifier le journal",
+    "photos": "Photos",
+    "photosCount": "{count}/{max} photos"
   },
   "variant": {
     "madeItYourWay": "Vous l'avez fait à votre façon ?",

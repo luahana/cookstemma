@@ -495,7 +495,16 @@
     "saveChanges": "Zapisz zmiany",
     "saving": "Zapisywanie...",
     "errorContent": "Treść jest wymagana",
-    "errorSave": "Nie udało się zapisać zmian. Spróbuj ponownie."
+    "errorLoad": "Nie udało się załadować dziennika gotowania",
+    "errorNotOwner": "Możesz edytować tylko swoje dzienniki gotowania",
+    "errorSave": "Nie udało się zapisać zmian. Spróbuj ponownie.",
+    "errorUploading": "Poczekaj na zakończenie przesyłania zdjęć",
+    "errorFailedImages": "Usuń nieudane zdjęcia przed zapisaniem",
+    "errorUpload": "Nie udało się przesłać",
+    "backToLog": "Powrót do dziennika gotowania",
+    "cannotEdit": "Nie można edytować dziennika",
+    "photos": "Zdjęcia",
+    "photosCount": "{count}/{max} zdjęć"
   },
   "variant": {
     "madeItYourWay": "Zrobiłeś to po swojemu?",

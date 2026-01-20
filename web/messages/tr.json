@@ -495,7 +495,16 @@
     "saveChanges": "Değişiklikleri Kaydet",
     "saving": "Kaydediliyor...",
     "errorContent": "İçerik gerekli",
-    "errorSave": "Değişiklikler kaydedilemedi. Lütfen tekrar deneyin."
+    "errorLoad": "Yemek günlüğü yüklenemedi",
+    "errorNotOwner": "Yalnızca kendi yemek günlüklerinizi düzenleyebilirsiniz",
+    "errorSave": "Değişiklikler kaydedilemedi. Lütfen tekrar deneyin.",
+    "errorUploading": "Fotoğrafların yüklenmesini bekleyin",
+    "errorFailedImages": "Kaydetmeden önce başarısız fotoğrafları kaldırın",
+    "errorUpload": "Yükleme başarısız",
+    "backToLog": "Yemek günlüğüne dön",
+    "cannotEdit": "Günlük düzenlenemiyor",
+    "photos": "Fotoğraflar",
+    "photosCount": "{count}/{max} fotoğraf"
   },
   "variant": {
     "madeItYourWay": "Kendi tarzınızda mı yaptınız?",

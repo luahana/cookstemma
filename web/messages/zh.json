@@ -495,7 +495,16 @@
     "saveChanges": "保存更改",
     "saving": "保存中...",
     "errorContent": "内容为必填项",
-    "errorSave": "保存失败，请重试。"
+    "errorLoad": "加载烹饪日志失败",
+    "errorNotOwner": "您只能编辑自己的烹饪日志",
+    "errorSave": "保存失败，请重试。",
+    "errorUploading": "请等待照片上传完成",
+    "errorFailedImages": "保存前请删除上传失败的照片",
+    "errorUpload": "上传失败",
+    "backToLog": "返回烹饪日志",
+    "cannotEdit": "无法编辑日志",
+    "photos": "照片",
+    "photosCount": "{count}/{max} 张照片"
   },
   "variant": {
     "madeItYourWay": "用你的方式做了？",

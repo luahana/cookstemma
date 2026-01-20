@@ -495,7 +495,16 @@
     "saveChanges": "変更を保存",
     "saving": "保存中...",
     "errorContent": "内容は必須です",
-    "errorSave": "変更の保存に失敗しました。もう一度お試しください。"
+    "errorLoad": "料理記録の読み込みに失敗しました",
+    "errorNotOwner": "自分の料理記録のみ編集できます",
+    "errorSave": "変更の保存に失敗しました。もう一度お試しください。",
+    "errorUploading": "写真のアップロードが完了するまでお待ちください",
+    "errorFailedImages": "保存する前に失敗した写真を削除してください",
+    "errorUpload": "アップロード失敗",
+    "backToLog": "料理記録に戻る",
+    "cannotEdit": "記録を編集できません",
+    "photos": "写真",
+    "photosCount": "{count}/{max}枚"
   },
   "variant": {
     "madeItYourWay": "自分なりにアレンジしましたか？",

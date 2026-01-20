@@ -495,7 +495,16 @@
     "saveChanges": "Wijzigingen opslaan",
     "saving": "Opslaan...",
     "errorContent": "Inhoud is verplicht",
-    "errorSave": "Kan wijzigingen niet opslaan. Probeer opnieuw."
+    "errorLoad": "Kan kooklogboek niet laden",
+    "errorNotOwner": "Je kunt alleen je eigen kooklogboeken bewerken",
+    "errorSave": "Kan wijzigingen niet opslaan. Probeer opnieuw.",
+    "errorUploading": "Wacht tot de foto's zijn geüpload",
+    "errorFailedImages": "Verwijder mislukte foto's voordat je opslaat",
+    "errorUpload": "Upload mislukt",
+    "backToLog": "Terug naar kooklogboek",
+    "cannotEdit": "Kan logboek niet bewerken",
+    "photos": "Foto's",
+    "photosCount": "{count}/{max} foto's"
   },
   "variant": {
     "madeItYourWay": "Op je eigen manier gemaakt?",

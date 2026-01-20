@@ -85,7 +85,7 @@ export async function getAllLogIds(): Promise<string[]> {
 
 /**
  * Update an existing log post
- * Requires ownership (images are read-only after creation)
+ * Requires ownership
  */
 export async function updateLog(
   publicId: string,

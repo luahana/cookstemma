@@ -495,7 +495,16 @@
     "saveChanges": "Änderungen speichern",
     "saving": "Wird gespeichert...",
     "errorContent": "Inhalt ist erforderlich",
-    "errorSave": "Änderungen konnten nicht gespeichert werden. Bitte versuche es erneut."
+    "errorLoad": "Kochprotokoll konnte nicht geladen werden",
+    "errorNotOwner": "Du kannst nur deine eigenen Kochprotokolle bearbeiten",
+    "errorSave": "Änderungen konnten nicht gespeichert werden. Bitte versuche es erneut.",
+    "errorUploading": "Bitte warte, bis die Fotos hochgeladen sind",
+    "errorFailedImages": "Bitte entferne fehlgeschlagene Fotos vor dem Speichern",
+    "errorUpload": "Hochladen fehlgeschlagen",
+    "backToLog": "Zurück zum Kochprotokoll",
+    "cannotEdit": "Protokoll kann nicht bearbeitet werden",
+    "photos": "Fotos",
+    "photosCount": "{count}/{max} Fotos"
   },
   "variant": {
     "madeItYourWay": "Auf deine Art gemacht?",

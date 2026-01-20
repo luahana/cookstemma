@@ -495,7 +495,16 @@
     "saveChanges": "Salvar alterações",
     "saving": "Salvando...",
     "errorContent": "Conteúdo é obrigatório",
-    "errorSave": "Falha ao salvar alterações. Tente novamente."
+    "errorLoad": "Falha ao carregar registro de culinária",
+    "errorNotOwner": "Você só pode editar seus próprios registros de culinária",
+    "errorSave": "Falha ao salvar alterações. Tente novamente.",
+    "errorUploading": "Aguarde o upload das fotos",
+    "errorFailedImages": "Remova as fotos com falha antes de salvar",
+    "errorUpload": "Falha no upload",
+    "backToLog": "Voltar ao registro de culinária",
+    "cannotEdit": "Não é possível editar o registro",
+    "photos": "Fotos",
+    "photosCount": "{count}/{max} fotos"
   },
   "variant": {
     "madeItYourWay": "Fez do seu jeito?",

@@ -507,7 +507,9 @@
     "errorLoad": "Failed to load cooking log",
     "errorNotOwner": "You can only edit your own cooking logs",
     "errorSave": "Failed to save changes. Please try again.",
-    "errorUploading": "Please wait for photos to finish uploading"
+    "errorUploading": "Please wait for photos to finish uploading",
+    "errorFailedImages": "Please remove failed photos before saving",
+    "errorUpload": "Upload failed"
   },
   "variant": {
     "madeItYourWay": "Made it your own way?",

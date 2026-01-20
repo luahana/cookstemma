@@ -495,7 +495,16 @@
     "saveChanges": "Lưu thay đổi",
     "saving": "Đang lưu...",
     "errorContent": "Nội dung là bắt buộc",
-    "errorSave": "Lưu thay đổi thất bại. Vui lòng thử lại."
+    "errorLoad": "Không thể tải nhật ký nấu ăn",
+    "errorNotOwner": "Bạn chỉ có thể chỉnh sửa nhật ký nấu ăn của mình",
+    "errorSave": "Lưu thay đổi thất bại. Vui lòng thử lại.",
+    "errorUploading": "Vui lòng đợi ảnh tải lên xong",
+    "errorFailedImages": "Vui lòng xóa ảnh lỗi trước khi lưu",
+    "errorUpload": "Tải lên thất bại",
+    "backToLog": "Quay lại nhật ký nấu ăn",
+    "cannotEdit": "Không thể chỉnh sửa nhật ký",
+    "photos": "Ảnh",
+    "photosCount": "{count}/{max} ảnh"
   },
   "variant": {
     "madeItYourWay": "Đã làm theo cách riêng?",
