@@ -223,11 +223,13 @@ public class RecipeService {
                     return new LogPostSummaryDto(
                             logPost.getPublicId(),
                             logPost.getTitle(),
+                            logPost.getContent(),
                             rl.getRating(),
                             thumbnailUrl,
                             logCreatorPublicId,
                             logCreatorName,
                             foodName,
+                            recipe.getTitle(),
                             logHashtags,
                             isVariant
                     );
@@ -486,7 +488,8 @@ public class RecipeService {
         String foodName = getFoodName(recipe);
 
         // 3. 썸네일 URL 추출 (첫 번째 커버 이미지 사용, displayOrder로 정렬됨)
-        String thumbnail = recipe.getImages().stream()
+        // Use getCoverImages() which gets images from the join table (supports image sharing across variants)
+        String thumbnail = recipe.getCoverImages().stream()
                 .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
                 .findFirst()
                 .map(img -> urlPrefix + "/" + img.getStoredFilename())
@@ -570,7 +573,7 @@ public class RecipeService {
                 .stream().map(root -> {
                     long variants = recipeRepository.countByRootRecipeIdAndDeletedAtIsNull(root.getId());
                     long logs = recipeLogRepository.countByRecipeId(root.getId());
-                    String thumbnail = root.getImages().stream()
+                    String thumbnail = root.getCoverImages().stream()
                             .filter(img -> img.getType() == com.cookstemma.cookstemma.domain.enums.ImageType.COVER)
                             .findFirst()
                             .map(img -> urlPrefix + "/" + img.getStoredFilename())

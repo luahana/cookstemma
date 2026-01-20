@@ -13,11 +13,13 @@ export type Rating = 1 | 2 | 3 | 4 | 5;
 export interface LogPostSummary {
   publicId: string;
   title: string;
+  content: string | null; // Cooking notes (for display in recipe detail logs gallery)
   rating: number | null; // 1-5 star rating
   thumbnailUrl: string | null;
   creatorPublicId: string | null;
   userName: string | null;
   foodName: string | null;
+  recipeTitle: string | null; // Linked recipe's title
   hashtags: string[];
   isVariant: boolean | null;
 }
