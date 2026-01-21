@@ -209,7 +209,7 @@ module "ecs" {
   container_image  = "${data.aws_ecr_repository.main.repository_url}:dev-latest"
   container_port   = 4000
   task_cpu         = 512
-  task_memory      = 1024
+  task_memory      = 2048
   desired_count    = 1
   assign_public_ip = true # Still need public IP since no NAT gateway
 
