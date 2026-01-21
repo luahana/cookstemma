@@ -12,7 +12,7 @@ import boto3
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from ai_verifier import AIVerifier
+from ai_verifier import AIVerifier, TARGET_LOCALES
 
 # Configure logging
 logger = logging.getLogger()
@@ -224,6 +224,16 @@ def get_existing_name_for_locale(name_json: dict, existing_name: str) -> str:
     return existing_name
 
 
+def has_all_translations(name_json: dict) -> bool:
+    """Check if the name JSONB has all 20 required locale translations."""
+    if not isinstance(name_json, dict):
+        return False
+    for locale in TARGET_LOCALES:
+        if locale not in name_json or not name_json[locale]:
+            return False
+    return True
+
+
 def process_suggested_foods(conn, verifier: AIVerifier) -> dict:
     """Fetch and process pending food suggestions."""
     stats = {'processed': 0, 'approved': 0, 'rejected': 0, 'errors': 0}
@@ -240,8 +250,9 @@ def process_suggested_foods(conn, verifier: AIVerifier) -> dict:
             # 1. Check for duplicates
             existing = is_duplicate_food(conn, suggested_name)
             if existing:
-                if existing['is_verified']:
-                    # Already verified - reject as duplicate
+                # Check if verified AND has all 20 translations
+                if existing['is_verified'] and has_all_translations(existing['name']):
+                    # Fully complete - reject as true duplicate
                     existing_name = get_existing_name_for_locale(
                         existing['name'], suggested_name
                     )
@@ -250,7 +261,7 @@ def process_suggested_foods(conn, verifier: AIVerifier) -> dict:
                     stats['rejected'] += 1
                     continue
                 else:
-                    # Unverified - AI verify, update with translations, approve
+                    # Either unverified OR missing translations - update with full translations
                     result = verifier.verify_name(
                         name=suggested_name,
                         locale=locale_code,
@@ -270,6 +281,7 @@ def process_suggested_foods(conn, verifier: AIVerifier) -> dict:
 
                     update_food_master_verified(conn, existing['id'], translations)
                     approve_food(conn, suggestion['id'], existing['id'])
+                    logger.info(f"Updated FoodMaster {existing['id']} with 20 translations")
                     stats['approved'] += 1
                     continue
 
