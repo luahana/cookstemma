@@ -69,6 +69,23 @@ class RecipeIngredient(BaseModel):
     type: IngredientType = Field(default=IngredientType.MAIN)
     order: int = Field(default=0, description="Display order")
 
+    @field_validator("quantity", mode="before")
+    @classmethod
+    def parse_quantity(cls, v: Any) -> Optional[float]:
+        """Convert quantity to float, handling non-numeric values like TO_TASTE."""
+        if v is None:
+            return None
+        if isinstance(v, (int, float)):
+            return float(v)
+        if isinstance(v, str):
+            # Handle numeric strings
+            try:
+                return float(v)
+            except ValueError:
+                # Non-numeric strings (TO_TASTE, etc.) become None
+                return None
+        return None
+
 
 class RecipeStep(BaseModel):
     """Step in a recipe."""
