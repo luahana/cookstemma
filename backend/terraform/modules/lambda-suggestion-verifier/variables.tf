@@ -23,8 +23,8 @@ variable "database_secret_arn" {
   type        = string
 }
 
-variable "openai_secret_arn" {
-  description = "ARN of the OpenAI secret in Secrets Manager (from translation Lambda module)"
+variable "gemini_secret_arn" {
+  description = "ARN of the Gemini secret in Secrets Manager (from translation Lambda module)"
   type        = string
 }
 

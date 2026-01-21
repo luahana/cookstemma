@@ -23,9 +23,9 @@ output "sqs_dlq_url" {
   value       = aws_sqs_queue.translation_dlq.url
 }
 
-output "openai_secret_arn" {
-  description = "ARN of the OpenAI secret"
-  value       = aws_secretsmanager_secret.openai.arn
+output "gemini_secret_arn" {
+  description = "ARN of the Gemini secret"
+  value       = aws_secretsmanager_secret.gemini.arn
 }
 
 output "lambda_security_group_id" {

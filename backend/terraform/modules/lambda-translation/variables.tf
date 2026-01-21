@@ -23,8 +23,8 @@ variable "database_secret_arn" {
   type        = string
 }
 
-variable "openai_api_key" {
-  description = "OpenAI API key for translation"
+variable "gemini_api_key" {
+  description = "Gemini API key for translation"
   type        = string
   sensitive   = true
 }

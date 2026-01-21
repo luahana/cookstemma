@@ -60,7 +60,7 @@ resource "aws_iam_role_policy" "secrets_access" {
         ]
         Resource = [
           var.database_secret_arn,
-          var.openai_secret_arn
+          var.gemini_secret_arn
         ]
       }
     ]
@@ -78,7 +78,7 @@ resource "aws_security_group" "lambda" {
   description = "Security group for suggestion verifier Lambda"
   vpc_id      = var.vpc_id
 
-  # Outbound: Allow all (needed for RDS, Secrets Manager, OpenAI API)
+  # Outbound: Allow all (needed for RDS, Secrets Manager, Gemini API)
   egress {
     from_port   = 0
     to_port     = 0
@@ -137,7 +137,7 @@ resource "aws_lambda_function" "suggestion_verifier" {
   environment {
     variables = {
       DATABASE_SECRET_ARN = var.database_secret_arn
-      OPENAI_SECRET_ARN   = var.openai_secret_arn
+      GEMINI_SECRET_ARN   = var.gemini_secret_arn
       ENVIRONMENT         = var.environment
     }
   }

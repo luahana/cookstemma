@@ -72,7 +72,7 @@ resource "aws_security_group" "lambda_translation" {
   description = "Security group for translation Lambda"
   vpc_id      = module.vpc.vpc_id
 
-  # Outbound: Allow all (needed for RDS, Secrets Manager, OpenAI API)
+  # Outbound: Allow all (needed for RDS, Secrets Manager, Gemini API)
   egress {
     from_port   = 0
     to_port     = 0
@@ -94,7 +94,7 @@ resource "aws_security_group" "lambda_suggestion_verifier" {
   description = "Security group for suggestion verifier Lambda"
   vpc_id      = module.vpc.vpc_id
 
-  # Outbound: Allow all (needed for RDS, Secrets Manager, OpenAI API)
+  # Outbound: Allow all (needed for RDS, Secrets Manager, Gemini API)
   egress {
     from_port   = 0
     to_port     = 0
@@ -120,7 +120,7 @@ module "vpc" {
   vpc_cidr               = var.vpc_cidr
   az_count               = 2
   create_private_subnets = true # Need private for RDS
-  create_nat_gateway     = true # Required for Lambda in private subnets to reach OpenAI
+  create_nat_gateway     = true # Required for Lambda in private subnets to reach Gemini
 }
 
 # RDS Module - Minimal instance for dev
@@ -255,8 +255,8 @@ module "ecs_web" {
   target_group_arn      = module.alb.web_target_group_arn
 }
 
-# Lambda Translation Module - OpenAI-powered content translation
-# Uses private subnets with NAT gateway to reach both RDS and OpenAI API
+# Lambda Translation Module - Gemini-powered content translation
+# Uses private subnets with NAT gateway to reach both RDS and Gemini API
 module "lambda_translation" {
   source = "../../modules/lambda-translation"
 
@@ -270,7 +270,7 @@ module "lambda_translation" {
 
   # Secrets
   database_secret_arn = module.secrets.database_secret_arn
-  openai_api_key      = var.openai_api_key
+  gemini_api_key      = var.gemini_api_key
 
   # Use pre-created security group to break circular dependency
   use_existing_security_group = true
@@ -302,7 +302,7 @@ module "lambda_image_processing" {
 }
 
 # Lambda Suggestion Verifier Module - AI-powered validation of user suggestions
-# Uses private subnets with NAT gateway to reach both RDS and OpenAI API
+# Uses private subnets with NAT gateway to reach both RDS and Gemini API
 module "lambda_suggestion_verifier" {
   source = "../../modules/lambda-suggestion-verifier"
 
@@ -314,9 +314,9 @@ module "lambda_suggestion_verifier" {
   # ECR repository (created by shared terraform)
   ecr_repository_url = data.aws_ecr_repository.suggestion_verifier.repository_url
 
-  # Secrets (reuse OpenAI secret from translation module)
+  # Secrets (reuse Gemini secret from translation module)
   database_secret_arn = module.secrets.database_secret_arn
-  openai_secret_arn   = module.lambda_translation.openai_secret_arn
+  gemini_secret_arn   = module.lambda_translation.gemini_secret_arn
 
   # Use pre-created security group to break circular dependency
   use_existing_security_group = true

@@ -1,6 +1,6 @@
 # =============================================================================
 # LAMBDA TRANSLATION MODULE
-# Translates user content using OpenAI GPT
+# Translates user content using Google Gemini
 # =============================================================================
 
 locals {
@@ -9,24 +9,24 @@ locals {
 }
 
 # -----------------------------------------------------------------------------
-# OPENAI SECRET
+# GEMINI SECRET
 # -----------------------------------------------------------------------------
-resource "aws_secretsmanager_secret" "openai" {
-  name        = "${var.project_name}/${var.environment}/openai"
-  description = "OpenAI API credentials for translation"
+resource "aws_secretsmanager_secret" "gemini" {
+  name        = "${var.project_name}/${var.environment}/gemini"
+  description = "Gemini API credentials for translation"
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-openai-secret"
+    Name        = "${var.project_name}-${var.environment}-gemini-secret"
     Project     = var.project_name
     Environment = var.environment
     ManagedBy   = "terraform"
   }
 }
 
-resource "aws_secretsmanager_secret_version" "openai" {
-  secret_id = aws_secretsmanager_secret.openai.id
+resource "aws_secretsmanager_secret_version" "gemini" {
+  secret_id = aws_secretsmanager_secret.gemini.id
   secret_string = jsonencode({
-    api_key = var.openai_api_key
+    api_key = var.gemini_api_key
   })
 }
 
@@ -82,7 +82,7 @@ resource "aws_iam_role_policy" "secrets_access" {
         ]
         Resource = [
           var.database_secret_arn,
-          aws_secretsmanager_secret.openai.arn
+          aws_secretsmanager_secret.gemini.arn
         ]
       }
     ]
@@ -121,7 +121,7 @@ resource "aws_security_group" "lambda" {
   description = "Security group for translation Lambda"
   vpc_id      = var.vpc_id
 
-  # Outbound: Allow all (needed for RDS, Secrets Manager, OpenAI API)
+  # Outbound: Allow all (needed for RDS, Secrets Manager, Gemini API)
   egress {
     from_port   = 0
     to_port     = 0
@@ -180,7 +180,7 @@ resource "aws_lambda_function" "translator" {
   environment {
     variables = {
       DATABASE_SECRET_ARN = var.database_secret_arn
-      OPENAI_SECRET_ARN   = aws_secretsmanager_secret.openai.arn
+      GEMINI_SECRET_ARN   = aws_secretsmanager_secret.gemini.arn
       ENVIRONMENT         = var.environment
     }
   }

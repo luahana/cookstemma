@@ -109,9 +109,9 @@ variable "rds_snapshot_identifier" {
   default     = null
 }
 
-# OpenAI
-variable "openai_api_key" {
-  description = "OpenAI API key for translation"
+# Gemini
+variable "gemini_api_key" {
+  description = "Gemini API key for translation"
   type        = string
   sensitive   = true
 }
