@@ -10,6 +10,7 @@ import {
   useCookingStyleOptions,
 } from '@/components/common/CookingStyleSelect';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { revalidateProfile } from '@/app/actions/profile';
 import type { MeasurementPreference, UpdateProfileRequest } from '@/lib/types';
 
 // Character limits (matching database constraints)
@@ -280,6 +281,11 @@ export default function ProfileEditPage() {
       }
 
       await updateUserProfile(updateData);
+
+      // Revalidate the user's public profile page to clear cache
+      if (authUser?.publicId) {
+        await revalidateProfile(authUser.publicId);
+      }
 
       // Update initial values to new values
       setInitialValues({
