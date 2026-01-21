@@ -78,6 +78,20 @@ class RecipePipeline:
         # 1. Generate recipe text
         recipe_data = await self.text_gen.generate_recipe(persona, food_name)
 
+        # Validate response structure
+        if isinstance(recipe_data, list):
+            logger.error("recipe_data_is_list", data_preview=str(recipe_data)[:500])
+            # If it's a list with one item that's a dict, unwrap it
+            if len(recipe_data) == 1 and isinstance(recipe_data[0], dict):
+                recipe_data = recipe_data[0]
+            else:
+                raise ValueError(f"Expected dict, got list: {str(recipe_data)[:200]}")
+
+        if not isinstance(recipe_data, dict):
+            raise ValueError(f"Expected dict, got {type(recipe_data).__name__}")
+
+        logger.debug("recipe_data_received", title=recipe_data.get("title"), keys=list(recipe_data.keys()))
+
         # 2. Generate images if enabled
         image_public_ids: List[str] = []
         step_image_public_ids: List[str] = []
@@ -379,17 +393,29 @@ class RecipePipeline:
         self,
         ingredients_data: List[Dict[str, Any]],
     ) -> List[RecipeIngredient]:
-        """Parse ingredient data from ChatGPT response."""
+        """Parse ingredient data from AI response."""
         result = []
         for i, ing in enumerate(ingredients_data):
-            ing_type = ing.get("type", "MAIN").upper()
+            # Handle case where ingredient might be a list (malformed response)
+            if isinstance(ing, list):
+                logger.warning("ingredient_is_list", index=i, data=ing)
+                continue
+            if not isinstance(ing, dict):
+                logger.warning("ingredient_invalid_type", index=i, type=type(ing).__name__)
+                continue
+
+            ing_type = ing.get("type", "MAIN")
+            if isinstance(ing_type, str):
+                ing_type = ing_type.upper()
+            else:
+                ing_type = "MAIN"
             if ing_type not in ["MAIN", "SECONDARY", "SEASONING"]:
                 ing_type = "MAIN"
 
             # Parse unit (validate against enum)
             unit_str = ing.get("unit")
             unit = None
-            if unit_str:
+            if unit_str and isinstance(unit_str, str):
                 try:
                     unit = MeasurementUnit(unit_str.upper())
                 except ValueError:
@@ -397,7 +423,7 @@ class RecipePipeline:
 
             result.append(
                 RecipeIngredient(
-                    name=ing.get("name", ""),
+                    name=str(ing.get("name", "")),
                     quantity=ing.get("quantity"),
                     unit=unit,
                     type=IngredientType(ing_type),
@@ -411,21 +437,33 @@ class RecipePipeline:
         steps_data: List[Dict[str, Any]],
         step_image_public_ids: Optional[List[str]] = None,
     ) -> List[RecipeStep]:
-        """Parse step data from ChatGPT response.
+        """Parse step data from AI response.
 
         Args:
-            steps_data: List of step dictionaries from ChatGPT
+            steps_data: List of step dictionaries from AI
             step_image_public_ids: Optional list of image public IDs for each step
         """
         result = []
         for i, step in enumerate(steps_data):
+            # Handle case where step might be a list (malformed response)
+            if isinstance(step, list):
+                logger.warning("step_is_list", index=i, data=step)
+                continue
+            if not isinstance(step, dict):
+                logger.warning("step_invalid_type", index=i, type=type(step).__name__)
+                continue
+
             image_id = None
             if step_image_public_ids and i < len(step_image_public_ids):
                 image_id = step_image_public_ids[i]
 
+            order = step.get("order", i + 1)
+            if not isinstance(order, int):
+                order = i + 1
+
             result.append(RecipeStep(
-                step_number=step.get("order", i + 1),
-                description=step.get("description", ""),
+                step_number=order,
+                description=str(step.get("description", "")),
                 image_public_id=image_id,
             ))
         return result

@@ -31,9 +31,13 @@ class Settings(BaseSettings):
         default="placeholder",
         description="Google Gemini API key from AI Studio",
     )
-    gemini_model: str = Field(
+    gemini_image_model: str = Field(
         default="gemini-3-pro-image-preview",
-        description="Gemini model to use for image/text generation",
+        description="Gemini model for image generation",
+    )
+    gemini_text_model: str = Field(
+        default="gemini-2.0-flash",
+        description="Gemini model for text generation (via OpenAI compat)",
     )
 
     # OpenAI Configuration

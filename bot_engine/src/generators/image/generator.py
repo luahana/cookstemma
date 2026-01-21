@@ -1,14 +1,12 @@
-"""Image generator using Gemini 3 Pro Image with DALL-E 3 fallback."""
+"""Image generator using Gemini 3 Pro Image with retry logic."""
 
 import io
 import random
-from typing import Optional, List
+from typing import Optional
 
-import httpx
 import structlog
 from google import genai
 from google.genai import types
-from openai import AsyncOpenAI
 from PIL import Image
 from tenacity import (
     retry,
@@ -22,39 +20,27 @@ from ...personas import BotPersona
 
 logger = structlog.get_logger()
 
+
 class ImageGenerator:
-    """Generate professional food images using Gemini 3 Pro (Nano Banana Pro)."""
+    """Generate professional food images using Gemini 3 Pro."""
 
     def __init__(
         self,
-        openai_api_key: Optional[str] = None,
         gemini_api_key: Optional[str] = None,
     ) -> None:
         settings = get_settings()
-        
+
         # Initialize Gemini 3 Pro Client
         self.gemini_client = genai.Client(
             api_key=gemini_api_key or settings.gemini_api_key
         )
-        
-        # Initialize OpenAI Client for DALL-E 3 fallback
-        self.openai_client = AsyncOpenAI(
-            api_key=openai_api_key or settings.openai_api_key
+        self.gemini_image_model = (
+            settings.gemini_image_model or "gemini-3-pro-image-preview"
         )
-        
-        self._http_client: Optional[httpx.AsyncClient] = None
-
-    async def _ensure_http_client(self) -> httpx.AsyncClient:
-        """Ensure HTTP client is initialized for downloading DALL-E images."""
-        if self._http_client is None:
-            self._http_client = httpx.AsyncClient(timeout=120.0)
-        return self._http_client
 
     async def close(self) -> None:
-        """Close HTTP and API clients."""
-        if self._http_client:
-            await self._http_client.aclose()
-            self._http_client = None
+        """Close any resources (kept for interface compatibility)."""
+        pass
 
     def _build_dish_prompt(
         self,
@@ -97,79 +83,54 @@ Lighting: Natural indoor lighting, high-quality amateur photography."""
         selected = random.sample(imperfections, k=min(2, len(imperfections)))
         return f"{prompt}\nInclude these realistic details: {', '.join(selected)}."
 
+    @retry(
+        retry=retry_if_exception_type(Exception),
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=2, min=10, max=120),
+        before_sleep=lambda retry_state: logger.warning(
+            "gemini_image_retry",
+            attempt=retry_state.attempt_number,
+            wait=retry_state.next_action.sleep,
+        ),
+    )
     async def generate_with_gemini(
         self,
         prompt: str,
-        res: str = "4K"
+        res: str = "4K",
     ) -> bytes:
-        """Generate high-fidelity 4K images using Gemini 3 Pro Image."""
+        """Generate high-fidelity 4K images using Gemini 3 Pro Image with retry."""
         # Gemini 3 Pro Image supports up to 4K resolution
         response = await self.gemini_client.aio.models.generate_content(
-            model="gemini-3-pro-image-preview",
+            model=self.gemini_image_model,
             contents=[prompt],
             config=types.GenerateContentConfig(
                 response_modalities=["IMAGE"],
                 image_config=types.ImageConfig(
                     aspect_ratio="1:1",
-                    image_size=res # Native 4K support
-                )
-            )
+                    image_size=res,  # Native 4K support
+                ),
+            ),
         )
 
         for part in response.parts:
             if part.inline_data:
-                logger.info("gemini_3_pro_generated", res=res, prompt_preview=prompt[:50])
+                logger.info(
+                    "gemini_3_pro_generated", res=res, prompt_preview=prompt[:50]
+                )
                 return part.inline_data.data
-        
+
         raise ValueError("Gemini 3 Pro failed to return an image part")
 
-    async def generate_with_dalle(
-        self,
-        prompt: str,
-        size: str = "1024x1024",
-    ) -> bytes:
-        """Generate image using DALL-E 3 as a high-reliability fallback."""
-        response = await self.openai_client.images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            size=size, # type: ignore
-            quality="standard",
-            n=1,
-        )
-
-        image_url = response.data[0].url
-        if not image_url:
-            raise ValueError("No image URL in DALL-E response")
-
-        client = await self._ensure_http_client()
-        img_response = await client.get(image_url)
-        img_response.raise_for_status()
-
-        logger.info("dalle_fallback_triggered", prompt_preview=prompt[:50])
-        return img_response.content
-
-    @retry(
-        retry=retry_if_exception_type(Exception),
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=2, min=5, max=60),
-    )
     async def generate_image(
         self,
         prompt: str,
-        size: str = "1024x1024",
         add_imperfections: bool = True,
     ) -> bytes:
-        """Orchestrates generation: Gemini 3 Pro first, then DALL-E 3."""
+        """Generate image using Gemini 3 Pro with automatic retries."""
         if add_imperfections:
             prompt = self._add_realism_imperfections(prompt)
 
-        try:
-            # Try 4K generation with Gemini 3 Pro first
-            return await self.generate_with_gemini(prompt, res="4K")
-        except Exception as e:
-            logger.warning("gemini_3_pro_failed", error=str(e))
-            # Fallback to DALL-E 3 if Gemini is blocked or unavailable
-            return await self.generate_with_dalle(prompt, size)
+        return await self.generate_with_gemini(prompt, res="4K")
 
     async def generate_recipe_images(
         self,

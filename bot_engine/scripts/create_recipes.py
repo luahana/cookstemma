@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Create AI-generated recipes from bot personas.
 
-This script generates recipes using Gemini 3 Pro Image with a fallback to DALL-E 3.
+This script generates recipes using Gemini 3 Pro Image with retry logic.
 
 Prerequisites:
     - Backend running at http://localhost:4000
-    - GEMINI_API_KEY and OPENAI_API_KEY in .env
+    - GEMINI_API_KEY in .env
     - BOT_INTERNAL_SECRET in .env
 """
 
@@ -102,8 +102,8 @@ async def main() -> None:
         sys.exit(1)
 
     api_client = CookstemmaClient()
-    text_gen = TextGenerator() # Uses Gemini for text
-    image_gen = ImageGenerator() # Uses Gemini 3 Pro + DALL-E Fallback
+    text_gen = TextGenerator()  # Uses Gemini for text
+    image_gen = ImageGenerator()  # Uses Gemini 3 Pro with retry
 
     try:
         registry = get_persona_registry()
@@ -132,7 +132,10 @@ async def main() -> None:
             result = await create_recipe_for_persona(
                 persona, api_client, text_gen, image_gen, args.step_images, args.cover, args.food
             )
-            print(f"✓ Success: {result.recipe_title} ({result.recipe_id})")
+            if result.success:
+                print(f"✓ Success: {result.recipe_title} ({result.recipe_id})")
+            else:
+                print(f"✗ Failed: {result.error}")
 
     finally:
         await api_client.close()
