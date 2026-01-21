@@ -56,7 +56,7 @@ class GeminiTranslator:
             model_name=model,
             generation_config={
                 "temperature": 0.3,
-                "max_output_tokens": 2000,
+                "max_output_tokens": 8000,  # Increased from 2000 to handle large recipes
                 "response_mime_type": "application/json"
             }
         )
@@ -374,7 +374,17 @@ Return ONLY the JSON object with translated values, no explanation."""
                     result_text = result_text[4:]
                 result_text = result_text.strip()
 
-            translated = json.loads(result_text)
+            # Handle extra data after JSON (decode only the first valid JSON object)
+            try:
+                translated = json.loads(result_text)
+            except json.JSONDecodeError as e:
+                if "Extra data" in str(e):
+                    # Extract just the first JSON object
+                    decoder = json.JSONDecoder()
+                    translated, _ = decoder.raw_decode(result_text)
+                    logger.warning(f"Removed extra data after JSON object: {result_text[decoder.raw_decode(result_text)[1]:][:100]}")
+                else:
+                    raise
 
             # Ensure all original keys are present
             result = {}
@@ -480,6 +490,9 @@ Return ONLY the JSON object, no explanation or markdown formatting."""
             response = self.model.generate_content(prompt)
             result_text = response.text.strip()
 
+            # Log response length for debugging token limit issues
+            logger.info(f"Received translation response: {len(result_text)} characters, ~{len(result_text)//4} tokens")
+
             # Handle potential markdown code blocks
             if result_text.startswith('```'):
                 result_text = result_text.split('```')[1]
@@ -487,7 +500,22 @@ Return ONLY the JSON object, no explanation or markdown formatting."""
                     result_text = result_text[4:]
                 result_text = result_text.strip()
 
-            translated = json.loads(result_text)
+            # Check if response looks truncated (ends abruptly without closing brace)
+            if not result_text.endswith('}') and not result_text.endswith(']'):
+                logger.warning(f"Response appears truncated - does not end with '}}' or ']'. Last 100 chars: {result_text[-100:]}")
+
+            # Handle extra data after JSON (decode only the first valid JSON object)
+            try:
+                translated = json.loads(result_text)
+            except json.JSONDecodeError as e:
+                if "Extra data" in str(e):
+                    # Extract just the first JSON object
+                    decoder = json.JSONDecoder()
+                    translated, end_pos = decoder.raw_decode(result_text)
+                    extra_data = result_text[end_pos:][:100]
+                    logger.warning(f"Removed extra data after JSON object: {extra_data}")
+                else:
+                    raise
 
             # Validate output structure
             expected_steps = len(content.get('steps', []))
@@ -514,8 +542,10 @@ Return ONLY the JSON object, no explanation or markdown formatting."""
 
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse batch translation response: {e}")
-            logger.error(f"Response was: {result_text[:500]}")
-            raise ValueError(f"Invalid translation response format: {e}")
+            logger.error(f"Response length: {len(result_text)} chars")
+            logger.error(f"Response first 500 chars: {result_text[:500]}")
+            logger.error(f"Response last 200 chars: {result_text[-200:]}")
+            raise ValueError(f"Invalid translation response format (likely truncated due to token limit): {e}")
 
         except Exception as e:
             logger.error(f"Batch translation API error: {e}")
