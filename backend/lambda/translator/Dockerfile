@@ -6,7 +6,7 @@ RUN pip install --no-cache-dir -r ${LAMBDA_TASK_ROOT}/requirements.txt
 
 # Copy function code
 COPY handler.py ${LAMBDA_TASK_ROOT}/
-COPY openai_translator.py ${LAMBDA_TASK_ROOT}/
+COPY gemini_translator.py ${LAMBDA_TASK_ROOT}/
 
 # Set the CMD to handler
 CMD ["handler.handler"]
