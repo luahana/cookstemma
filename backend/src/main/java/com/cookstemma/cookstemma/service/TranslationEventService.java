@@ -7,6 +7,7 @@ import com.cookstemma.cookstemma.domain.entity.recipe.Recipe;
 import com.cookstemma.cookstemma.domain.entity.recipe.RecipeIngredient;
 import com.cookstemma.cookstemma.domain.entity.recipe.RecipeStep;
 import com.cookstemma.cookstemma.domain.entity.translation.TranslationEvent;
+import com.cookstemma.cookstemma.domain.entity.user.User;
 import com.cookstemma.cookstemma.domain.enums.TranslatableEntity;
 import com.cookstemma.cookstemma.domain.enums.TranslationStatus;
 import com.cookstemma.cookstemma.repository.food.FoodMasterRepository;
@@ -226,6 +227,42 @@ public class TranslationEventService {
         translationEventRepository.save(event);
         log.info("Queued translation for autocomplete item {} (source: {}, targets: {})",
                 autocompleteItem.getId(), normalized, targetLocales.size());
+    }
+
+    /**
+     * Queue user bio translation.
+     * Uses the user's locale setting as source locale.
+     */
+    @Transactional
+    public void queueUserBioTranslation(User user) {
+        if (user.getBio() == null || user.getBio().isBlank()) {
+            log.debug("User {} has no bio to translate", user.getId());
+            return;
+        }
+
+        String sourceLocale = normalizeLocale(user.getLocale());
+        List<String> targetLocales = getTargetLocales(sourceLocale);
+
+        if (targetLocales.isEmpty()) {
+            log.debug("No target locales for user {} (source: {})", user.getId(), sourceLocale);
+            return;
+        }
+
+        if (isTranslationPending(TranslatableEntity.USER, user.getId())) {
+            log.debug("Translation already pending for user {}", user.getId());
+            return;
+        }
+
+        TranslationEvent event = TranslationEvent.builder()
+                .entityType(TranslatableEntity.USER)
+                .entityId(user.getId())
+                .sourceLocale(sourceLocale)
+                .targetLocales(targetLocales)
+                .build();
+
+        translationEventRepository.save(event);
+        log.info("Queued bio translation for user {} (source: {}, targets: {})",
+                user.getId(), sourceLocale, targetLocales.size());
     }
 
     @Transactional(readOnly = true)

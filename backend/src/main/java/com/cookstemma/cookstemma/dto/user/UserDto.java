@@ -4,6 +4,7 @@ import com.cookstemma.cookstemma.domain.entity.user.User;
 import com.cookstemma.cookstemma.domain.enums.Gender;
 import com.cookstemma.cookstemma.domain.enums.MeasurementPreference;
 import com.cookstemma.cookstemma.domain.enums.Role;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import lombok.Builder;
 
 import java.time.Instant;
@@ -39,14 +40,22 @@ public record UserDto(
         Boolean marketingAgreed
 ) {
     public static UserDto from(User user, String urlPrefix) {
-        return from(user, urlPrefix, 0, 0, 1, "beginner");
+        return from(user, urlPrefix, 0, 0, 1, "beginner", null);
+    }
+
+    public static UserDto from(User user, String urlPrefix, String locale) {
+        return from(user, urlPrefix, 0, 0, 1, "beginner", locale);
     }
 
     public static UserDto from(User user, String urlPrefix, long recipeCount, long logCount) {
-        return from(user, urlPrefix, recipeCount, logCount, 1, "beginner");
+        return from(user, urlPrefix, recipeCount, logCount, 1, "beginner", null);
     }
 
     public static UserDto from(User user, String urlPrefix, long recipeCount, long logCount, int level, String levelName) {
+        return from(user, urlPrefix, recipeCount, logCount, level, levelName, null);
+    }
+
+    public static UserDto from(User user, String urlPrefix, long recipeCount, long logCount, int level, String levelName, String locale) {
         if (user == null) return null;
 
         // Build profile image URL - clients handle fallback UI for missing images
@@ -56,6 +65,13 @@ public record UserDto(
         } else if (profileUrl != null && profileUrl.isEmpty()) {
             profileUrl = null; // Normalize empty string to null
         }
+
+        // Get localized bio using translations or fallback to original
+        String localizedBio = LocaleUtils.getLocalizedValue(
+                user.getBioTranslations(),
+                locale,
+                user.getBio()
+        );
 
         return UserDto.builder()
                 .id(user.getPublicId())
@@ -73,7 +89,7 @@ public record UserDto(
                 .logCount(logCount)
                 .level(level)
                 .levelName(levelName)
-                .bio(user.getBio())
+                .bio(localizedBio)
                 .youtubeUrl(user.getYoutubeUrl())
                 .instagramHandle(user.getInstagramHandle())
                 .termsAcceptedAt(user.getTermsAcceptedAt())

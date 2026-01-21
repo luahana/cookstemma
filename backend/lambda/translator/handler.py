@@ -178,7 +178,7 @@ def run_migrations(conn):
             EXCEPTION WHEN duplicate_object THEN null;
             END $$
         """)
-        # Add FOOD_MASTER and AUTOCOMPLETE_ITEM to existing enum if they don't exist
+        # Add FOOD_MASTER, AUTOCOMPLETE_ITEM, and USER to existing enum if they don't exist
         cur.execute("""
             DO $$ BEGIN
                 ALTER TYPE translatable_entity ADD VALUE IF NOT EXISTS 'FOOD_MASTER';
@@ -188,6 +188,12 @@ def run_migrations(conn):
         cur.execute("""
             DO $$ BEGIN
                 ALTER TYPE translatable_entity ADD VALUE IF NOT EXISTS 'AUTOCOMPLETE_ITEM';
+            EXCEPTION WHEN duplicate_object THEN null;
+            END $$
+        """)
+        cur.execute("""
+            DO $$ BEGIN
+                ALTER TYPE translatable_entity ADD VALUE IF NOT EXISTS 'USER';
             EXCEPTION WHEN duplicate_object THEN null;
             END $$
         """)
@@ -329,6 +335,11 @@ def fetch_entity_content(conn, entity_type: str, entity_id: int) -> dict | None:
                 SELECT id, name
                 FROM autocomplete_items WHERE id = %s
             """, (entity_id,))
+        elif entity_type == 'USER':
+            cur.execute("""
+                SELECT id, bio, bio_translations
+                FROM users WHERE id = %s
+            """, (entity_id,))
         else:
             return None
 
@@ -389,6 +400,12 @@ def save_translations(conn, entity_type: str, entity_id: int, translations: dict
                 SET name = name || %s
                 WHERE id = %s
             """, (json.dumps(translations.get('name', {})), entity_id))
+        elif entity_type == 'USER':
+            cur.execute("""
+                UPDATE users
+                SET bio_translations = %s
+                WHERE id = %s
+            """, (json.dumps(translations.get('bio', {})), entity_id))
 
 
 def process_event(conn, translator: OpenAITranslator, event: dict) -> bool:
@@ -481,6 +498,9 @@ def process_event(conn, translator: OpenAITranslator, event: dict) -> bool:
 
         content_to_translate = {'name': source_name}
         existing_translations = {'name': {}}
+    elif entity_type == 'USER':
+        content_to_translate = {'bio': entity['bio'] or ''}
+        existing_translations = {'bio': entity['bio_translations'] or {}}
 
     # Translate to each pending locale
     new_completed = list(completed_locales)
@@ -492,6 +512,8 @@ def process_event(conn, translator: OpenAITranslator, event: dict) -> bool:
                 context = "cooking recipe step"
             elif entity_type in ('FOOD_MASTER', 'AUTOCOMPLETE_ITEM'):
                 context = "food ingredient name for a cooking recipe app"
+            elif entity_type == 'USER':
+                context = "user bio/profile description for a cooking recipe app"
             else:
                 context = "cooking recipe content"
 

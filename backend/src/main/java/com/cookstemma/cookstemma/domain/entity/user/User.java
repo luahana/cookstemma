@@ -13,6 +13,8 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 @Table(name = "users")
@@ -100,6 +102,11 @@ public class User extends BaseEntity {
 
     @Column(name = "bio", length = 150)
     private String bio;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "bio_translations", columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, String> bioTranslations = new HashMap<>();
 
     @Column(name = "youtube_url", length = 255)
     private String youtubeUrl;

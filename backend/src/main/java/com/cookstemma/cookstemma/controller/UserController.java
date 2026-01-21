@@ -61,7 +61,8 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<MyProfileResponseDto> getMyProfile(@AuthenticationPrincipal UserPrincipal principal) {
         // [수정] principal 객체를 서비스에 그대로 전달하여 내부에서 ID를 활용하게 합니다.
-        MyProfileResponseDto response = userService.getMyProfile(principal);
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        MyProfileResponseDto response = userService.getMyProfile(principal, locale);
         return ResponseEntity.ok(response);
     }
 
@@ -107,7 +108,8 @@ public class UserController {
     @GetMapping("/{userId}")
     public ResponseEntity<UserDto> getOtherUserProfile(@PathVariable("userId") UUID userId) { // [교정] UserPrincipal -> UUID
         // [수정] 경로 변수로 받은 UUID를 서비스에 전달합니다.
-        UserDto response = userService.getUserProfile(userId);
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        UserDto response = userService.getUserProfile(userId, locale);
         return ResponseEntity.ok(response);
     }
 
