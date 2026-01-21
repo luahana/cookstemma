@@ -95,7 +95,7 @@ class TranslationAdminControllerTest extends BaseIntegrationTest {
 
         // Verify translation event was created
         List<TranslationEvent> events = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
-                TranslatableEntity.RECIPE, testRecipe.getId(),
+                TranslatableEntity.RECIPE_FULL, testRecipe.getId(),
                 List.of(TranslationStatus.PENDING));
 
         assertThat(events).hasSize(1);
