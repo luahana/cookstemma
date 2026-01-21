@@ -49,13 +49,26 @@ Suggested Name: "{name}"
 Language: {language}
 Type: {item_type}
 
-Rules:
-1. VALID: Simple food names, ingredients, sauces, seasonings (e.g., "chicken", "soy sauce", "oregano", "olive oil")
-2. REJECT if plural form (e.g., "tomatoes" -> suggest "tomato", "eggs" -> suggest "egg")
-3. REJECT if contains adjectives/adverbs that describe preparation or quality (e.g., "fresh basil" -> suggest "basil", "spicy chicken" -> suggest "chicken", "chopped onion" -> suggest "onion")
-4. REJECT if not a food/ingredient/sauce/seasoning (e.g., "kitchen", "recipe", random text, cooking utensils)
-5. REJECT if it's a complete dish name rather than an ingredient (e.g., "pizza", "pasta carbonara", "bibimbap")
-6. ACCEPT compound ingredients that are commonly used as a single unit (e.g., "soy sauce", "olive oil", "tomato paste", "fish sauce")
+IMPORTANT: Apply rules based on the Type:
+
+=== FOR "Food name" (dish/meal names) ===
+1. VALID: Dish names, meal names, prepared foods (e.g., "bibimbap", "pizza", "pasta carbonara", "kimchi-jjigae", "spaghetti bolognese")
+2. REJECT if gibberish, random text, or not recognizable as food/dish in any cuisine
+3. REJECT if contains quality adjectives (e.g., "delicious pizza" -> suggest "pizza")
+4. ACCEPT regional/cultural dish names in any language (e.g., "불고기", "phở", "ramen", "김치찌개")
+
+=== FOR "Main ingredient", "Secondary ingredient", or "Seasoning or sauce" ===
+1. VALID: Simple ingredient names, sauces, seasonings (e.g., "chicken", "soy sauce", "oregano")
+2. REJECT if plural form (e.g., "tomatoes" -> suggest "tomato")
+3. REJECT if contains preparation adjectives (e.g., "fresh basil" -> suggest "basil")
+4. REJECT if not a food/ingredient/sauce/seasoning (e.g., "kitchen", random text)
+5. REJECT if it's a complete dish name (e.g., "pizza", "bibimbap")
+6. ACCEPT compound ingredients (e.g., "soy sauce", "olive oil", "tomato paste")
+
+=== COMMON RULES (all types) ===
+- REJECT if contains excessive numbers or special characters
+- REJECT if too long (more than 50 characters) unless it's a known name
+- REJECT if contains profanity or inappropriate content
 
 Respond ONLY with this JSON (no markdown, no explanation):
 {{"is_valid": true/false, "rejection_reason": "English reason if rejected, null if valid", "suggested_correction": "Corrected name if applicable, null otherwise", "canonical_name": "The clean English name for this item (for translation)"}}"""
