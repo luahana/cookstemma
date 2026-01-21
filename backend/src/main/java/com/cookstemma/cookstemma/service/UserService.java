@@ -48,23 +48,26 @@ public class UserService {
     private final LogPostRepository logPostRepository;
     private final SavedRecipeRepository savedRecipeRepository;
     private final CookingDnaService cookingDnaService;
+    private final TranslationEventService translationEventService;
 
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
 
     /**
      * [내 정보] UserPrincipal 기반 상세 조회 (기획서 7번 반영)
+     * @param locale locale for bio translation
      */
-    public MyProfileResponseDto getMyProfile(UserPrincipal principal) {
+    public MyProfileResponseDto getMyProfile(UserPrincipal principal, String locale) {
         // principal에 이미 담긴 Long ID를 사용하여 DB 부하를 줄입니다.
         User user = userRepository.findById(principal.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Long userId = user.getId();
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
 
         // 활동 내역: 레시피, 로그, 저장 개수
         return MyProfileResponseDto.builder()
-                .user(UserDto.from(user, urlPrefix))
+                .user(UserDto.from(user, urlPrefix, normalizedLocale))
                 .recipeCount(recipeRepository.countByCreatorIdAndDeletedAtIsNull(userId))
                 .logCount(logPostRepository.countByCreatorIdAndDeletedAtIsNull(userId))
                 .savedCount(savedRecipeRepository.countByUserId(userId))
@@ -74,14 +77,16 @@ public class UserService {
     /**
      * 사용자 상세 정보 조회 (공통)
      * Returns user profile with recipe and log counts, including gamification level
+     * @param locale locale for bio translation
      */
-    public UserDto getUserProfile(UUID publicId) {
+    public UserDto getUserProfile(UUID publicId, String locale) {
         User user = userRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Long userId = user.getId();
         long recipeCount = recipeRepository.countByCreatorIdAndDeletedAtIsNull(userId);
         long logCount = logPostRepository.countByCreatorIdAndDeletedAtIsNull(userId);
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
 
         // Calculate gamification level using rating-based XP
         List<Object[]> ratingCounts = recipeLogRepository.countByRatingForUser(userId);
@@ -99,7 +104,7 @@ public class UserService {
         int level = cookingDnaService.calculateLevel(totalXp);
         String levelName = cookingDnaService.getLevelName(level);
 
-        return UserDto.from(user, urlPrefix, recipeCount, logCount, level, levelName);
+        return UserDto.from(user, urlPrefix, recipeCount, logCount, level, levelName, normalizedLocale);
     }
 
     /**
@@ -162,7 +167,18 @@ public class UserService {
 
         // 7. Bio update with sanitization
         if (request.bio() != null) {
-            user.setBio(sanitizeBio(request.bio()));
+            String oldBio = user.getBio();
+            String newBio = sanitizeBio(request.bio());
+            user.setBio(newBio);
+
+            // Queue translation if bio changed and is not empty
+            boolean bioChanged = (oldBio == null && newBio != null) ||
+                    (oldBio != null && !oldBio.equals(newBio));
+            if (bioChanged && newBio != null && !newBio.isBlank()) {
+                // Clear existing translations when bio changes
+                user.getBioTranslations().clear();
+                translationEventService.queueUserBioTranslation(user);
+            }
         }
 
         // 8. YouTube URL update with normalization
