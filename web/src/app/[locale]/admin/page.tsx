@@ -1372,17 +1372,26 @@ function UntranslatedRecipesTab() {
             </span>
           )}
         </div>
-        <button
-          onClick={handleRetranslate}
-          disabled={selectedItems.size === 0 || retranslating}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-            selectedItems.size > 0
-              ? 'bg-[var(--primary)] text-white hover:opacity-90'
-              : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] cursor-not-allowed'
-          } disabled:opacity-50`}
-        >
-          {retranslating ? 'Queueing...' : 'Retranslate Selected'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"
+          >
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
+          <button
+            onClick={handleRetranslate}
+            disabled={selectedItems.size === 0 || retranslating}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              selectedItems.size > 0
+                ? 'bg-[var(--primary)] text-white hover:opacity-90'
+                : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] cursor-not-allowed'
+            } disabled:opacity-50`}
+          >
+            {retranslating ? 'Queueing...' : 'Retranslate Selected'}
+          </button>
+        </div>
       </div>
 
       <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg overflow-hidden">
@@ -1667,17 +1676,26 @@ function UntranslatedLogsTab() {
             </span>
           )}
         </div>
-        <button
-          onClick={handleRetranslate}
-          disabled={selectedItems.size === 0 || retranslating}
-          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-            selectedItems.size > 0
-              ? 'bg-[var(--primary)] text-white hover:opacity-90'
-              : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] cursor-not-allowed'
-          } disabled:opacity-50`}
-        >
-          {retranslating ? 'Queueing...' : 'Retranslate Selected'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"
+          >
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
+          <button
+            onClick={handleRetranslate}
+            disabled={selectedItems.size === 0 || retranslating}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              selectedItems.size > 0
+                ? 'bg-[var(--primary)] text-white hover:opacity-90'
+                : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] cursor-not-allowed'
+            } disabled:opacity-50`}
+          >
+            {retranslating ? 'Queueing...' : 'Retranslate Selected'}
+          </button>
+        </div>
       </div>
 
       <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg overflow-hidden">
