@@ -26,6 +26,16 @@ class Settings(BaseSettings):
         description="Internal secret for bot auto-creation (must match backend)",
     )
 
+    # Gemini Configuration
+    gemini_api_key: str = Field(
+        default="placeholder",
+        description="Google Gemini API key from AI Studio",
+    )
+    gemini_model: str = Field(
+        default="gemini-3-pro-image-preview",
+        description="Gemini model to use for image/text generation",
+    )
+
     # OpenAI Configuration
     openai_api_key: str = Field(
         default="sk-test-placeholder",
@@ -69,7 +79,6 @@ class Settings(BaseSettings):
         default=0.2,
         description="Ratio of PARTIAL outcome logs",
     )
-    # FAILED ratio is 1 - success - partial
 
     # Rate Limiting
     api_requests_per_minute: int = Field(
@@ -79,6 +88,10 @@ class Settings(BaseSettings):
     openai_requests_per_minute: int = Field(
         default=60,
         description="Max requests per minute to OpenAI API",
+    )
+    gemini_requests_per_minute: int = Field(
+        default=60,
+        description="Max requests per minute to Gemini API",
     )
 
     # Logging
