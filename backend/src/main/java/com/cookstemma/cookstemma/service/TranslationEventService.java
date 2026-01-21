@@ -65,6 +65,10 @@ public class TranslationEventService {
             Map.entry("IR", "fa")   // Iran → Persian
     );
 
+    /**
+     * Queue a full recipe translation (title, description, all steps, all ingredients).
+     * Uses RECIPE_FULL entity type for context-aware translation in a single API call.
+     */
     @Transactional
     public void queueRecipeTranslation(Recipe recipe) {
         String sourceLocale = normalizeLocale(recipe.getCookingStyle());
@@ -75,30 +79,24 @@ public class TranslationEventService {
             return;
         }
 
-        // Check if translation already pending
-        if (isTranslationPending(TranslatableEntity.RECIPE, recipe.getId())) {
+        // Check if translation already pending (using RECIPE_FULL)
+        if (isTranslationPending(TranslatableEntity.RECIPE_FULL, recipe.getId())) {
             log.debug("Translation already pending for recipe {}", recipe.getId());
             return;
         }
 
+        // Create single RECIPE_FULL event (replaces RECIPE + RECIPE_STEP + RECIPE_INGREDIENT events)
         TranslationEvent event = TranslationEvent.builder()
-                .entityType(TranslatableEntity.RECIPE)
+                .entityType(TranslatableEntity.RECIPE_FULL)
                 .entityId(recipe.getId())
                 .sourceLocale(sourceLocale)
                 .targetLocales(targetLocales)
                 .build();
 
         translationEventRepository.save(event);
-        log.info("Queued translation for recipe {} (source: {}, targets: {})",
-                recipe.getId(), sourceLocale, targetLocales.size());
-
-        // Also queue translations for steps and ingredients
-        for (RecipeStep step : recipe.getSteps()) {
-            queueRecipeStepTranslation(step, sourceLocale);
-        }
-        for (RecipeIngredient ingredient : recipe.getIngredients()) {
-            queueRecipeIngredientTranslation(ingredient, sourceLocale);
-        }
+        log.info("Queued full recipe translation for recipe {} ({} steps, {} ingredients, source: {}, targets: {})",
+                recipe.getId(), recipe.getSteps().size(), recipe.getIngredients().size(),
+                sourceLocale, targetLocales.size());
     }
 
     @Transactional
@@ -324,6 +322,7 @@ public class TranslationEventService {
     /**
      * Force re-translation of a recipe with a specified source locale.
      * This is useful when the recipe's cookingStyle doesn't match the actual content language.
+     * Uses RECIPE_FULL for context-aware translation of entire recipe in a single API call.
      *
      * @param recipe The recipe to re-translate
      * @param sourceLocale The actual language of the content (e.g., "en" if content is English)
@@ -335,62 +334,28 @@ public class TranslationEventService {
         // Translate to ALL locales (not excluding source, since we want full coverage)
         List<String> targetLocales = new ArrayList<>(ALL_LOCALES);
 
-        // Cancel any existing pending translations for this recipe
+        // Cancel any existing pending translations for this recipe (all types)
+        cancelPendingTranslations(TranslatableEntity.RECIPE_FULL, recipe.getId());
         cancelPendingTranslations(TranslatableEntity.RECIPE, recipe.getId());
+        for (RecipeStep step : recipe.getSteps()) {
+            cancelPendingTranslations(TranslatableEntity.RECIPE_STEP, step.getId());
+        }
+        for (RecipeIngredient ingredient : recipe.getIngredients()) {
+            cancelPendingTranslations(TranslatableEntity.RECIPE_INGREDIENT, ingredient.getId());
+        }
 
-        // Queue main recipe translation
+        // Queue single RECIPE_FULL translation (includes steps and ingredients)
         TranslationEvent event = TranslationEvent.builder()
-                .entityType(TranslatableEntity.RECIPE)
+                .entityType(TranslatableEntity.RECIPE_FULL)
                 .entityId(recipe.getId())
                 .sourceLocale(normalized)
                 .targetLocales(targetLocales)
                 .build();
 
         translationEventRepository.save(event);
-        log.info("Force-queued translation for recipe {} (source: {}, targets: all {})",
-                recipe.getId(), normalized, targetLocales.size());
-
-        // Also queue translations for steps and ingredients
-        for (RecipeStep step : recipe.getSteps()) {
-            forceRecipeStepTranslation(step, normalized);
-        }
-        for (RecipeIngredient ingredient : recipe.getIngredients()) {
-            forceRecipeIngredientTranslation(ingredient, normalized);
-        }
-    }
-
-    @Transactional
-    public void forceRecipeStepTranslation(RecipeStep step, String sourceLocale) {
-        String normalized = normalizeLocale(sourceLocale);
-        List<String> targetLocales = new ArrayList<>(ALL_LOCALES);
-
-        cancelPendingTranslations(TranslatableEntity.RECIPE_STEP, step.getId());
-
-        TranslationEvent event = TranslationEvent.builder()
-                .entityType(TranslatableEntity.RECIPE_STEP)
-                .entityId(step.getId())
-                .sourceLocale(normalized)
-                .targetLocales(targetLocales)
-                .build();
-
-        translationEventRepository.save(event);
-    }
-
-    @Transactional
-    public void forceRecipeIngredientTranslation(RecipeIngredient ingredient, String sourceLocale) {
-        String normalized = normalizeLocale(sourceLocale);
-        List<String> targetLocales = new ArrayList<>(ALL_LOCALES);
-
-        cancelPendingTranslations(TranslatableEntity.RECIPE_INGREDIENT, ingredient.getId());
-
-        TranslationEvent event = TranslationEvent.builder()
-                .entityType(TranslatableEntity.RECIPE_INGREDIENT)
-                .entityId(ingredient.getId())
-                .sourceLocale(normalized)
-                .targetLocales(targetLocales)
-                .build();
-
-        translationEventRepository.save(event);
+        log.info("Force-queued full recipe translation for recipe {} ({} steps, {} ingredients, source: {}, targets: all {})",
+                recipe.getId(), recipe.getSteps().size(), recipe.getIngredients().size(),
+                normalized, targetLocales.size());
     }
 
     private void cancelPendingTranslations(TranslatableEntity entityType, Long entityId) {

@@ -26,6 +26,76 @@ LOCALE_MAP = {
     'tr': 'tr-TR', 'nl': 'nl-NL', 'sv': 'sv-SE', 'fa': 'fa-IR'
 }
 
+# Map RecipeIngredient.type to AutocompleteItem.type
+INGREDIENT_TO_AUTOCOMPLETE_TYPE = {
+    'MAIN': 'MAIN_INGREDIENT',
+    'SECONDARY': 'SECONDARY_INGREDIENT',
+    'SEASONING': 'SEASONING'
+}
+
+# CDN URL prefix for image URLs (set via environment variable)
+CDN_URL_PREFIX = os.environ.get('CDN_URL_PREFIX', '')
+
+
+def map_ingredient_to_autocomplete_type(ingredient_type: str | None) -> str | None:
+    """Map RecipeIngredient.type to AutocompleteItem.type for propagation."""
+    if not ingredient_type:
+        return None
+    return INGREDIENT_TO_AUTOCOMPLETE_TYPE.get(ingredient_type)
+
+
+def fetch_recipe_image_urls(conn, recipe_id: int, limit: int = 3) -> list[str]:
+    """
+    Fetch image URLs for a recipe for content moderation.
+    Returns up to `limit` image URLs (default 3 for moderation efficiency).
+    """
+    if not CDN_URL_PREFIX:
+        logger.warning("CDN_URL_PREFIX not set, skipping image moderation")
+        return []
+
+    with conn.cursor() as cur:
+        # Fetch cover images via recipe_image_map join table
+        cur.execute("""
+            SELECT i.stored_filename
+            FROM recipe_image_map rim
+            JOIN images i ON rim.image_id = i.id
+            WHERE rim.recipe_id = %s
+              AND i.status = 'READY'
+              AND i.deleted_at IS NULL
+              AND i.variant_type IS NULL
+            ORDER BY rim.display_order
+            LIMIT %s
+        """, (recipe_id, limit))
+        images = cur.fetchall()
+
+    return [f"{CDN_URL_PREFIX}/{img['stored_filename']}" for img in images if img['stored_filename']]
+
+
+def fetch_log_post_image_urls(conn, log_post_id: int, limit: int = 3) -> list[str]:
+    """
+    Fetch image URLs for a log post for content moderation.
+    Returns up to `limit` image URLs (default 3 for moderation efficiency).
+    """
+    if not CDN_URL_PREFIX:
+        logger.warning("CDN_URL_PREFIX not set, skipping image moderation")
+        return []
+
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT stored_filename
+            FROM images
+            WHERE log_post_id = %s
+              AND status = 'READY'
+              AND deleted_at IS NULL
+              AND variant_type IS NULL
+            ORDER BY display_order
+            LIMIT %s
+        """, (log_post_id, limit))
+        images = cur.fetchall()
+
+    return [f"{CDN_URL_PREFIX}/{img['stored_filename']}" for img in images if img['stored_filename']]
+
+
 # Initialize AWS clients
 secrets_client = boto3.client('secretsmanager')
 
@@ -174,7 +244,14 @@ def run_migrations(conn):
         """)
         cur.execute("""
             DO $$ BEGIN
-                CREATE TYPE translatable_entity AS ENUM ('RECIPE', 'RECIPE_STEP', 'RECIPE_INGREDIENT', 'LOG_POST', 'FOOD_MASTER', 'AUTOCOMPLETE_ITEM');
+                CREATE TYPE translatable_entity AS ENUM ('RECIPE', 'RECIPE_STEP', 'RECIPE_INGREDIENT', 'RECIPE_FULL', 'LOG_POST', 'FOOD_MASTER', 'AUTOCOMPLETE_ITEM');
+            EXCEPTION WHEN duplicate_object THEN null;
+            END $$
+        """)
+        # Add RECIPE_FULL to existing enum if it doesn't exist
+        cur.execute("""
+            DO $$ BEGIN
+                ALTER TYPE translatable_entity ADD VALUE IF NOT EXISTS 'RECIPE_FULL';
             EXCEPTION WHEN duplicate_object THEN null;
             END $$
         """)
@@ -346,6 +423,156 @@ def fetch_entity_content(conn, entity_type: str, entity_id: int) -> dict | None:
         return cur.fetchone()
 
 
+def fetch_full_recipe(conn, recipe_id: int, source_locale: str) -> dict | None:
+    """
+    Fetch recipe with FoodMaster, steps, and ingredients for context-aware translation.
+    Includes FoodMaster name and ingredient types for propagation to master tables.
+    """
+    # Convert source locale to BCP47 for FoodMaster lookup
+    source_bcp47 = LOCALE_MAP.get(source_locale, f"{source_locale}-{source_locale.upper()}")
+
+    with conn.cursor() as cur:
+        # Fetch recipe with FoodMaster
+        cur.execute("""
+            SELECT r.id, r.title, r.description, r.title_translations, r.description_translations,
+                   r.food_master_id,
+                   fm.id as fm_id, fm.name as fm_name
+            FROM recipes r
+            LEFT JOIN foods_master fm ON r.food_master_id = fm.id
+            WHERE r.id = %s
+        """, (recipe_id,))
+        recipe = cur.fetchone()
+
+        if not recipe:
+            return None
+
+        # Fetch steps
+        cur.execute("""
+            SELECT id, step_number, description, description_translations
+            FROM recipe_steps WHERE recipe_id = %s
+            ORDER BY step_number
+        """, (recipe_id,))
+        steps = cur.fetchall()
+
+        # Fetch ingredients WITH TYPE for autocomplete matching
+        cur.execute("""
+            SELECT id, name, display_order, name_translations, type
+            FROM recipe_ingredients WHERE recipe_id = %s
+            ORDER BY display_order
+        """, (recipe_id,))
+        ingredients = cur.fetchall()
+
+    # Extract FoodMaster source name from JSONB
+    fm_name_json = recipe['fm_name'] or {}
+    fm_source_name = fm_name_json.get(source_bcp47) or fm_name_json.get(source_locale)
+    if not fm_source_name and fm_name_json:
+        # Fallback: use first available name
+        fm_source_name = next(iter(fm_name_json.values()), '')
+
+    return {
+        'recipe': recipe,
+        'food_master': {
+            'id': recipe['fm_id'],
+            'name': fm_source_name or '',
+            'name_json': fm_name_json
+        },
+        'steps': steps,
+        'ingredients': ingredients,  # Now includes 'type' field
+        'source_bcp47': source_bcp47
+    }
+
+
+def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
+                                   translated: dict, target_locale: str):
+    """
+    Save translations for recipe, steps, ingredients AND propagate to master tables.
+    - FoodMaster name is propagated from food_name translation
+    - AutocompleteItem names are propagated from ingredient translations (matched by name + type)
+    """
+    # Convert locale to BCP47 for master tables
+    target_bcp47 = LOCALE_MAP.get(target_locale, f"{target_locale}-{target_locale.upper()}")
+    source_bcp47 = full_recipe.get('source_bcp47', 'ko-KR')
+
+    with conn.cursor() as cur:
+        # 1. Update recipe title and description
+        existing_title = full_recipe['recipe']['title_translations'] or {}
+        existing_desc = full_recipe['recipe']['description_translations'] or {}
+
+        existing_title[target_locale] = translated.get('title', '')
+        existing_desc[target_locale] = translated.get('description', '')
+
+        cur.execute("""
+            UPDATE recipes
+            SET title_translations = %s,
+                description_translations = %s
+            WHERE id = %s
+        """, (
+            json.dumps(existing_title),
+            json.dumps(existing_desc),
+            recipe_id
+        ))
+
+        # 2. Propagate FoodMaster name translation
+        food_master = full_recipe.get('food_master', {})
+        translated_food_name = translated.get('food_name')
+        if translated_food_name and food_master.get('id'):
+            cur.execute("""
+                UPDATE foods_master
+                SET name = name || %s
+                WHERE id = %s
+            """, (
+                json.dumps({target_bcp47: translated_food_name}),
+                food_master['id']
+            ))
+            logger.info(f"Propagated food_name translation to FoodMaster {food_master['id']} ({target_bcp47})")
+
+        # 3. Update each step
+        translated_steps = translated.get('steps', [])
+        for i, step in enumerate(full_recipe['steps']):
+            if i < len(translated_steps):
+                existing_step_trans = step['description_translations'] or {}
+                existing_step_trans[target_locale] = translated_steps[i]
+                cur.execute("""
+                    UPDATE recipe_steps
+                    SET description_translations = %s
+                    WHERE id = %s
+                """, (json.dumps(existing_step_trans), step['id']))
+
+        # 4. Update each ingredient + propagate to autocomplete_items
+        translated_ingredients = translated.get('ingredients', [])
+        for i, ingredient in enumerate(full_recipe['ingredients']):
+            if i < len(translated_ingredients):
+                translated_name = translated_ingredients[i]
+                existing_ing_trans = ingredient['name_translations'] or {}
+                existing_ing_trans[target_locale] = translated_name
+
+                # Update recipe_ingredients
+                cur.execute("""
+                    UPDATE recipe_ingredients
+                    SET name_translations = %s
+                    WHERE id = %s
+                """, (json.dumps(existing_ing_trans), ingredient['id']))
+
+                # Propagate to autocomplete_items (match by exact name + type)
+                autocomplete_type = map_ingredient_to_autocomplete_type(ingredient.get('type'))
+                if autocomplete_type and ingredient.get('name'):
+                    # Match ingredient by original name (case-insensitive) and type
+                    cur.execute("""
+                        UPDATE autocomplete_items
+                        SET name = name || %s
+                        WHERE type::text = %s
+                          AND LOWER(name ->> %s) = LOWER(%s)
+                    """, (
+                        json.dumps({target_bcp47: translated_name}),
+                        autocomplete_type,
+                        source_bcp47,
+                        ingredient['name']
+                    ))
+                    if cur.rowcount > 0:
+                        logger.info(f"Propagated ingredient translation to AutocompleteItem: "
+                                    f"'{ingredient['name']}' -> '{translated_name}' ({target_bcp47})")
+
+
 def save_translations(conn, entity_type: str, entity_id: int, translations: dict):
     """Save translations back to the entity."""
     with conn.cursor() as cur:
@@ -408,6 +635,109 @@ def save_translations(conn, entity_type: str, entity_id: int, translations: dict
             """, (json.dumps(translations.get('bio', {})), entity_id))
 
 
+class ModerationFailure(Exception):
+    """Exception raised when content fails moderation check."""
+    def __init__(self, reason: str):
+        self.reason = reason
+        super().__init__(f"Content moderation failed: {reason}")
+
+
+def process_full_recipe_event(conn, translator: GeminiTranslator, event: dict,
+                               entity_id: int, source_locale: str,
+                               pending_locales: list, completed_locales: list,
+                               target_locales: list) -> bool:
+    """
+    Process RECIPE_FULL entity type - translates entire recipe with context.
+    This provides better quality translations by giving Gemini the full context
+    of title, description, food_name, all steps, and all ingredients in a single API call.
+    Also propagates translations to FoodMaster and AutocompleteItem for free.
+
+    IMPORTANT: Content and images are validated BEFORE translation.
+    If validation fails, the translation is skipped and marked as failed.
+    """
+    # Fetch full recipe with FoodMaster, steps, and ingredients (with types)
+    full_recipe = fetch_full_recipe(conn, entity_id, source_locale)
+    if not full_recipe:
+        logger.warning(f"Recipe not found: {entity_id}")
+        return False
+
+    recipe = full_recipe['recipe']
+    food_master = full_recipe.get('food_master', {})
+    steps = full_recipe['steps']
+    ingredients = full_recipe['ingredients']
+
+    logger.info(f"Translating full recipe {entity_id}: '{recipe['title']}' "
+                f"(food: '{food_master.get('name', 'N/A')}', "
+                f"{len(steps)} steps, {len(ingredients)} ingredients)")
+
+    # Build content for batch translation (includes food_name for FoodMaster propagation)
+    content_to_translate = {
+        'title': recipe['title'],
+        'description': recipe['description'] or '',
+        'food_name': food_master.get('name', ''),
+        'steps': [s['description'] for s in steps],
+        'ingredients': [i['name'] for i in ingredients]
+    }
+
+    # =============================================================================
+    # CONTENT MODERATION: Validate text content and images BEFORE translation
+    # =============================================================================
+    logger.info(f"Validating recipe {entity_id} content before translation...")
+
+    # 1. Validate text content
+    text_result = translator.moderate_recipe_content(
+        title=content_to_translate['title'],
+        description=content_to_translate['description'],
+        steps=content_to_translate['steps'],
+        ingredients=content_to_translate['ingredients'],
+        food_name=content_to_translate['food_name']
+    )
+    if not text_result:
+        logger.warning(f"Recipe {entity_id} text content failed moderation: {text_result.reason}")
+        raise ModerationFailure(f"Text content inappropriate: {text_result.reason}")
+
+    # 2. Validate images
+    image_urls = fetch_recipe_image_urls(conn, entity_id, limit=3)
+    for image_url in image_urls:
+        image_result = translator.moderate_image(image_url)
+        if not image_result:
+            logger.warning(f"Recipe {entity_id} image failed moderation ({image_url}): {image_result.reason}")
+            raise ModerationFailure(f"Image inappropriate: {image_result.reason}")
+
+    logger.info(f"Recipe {entity_id} passed content moderation (text + {len(image_urls)} images)")
+    # =============================================================================
+
+    new_completed = list(completed_locales)
+
+    for target_locale in pending_locales:
+        try:
+            # Use batch translation for full recipe context
+            translated = translator.translate_recipe_batch(
+                content=content_to_translate,
+                source_locale=source_locale,
+                target_locale=target_locale
+            )
+
+            # Save all translations (recipe, steps, ingredients)
+            # + propagate to FoodMaster and AutocompleteItem
+            save_full_recipe_translations(
+                conn, entity_id, full_recipe, translated, target_locale
+            )
+
+            new_completed.append(target_locale)
+            logger.info(f"Translated full recipe {entity_id} to {target_locale}")
+
+        except Exception as e:
+            logger.error(f"Failed to translate recipe {entity_id} to {target_locale}: {e}")
+            # Continue with other locales
+
+    # Update completed locales
+    update_completed_locales(conn, event['id'], new_completed)
+
+    # Return True if all locales are done
+    return set(new_completed) >= set(target_locales)
+
+
 def process_event(conn, translator: GeminiTranslator, event: dict) -> bool:
     """Process a single translation event."""
     entity_type = event['entity_type']
@@ -421,6 +751,13 @@ def process_event(conn, translator: GeminiTranslator, event: dict) -> bool:
 
     if not pending_locales:
         return True
+
+    # Special handling for RECIPE_FULL - translates entire recipe with context
+    if entity_type == 'RECIPE_FULL':
+        return process_full_recipe_event(
+            conn, translator, event, entity_id, source_locale,
+            pending_locales, completed_locales, target_locales
+        )
 
     # Fetch entity content
     entity = fetch_entity_content(conn, entity_type, entity_id)
@@ -501,6 +838,34 @@ def process_event(conn, translator: GeminiTranslator, event: dict) -> bool:
     elif entity_type == 'USER':
         content_to_translate = {'bio': entity['bio'] or ''}
         existing_translations = {'bio': entity['bio_translations'] or {}}
+
+    # =============================================================================
+    # CONTENT MODERATION: Validate content and images BEFORE translation
+    # Applies to LOG_POST (and can be extended to other types as needed)
+    # =============================================================================
+    if entity_type == 'LOG_POST':
+        logger.info(f"Validating log post {entity_id} content before translation...")
+
+        # 1. Validate text content
+        text_result = translator.moderate_text_content(
+            title=content_to_translate.get('title'),
+            content=content_to_translate.get('content'),
+            context="cooking log post"
+        )
+        if not text_result:
+            logger.warning(f"Log post {entity_id} text content failed moderation: {text_result.reason}")
+            raise ModerationFailure(f"Text content inappropriate: {text_result.reason}")
+
+        # 2. Validate images
+        image_urls = fetch_log_post_image_urls(conn, entity_id, limit=3)
+        for image_url in image_urls:
+            image_result = translator.moderate_image(image_url)
+            if not image_result:
+                logger.warning(f"Log post {entity_id} image failed moderation ({image_url}): {image_result.reason}")
+                raise ModerationFailure(f"Image inappropriate: {image_result.reason}")
+
+        logger.info(f"Log post {entity_id} passed content moderation (text + {len(image_urls)} images)")
+    # =============================================================================
 
     # Translate to each pending locale
     new_completed = list(completed_locales)

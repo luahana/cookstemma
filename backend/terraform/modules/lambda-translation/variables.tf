@@ -69,3 +69,9 @@ variable "ecr_repository_url" {
   description = "URL of the ECR repository for Lambda container image"
   type        = string
 }
+
+variable "cdn_url_prefix" {
+  description = "CDN URL prefix for image URLs (used for content moderation)"
+  type        = string
+  default     = ""
+}

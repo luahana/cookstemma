@@ -182,6 +182,7 @@ resource "aws_lambda_function" "translator" {
       DATABASE_SECRET_ARN = var.database_secret_arn
       GEMINI_SECRET_ARN   = aws_secretsmanager_secret.gemini.arn
       ENVIRONMENT         = var.environment
+      CDN_URL_PREFIX      = var.cdn_url_prefix
     }
   }
 

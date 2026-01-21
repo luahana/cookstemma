@@ -216,12 +216,12 @@ class TranslationEventServiceTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should create translation event for recipe with specified source locale")
+        @DisplayName("Should create RECIPE_FULL translation event with specified source locale")
         void forceRecipeTranslation_CreatesEvent() {
             translationEventService.forceRecipeTranslation(testRecipe, "en");
 
             List<TranslationEvent> events = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
-                    TranslatableEntity.RECIPE, testRecipe.getId(),
+                    TranslatableEntity.RECIPE_FULL, testRecipe.getId(),
                     List.of(TranslationStatus.PENDING));
 
             assertThat(events).hasSize(1);
@@ -234,7 +234,7 @@ class TranslationEventServiceTest extends BaseIntegrationTest {
             translationEventService.forceRecipeTranslation(testRecipe, "en");
 
             TranslationEvent event = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
-                    TranslatableEntity.RECIPE, testRecipe.getId(),
+                    TranslatableEntity.RECIPE_FULL, testRecipe.getId(),
                     List.of(TranslationStatus.PENDING)).get(0);
 
             // Force translation includes ALL locales (including source)
@@ -243,29 +243,27 @@ class TranslationEventServiceTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should also queue translations for recipe steps")
-        void forceRecipeTranslation_QueuesStepTranslations() {
+        @DisplayName("Should NOT create separate step/ingredient events (handled by RECIPE_FULL)")
+        void forceRecipeTranslation_NoSeparateStepIngredientEvents() {
             translationEventService.forceRecipeTranslation(testRecipe, "en");
 
+            // Should NOT have separate RECIPE_STEP events
             List<TranslationEvent> stepEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
                     TranslatableEntity.RECIPE_STEP, testRecipe.getSteps().get(0).getId(),
                     List.of(TranslationStatus.PENDING));
+            assertThat(stepEvents).isEmpty();
 
-            assertThat(stepEvents).hasSize(1);
-            assertThat(stepEvents.get(0).getSourceLocale()).isEqualTo("en");
-        }
-
-        @Test
-        @DisplayName("Should also queue translations for recipe ingredients")
-        void forceRecipeTranslation_QueuesIngredientTranslations() {
-            translationEventService.forceRecipeTranslation(testRecipe, "en");
-
+            // Should NOT have separate RECIPE_INGREDIENT events
             List<TranslationEvent> ingredientEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
                     TranslatableEntity.RECIPE_INGREDIENT, testRecipe.getIngredients().get(0).getId(),
                     List.of(TranslationStatus.PENDING));
+            assertThat(ingredientEvents).isEmpty();
 
-            assertThat(ingredientEvents).hasSize(1);
-            assertThat(ingredientEvents.get(0).getSourceLocale()).isEqualTo("en");
+            // Should only have ONE RECIPE_FULL event
+            List<TranslationEvent> fullEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                    TranslatableEntity.RECIPE_FULL, testRecipe.getId(),
+                    List.of(TranslationStatus.PENDING));
+            assertThat(fullEvents).hasSize(1);
         }
 
         @Test
@@ -275,7 +273,7 @@ class TranslationEventServiceTest extends BaseIntegrationTest {
             translationEventService.queueRecipeTranslation(testRecipe);
 
             List<TranslationEvent> initialEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
-                    TranslatableEntity.RECIPE, testRecipe.getId(),
+                    TranslatableEntity.RECIPE_FULL, testRecipe.getId(),
                     List.of(TranslationStatus.PENDING));
             assertThat(initialEvents).hasSize(1);
             Long initialEventId = initialEvents.get(0).getId();
@@ -290,10 +288,138 @@ class TranslationEventServiceTest extends BaseIntegrationTest {
 
             // Check new event is PENDING with new source
             List<TranslationEvent> newEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
-                    TranslatableEntity.RECIPE, testRecipe.getId(),
+                    TranslatableEntity.RECIPE_FULL, testRecipe.getId(),
                     List.of(TranslationStatus.PENDING));
             assertThat(newEvents).hasSize(1);
             assertThat(newEvents.get(0).getSourceLocale()).isEqualTo("en");
+        }
+    }
+
+    @Nested
+    @DisplayName("Queue Recipe Translation (RECIPE_FULL)")
+    class QueueRecipeTranslationTests {
+
+        @Autowired
+        private RecipeRepository recipeRepository;
+
+        @Autowired
+        private TestUserFactory testUserFactory;
+
+        private Recipe testRecipe;
+        private User testUser;
+
+        @BeforeEach
+        void setUpRecipe() {
+            testUser = testUserFactory.createTestUser();
+
+            testRecipe = Recipe.builder()
+                    .title("Test Recipe Title")
+                    .description("Test description")
+                    .cookingStyle("KR")
+                    .foodMaster(testFoodMaster)
+                    .creatorId(testUser.getId())
+                    .build();
+
+            RecipeStep step1 = RecipeStep.builder()
+                    .stepNumber(1)
+                    .description("Step 1 description")
+                    .recipe(testRecipe)
+                    .build();
+            RecipeStep step2 = RecipeStep.builder()
+                    .stepNumber(2)
+                    .description("Step 2 description")
+                    .recipe(testRecipe)
+                    .build();
+            testRecipe.getSteps().add(step1);
+            testRecipe.getSteps().add(step2);
+
+            RecipeIngredient ingredient1 = RecipeIngredient.builder()
+                    .name("Ingredient 1")
+                    .quantity(1.0)
+                    .recipe(testRecipe)
+                    .build();
+            RecipeIngredient ingredient2 = RecipeIngredient.builder()
+                    .name("Ingredient 2")
+                    .quantity(2.0)
+                    .recipe(testRecipe)
+                    .build();
+            testRecipe.getIngredients().add(ingredient1);
+            testRecipe.getIngredients().add(ingredient2);
+
+            recipeRepository.saveAndFlush(testRecipe);
+        }
+
+        @Test
+        @DisplayName("Should create single RECIPE_FULL event for recipe with steps and ingredients")
+        void queueRecipeTranslation_CreatesSingleEvent() {
+            translationEventService.queueRecipeTranslation(testRecipe);
+
+            // Should have exactly ONE RECIPE_FULL event
+            List<TranslationEvent> fullEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                    TranslatableEntity.RECIPE_FULL, testRecipe.getId(),
+                    List.of(TranslationStatus.PENDING));
+            assertThat(fullEvents).hasSize(1);
+
+            // Should NOT have separate RECIPE events
+            List<TranslationEvent> recipeEvents = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                    TranslatableEntity.RECIPE, testRecipe.getId(),
+                    List.of(TranslationStatus.PENDING));
+            assertThat(recipeEvents).isEmpty();
+
+            // Should NOT have separate RECIPE_STEP events
+            long stepEventCount = translationEventRepository.findAll().stream()
+                    .filter(e -> e.getEntityType() == TranslatableEntity.RECIPE_STEP)
+                    .filter(e -> e.getStatus() == TranslationStatus.PENDING)
+                    .count();
+            assertThat(stepEventCount).isZero();
+
+            // Should NOT have separate RECIPE_INGREDIENT events
+            long ingredientEventCount = translationEventRepository.findAll().stream()
+                    .filter(e -> e.getEntityType() == TranslatableEntity.RECIPE_INGREDIENT)
+                    .filter(e -> e.getStatus() == TranslationStatus.PENDING)
+                    .count();
+            assertThat(ingredientEventCount).isZero();
+        }
+
+        @Test
+        @DisplayName("Should set source locale based on cooking style")
+        void queueRecipeTranslation_SetsSourceLocale() {
+            translationEventService.queueRecipeTranslation(testRecipe);
+
+            TranslationEvent event = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                    TranslatableEntity.RECIPE_FULL, testRecipe.getId(),
+                    List.of(TranslationStatus.PENDING)).get(0);
+
+            // KR cooking style should map to ko locale
+            assertThat(event.getSourceLocale()).isEqualTo("ko");
+        }
+
+        @Test
+        @DisplayName("Should set 19 target locales (all except source)")
+        void queueRecipeTranslation_SetsTargetLocales() {
+            translationEventService.queueRecipeTranslation(testRecipe);
+
+            TranslationEvent event = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
+                    TranslatableEntity.RECIPE_FULL, testRecipe.getId(),
+                    List.of(TranslationStatus.PENDING)).get(0);
+
+            assertThat(event.getTargetLocales()).hasSize(19);
+            assertThat(event.getTargetLocales()).contains("en", "ja", "zh", "fr", "es");
+            assertThat(event.getTargetLocales()).doesNotContain("ko");
+        }
+
+        @Test
+        @DisplayName("Should not create duplicate event if one is pending")
+        void queueRecipeTranslation_NoDuplicateWhenPending() {
+            translationEventService.queueRecipeTranslation(testRecipe);
+            translationEventService.queueRecipeTranslation(testRecipe);
+
+            long count = translationEventRepository.findAll().stream()
+                    .filter(e -> e.getEntityType() == TranslatableEntity.RECIPE_FULL)
+                    .filter(e -> e.getEntityId().equals(testRecipe.getId()))
+                    .count();
+
+            assertThat(count).isEqualTo(1);
         }
     }
 }

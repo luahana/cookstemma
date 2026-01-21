@@ -281,6 +281,9 @@ module "lambda_translation" {
   memory_size                    = 512
   timeout                        = 300
   reserved_concurrent_executions = -1 # No reserved concurrency (account quota limit)
+
+  # CDN URL for content moderation (image validation)
+  cdn_url_prefix = "https://drms7t3elqlu.cloudfront.net"
 }
 
 # Lambda Image Processing Module - Parallel variant generation with Step Functions
