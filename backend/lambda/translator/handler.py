@@ -766,6 +766,7 @@ def process_full_recipe_event(conn, translator: GeminiTranslator, event: dict,
     # =============================================================================
 
     new_completed = list(completed_locales)
+    failed_locales = []
 
     for target_locale in pending_locales:
         try:
@@ -786,11 +787,20 @@ def process_full_recipe_event(conn, translator: GeminiTranslator, event: dict,
             logger.info(f"Translated full recipe {entity_id} to {target_locale}")
 
         except Exception as e:
-            logger.error(f"Failed to translate recipe {entity_id} to {target_locale}: {e}")
+            failed_locales.append(target_locale)
+            logger.error(f"Failed to translate recipe {entity_id} to {target_locale}: {e}", exc_info=True)
             # Continue with other locales
 
     # Update completed locales
     update_completed_locales(conn, event['id'], new_completed)
+
+    # Log summary of translation results
+    if failed_locales:
+        logger.warning(f"Recipe {entity_id} translation summary: "
+                      f"Completed {len(new_completed)}/{len(target_locales)} languages. "
+                      f"Failed: {', '.join(failed_locales)}")
+    else:
+        logger.info(f"Recipe {entity_id} successfully translated to all {len(new_completed)} languages")
 
     # Return True if all locales are done
     return set(new_completed) >= set(target_locales)
