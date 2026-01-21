@@ -1,4 +1,4 @@
-"""Image generator using Gemini 2 with retry logic."""
+"""Image generator using Imagen 3 with retry logic."""
 
 import io
 import random
@@ -22,7 +22,7 @@ logger = structlog.get_logger()
 
 
 class ImageGenerator:
-    """Generate professional food images using Gemini 2."""
+    """Generate professional food images using Imagen 3."""
 
     def __init__(
         self,
@@ -30,11 +30,11 @@ class ImageGenerator:
     ) -> None:
         settings = get_settings()
 
-        # Initialize Gemini Client
+        # Initialize Google GenAI Client
         self.client = genai.Client(
             api_key=gemini_api_key or settings.gemini_api_key
         )
-        self.model = settings.gemini_image_model or "gemini-2.0-flash-exp"
+        self.model = settings.gemini_image_model or "imagen-3.0-fast-generate-001"
 
     async def close(self) -> None:
         """Close any resources (kept for interface compatibility)."""
@@ -85,7 +85,7 @@ Lighting: Natural indoor lighting, high-quality amateur photography."""
         stop=stop_after_attempt(5),
         wait=wait_exponential(multiplier=2, min=10, max=120),
         before_sleep=lambda retry_state: logger.warning(
-            "gemini_image_retry",
+            "imagen_retry",
             attempt=retry_state.attempt_number,
             wait=retry_state.next_action.sleep,
         ),
@@ -94,35 +94,33 @@ Lighting: Natural indoor lighting, high-quality amateur photography."""
         self,
         prompt: str,
     ) -> bytes:
-        """Generate image using Gemini 2 with retry."""
-        response = await self.client.aio.models.generate_content(
+        """Generate image using Imagen 3 with retry."""
+        response = await self.client.aio.models.generate_images(
             model=self.model,
-            contents=[prompt],
-            config=types.GenerateContentConfig(
-                response_modalities=["IMAGE"],
-                image_config=types.ImageConfig(
-                    aspect_ratio="1:1",
-                ),
+            prompt=prompt,
+            config=types.GenerateImagesConfig(
+                number_of_images=1,
+                aspect_ratio="1:1",
             ),
         )
 
-        for part in response.parts:
-            if part.inline_data:
-                logger.info(
-                    "gemini_image_generated",
-                    model=self.model,
-                    prompt_preview=prompt[:50],
-                )
-                return part.inline_data.data
+        if response.generated_images:
+            image = response.generated_images[0]
+            logger.info(
+                "imagen_generated",
+                model=self.model,
+                prompt_preview=prompt[:50],
+            )
+            return image.image.image_bytes
 
-        raise ValueError("Gemini failed to return an image part")
+        raise ValueError("Imagen failed to return an image")
 
     async def generate_image(
         self,
         prompt: str,
         add_imperfections: bool = True,
     ) -> bytes:
-        """Generate image using Gemini 2 with automatic retries."""
+        """Generate image using Imagen 3 with automatic retries."""
         if add_imperfections:
             prompt = self._add_realism_imperfections(prompt)
 

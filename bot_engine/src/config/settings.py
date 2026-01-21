@@ -32,8 +32,8 @@ class Settings(BaseSettings):
         description="Google Gemini API key from AI Studio",
     )
     gemini_image_model: str = Field(
-        default="gemini-2.0-flash-exp",
-        description="Gemini model for image generation",
+        default="imagen-3.0-fast-generate-001",
+        description="Imagen model for image generation",
     )
     gemini_text_model: str = Field(
         default="gemini-2.0-flash-lite",
