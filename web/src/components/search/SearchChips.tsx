@@ -1,7 +1,9 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTransition, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 import type { SearchCounts, SearchTypeFilter } from '@/lib/types';
 
 interface SearchChipsProps {
@@ -21,6 +23,15 @@ export function SearchChips({ counts, selected, query }: SearchChipsProps) {
   const t = useTranslations('search');
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+  const { startLoading, stopLoading } = useNavigationProgress();
+
+  // Stop loading when transition completes
+  useEffect(() => {
+    if (!isPending) {
+      stopLoading();
+    }
+  }, [isPending, stopLoading]);
 
   const handleSelect = (type: SearchTypeFilter) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -31,7 +42,10 @@ export function SearchChips({ counts, selected, query }: SearchChipsProps) {
       params.set('type', type);
     }
     params.delete('page'); // Reset to first page on filter change
-    router.push(`/search?${params.toString()}`);
+    startLoading();
+    startTransition(() => {
+      router.push(`/search?${params.toString()}`);
+    });
   };
 
   return (

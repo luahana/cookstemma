@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 import { recordSearchHistory as recordSearchHistoryToBackend } from '@/lib/api/history';
 
 const STORAGE_KEY = 'searchHistory';
@@ -17,6 +18,14 @@ export function SearchHistory({ onSelect }: SearchHistoryProps) {
   const [history, setHistory] = useState<string[] | null>(null);
   const [isPending, startTransition] = useTransition();
   const [loadingQuery, setLoadingQuery] = useState<string | null>(null);
+  const { startLoading, stopLoading } = useNavigationProgress();
+
+  // Stop loading when transition completes
+  useEffect(() => {
+    if (!isPending) {
+      stopLoading();
+    }
+  }, [isPending, stopLoading]);
 
   const loadHistory = useCallback(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -101,19 +110,14 @@ export function SearchHistory({ onSelect }: SearchHistoryProps) {
                 <button
                   onClick={() => {
                     setLoadingQuery(query);
+                    startLoading();
                     startTransition(() => {
                       onSelect(query);
                     });
                   }}
                   disabled={isPending}
-                  className="hover:underline disabled:cursor-not-allowed flex items-center gap-1.5"
+                  className="hover:underline disabled:cursor-not-allowed"
                 >
-                  {isLoading && (
-                    <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                  )}
                   {query}
                 </button>
                 <button

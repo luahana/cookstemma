@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useTransition, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 
 interface LogFiltersProps {
   baseUrl: string;
@@ -12,9 +13,18 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
   const t = useTranslations('filters');
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+  const { startLoading, stopLoading } = useNavigationProgress();
 
   const currentSort = searchParams.get('sort') || 'recent';
   const currentRating = searchParams.get('rating') || 'all';
+
+  // Stop loading when transition completes
+  useEffect(() => {
+    if (!isPending) {
+      stopLoading();
+    }
+  }, [isPending, stopLoading]);
 
   const updateFilters = useCallback(
     (key: string, value: string) => {
@@ -41,9 +51,12 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
       params.delete('page');
 
       const queryString = params.toString();
-      router.push(`${baseUrl}${queryString ? `?${queryString}` : ''}`);
+      startLoading();
+      startTransition(() => {
+        router.push(`${baseUrl}${queryString ? `?${queryString}` : ''}`);
+      });
     },
-    [router, searchParams, baseUrl]
+    [router, searchParams, baseUrl, startLoading]
   );
 
   // Determine current rating selection from params
@@ -100,7 +113,10 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
       {hasActiveFilters && (
         <button
           onClick={() => {
-            router.push(baseUrl);
+            startLoading();
+            startTransition(() => {
+              router.push(baseUrl);
+            });
           }}
           className="text-sm text-[var(--primary)] hover:underline"
         >

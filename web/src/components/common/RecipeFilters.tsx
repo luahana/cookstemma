@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useTransition, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 import { CookingStyleSelect, useCookingStyleFilterOptions } from './CookingStyleSelect';
 
 interface RecipeFiltersProps {
@@ -22,12 +23,21 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cookingStyleOptions = useCookingStyleFilterOptions();
+  const [isPending, startTransition] = useTransition();
+  const { startLoading, stopLoading } = useNavigationProgress();
 
   const currentSort = searchParams.get('sort') || 'recent';
   const currentType = searchParams.get('type') || 'all';
   const currentCookingStyle = searchParams.get('style') || 'any';
   const currentCookingTime = searchParams.get('cookingTime') || 'any';
   const currentServings = searchParams.get('servings') || 'any';
+
+  // Stop loading when transition completes
+  useEffect(() => {
+    if (!isPending) {
+      stopLoading();
+    }
+  }, [isPending, stopLoading]);
 
   const updateFilters = useCallback(
     (key: string, value: string) => {
@@ -64,9 +74,12 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
       params.delete('page');
 
       const queryString = params.toString();
-      router.push(`${baseUrl}${queryString ? `?${queryString}` : ''}`);
+      startLoading();
+      startTransition(() => {
+        router.push(`${baseUrl}${queryString ? `?${queryString}` : ''}`);
+      });
     },
-    [router, searchParams, baseUrl]
+    [router, searchParams, baseUrl, startLoading]
   );
 
   const hasActiveFilters =
@@ -169,7 +182,10 @@ export function RecipeFilters({ baseUrl }: RecipeFiltersProps) {
       {hasActiveFilters && (
         <button
           onClick={() => {
-            router.push(baseUrl);
+            startLoading();
+            startTransition(() => {
+              router.push(baseUrl);
+            });
           }}
           className="text-sm text-[var(--primary)] hover:underline"
         >

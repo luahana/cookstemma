@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 import { ActionMenu, ActionMenuIcons } from '@/components/shared/ActionMenu';
 import { DeleteConfirmDialog } from '@/components/shared/DeleteConfirmDialog';
 import { getRecipeModifiable, deleteRecipe } from '@/lib/api/recipes';
@@ -30,6 +31,15 @@ export function RecipeActions({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isEditPending, startEditTransition] = useTransition();
+  const { startLoading, stopLoading } = useNavigationProgress();
+
+  // Stop loading when transition completes
+  useEffect(() => {
+    if (!isEditPending) {
+      stopLoading();
+    }
+  }, [isEditPending, stopLoading]);
 
   // Check if user is the owner
   const isOwner = isAuthenticated && user?.publicId === creatorPublicId;
@@ -56,7 +66,10 @@ export function RecipeActions({
   const handleEdit = async () => {
     await checkModifiable();
     if (modifiable?.canModify) {
-      router.push(`/recipes/${recipePublicId}/edit`);
+      startLoading();
+      startEditTransition(() => {
+        router.push(`/recipes/${recipePublicId}/edit`);
+      });
     } else if (modifiable?.reason) {
       setError(modifiable.reason);
     }

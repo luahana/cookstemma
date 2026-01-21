@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 import { ActionMenu, ActionMenuIcons } from '@/components/shared/ActionMenu';
 import { DeleteConfirmDialog } from '@/components/shared/DeleteConfirmDialog';
 import { deleteLog } from '@/lib/api/logs';
@@ -22,6 +23,15 @@ export function LogActions({ log }: LogActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isEditPending, startEditTransition] = useTransition();
+  const { startLoading, stopLoading } = useNavigationProgress();
+
+  // Stop loading when transition completes
+  useEffect(() => {
+    if (!isEditPending) {
+      stopLoading();
+    }
+  }, [isEditPending, stopLoading]);
 
   // Check if user is the owner
   const isOwner = isAuthenticated && user?.publicId === log.creatorPublicId;
@@ -46,10 +56,17 @@ export function LogActions({ log }: LogActionsProps) {
     }
   };
 
+  const handleEdit = () => {
+    startLoading();
+    startEditTransition(() => {
+      router.push(`/logs/${log.publicId}/edit`);
+    });
+  };
+
   const menuItems = [
     {
       label: t('edit'),
-      onClick: () => router.push(`/logs/${log.publicId}/edit`),
+      onClick: handleEdit,
       icon: ActionMenuIcons.edit,
     },
     {

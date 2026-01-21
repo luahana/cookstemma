@@ -1,8 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTransition, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 
 interface VariantButtonProps {
   recipePublicId: string;
@@ -16,15 +18,26 @@ export function VariantButton({ recipePublicId }: VariantButtonProps) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const t = useTranslations('variant');
+  const [isPending, startTransition] = useTransition();
+  const { startLoading, stopLoading } = useNavigationProgress();
+
+  // Stop loading when transition completes
+  useEffect(() => {
+    if (!isPending) {
+      stopLoading();
+    }
+  }, [isPending, stopLoading]);
 
   const handleClick = () => {
     const createUrl = `/recipes/create?parent=${recipePublicId}`;
-
-    if (!isAuthenticated) {
-      router.push(`/login?redirect=${encodeURIComponent(createUrl)}`);
-    } else {
-      router.push(createUrl);
-    }
+    startLoading();
+    startTransition(() => {
+      if (!isAuthenticated) {
+        router.push(`/login?redirect=${encodeURIComponent(createUrl)}`);
+      } else {
+        router.push(createUrl);
+      }
+    });
   };
 
   return (

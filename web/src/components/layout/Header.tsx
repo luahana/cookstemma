@@ -8,6 +8,7 @@ import { routing, type Locale } from '@/i18n/routing';
 import { siteConfig } from '@/config/site';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme, type Theme } from '@/contexts/ThemeContext';
+import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { updateUserProfile } from '@/lib/api/users';
 import { dispatchMeasurementChange } from '@/lib/utils/measurement';
@@ -67,6 +68,15 @@ export function Header() {
   const localeMenuRef = useRef<HTMLDivElement>(null);
   const measurementMenuRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
+  const [isSearchPending, startSearchTransition] = useTransition();
+  const { startLoading, stopLoading } = useNavigationProgress();
+
+  // Stop loading when search transition completes
+  useEffect(() => {
+    if (!isSearchPending) {
+      stopLoading();
+    }
+  }, [isSearchPending, stopLoading]);
 
   // Close mobile menu on route change
   const prevPathnameRef = useRef(pathname);
@@ -146,8 +156,11 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
+      startLoading();
+      startSearchTransition(() => {
+        router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        setSearchQuery('');
+      });
     }
   };
 
