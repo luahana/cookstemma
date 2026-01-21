@@ -1,0 +1,95 @@
+# Deploy Image Processor Lambda
+# Manual trigger via workflow_dispatch
+# Deploys both processor and orchestrator Lambda functions
+
+name: Lambda Image Processor Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+env:
+  AWS_REGION: us-east-2
+  PROJECT_NAME: cookstemma
+
+jobs:
+  deploy:
+    name: Deploy Lambda
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::819551471059:role/github-actions-cookstemma-${{ github.event.inputs.environment }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Lambda image
+        working-directory: ./backend/lambda/image-processor
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO: ${{ env.PROJECT_NAME }}-image-processor
+          ENV_TAG: ${{ github.event.inputs.environment }}-latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPO:$ENV_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPO:$ENV_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPO:$ENV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Update Processor Lambda function
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO: ${{ env.PROJECT_NAME }}-image-processor
+          LAMBDA_NAME: ${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment }}-image-processor
+          ENV_TAG: ${{ github.event.inputs.environment }}-latest
+        run: |
+          aws lambda update-function-code \
+            --function-name $LAMBDA_NAME \
+            --image-uri $ECR_REGISTRY/$ECR_REPO:$ENV_TAG \
+            --region ${{ env.AWS_REGION }}
+
+          aws lambda wait function-updated \
+            --function-name $LAMBDA_NAME \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Update Orchestrator Lambda function
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO: ${{ env.PROJECT_NAME }}-image-processor
+          LAMBDA_NAME: ${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment }}-image-orchestrator
+          ENV_TAG: ${{ github.event.inputs.environment }}-latest
+        run: |
+          aws lambda update-function-code \
+            --function-name $LAMBDA_NAME \
+            --image-uri $ECR_REGISTRY/$ECR_REPO:$ENV_TAG \
+            --region ${{ env.AWS_REGION }}
+
+          aws lambda wait function-updated \
+            --function-name $LAMBDA_NAME \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Deployment Summary
+        run: |
+          echo "## Lambda Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Processor Lambda:** ${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment }}-image-processor" >> $GITHUB_STEP_SUMMARY
+          echo "- **Orchestrator Lambda:** ${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment }}-image-orchestrator" >> $GITHUB_STEP_SUMMARY
