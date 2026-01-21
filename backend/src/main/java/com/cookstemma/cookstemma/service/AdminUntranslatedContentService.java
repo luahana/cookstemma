@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,11 +47,8 @@ public class AdminUntranslatedContentService {
             int page,
             int size) {
 
-        Sort.Direction direction = "asc".equalsIgnoreCase(sortOrder)
-                ? Sort.Direction.ASC
-                : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, sortBy != null ? sortBy : "createdAt");
-        Pageable pageable = PageRequest.of(page, size, sort);
+        // Native queries have ORDER BY built-in, so we only use pagination
+        Pageable pageable = PageRequest.of(page, size);
 
         Page<Recipe> recipes = (title != null && !title.isBlank())
                 ? recipeRepository.findUntranslatedRecipesByTitle(title, pageable)
@@ -82,11 +78,8 @@ public class AdminUntranslatedContentService {
             int page,
             int size) {
 
-        Sort.Direction direction = "asc".equalsIgnoreCase(sortOrder)
-                ? Sort.Direction.ASC
-                : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, sortBy != null ? sortBy : "createdAt");
-        Pageable pageable = PageRequest.of(page, size, sort);
+        // Native queries have ORDER BY built-in, so we only use pagination
+        Pageable pageable = PageRequest.of(page, size);
 
         Page<LogPost> logs = (content != null && !content.isBlank())
                 ? logPostRepository.findUntranslatedLogPostsByContent(content, pageable)
