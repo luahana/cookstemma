@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from src.api.models import (
     IngredientType,
-    LogOutcome,
     LogPost,
     MeasurementUnit,
     Recipe,
@@ -248,8 +247,8 @@ class TestLogPipeline:
         result = await pipeline.generate_log(
             persona=english_persona,
             recipe=sample_recipe,
-            outcome=LogOutcome.SUCCESS,
-            generate_image=True,
+            rating=5,
+            num_images=1,
         )
 
         # Verify text generation was called
@@ -282,37 +281,40 @@ class TestLogPipeline:
         await pipeline.generate_log(
             persona=english_persona,
             recipe=sample_recipe,
-            generate_image=False,
+            num_images=0,
         )
 
         # Image generator should not be called
         mock_image_generator.generate_log_image.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_select_outcome_distribution(
+    async def test_select_rating_distribution(
         self,
         mock_api_client: AsyncMock,
         mock_text_generator: AsyncMock,
         mock_image_generator: AsyncMock,
     ) -> None:
-        """Test that outcome selection follows configured ratios."""
+        """Test that rating selection follows configured distribution."""
         pipeline = LogPipeline(
             api_client=mock_api_client,
             text_generator=mock_text_generator,
             image_generator=mock_image_generator,
         )
 
-        # Generate many outcomes to verify distribution
-        outcomes = [pipeline._select_outcome() for _ in range(1000)]
+        # Generate many ratings to verify distribution (default: 3-5)
+        ratings = [pipeline._select_rating() for _ in range(1000)]
 
-        success_count = sum(1 for o in outcomes if o == LogOutcome.SUCCESS)
-        partial_count = sum(1 for o in outcomes if o == LogOutcome.PARTIAL)
-        failed_count = sum(1 for o in outcomes if o == LogOutcome.FAILED)
+        # All ratings should be in 3-5 range (default)
+        assert all(3 <= r <= 5 for r in ratings)
 
-        # Should roughly follow 70/20/10 distribution (with some tolerance)
-        assert 600 < success_count < 800  # ~70%
-        assert 100 < partial_count < 300  # ~20%
-        assert 50 < failed_count < 200    # ~10%
+        # Should be biased towards higher ratings
+        rating_5_count = sum(1 for r in ratings if r == 5)
+        rating_4_count = sum(1 for r in ratings if r == 4)
+        rating_3_count = sum(1 for r in ratings if r == 3)
+
+        # Rating 4 and 5 should be more common than 3
+        assert rating_5_count > rating_3_count * 0.5
+        assert rating_4_count > rating_3_count * 0.5
 
     @pytest.mark.asyncio
     async def test_generate_logs_for_recipe_uses_multiple_personas(
@@ -337,7 +339,7 @@ class TestLogPipeline:
             personas=personas,
             recipe=sample_recipe,
             count=5,
-            generate_images=False,
+            num_images=0,
         )
 
         # Should generate requested number of logs

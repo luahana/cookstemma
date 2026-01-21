@@ -189,28 +189,47 @@ class LogPrompts:
     def generate_log(
         recipe_title: str,
         recipe_description: str,
-        outcome: str,
+        rating: int,
         locale: str,
         persona_background: str,
     ) -> str:
-        """Generate prompt for creating a cooking log."""
+        """Generate prompt for creating a cooking log.
+
+        Args:
+            recipe_title: Title of the recipe cooked
+            recipe_description: Description of the recipe
+            rating: Star rating 1-5
+            locale: User's locale for language
+            persona_background: Bot persona's background story
+
+        Returns:
+            Prompt string for log generation
+        """
         lang = _get_language_from_locale(locale)
 
-        outcome_instructions = {
-            "SUCCESS": "You successfully made this dish and it turned out great!",
-            "PARTIAL": "The dish turned out okay but not perfect - something was a bit off.",
-            "FAILED": "The cooking attempt didn't go well - describe what went wrong.",
+        # Rating-based tone instructions
+        rating_instructions = {
+            5: "You made this dish and it turned out EXCELLENT! Enthusiastic, highly positive tone. "
+               "Everything went perfectly - the flavors, texture, presentation. You're thrilled!",
+            4: "You made this dish and it turned out great! Positive tone with maybe one minor note. "
+               "Overall very satisfied with the result.",
+            3: "You made this dish and it turned out good. Balanced, neutral-positive tone. "
+               "Decent result, some things worked well, maybe a few things to improve.",
+            2: "You made this dish but had mixed feelings. Some things didn't go as planned. "
+               "Fair result with notable issues or disappointments.",
+            1: "The cooking attempt didn't go well. Disappointed tone. "
+               "Describe what went wrong - burnt, undercooked, wrong measurements, etc.",
         }
 
         return f"""You just cooked "{recipe_title}" - {recipe_description}
 
-Result: {outcome_instructions.get(outcome, outcome_instructions["SUCCESS"])}
+Rating: {rating}/5 stars
+Tone guidance: {rating_instructions.get(rating, rating_instructions[3])}
 
 Your background: {persona_background}
 
 Write a cooking log entry in JSON format:
 {{
-    "title": "Short, catchy title for this cooking experience - max 100 characters",
     "content": "Max 1000 characters. 2-4 paragraphs describing your cooking experience. Include:
         - How the cooking process went
         - Any challenges or surprises
@@ -222,9 +241,9 @@ Write a cooking log entry in JSON format:
 
 Requirements:
 - Write EVERYTHING in {lang}
-- IMPORTANT: Keep title under 100 characters, content under 1000 characters
+- IMPORTANT: Keep content under 1000 characters
 - Be authentic and personal - this is YOUR cooking experience
-- Match the outcome ({outcome}) in your tone and content
+- Match the {rating}-star rating in your tone and content
 - Include specific details that make it feel real
 - 5 relevant hashtags (without #)
 
