@@ -81,7 +81,7 @@ def fetch_recipe_image_urls(conn, recipe_id: int, limit: int = 3) -> list[str]:
             FROM recipe_image_map rim
             JOIN images i ON rim.image_id = i.id
             WHERE rim.recipe_id = %s
-              AND i.status = 'READY'
+              AND i.status = 'ACTIVE'
               AND i.deleted_at IS NULL
               AND i.variant_type IS NULL
             ORDER BY rim.display_order
