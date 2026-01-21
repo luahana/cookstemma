@@ -39,7 +39,7 @@ LANGUAGE_NAMES = {
 class GeminiTranslator:
     """Translates cooking content using Google Gemini."""
 
-    def __init__(self, api_key: str, model: str = "gemini-2.5-flash"):
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite"):
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(
             model_name=model,
