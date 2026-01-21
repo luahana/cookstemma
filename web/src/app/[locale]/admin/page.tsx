@@ -1277,24 +1277,14 @@ function UntranslatedRecipesTab() {
       filterable: true,
       filterType: 'text',
       render: (item) => (
-        <span className="font-medium" title={item.title}>
-          {item.title && item.title.length > 40 ? `${item.title.substring(0, 40)}...` : item.title || '-'}
-        </span>
-      ),
-    },
-    {
-      key: 'url',
-      header: 'URL',
-      sortable: false,
-      width: '80px',
-      render: (item) => (
         <a
           href={`/recipes/${item.publicId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[var(--primary)] hover:underline text-sm"
+          className="font-medium text-[var(--primary)] hover:underline"
+          title={item.title}
         >
-          View
+          {item.title && item.title.length > 40 ? `${item.title.substring(0, 40)}...` : item.title || '-'}
         </a>
       ),
     },
@@ -1588,24 +1578,14 @@ function UntranslatedLogsTab() {
       filterable: true,
       filterType: 'text',
       render: (item) => (
-        <span className="font-medium" title={item.content}>
-          {item.content && item.content.length > 50 ? `${item.content.substring(0, 50)}...` : item.content || '-'}
-        </span>
-      ),
-    },
-    {
-      key: 'url',
-      header: 'URL',
-      sortable: false,
-      width: '80px',
-      render: (item) => (
         <a
           href={`/logs/${item.publicId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[var(--primary)] hover:underline text-sm"
+          className="font-medium text-[var(--primary)] hover:underline"
+          title={item.content}
         >
-          View
+          {item.content && item.content.length > 50 ? `${item.content.substring(0, 50)}...` : item.content || '-'}
         </a>
       ),
     },
