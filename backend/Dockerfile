@@ -25,4 +25,4 @@ COPY --from=builder ./app/build/libs/*.jar ./app.jar
 
 EXPOSE 4000
 
-ENTRYPOINT ["java", "-Xms512m", "-Xmx1536m", "-XX:+UseG1GC", "-XX:MaxGCPauseMillis=100", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xms256m", "-Xmx768m", "-XX:+UseG1GC", "-XX:MaxGCPauseMillis=100", "-jar", "app.jar"]
