@@ -690,16 +690,22 @@ public class RecipeService {
 
     /**
      * 레시피 검색 (제목, 설명, 재료명)
+     * Filters by translation availability based on locale
      */
-    public Slice<RecipeSummaryDto> searchRecipes(String keyword, Pageable pageable) {
+    public Slice<RecipeSummaryDto> searchRecipes(String keyword, Pageable pageable, String locale) {
         if (keyword == null || keyword.trim().length() < 2) {
             return new org.springframework.data.domain.SliceImpl<>(
                     java.util.Collections.emptyList(), pageable, false);
         }
+
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+        // Extract language code for translation filtering
+        String langCode = LocaleUtils.getLanguageCode(normalizedLocale);
+
         // Use unsorted pageable - the native query handles ordering by relevance score
         Pageable unsortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-        return recipeRepository.searchRecipes(keyword.trim(), unsortedPageable)
-                .map(this::convertToSummary);
+        return recipeRepository.searchRecipes(keyword.trim(), langCode, unsortedPageable)
+                .map(r -> convertToSummary(r, normalizedLocale));
     }
 
     // ================================================================
@@ -890,6 +896,7 @@ public class RecipeService {
 
     /**
      * Find recipes with cursor-based pagination
+     * Filters by translation availability based on contentLocale
      */
     @Transactional(readOnly = true)
     public CursorPageResponse<RecipeSummaryDto> findRecipesWithCursor(String locale, boolean onlyRoot, String typeFilter, String cursor, int size, String contentLocale) {
@@ -899,17 +906,20 @@ public class RecipeService {
         boolean isOriginalFilter = "original".equalsIgnoreCase(typeFilter) || onlyRoot;
         boolean isVariantFilter = "variant".equalsIgnoreCase(typeFilter);
 
+        // Extract language code for translation filtering
+        String langCode = LocaleUtils.getLanguageCode(LocaleUtils.normalizeLocale(contentLocale));
+
         Slice<Recipe> recipes;
 
         if (cursorData == null) {
             // Initial page (no cursor)
             if (locale == null || locale.isBlank()) {
                 if (isVariantFilter) {
-                    recipes = recipeRepository.findVariantRecipesWithCursorInitial(pageable);
+                    recipes = recipeRepository.findVariantRecipesWithCursorInitial(langCode, pageable);
                 } else if (isOriginalFilter) {
-                    recipes = recipeRepository.findOriginalRecipesWithCursorInitial(pageable);
+                    recipes = recipeRepository.findOriginalRecipesWithCursorInitial(langCode, pageable);
                 } else {
-                    recipes = recipeRepository.findPublicRecipesWithCursorInitial(pageable);
+                    recipes = recipeRepository.findPublicRecipesWithCursorInitial(langCode, pageable);
                 }
             } else {
                 if (isVariantFilter) {
@@ -924,11 +934,11 @@ public class RecipeService {
             // With cursor
             if (locale == null || locale.isBlank()) {
                 if (isVariantFilter) {
-                    recipes = recipeRepository.findVariantRecipesWithCursor(cursorData.createdAt(), cursorData.id(), pageable);
+                    recipes = recipeRepository.findVariantRecipesWithCursor(langCode, cursorData.createdAt(), cursorData.id(), pageable);
                 } else if (isOriginalFilter) {
-                    recipes = recipeRepository.findOriginalRecipesWithCursor(cursorData.createdAt(), cursorData.id(), pageable);
+                    recipes = recipeRepository.findOriginalRecipesWithCursor(langCode, cursorData.createdAt(), cursorData.id(), pageable);
                 } else {
-                    recipes = recipeRepository.findPublicRecipesWithCursor(cursorData.createdAt(), cursorData.id(), pageable);
+                    recipes = recipeRepository.findPublicRecipesWithCursor(langCode, cursorData.createdAt(), cursorData.id(), pageable);
                 }
             } else {
                 if (isVariantFilter) {
@@ -946,12 +956,16 @@ public class RecipeService {
 
     /**
      * Search recipes with cursor-based pagination
+     * Filters by translation availability based on contentLocale
      */
     @Transactional(readOnly = true)
     public CursorPageResponse<RecipeSummaryDto> searchRecipesWithCursor(String keyword, String cursor, int size, String contentLocale) {
         if (keyword == null || keyword.trim().length() < 2) {
             return CursorPageResponse.empty(size);
         }
+
+        // Extract language code for translation filtering
+        String langCode = LocaleUtils.getLanguageCode(LocaleUtils.normalizeLocale(contentLocale));
 
         // Note: Search uses relevance ordering, so we fall back to simple offset pagination
         // decoded from cursor as page number for simplicity
@@ -963,7 +977,7 @@ public class RecipeService {
         }
 
         Pageable pageable = PageRequest.of(page, size);
-        Slice<Recipe> recipes = recipeRepository.searchRecipes(keyword.trim(), pageable);
+        Slice<Recipe> recipes = recipeRepository.searchRecipes(keyword.trim(), langCode, pageable);
         List<RecipeSummaryDto> content = recipes.getContent().stream()
                 .map(r -> convertToSummary(r, contentLocale))
                 .toList();
@@ -1114,25 +1128,28 @@ public class RecipeService {
     /**
      * Offset-based pagination for web clients.
      * Returns Page with totalElements, totalPages, currentPage.
+     * Filters by translation availability based on contentLocale
      */
     private UnifiedPageResponse<RecipeSummaryDto> findRecipesWithOffset(
             String locale, String typeFilter, int page, int size, String contentLocale) {
 
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = PageRequest.of(page, size);
 
         boolean isOriginalFilter = "original".equalsIgnoreCase(typeFilter);
         boolean isVariantFilter = "variant".equalsIgnoreCase(typeFilter);
+
+        // Extract language code for translation filtering
+        String langCode = LocaleUtils.getLanguageCode(LocaleUtils.normalizeLocale(contentLocale));
 
         Page<Recipe> recipes;
 
         if (locale == null || locale.isBlank()) {
             if (isVariantFilter) {
-                recipes = recipeRepository.findVariantRecipesPage(pageable);
+                recipes = recipeRepository.findVariantRecipesPage(langCode, pageable);
             } else if (isOriginalFilter) {
-                recipes = recipeRepository.findOriginalRecipesPage(pageable);
+                recipes = recipeRepository.findOriginalRecipesPage(langCode, pageable);
             } else {
-                recipes = recipeRepository.findPublicRecipesPage(pageable);
+                recipes = recipeRepository.findPublicRecipesPage(langCode, pageable);
             }
         } else {
             if (isVariantFilter) {
@@ -1151,27 +1168,30 @@ public class RecipeService {
     /**
      * Offset-based pagination with complex sorting (mostForked, trending).
      * Uses native queries with subqueries for counting variants/activity.
+     * Filters by translation availability based on contentLocale
      */
     private UnifiedPageResponse<RecipeSummaryDto> findRecipesWithOffsetSorted(
             String locale, String typeFilter, String sort, int page, int size, String contentLocale) {
 
         Pageable pageable = PageRequest.of(page, size);
+
+        // Extract language code for translation filtering
+        String langCode = LocaleUtils.getLanguageCode(LocaleUtils.normalizeLocale(contentLocale));
+
         Page<Recipe> recipes;
 
         if ("mostForked".equalsIgnoreCase(sort)) {
             // Order by variant count (most evolved)
-            recipes = recipeRepository.findRecipesOrderByVariantCount(pageable);
+            recipes = recipeRepository.findRecipesOrderByVariantCount(langCode, pageable);
         } else if ("trending".equalsIgnoreCase(sort)) {
             // Order by recent activity (variants + logs in last 7 days)
-            recipes = recipeRepository.findRecipesOrderByTrending(pageable);
+            recipes = recipeRepository.findRecipesOrderByTrending(langCode, pageable);
         } else if ("popular".equalsIgnoreCase(sort)) {
             // Order by popularity score (weighted engagement metrics)
-            recipes = recipeRepository.findRecipesOrderByPopular(pageable);
+            recipes = recipeRepository.findRecipesOrderByPopular(langCode, pageable);
         } else {
             // Fallback to recent
-            Sort sortBy = Sort.by(Sort.Direction.DESC, "createdAt");
-            pageable = PageRequest.of(page, size, sortBy);
-            recipes = recipeRepository.findPublicRecipesPage(pageable);
+            recipes = recipeRepository.findPublicRecipesPage(langCode, pageable);
         }
 
         Page<RecipeSummaryDto> mappedPage = recipes.map(r -> convertToSummary(r, contentLocale));
@@ -1278,12 +1298,16 @@ public class RecipeService {
 
     /**
      * Offset-based search for web clients.
+     * Filters by translation availability based on contentLocale
      */
     private UnifiedPageResponse<RecipeSummaryDto> searchRecipesWithOffset(
             String keyword, int page, int size, String contentLocale) {
 
+        // Extract language code for translation filtering
+        String langCode = LocaleUtils.getLanguageCode(LocaleUtils.normalizeLocale(contentLocale));
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword.trim(), pageable);
+        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword.trim(), langCode, pageable);
 
         Page<RecipeSummaryDto> mappedPage = recipes.map(r -> convertToSummary(r, contentLocale));
         return UnifiedPageResponse.fromPage(mappedPage, size);

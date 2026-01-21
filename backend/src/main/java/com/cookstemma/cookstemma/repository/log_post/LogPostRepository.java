@@ -59,11 +59,14 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     long countByCreatorIdAndDeletedAtIsNull(Long creatorId);
 
     // [검색] pg_trgm 기반 로그 검색 (제목, 내용, 연결된 레시피명, 번역 필드 포함)
+    // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT DISTINCT lp.* FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
         WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         AND (
             -- Base fields
             lp.title ILIKE '%' || :keyword || '%'
@@ -83,6 +86,8 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
         WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         AND (
             lp.title ILIKE '%' || :keyword || '%'
             OR lp.content ILIKE '%' || :keyword || '%'
@@ -93,42 +98,61 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         )
         """,
         nativeQuery = true)
-    Slice<LogPost> searchLogPosts(@Param("keyword") String keyword, Pageable pageable);
+    Slice<LogPost> searchLogPosts(@Param("keyword") String keyword, @Param("langCode") String langCode, Pageable pageable);
 
     // ==================== CURSOR-BASED PAGINATION ====================
 
     // [Cursor] All logs - initial page
-    @Query("SELECT l FROM LogPost l WHERE l.deletedAt IS NULL ORDER BY l.createdAt DESC, l.id DESC")
-    Slice<LogPost> findAllLogsWithCursorInitial(Pageable pageable);
+    // Filters by translation availability: source locale matches OR translation exists
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
+        ORDER BY lp.created_at DESC, lp.id DESC
+        """, nativeQuery = true)
+    Slice<LogPost> findAllLogsWithCursorInitial(@Param("langCode") String langCode, Pageable pageable);
 
     // [Cursor] All logs - with cursor
-    @Query("SELECT l FROM LogPost l WHERE l.deletedAt IS NULL " +
-           "AND (l.createdAt < :cursorTime OR (l.createdAt = :cursorTime AND l.id < :cursorId)) " +
-           "ORDER BY l.createdAt DESC, l.id DESC")
-    Slice<LogPost> findAllLogsWithCursor(@Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    // Filters by translation availability: source locale matches OR translation exists
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
+        AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
+        ORDER BY lp.created_at DESC, lp.id DESC
+        """, nativeQuery = true)
+    Slice<LogPost> findAllLogsWithCursor(@Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] Logs by rating range - initial page (native query for JOIN)
+    // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.deleted_at IS NULL
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         AND rl.rating BETWEEN :minRating AND :maxRating
         ORDER BY lp.created_at DESC, lp.id DESC
         """,
         nativeQuery = true)
-    Slice<LogPost> findByRatingWithCursorInitial(@Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
+    Slice<LogPost> findByRatingWithCursorInitial(@Param("langCode") String langCode, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
 
     // [Cursor] Logs by rating range - with cursor (native query for JOIN)
+    // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.deleted_at IS NULL
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         AND rl.rating BETWEEN :minRating AND :maxRating
         AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
         ORDER BY lp.created_at DESC, lp.id DESC
         """,
         nativeQuery = true)
-    Slice<LogPost> findByRatingWithCursor(@Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    Slice<LogPost> findByRatingWithCursor(@Param("langCode") String langCode, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] My logs - initial page
     @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.deletedAt IS NULL ORDER BY l.createdAt DESC, l.id DESC")
@@ -168,53 +192,82 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // ==================== OFFSET-BASED PAGINATION (for Web) ====================
 
     // [Offset] All logs - page
-    @Query("SELECT l FROM LogPost l WHERE l.deletedAt IS NULL")
-    Page<LogPost> findAllLogsPage(Pageable pageable);
-
-    // [Offset] All logs ordered by popularity score
-    // Score = viewCount + savedCount * 5
+    // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
+        ORDER BY lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
+        """,
+        nativeQuery = true)
+    Page<LogPost> findAllLogsPage(@Param("langCode") String langCode, Pageable pageable);
+
+    // [Offset] All logs ordered by popularity score
+    // Score = viewCount + savedCount * 5
+    // Filters by translation availability: source locale matches OR translation exists
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         ORDER BY (COALESCE(lp.view_count, 0) + COALESCE(lp.saved_count, 0) * 5) DESC, lp.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         """,
         nativeQuery = true)
-    Page<LogPost> findAllLogsOrderByPopular(Pageable pageable);
+    Page<LogPost> findAllLogsOrderByPopular(@Param("langCode") String langCode, Pageable pageable);
 
     // [Offset] All logs ordered by trending (engagement with time decay)
     // Score = (viewCount + savedCount * 5) / (1 + days_since_creation / 7)
+    // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         ORDER BY ((COALESCE(lp.view_count, 0) + COALESCE(lp.saved_count, 0) * 5)::float / (1.0 + EXTRACT(EPOCH FROM (NOW() - lp.created_at)) / 604800.0)) DESC,
                  lp.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         """,
         nativeQuery = true)
-    Page<LogPost> findAllLogsOrderByTrending(Pageable pageable);
+    Page<LogPost> findAllLogsOrderByTrending(@Param("langCode") String langCode, Pageable pageable);
 
     // [Offset] Logs by rating range - page (native query for JOIN)
+    // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.deleted_at IS NULL
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         AND rl.rating BETWEEN :minRating AND :maxRating
         """,
         countQuery = """
         SELECT COUNT(lp.id) FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.deleted_at IS NULL
+        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         AND rl.rating BETWEEN :minRating AND :maxRating
         """,
         nativeQuery = true)
-    Page<LogPost> findByRatingPage(@Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
+    Page<LogPost> findByRatingPage(@Param("langCode") String langCode, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
 
     // [Offset] My logs - page
     @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.deletedAt IS NULL")
@@ -239,11 +292,14 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     Page<LogPost> findMyLogsByRatingPage(@Param("creatorId") Long creatorId, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
 
     // [Offset] Search logs - page (multi-language)
+    // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT DISTINCT lp.* FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
         WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         AND (
             -- Base fields
             lp.title ILIKE '%' || :keyword || '%'
@@ -263,6 +319,8 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
         WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         AND (
             lp.title ILIKE '%' || :keyword || '%'
             OR lp.content ILIKE '%' || :keyword || '%'
@@ -273,33 +331,70 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         )
         """,
         nativeQuery = true)
-    Page<LogPost> searchLogPostsPage(@Param("keyword") String keyword, Pageable pageable);
+    Page<LogPost> searchLogPostsPage(@Param("keyword") String keyword, @Param("langCode") String langCode, Pageable pageable);
 
     // ==================== HASHTAG-BASED QUERIES ====================
 
     // [Cursor] LogPosts by hashtag - initial page
-    @Query("SELECT l FROM LogPost l JOIN l.hashtags h " +
-           "WHERE h.name = :hashtagName AND l.deletedAt IS NULL AND l.isPrivate = false " +
-           "ORDER BY l.createdAt DESC, l.id DESC")
-    Slice<LogPost> findByHashtagWithCursorInitial(@Param("hashtagName") String hashtagName, Pageable pageable);
+    // Filters by translation availability: source locale matches OR translation exists
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
+        JOIN hashtags h ON h.id = lph.hashtag_id
+        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
+        ORDER BY lp.created_at DESC, lp.id DESC
+        """, nativeQuery = true)
+    Slice<LogPost> findByHashtagWithCursorInitial(
+            @Param("hashtagName") String hashtagName,
+            @Param("langCode") String langCode,
+            Pageable pageable);
 
     // [Cursor] LogPosts by hashtag - with cursor
-    @Query("SELECT l FROM LogPost l JOIN l.hashtags h " +
-           "WHERE h.name = :hashtagName AND l.deletedAt IS NULL AND l.isPrivate = false " +
-           "AND (l.createdAt < :cursorTime OR (l.createdAt = :cursorTime AND l.id < :cursorId)) " +
-           "ORDER BY l.createdAt DESC, l.id DESC")
+    // Filters by translation availability: source locale matches OR translation exists
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
+        JOIN hashtags h ON h.id = lph.hashtag_id
+        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
+        AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
+        ORDER BY lp.created_at DESC, lp.id DESC
+        """, nativeQuery = true)
     Slice<LogPost> findByHashtagWithCursor(
             @Param("hashtagName") String hashtagName,
+            @Param("langCode") String langCode,
             @Param("cursorTime") Instant cursorTime,
             @Param("cursorId") Long cursorId,
             Pageable pageable);
 
     // [Offset] LogPosts by hashtag - page
-    @Query("SELECT l FROM LogPost l JOIN l.hashtags h " +
-           "WHERE h.name = :hashtagName AND l.deletedAt IS NULL AND l.isPrivate = false")
-    Page<LogPost> findByHashtagPage(@Param("hashtagName") String hashtagName, Pageable pageable);
+    // Filters by translation availability: source locale matches OR translation exists
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
+        JOIN hashtags h ON h.id = lph.hashtag_id
+        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
+        """,
+        countQuery = """
+        SELECT COUNT(lp.id) FROM log_posts lp
+        JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
+        JOIN hashtags h ON h.id = lph.hashtag_id
+        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND lp.is_private = false
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
+        """,
+        nativeQuery = true)
+    Page<LogPost> findByHashtagPage(
+            @Param("hashtagName") String hashtagName,
+            @Param("langCode") String langCode,
+            Pageable pageable);
 
-    // Count log posts by hashtag
+    // Count log posts by hashtag (unfiltered - for hashtag display purposes)
     @Query("SELECT COUNT(l) FROM LogPost l JOIN l.hashtags h " +
            "WHERE h.name = :hashtagName AND l.deletedAt IS NULL AND l.isPrivate = false")
     long countByHashtag(@Param("hashtagName") String hashtagName);

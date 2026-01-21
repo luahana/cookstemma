@@ -127,6 +127,7 @@ public class HashtagService {
 
     /**
      * Get recipes tagged with a specific hashtag (unified pagination)
+     * Filters by translation availability based on locale
      */
     public UnifiedPageResponse<RecipeSummaryDto> getRecipesByHashtag(
             String hashtagName, String cursor, Integer page, int size, String locale) {
@@ -141,18 +142,21 @@ public class HashtagService {
             return UnifiedPageResponse.emptyCursor(size);
         }
 
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+        // Extract language code for translation filtering
+        String langCode = LocaleUtils.getLanguageCode(normalizedLocale);
+
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
         Slice<Recipe> recipes;
         if (cursorData == null) {
-            recipes = recipeRepository.findByHashtagWithCursorInitial(normalizedName, pageable);
+            recipes = recipeRepository.findByHashtagWithCursorInitial(normalizedName, langCode, pageable);
         } else {
             recipes = recipeRepository.findByHashtagWithCursor(
-                    normalizedName, cursorData.createdAt(), cursorData.id(), pageable);
+                    normalizedName, langCode, cursorData.createdAt(), cursorData.id(), pageable);
         }
 
-        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
         List<RecipeSummaryDto> content = recipes.getContent().stream()
                 .map(recipe -> convertToRecipeSummary(recipe, normalizedLocale))
                 .toList();
@@ -168,6 +172,7 @@ public class HashtagService {
 
     /**
      * Get log posts tagged with a specific hashtag (unified pagination)
+     * Filters by translation availability based on locale
      */
     public UnifiedPageResponse<LogPostSummaryDto> getLogPostsByHashtag(
             String hashtagName, String cursor, Integer page, int size, String locale) {
@@ -182,18 +187,21 @@ public class HashtagService {
             return UnifiedPageResponse.emptyCursor(size);
         }
 
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+        // Extract language code for translation filtering
+        String langCode = LocaleUtils.getLanguageCode(normalizedLocale);
+
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
         Slice<LogPost> logPosts;
         if (cursorData == null) {
-            logPosts = logPostRepository.findByHashtagWithCursorInitial(normalizedName, pageable);
+            logPosts = logPostRepository.findByHashtagWithCursorInitial(normalizedName, langCode, pageable);
         } else {
             logPosts = logPostRepository.findByHashtagWithCursor(
-                    normalizedName, cursorData.createdAt(), cursorData.id(), pageable);
+                    normalizedName, langCode, cursorData.createdAt(), cursorData.id(), pageable);
         }
 
-        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
         List<LogPostSummaryDto> content = logPosts.getContent().stream()
                 .map(logPost -> convertToLogPostSummary(logPost, normalizedLocale))
                 .toList();

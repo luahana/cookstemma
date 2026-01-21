@@ -229,6 +229,7 @@ class SearchControllerTest extends BaseIntegrationTest {
 
             // Request page 0 with size 2
             mockMvc.perform(get("/api/v1/search")
+                            .header("Accept-Language", "ko-KR")
                             .param("q", "rice")
                             .param("type", "recipes")
                             .param("page", "0")

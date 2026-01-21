@@ -109,6 +109,7 @@ public class UnifiedSearchService {
 
     /**
      * Search all types and merge results by relevance.
+     * Filters recipes and logs by translation availability based on locale.
      */
     private List<SearchResultItem> searchAll(String keyword, int page, int size, String locale) {
         // For "all" type, we fetch proportionally from each type based on counts
@@ -123,6 +124,9 @@ public class UnifiedSearchService {
             return List.of();
         }
 
+        // Extract language code for translation filtering
+        String langCode = LocaleUtils.getLanguageCode(locale);
+
         // Fetch more items than needed to allow for proper pagination
         int fetchSize = size * 3;
         int skip = page * size;
@@ -130,13 +134,13 @@ public class UnifiedSearchService {
         List<SearchResultItem> allItems = new ArrayList<>();
 
         // Fetch recipes with position-based relevance
-        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword,
-            PageRequest.of(0, fetchSize, Sort.by(Sort.Direction.DESC, "created_at")));
+        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword, langCode,
+            PageRequest.of(0, fetchSize));
         addRecipeItems(allItems, recipes.getContent(), fetchSize, locale);
 
         // Fetch logs
-        Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword,
-            PageRequest.of(0, fetchSize, Sort.by(Sort.Direction.DESC, "created_at")));
+        Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword, langCode,
+            PageRequest.of(0, fetchSize));
         addLogItems(allItems, logs.getContent(), fetchSize, locale);
 
         // Fetch hashtags
@@ -156,10 +160,14 @@ public class UnifiedSearchService {
 
     /**
      * Search only recipes.
+     * Filters by translation availability based on locale.
      */
     private List<SearchResultItem> searchRecipesOnly(String keyword, int page, int size, String locale) {
-        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword,
-            PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "created_at")));
+        // Extract language code for translation filtering
+        String langCode = LocaleUtils.getLanguageCode(locale);
+
+        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword, langCode,
+            PageRequest.of(page, size));
 
         List<SearchResultItem> items = new ArrayList<>();
         addRecipeItems(items, recipes.getContent(), size, locale);
@@ -168,10 +176,14 @@ public class UnifiedSearchService {
 
     /**
      * Search only logs.
+     * Filters by translation availability based on locale.
      */
     private List<SearchResultItem> searchLogsOnly(String keyword, int page, int size, String locale) {
-        Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword,
-            PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "created_at")));
+        // Extract language code for translation filtering
+        String langCode = LocaleUtils.getLanguageCode(locale);
+
+        Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword, langCode,
+            PageRequest.of(page, size));
 
         List<SearchResultItem> items = new ArrayList<>();
         addLogItems(items, logs.getContent(), size, locale);

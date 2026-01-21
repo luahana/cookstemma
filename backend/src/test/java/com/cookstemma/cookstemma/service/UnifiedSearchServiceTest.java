@@ -302,7 +302,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                 recipeRepository.save(recipe);
             }
 
-            UnifiedSearchResponse result = unifiedSearchService.search("steak", "recipes", 0, 2, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("steak", "recipes", 0, 2, "ko-KR");
 
             assertThat(result.content()).hasSize(2);
             assertThat(result.page()).isZero();
@@ -388,7 +388,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             recipeRepository.save(recipe);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("carbonara", "recipes", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("carbonara", "recipes", 0, 20, "ko-KR");
 
             assertThat(result.content()).hasSize(1);
             SearchResultItem item = result.content().get(0);
@@ -424,7 +424,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
             logPost.setRecipeLog(recipeLog);
             logPostRepository.save(logPost);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("risotto", "logs", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("risotto", "logs", 0, 20, "ko-KR");
 
             assertThat(result.content()).hasSize(1);
             SearchResultItem item = result.content().get(0);
@@ -578,7 +578,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             recipeRepository.save(activeRecipe);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("omelette", "recipes", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("omelette", "recipes", 0, 20, "ko-KR");
 
             assertThat(result.counts().recipes()).isEqualTo(1);
             assertThat(result.content()).hasSize(1);
