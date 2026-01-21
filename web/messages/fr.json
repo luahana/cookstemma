@@ -308,7 +308,12 @@
     "errorNotes": "Veuillez entrer vos notes de cuisine",
     "errorUploading": "Veuillez attendre que les images finissent de se télécharger",
     "errorFailedImages": "Certaines images n'ont pas pu être téléchargées. Veuillez les supprimer et réessayer.",
-    "errorCreate": "Échec de la création du journal de cuisine. Veuillez réessayer."
+    "errorCreate": "Échec de la création du journal de cuisine. Veuillez réessayer.",
+    "visibility": "Visibilité",
+    "publicLog": "Journal public",
+    "privateLog": "Journal privé",
+    "publicHint": "Tout le monde peut voir ce journal",
+    "privateHint": "Vous seul pouvez voir ce journal"
   },
   "filters": {
     "sort": "Trier :",
@@ -354,10 +359,16 @@
     "shareOnFacebook": "Partager sur Facebook",
     "shareOnPinterest": "Partager sur Pinterest"
   },
+  "visibility": {
+    "all": "Tout",
+    "public": "Public",
+    "private": "Privé"
+  },
   "card": {
     "variant": "Variante",
     "recipe": "Recette",
-    "cookingLog": "Journal de cuisine"
+    "cookingLog": "Journal de cuisine",
+    "private": "Privé"
   },
   "bookmark": {
     "add": "Ajouter aux favoris",
@@ -445,7 +456,12 @@
     "errorStepUploading": "Veuillez attendre que les images des étapes finissent de se télécharger",
     "errorStepUploadFailed": "Certaines images des étapes n'ont pas pu être téléchargées. Veuillez les supprimer et réessayer.",
     "errorCreate": "Échec de la création de la recette. Veuillez réessayer.",
-    "errorLoadParent": "Échec du chargement de la recette parente. Veuillez réessayer."
+    "errorLoadParent": "Échec du chargement de la recette parente. Veuillez réessayer.",
+    "visibility": "Visibilité",
+    "publicRecipe": "Recette publique",
+    "privateRecipe": "Recette privée",
+    "publicHint": "Tout le monde peut voir cette recette",
+    "privateHint": "Vous seul pouvez voir cette recette"
   },
   "profileEdit": {
     "title": "Modifier le profil",
@@ -515,7 +531,12 @@
     "backToLog": "Retour au journal de cuisine",
     "cannotEdit": "Impossible de modifier le journal",
     "photos": "Photos",
-    "photosCount": "{count}/{max} photos"
+    "photosCount": "{count}/{max} photos",
+    "visibility": "Visibilité",
+    "publicLog": "Journal public",
+    "privateLog": "Journal privé",
+    "publicHint": "Tout le monde peut voir ce journal",
+    "privateHint": "Vous seul pouvez voir ce journal"
   },
   "variant": {
     "madeItYourWay": "Vous l'avez fait à votre façon ?",
@@ -634,7 +655,12 @@
     "errorSave": "Échec de l'enregistrement des modifications. Veuillez réessayer.",
     "categoryMain": "Principal",
     "categorySecondary": "Secondaire",
-    "categorySeasoning": "Sauce et assaisonnement"
+    "categorySeasoning": "Sauce et assaisonnement",
+    "visibility": "Visibilité",
+    "publicRecipe": "Recette publique",
+    "privateRecipe": "Recette privée",
+    "publicHint": "Tout le monde peut voir cette recette",
+    "privateHint": "Vous seul pouvez voir cette recette"
   },
   "appDownload": {
     "appStore": "App Store",

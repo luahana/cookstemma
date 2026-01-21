@@ -316,7 +316,12 @@
     "errorNotes": "لطفاً یادداشت‌های آشپزی خود را وارد کنید",
     "errorUploading": "لطفاً صبر کنید تا تصاویر بارگذاری شوند",
     "errorFailedImages": "برخی تصاویر بارگذاری نشدند. لطفاً آن‌ها را حذف کنید و دوباره امتحان کنید.",
-    "errorCreate": "ایجاد یادداشت آشپزی ناموفق بود. لطفاً دوباره امتحان کنید."
+    "errorCreate": "ایجاد یادداشت آشپزی ناموفق بود. لطفاً دوباره امتحان کنید.",
+    "visibility": "نمایش",
+    "publicLog": "یادداشت عمومی",
+    "privateLog": "یادداشت خصوصی",
+    "publicHint": "همه می‌توانند این یادداشت را ببینند",
+    "privateHint": "فقط شما می‌توانید این یادداشت را ببینید"
   },
   "filters": {
     "sort": "مرتب‌سازی:",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "اشتراک در Facebook",
     "shareOnPinterest": "اشتراک در Pinterest"
   },
+  "visibility": {
+    "all": "همه",
+    "public": "عمومی",
+    "private": "خصوصی"
+  },
   "card": {
     "variant": "نسخه",
     "recipe": "دستور",
-    "cookingLog": "یادداشت آشپزی"
+    "cookingLog": "یادداشت آشپزی",
+    "private": "خصوصی"
   },
   "bookmark": {
     "add": "افزودن نشانک",
@@ -457,7 +468,12 @@
     "errorStepUploading": "لطفاً صبر کنید تا تصاویر مراحل بارگذاری شوند",
     "errorStepUploadFailed": "برخی تصاویر مراحل بارگذاری نشدند. لطفاً آن‌ها را حذف کنید و دوباره امتحان کنید.",
     "errorCreate": "ایجاد دستور ناموفق بود. لطفاً دوباره امتحان کنید.",
-    "errorLoadParent": "بارگذاری دستور والد ناموفق بود. لطفاً دوباره امتحان کنید."
+    "errorLoadParent": "بارگذاری دستور والد ناموفق بود. لطفاً دوباره امتحان کنید.",
+    "visibility": "نمایش",
+    "publicRecipe": "دستور عمومی",
+    "privateRecipe": "دستور خصوصی",
+    "publicHint": "همه می‌توانند این دستور را ببینند",
+    "privateHint": "فقط شما می‌توانید این دستور را ببینید"
   },
   "profileEdit": {
     "title": "ویرایش پروفایل",
@@ -527,7 +543,12 @@
     "backToLog": "بازگشت به یادداشت آشپزی",
     "cannotEdit": "امکان ویرایش یادداشت نیست",
     "photos": "عکس‌ها",
-    "photosCount": "{count}/{max} عکس"
+    "photosCount": "{count}/{max} عکس",
+    "visibility": "نمایش",
+    "publicLog": "یادداشت عمومی",
+    "privateLog": "یادداشت خصوصی",
+    "publicHint": "همه می‌توانند این یادداشت را ببینند",
+    "privateHint": "فقط شما می‌توانید این یادداشت را ببینید"
   },
   "variant": {
     "madeItYourWay": "به سبک خودتان درست کردید؟",
@@ -646,7 +667,12 @@
     "errorSave": "ذخیره تغییرات ناموفق بود. لطفاً دوباره امتحان کنید.",
     "categoryMain": "اصلی",
     "categorySecondary": "فرعی",
-    "categorySeasoning": "سس و چاشنی"
+    "categorySeasoning": "سس و چاشنی",
+    "visibility": "نمایش",
+    "publicRecipe": "دستور عمومی",
+    "privateRecipe": "دستور خصوصی",
+    "publicHint": "همه می‌توانند این دستور را ببینند",
+    "privateHint": "فقط شما می‌توانید این دستور را ببینید"
   },
   "appDownload": {
     "appStore": "App Store",

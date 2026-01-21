@@ -33,6 +33,7 @@ export async function getUserRecipes(
   userId: string,
   params: PaginationParams & {
     typeFilter?: 'original' | 'variants';
+    visibility?: 'all' | 'public' | 'private';
     contentLocale?: string;
   } = {},
 ): Promise<SliceResponse<RecipeSummary>> {
@@ -40,6 +41,7 @@ export async function getUserRecipes(
     page: params.page ?? 0,
     size: params.size ?? 20,
     typeFilter: params.typeFilter,
+    visibility: params.visibility ?? 'public',
   });
 
   return apiFetch<SliceResponse<RecipeSummary>>(
@@ -56,11 +58,15 @@ export async function getUserRecipes(
  */
 export async function getUserLogs(
   userId: string,
-  params: PaginationParams & { contentLocale?: string } = {},
+  params: PaginationParams & {
+    visibility?: 'all' | 'public' | 'private';
+    contentLocale?: string;
+  } = {},
 ): Promise<SliceResponse<LogPostSummary>> {
   const queryString = buildQueryString({
     page: params.page ?? 0,
     size: params.size ?? 20,
+    visibility: params.visibility ?? 'public',
   });
 
   return apiFetch<SliceResponse<LogPostSummary>>(

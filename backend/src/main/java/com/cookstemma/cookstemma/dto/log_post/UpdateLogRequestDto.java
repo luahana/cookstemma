@@ -20,5 +20,7 @@ public record UpdateLogRequestDto(
         @Max(value = 5, message = "별점은 5 이하여야 합니다")
         Integer rating,
         List<String> hashtags,
-        List<UUID> imagePublicIds  // Optional: update images if provided
+        List<UUID> imagePublicIds,  // Optional: update images if provided
+        // Private visibility (null = no change, true/false = update)
+        Boolean isPrivate
 ) {}

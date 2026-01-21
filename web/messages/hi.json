@@ -307,6 +307,11 @@
     "hashtagsLabel": "हैशटैग (वैकल्पिक, अधिकतम {max})",
     "hashtagPlaceholder": "हैशटैग जोड़ें...",
     "hashtagHint": "जोड़ने के लिए Enter या कॉमा दबाएं • {count}/{max} टैग",
+    "visibility": "दृश्यता",
+    "publicLog": "सार्वजनिक डायरी",
+    "privateLog": "निजी डायरी",
+    "publicHint": "कोई भी इस डायरी को देख सकता है",
+    "privateHint": "केवल आप इस डायरी को देख सकते हैं",
     "createLog": "लॉग बनाएं",
     "creating": "बना रहा है...",
     "add": "जोड़ें",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "Facebook पर शेयर करें",
     "shareOnPinterest": "Pinterest पर शेयर करें"
   },
+  "visibility": {
+    "all": "सभी",
+    "public": "सार्वजनिक",
+    "private": "निजी"
+  },
   "card": {
     "variant": "वेरिएंट",
     "recipe": "रेसिपी",
-    "cookingLog": "कुकिंग लॉग"
+    "cookingLog": "कुकिंग लॉग",
+    "private": "निजी"
   },
   "bookmark": {
     "add": "बुकमार्क जोड़ें",
@@ -436,6 +447,11 @@
     "whatDidYouChangePlaceholder": "जैसे, स्वस्थ वर्जन के लिए अधिक लहसुन जोड़ा और चीनी कम की",
     "whatDidYouChangeHelp": "बताएं कि आपका वेरिएशन कैसे अलग है",
     "cancel": "रद्द करें",
+    "visibility": "दृश्यता",
+    "publicRecipe": "सार्वजनिक रेसिपी",
+    "privateRecipe": "निजी रेसिपी",
+    "publicHint": "कोई भी इस रेसिपी को देख सकता है",
+    "privateHint": "केवल आप इस रेसिपी को देख सकते हैं",
     "createRecipe": "रेसिपी बनाएं",
     "createVariation": "वेरिएशन बनाएं",
     "creating": "बना रहा है...",
@@ -502,6 +518,11 @@
   },
   "logEdit": {
     "title": "कुकिंग लॉग संपादित करें",
+    "visibility": "दृश्यता",
+    "publicLog": "सार्वजनिक डायरी",
+    "privateLog": "निजी डायरी",
+    "publicHint": "कोई भी इस डायरी को देख सकता है",
+    "privateHint": "केवल आप इस डायरी को देख सकते हैं",
     "photosReadOnly": "फोटो (बदले नहीं जा सकते)",
     "rating": "रेटिंग",
     "ratingExcellent": "उत्कृष्ट!",
@@ -609,6 +630,11 @@
   "recipeEdit": {
     "title": "रेसिपी संपादित करें",
     "backToRecipe": "रेसिपी पर वापस",
+    "visibility": "दृश्यता",
+    "publicRecipe": "सार्वजनिक रेसिपी",
+    "privateRecipe": "निजी रेसिपी",
+    "publicHint": "कोई भी इस रेसिपी को देख सकता है",
+    "privateHint": "केवल आप इस रेसिपी को देख सकते हैं",
     "cannotEdit": "रेसिपी संपादित नहीं कर सकते",
     "photos": "फोटो",
     "photosCount": "{count}/{max} फोटो",

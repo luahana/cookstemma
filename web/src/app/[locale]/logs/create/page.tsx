@@ -55,6 +55,7 @@ function CreateLogPageContent() {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
   const [images, setImages] = useState<UploadedImage[]>([]);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -293,6 +294,7 @@ function CreateLogPageContent() {
         rating: rating as Rating,
         imagePublicIds,
         hashtags: hashtags.length > 0 ? hashtags : undefined,
+        isPrivate,
       });
 
       // Redirect to the new log
@@ -676,6 +678,36 @@ function CreateLogPageContent() {
             <p className="text-xs text-[var(--text-secondary)] mt-1">
               {t('hashtagHint', { count: hashtags.length, max: MAX_HASHTAGS })}
             </p>
+          </div>
+
+          {/* Visibility Section */}
+          <div className="p-4 bg-[var(--surface)] rounded-xl border border-[var(--border)]">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-3">
+              {t('visibility')}
+            </label>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-[var(--text-primary)]">
+                  {isPrivate ? t('privateLog') : t('publicLog')}
+                </p>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">
+                  {isPrivate ? t('privateHint') : t('publicHint')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPrivate(!isPrivate)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isPrivate ? 'bg-[var(--primary)]' : 'bg-[var(--border)]'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isPrivate ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
           {/* Error */}

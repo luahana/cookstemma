@@ -25,5 +25,6 @@ public record RecipeSummaryDto(
         String rootTitle,       // Root recipe title for variants (lineage display)
         Integer servings,       // Number of servings
         String cookingTimeRange, // Cooking time range enum
-        List<String> hashtags   // Hashtag names (first 3)
+        List<String> hashtags,  // Hashtag names (first 3)
+        Boolean isPrivate       // Whether this recipe is private
 ) {}

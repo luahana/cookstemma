@@ -40,7 +40,9 @@ public record RecipeDetailResponseDto(
         String changeReason,                 // User-provided reason for changes
         // Servings and cooking time
         Integer servings,                    // Number of servings (default: 2)
-        String cookingTimeRange              // Cooking time range enum (e.g., "MIN_30_TO_60")
+        String cookingTimeRange,             // Cooking time range enum (e.g., "MIN_30_TO_60")
+        // Privacy setting
+        Boolean isPrivate                    // Whether this recipe is private (only visible to creator)
 ) {
     /**
      * Build RecipeDetailResponseDto with locale-aware field resolution.
@@ -107,7 +109,8 @@ public record RecipeDetailResponseDto(
                 0, 0, null, null, null,
                 root.getServings() != null ? root.getServings() : 2,
                 root.getCookingTimeRange() != null ? root.getCookingTimeRange().name() : "MIN_30_TO_60",
-                List.of()
+                List.of(),
+                root.getIsPrivate() != null ? root.getIsPrivate() : false
         ) : null;
 
         // Build parent recipe info with localized fields
@@ -124,7 +127,8 @@ public record RecipeDetailResponseDto(
                 null, null, null, 0, 0, null, null, null,
                 parent.getServings() != null ? parent.getServings() : 2,
                 parent.getCookingTimeRange() != null ? parent.getCookingTimeRange().name() : "MIN_30_TO_60",
-                List.of()
+                List.of(),
+                parent.getIsPrivate() != null ? parent.getIsPrivate() : false
         ) : null;
 
         // Build image responses (COVER type only)
@@ -184,6 +188,7 @@ public record RecipeDetailResponseDto(
                 .changeReason(recipe.getChangeReason())
                 .servings(recipe.getServings() != null ? recipe.getServings() : 2)
                 .cookingTimeRange(recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60")
+                .isPrivate(recipe.getIsPrivate() != null ? recipe.getIsPrivate() : false)
                 .build();
     }
 }

@@ -22,6 +22,7 @@ export interface LogPostSummary {
   recipeTitle: string | null; // Linked recipe's title
   hashtags: string[];
   isVariant: boolean | null;
+  isPrivate: boolean; // Whether this log is private (only visible to creator)
 }
 
 /**
@@ -41,6 +42,7 @@ export interface LogPostDetail {
   isSavedByCurrentUser: boolean | null;
   creatorPublicId: string | null;
   userName: string | null;
+  isPrivate: boolean; // Whether this log is private (only visible to creator)
 }
 
 /**
@@ -77,6 +79,7 @@ export interface UpdateLogRequest {
   rating: Rating;
   hashtags?: string[];
   imagePublicIds?: string[];
+  isPrivate?: boolean; // Whether this log is private
 }
 
 /**
@@ -90,4 +93,5 @@ export interface CreateLogRequest {
   rating: Rating;
   imagePublicIds: string[];
   hashtags?: string[];
+  isPrivate?: boolean; // Whether this log is private
 }

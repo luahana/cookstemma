@@ -8,12 +8,13 @@ import { LogGrid } from '@/components/log/LogGrid';
 import { PersonJsonLd } from '@/components/seo/PersonJsonLd';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 import { UserProfileHeader } from '@/components/user/UserProfileHeader';
+import { ProfileVisibilityFilter } from '@/components/user/ProfileVisibilityFilter';
 import { getImageUrl } from '@/lib/utils/image';
 import { siteConfig } from '@/config/site';
 
 interface Props {
   params: Promise<{ publicId: string; locale: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; visibility?: 'all' | 'public' | 'private' }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -46,8 +47,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function UserProfilePage({ params, searchParams }: Props) {
   const { publicId, locale } = await params;
-  const { tab = 'recipes' } = await searchParams;
+  const { tab = 'recipes', visibility } = await searchParams;
   const tNav = await getTranslations('nav');
+  const tVisibility = await getTranslations('visibility');
 
   let user;
   try {
@@ -56,9 +58,12 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
     notFound();
   }
 
+  // Use visibility filter only when explicitly set (for own profile via client-side navigation)
+  const effectiveVisibility = visibility || 'public';
+
   const [recipesData, logsData] = await Promise.all([
-    getUserRecipes(publicId, { size: 6, contentLocale: locale }),
-    getUserLogs(publicId, { size: 6, contentLocale: locale }),
+    getUserRecipes(publicId, { size: 6, contentLocale: locale, visibility: effectiveVisibility }),
+    getUserLogs(publicId, { size: 6, contentLocale: locale, visibility: effectiveVisibility }),
   ]);
 
   const tabs = [
@@ -106,6 +111,13 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
             ))}
           </nav>
         </div>
+
+        {/* Visibility Filter (only shown for own profile) */}
+        <ProfileVisibilityFilter
+          profilePublicId={publicId}
+          currentTab={tab}
+          currentVisibility={effectiveVisibility as 'all' | 'public' | 'private'}
+        />
 
         {/* Content */}
         {tab === 'recipes' ? (

@@ -308,7 +308,12 @@
     "errorNotes": "Por favor ingresa tus notas de cocina",
     "errorUploading": "Por favor espera a que las imágenes terminen de cargarse",
     "errorFailedImages": "Algunas imágenes no se pudieron cargar. Por favor elimínalas e intenta de nuevo.",
-    "errorCreate": "Error al crear el registro de cocina. Por favor intenta de nuevo."
+    "errorCreate": "Error al crear el registro de cocina. Por favor intenta de nuevo.",
+    "visibility": "Visibilidad",
+    "publicLog": "Registro público",
+    "privateLog": "Registro privado",
+    "publicHint": "Cualquiera puede ver este registro",
+    "privateHint": "Solo tú puedes ver este registro"
   },
   "filters": {
     "sort": "Ordenar:",
@@ -354,10 +359,16 @@
     "shareOnFacebook": "Compartir en Facebook",
     "shareOnPinterest": "Compartir en Pinterest"
   },
+  "visibility": {
+    "all": "Todo",
+    "public": "Público",
+    "private": "Privado"
+  },
   "card": {
     "variant": "Variante",
     "recipe": "Receta",
-    "cookingLog": "Registro de cocina"
+    "cookingLog": "Registro de cocina",
+    "private": "Privado"
   },
   "bookmark": {
     "add": "Agregar marcador",
@@ -445,7 +456,12 @@
     "errorStepUploading": "Por favor espera a que las imágenes de los pasos terminen de cargarse",
     "errorStepUploadFailed": "Algunas imágenes de los pasos no se pudieron cargar. Por favor elimínalas e intenta de nuevo.",
     "errorCreate": "Error al crear la receta. Por favor intenta de nuevo.",
-    "errorLoadParent": "Error al cargar la receta original. Por favor intenta de nuevo."
+    "errorLoadParent": "Error al cargar la receta original. Por favor intenta de nuevo.",
+    "visibility": "Visibilidad",
+    "publicRecipe": "Receta pública",
+    "privateRecipe": "Receta privada",
+    "publicHint": "Cualquiera puede ver esta receta",
+    "privateHint": "Solo tú puedes ver esta receta"
   },
   "profileEdit": {
     "title": "Editar perfil",
@@ -515,7 +531,12 @@
     "backToLog": "Volver al registro de cocina",
     "cannotEdit": "No se puede editar el registro",
     "photos": "Fotos",
-    "photosCount": "{count}/{max} fotos"
+    "photosCount": "{count}/{max} fotos",
+    "visibility": "Visibilidad",
+    "publicLog": "Registro público",
+    "privateLog": "Registro privado",
+    "publicHint": "Cualquiera puede ver este registro",
+    "privateHint": "Solo tú puedes ver este registro"
   },
   "variant": {
     "madeItYourWay": "¿Lo hiciste a tu manera?",
@@ -634,7 +655,12 @@
     "errorSave": "Error al guardar los cambios. Por favor intenta de nuevo.",
     "categoryMain": "Principal",
     "categorySecondary": "Secundario",
-    "categorySeasoning": "Salsa y condimento"
+    "categorySeasoning": "Salsa y condimento",
+    "visibility": "Visibilidad",
+    "publicRecipe": "Receta pública",
+    "privateRecipe": "Receta privada",
+    "publicHint": "Cualquiera puede ver esta receta",
+    "privateHint": "Solo tú puedes ver esta receta"
   },
   "appDownload": {
     "appStore": "App Store",

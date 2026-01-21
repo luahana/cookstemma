@@ -316,7 +316,12 @@
     "errorNotes": "料理メモを入力してください",
     "errorUploading": "画像のアップロードが完了するまでお待ちください",
     "errorFailedImages": "一部の画像のアップロードに失敗しました。削除してから再度お試しください。",
-    "errorCreate": "料理日記の作成に失敗しました。もう一度お試しください。"
+    "errorCreate": "料理日記の作成に失敗しました。もう一度お試しください。",
+    "visibility": "公開設定",
+    "publicLog": "公開日記",
+    "privateLog": "非公開日記",
+    "publicHint": "誰でもこの日記を見ることができます",
+    "privateHint": "自分だけがこの日記を見ることができます"
   },
   "filters": {
     "sort": "並び替え:",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "Facebookで共有",
     "shareOnPinterest": "Pinterestで共有"
   },
+  "visibility": {
+    "all": "すべて",
+    "public": "公開",
+    "private": "非公開"
+  },
   "card": {
     "variant": "アレンジ",
     "recipe": "レシピ",
-    "cookingLog": "料理日記"
+    "cookingLog": "料理日記",
+    "private": "非公開"
   },
   "bookmark": {
     "add": "ブックマークに追加",
@@ -457,7 +468,12 @@
     "errorStepUploading": "ステップ画像のアップロードが完了するまでお待ちください",
     "errorStepUploadFailed": "一部のステップ画像のアップロードに失敗しました。削除してから再度お試しください。",
     "errorCreate": "レシピの作成に失敗しました。もう一度お試しください。",
-    "errorLoadParent": "元のレシピの読み込みに失敗しました。もう一度お試しください。"
+    "errorLoadParent": "元のレシピの読み込みに失敗しました。もう一度お試しください。",
+    "visibility": "公開設定",
+    "publicRecipe": "公開レシピ",
+    "privateRecipe": "非公開レシピ",
+    "publicHint": "誰でもこのレシピを見ることができます",
+    "privateHint": "自分だけがこのレシピを見ることができます"
   },
   "profileEdit": {
     "title": "プロフィールを編集",
@@ -527,7 +543,12 @@
     "backToLog": "料理記録に戻る",
     "cannotEdit": "記録を編集できません",
     "photos": "写真",
-    "photosCount": "{count}/{max}枚"
+    "photosCount": "{count}/{max}枚",
+    "visibility": "公開設定",
+    "publicLog": "公開日記",
+    "privateLog": "非公開日記",
+    "publicHint": "誰でもこの日記を見ることができます",
+    "privateHint": "自分だけがこの日記を見ることができます"
   },
   "variant": {
     "madeItYourWay": "自分なりにアレンジしましたか？",
@@ -646,7 +667,12 @@
     "errorSave": "変更の保存に失敗しました。もう一度お試しください。",
     "categoryMain": "メイン",
     "categorySecondary": "サブ",
-    "categorySeasoning": "調味料・ソース"
+    "categorySeasoning": "調味料・ソース",
+    "visibility": "公開設定",
+    "publicRecipe": "公開レシピ",
+    "privateRecipe": "非公開レシピ",
+    "publicHint": "誰でもこのレシピを見ることができます",
+    "privateHint": "自分だけがこのレシピを見ることができます"
   },
   "appDownload": {
     "appStore": "App Store",

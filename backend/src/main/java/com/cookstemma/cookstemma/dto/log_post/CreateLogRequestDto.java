@@ -22,5 +22,7 @@ public record CreateLogRequestDto(
         @Max(value = 5, message = "별점은 5 이하여야 합니다")
         Integer rating,
         List<UUID> imagePublicIds,
-        List<String> hashtags
+        List<String> hashtags,
+        // Private visibility (default: false = public)
+        Boolean isPrivate
 ) {}

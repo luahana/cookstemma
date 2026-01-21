@@ -316,7 +316,12 @@
     "errorNotes": "Voer je kooknotities in",
     "errorUploading": "Wacht tot afbeeldingen zijn geüpload",
     "errorFailedImages": "Sommige afbeeldingen zijn niet geüpload. Verwijder ze en probeer opnieuw.",
-    "errorCreate": "Kan kooklogboek niet maken. Probeer opnieuw."
+    "errorCreate": "Kan kooklogboek niet maken. Probeer opnieuw.",
+    "visibility": "Zichtbaarheid",
+    "publicLog": "Openbaar logboek",
+    "privateLog": "Privé logboek",
+    "publicHint": "Iedereen kan dit logboek zien",
+    "privateHint": "Alleen jij kunt dit logboek zien"
   },
   "filters": {
     "sort": "Sorteren:",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "Delen op Facebook",
     "shareOnPinterest": "Delen op Pinterest"
   },
+  "visibility": {
+    "all": "Alles",
+    "public": "Openbaar",
+    "private": "Privé"
+  },
   "card": {
     "variant": "Variant",
     "recipe": "Recept",
-    "cookingLog": "Kooklogboek"
+    "cookingLog": "Kooklogboek",
+    "private": "Privé"
   },
   "bookmark": {
     "add": "Bladwijzer toevoegen",
@@ -457,7 +468,12 @@
     "errorStepUploading": "Wacht tot stapafbeeldingen zijn geüpload",
     "errorStepUploadFailed": "Sommige stapafbeeldingen zijn niet geüpload. Verwijder ze en probeer opnieuw.",
     "errorCreate": "Kan recept niet maken. Probeer opnieuw.",
-    "errorLoadParent": "Kan origineel recept niet laden. Probeer opnieuw."
+    "errorLoadParent": "Kan origineel recept niet laden. Probeer opnieuw.",
+    "visibility": "Zichtbaarheid",
+    "publicRecipe": "Openbaar recept",
+    "privateRecipe": "Privé recept",
+    "publicHint": "Iedereen kan dit recept zien",
+    "privateHint": "Alleen jij kunt dit recept zien"
   },
   "profileEdit": {
     "title": "Profiel bewerken",
@@ -527,7 +543,12 @@
     "backToLog": "Terug naar kooklogboek",
     "cannotEdit": "Kan logboek niet bewerken",
     "photos": "Foto's",
-    "photosCount": "{count}/{max} foto's"
+    "photosCount": "{count}/{max} foto's",
+    "visibility": "Zichtbaarheid",
+    "publicLog": "Openbaar logboek",
+    "privateLog": "Privé logboek",
+    "publicHint": "Iedereen kan dit logboek zien",
+    "privateHint": "Alleen jij kunt dit logboek zien"
   },
   "variant": {
     "madeItYourWay": "Op je eigen manier gemaakt?",
@@ -646,7 +667,12 @@
     "errorSave": "Kan wijzigingen niet opslaan. Probeer opnieuw.",
     "categoryMain": "Hoofd",
     "categorySecondary": "Secundair",
-    "categorySeasoning": "Saus & kruiden"
+    "categorySeasoning": "Saus & kruiden",
+    "visibility": "Zichtbaarheid",
+    "publicRecipe": "Openbaar recept",
+    "privateRecipe": "Privé recept",
+    "publicHint": "Iedereen kan dit recept zien",
+    "privateHint": "Alleen jij kunt dit recept zien"
   },
   "appDownload": {
     "appStore": "App Store",

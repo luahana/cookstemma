@@ -43,6 +43,7 @@ export default function LogEditPage() {
   const [rating, setRating] = useState<number>(3);
   const [hashtags, setHashtags] = useState('');
   const [images, setImages] = useState<UploadedImage[]>([]);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   // Load log data
   useEffect(() => {
@@ -57,6 +58,7 @@ export default function LogEditPage() {
         setContent(logData.content);
         setRating(logData.rating ?? 3);
         setHashtags(logData.hashtags.map((h) => h.name).join(', '));
+        setIsPrivate(logData.isPrivate);
 
         // Initialize images from existing log
         const existingImages: UploadedImage[] = logData.images.map((img) => ({
@@ -203,6 +205,7 @@ export default function LogEditPage() {
         rating: rating as Rating,
         hashtags: hashtagList,
         imagePublicIds,
+        isPrivate,
       });
 
       router.push(`/logs/${publicId}`);
@@ -406,6 +409,36 @@ export default function LogEditPage() {
               className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
               placeholder={t('hashtagsPlaceholder')}
             />
+          </section>
+
+          {/* Visibility Section */}
+          <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
+            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+              {t('visibility')}
+            </h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-[var(--text-primary)]">
+                  {isPrivate ? t('privateLog') : t('publicLog')}
+                </p>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">
+                  {isPrivate ? t('privateHint') : t('publicHint')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPrivate(!isPrivate)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isPrivate ? 'bg-[var(--primary)]' : 'bg-[var(--border)]'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isPrivate ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
           </section>
 
           {/* Error */}

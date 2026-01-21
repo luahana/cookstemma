@@ -60,14 +60,14 @@ public interface HashtagRepository extends JpaRepository<Hashtag, Long> {
      * Get recipe count for a specific hashtag.
      */
     @Query("SELECT COUNT(r) FROM Recipe r JOIN r.hashtags h " +
-           "WHERE h.id = :hashtagId AND r.deletedAt IS NULL AND r.isPrivate = false")
+           "WHERE h.id = :hashtagId AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false)")
     int countRecipesByHashtagId(@Param("hashtagId") Long hashtagId);
 
     /**
      * Get log count for a specific hashtag.
      */
     @Query("SELECT COUNT(l) FROM LogPost l JOIN l.hashtags h " +
-           "WHERE h.id = :hashtagId AND l.deletedAt IS NULL AND l.isPrivate = false")
+           "WHERE h.id = :hashtagId AND l.deletedAt IS NULL AND (l.isPrivate IS NULL OR l.isPrivate = false)")
     int countLogsByHashtagId(@Param("hashtagId") Long hashtagId);
 
     /**
@@ -79,7 +79,7 @@ public interface HashtagRepository extends JpaRepository<Hashtag, Long> {
         JOIN recipes r ON r.id = rhm.recipe_id
         JOIN images img ON img.recipe_id = r.id AND img.type = 'COVER'
         WHERE rhm.hashtag_id = :hashtagId
-        AND r.deleted_at IS NULL AND r.is_private = false
+        AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
         LIMIT 4
         """,
         nativeQuery = true)
@@ -94,11 +94,11 @@ public interface HashtagRepository extends JpaRepository<Hashtag, Long> {
         FROM (
             SELECT r.creator_id FROM recipes r
             JOIN recipe_hashtag_map rhm ON rhm.recipe_id = r.id
-            WHERE rhm.hashtag_id = :hashtagId AND r.deleted_at IS NULL AND r.is_private = false
+            WHERE rhm.hashtag_id = :hashtagId AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
             UNION ALL
             SELECT lp.creator_id FROM log_posts lp
             JOIN log_post_hashtag_map lphm ON lphm.log_post_id = lp.id
-            WHERE lphm.hashtag_id = :hashtagId AND lp.deleted_at IS NULL AND lp.is_private = false
+            WHERE lphm.hashtag_id = :hashtagId AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         ) content
         JOIN users u ON u.id = content.creator_id
         GROUP BY u.id, u.public_id, u.username, u.profile_image_url

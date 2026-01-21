@@ -225,7 +225,8 @@ public class ViewHistoryService {
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
                 recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-                hashtags
+                hashtags,
+                recipe.getIsPrivate() != null ? recipe.getIsPrivate() : false
         );
     }
 
@@ -276,7 +277,8 @@ public class ViewHistoryService {
                 foodName,
                 recipeTitle,
                 hashtags,
-                isVariant
+                isVariant,
+                logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false
         );
     }
 }

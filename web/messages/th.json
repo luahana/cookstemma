@@ -307,6 +307,11 @@
     "hashtagsLabel": "แฮชแท็ก (ไม่บังคับ, สูงสุด {max})",
     "hashtagPlaceholder": "เพิ่มแฮชแท็ก...",
     "hashtagHint": "กด Enter หรือ comma เพื่อเพิ่ม • {count}/{max} แท็ก",
+    "visibility": "การแสดงผล",
+    "publicLog": "บันทึกสาธารณะ",
+    "privateLog": "บันทึกส่วนตัว",
+    "publicHint": "ทุกคนสามารถเห็นบันทึกนี้",
+    "privateHint": "เฉพาะคุณเท่านั้นที่สามารถเห็นบันทึกนี้",
     "createLog": "สร้างบันทึก",
     "creating": "กำลังสร้าง...",
     "add": "เพิ่ม",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "แชร์บน Facebook",
     "shareOnPinterest": "แชร์บน Pinterest"
   },
+  "visibility": {
+    "all": "ทั้งหมด",
+    "public": "สาธารณะ",
+    "private": "ส่วนตัว"
+  },
   "card": {
     "variant": "รูปแบบ",
     "recipe": "สูตรอาหาร",
-    "cookingLog": "บันทึกการทำอาหาร"
+    "cookingLog": "บันทึกการทำอาหาร",
+    "private": "ส่วนตัว"
   },
   "bookmark": {
     "add": "เพิ่มบุ๊กมาร์ก",
@@ -436,6 +447,11 @@
     "whatDidYouChangePlaceholder": "เช่น เพิ่มกระเทียมมากขึ้นและลดน้ำตาลเพื่อเวอร์ชันที่ดีต่อสุขภาพกว่า",
     "whatDidYouChangeHelp": "อธิบายว่าอะไรทำให้รูปแบบของคุณแตกต่าง",
     "cancel": "ยกเลิก",
+    "visibility": "การแสดงผล",
+    "publicRecipe": "สูตรอาหารสาธารณะ",
+    "privateRecipe": "สูตรอาหารส่วนตัว",
+    "publicHint": "ทุกคนสามารถเห็นสูตรอาหารนี้",
+    "privateHint": "เฉพาะคุณเท่านั้นที่สามารถเห็นสูตรอาหารนี้",
     "createRecipe": "สร้างสูตรอาหาร",
     "createVariation": "สร้างรูปแบบ",
     "creating": "กำลังสร้าง...",
@@ -502,6 +518,11 @@
   },
   "logEdit": {
     "title": "แก้ไขบันทึกการทำอาหาร",
+    "visibility": "การแสดงผล",
+    "publicLog": "บันทึกสาธารณะ",
+    "privateLog": "บันทึกส่วนตัว",
+    "publicHint": "ทุกคนสามารถเห็นบันทึกนี้",
+    "privateHint": "เฉพาะคุณเท่านั้นที่สามารถเห็นบันทึกนี้",
     "photosReadOnly": "รูปภาพ (ไม่สามารถเปลี่ยนได้)",
     "rating": "คะแนน",
     "ratingExcellent": "ยอดเยี่ยม!",
@@ -609,6 +630,11 @@
   "recipeEdit": {
     "title": "แก้ไขสูตรอาหาร",
     "backToRecipe": "กลับไปยังสูตรอาหาร",
+    "visibility": "การแสดงผล",
+    "publicRecipe": "สูตรอาหารสาธารณะ",
+    "privateRecipe": "สูตรอาหารส่วนตัว",
+    "publicHint": "ทุกคนสามารถเห็นสูตรอาหารนี้",
+    "privateHint": "เฉพาะคุณเท่านั้นที่สามารถเห็นสูตรอาหารนี้",
     "cannotEdit": "ไม่สามารถแก้ไขสูตรอาหาร",
     "photos": "รูปภาพ",
     "photosCount": "{count}/{max} รูป",

@@ -65,6 +65,7 @@ public class LogPostService {
                 .content(req.content())
                 .creatorId(creatorId) // 유저 ID 조회 생략
                 .locale(recipe.getCookingStyle())
+                .isPrivate(req.isPrivate() != null ? req.isPrivate() : false)
                 .build();
 
         // 레시피-로그 연결 정보 생성
@@ -162,6 +163,13 @@ public class LogPostService {
         LogPost logPost = logPostRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("Log not found"));
 
+        // Access control for private logs - only owner can view
+        if (Boolean.TRUE.equals(logPost.getIsPrivate())) {
+            if (userId == null || !logPost.getCreatorId().equals(userId)) {
+                throw new org.springframework.security.access.AccessDeniedException("This cooking log is private");
+            }
+        }
+
         // Increment view count for analytics
         logPost.incrementViewCount();
         logPostRepository.save(logPost);
@@ -217,7 +225,8 @@ public class LogPostService {
                 hashtagDtos,
                 isSavedByCurrentUser,
                 creatorPublicId,
-                userName
+                userName,
+                logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false
         );
     }
 
@@ -278,7 +287,8 @@ public class LogPostService {
                 foodName,
                 recipeTitle,
                 hashtags,
-                isVariant
+                isVariant,
+                log.getIsPrivate() != null ? log.getIsPrivate() : false
         );
     }
 
@@ -344,7 +354,8 @@ public class LogPostService {
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
                 recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-                hashtags
+                hashtags,
+                recipe.getIsPrivate() != null ? recipe.getIsPrivate() : false
         );
     }
 
@@ -510,6 +521,11 @@ public class LogPostService {
         // Update images if provided
         if (request.imagePublicIds() != null) {
             imageService.updateLogPostImages(logPost, request.imagePublicIds());
+        }
+
+        // Update privacy setting
+        if (request.isPrivate() != null) {
+            logPost.setIsPrivate(request.isPrivate());
         }
 
         logPostRepository.save(logPost);

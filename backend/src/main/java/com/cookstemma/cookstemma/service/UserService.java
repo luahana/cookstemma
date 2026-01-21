@@ -328,24 +328,46 @@ public class UserService {
     }
 
     /**
-     * Get a user's public recipes
+     * Get a user's recipes with visibility filter
      * @param publicId user's publicId
      * @param typeFilter "original" (only root recipes), "variants" (only variants), or null (all)
+     * @param visibility "all", "public", "private" - controls which recipes are returned
      * @param locale locale for translations
      */
-    public Slice<RecipeSummaryDto> getUserRecipes(UUID publicId, String typeFilter, Pageable pageable, String locale) {
+    public Slice<RecipeSummaryDto> getUserRecipes(UUID publicId, String typeFilter, String visibility, Pageable pageable, String locale) {
         User user = userRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Long userId = user.getId();
         Slice<Recipe> recipes;
 
+        // Determine isPrivate filter based on visibility
+        Boolean isPrivateFilter = null;
+        if ("public".equalsIgnoreCase(visibility)) {
+            isPrivateFilter = false;
+        } else if ("private".equalsIgnoreCase(visibility)) {
+            isPrivateFilter = true;
+        }
+        // "all" means no filter (isPrivateFilter = null)
+
         if ("original".equalsIgnoreCase(typeFilter)) {
-            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNullOrderByCreatedAtDesc(userId, pageable);
+            if (isPrivateFilter == null) {
+                recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNullOrderByCreatedAtDesc(userId, pageable);
+            } else {
+                recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNullAndIsPrivateOrderByCreatedAtDesc(userId, isPrivateFilter, pageable);
+            }
         } else if ("variants".equalsIgnoreCase(typeFilter)) {
-            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNotNullOrderByCreatedAtDesc(userId, pageable);
+            if (isPrivateFilter == null) {
+                recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNotNullOrderByCreatedAtDesc(userId, pageable);
+            } else {
+                recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNotNullAndIsPrivateOrderByCreatedAtDesc(userId, isPrivateFilter, pageable);
+            }
         } else {
-            recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
+            if (isPrivateFilter == null) {
+                recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
+            } else {
+                recipes = recipeRepository.findByCreatorIdAndDeletedAtIsNullAndIsPrivateOrderByCreatedAtDesc(userId, isPrivateFilter, pageable);
+            }
         }
 
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
@@ -353,15 +375,31 @@ public class UserService {
     }
 
     /**
-     * Get a user's public logs
+     * Get a user's logs with visibility filter
+     * @param visibility "all", "public", "private" - controls which logs are returned
      * @param locale locale for translations
      */
-    public Slice<LogPostSummaryDto> getUserLogs(UUID publicId, Pageable pageable, String locale) {
+    public Slice<LogPostSummaryDto> getUserLogs(UUID publicId, String visibility, Pageable pageable, String locale) {
         User user = userRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Long userId = user.getId();
-        Slice<LogPost> logs = logPostRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
+        Slice<LogPost> logs;
+
+        // Determine isPrivate filter based on visibility
+        Boolean isPrivateFilter = null;
+        if ("public".equalsIgnoreCase(visibility)) {
+            isPrivateFilter = false;
+        } else if ("private".equalsIgnoreCase(visibility)) {
+            isPrivateFilter = true;
+        }
+        // "all" means no filter (isPrivateFilter = null)
+
+        if (isPrivateFilter == null) {
+            logs = logPostRepository.findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable);
+        } else {
+            logs = logPostRepository.findByCreatorIdAndDeletedAtIsNullAndIsPrivateOrderByCreatedAtDesc(userId, isPrivateFilter, pageable);
+        }
 
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
         return logs.map(log -> convertToLogSummary(log, normalizedLocale));
@@ -424,7 +462,8 @@ public class UserService {
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
                 recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-                hashtags
+                hashtags,
+                recipe.getIsPrivate() != null ? recipe.getIsPrivate() : false
         );
     }
 
@@ -475,7 +514,8 @@ public class UserService {
                 foodName,
                 recipeTitle,
                 hashtags,
-                isVariant
+                isVariant,
+                log.getIsPrivate() != null ? log.getIsPrivate() : false
         );
     }
 

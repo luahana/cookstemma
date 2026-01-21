@@ -287,6 +287,11 @@
   },
   "logCreate": {
     "subtitle": "Condividi la tua esperienza di cucina con la comunità",
+    "visibility": "Visibilità",
+    "publicLog": "Diario pubblico",
+    "privateLog": "Diario privato",
+    "publicHint": "Chiunque può vedere questo diario",
+    "privateHint": "Solo tu puoi vedere questo diario",
     "recipeLabel": "Ricetta",
     "selectRecipe": "Seleziona ricetta",
     "selectRecipePlaceholder": "Clicca per selezionare una ricetta che hai cucinato...",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "Condividi su Facebook",
     "shareOnPinterest": "Condividi su Pinterest"
   },
+  "visibility": {
+    "all": "Tutto",
+    "public": "Pubblico",
+    "private": "Privato"
+  },
   "card": {
     "variant": "Variante",
     "recipe": "Ricetta",
-    "cookingLog": "Diario di cucina"
+    "cookingLog": "Diario di cucina",
+    "private": "Privato"
   },
   "bookmark": {
     "add": "Aggiungi ai segnalibri",
@@ -384,6 +395,11 @@
     "title": "Crea ricetta",
     "titleVariant": "Crea variante",
     "subtitle": "Condividi la tua creazione culinaria con la comunità",
+    "visibility": "Visibilità",
+    "publicRecipe": "Ricetta pubblica",
+    "privateRecipe": "Ricetta privata",
+    "publicHint": "Chiunque può vedere questa ricetta",
+    "privateHint": "Solo tu puoi vedere questa ricetta",
     "subtitleVariant": "Crea la tua versione con modifiche",
     "backToRecipes": "Torna alle ricette",
     "backToRecipe": "Torna alla ricetta",
@@ -502,6 +518,11 @@
   },
   "logEdit": {
     "title": "Modifica diario di cucina",
+    "visibility": "Visibilità",
+    "publicLog": "Diario pubblico",
+    "privateLog": "Diario privato",
+    "publicHint": "Chiunque può vedere questo diario",
+    "privateHint": "Solo tu puoi vedere questo diario",
     "photosReadOnly": "Foto (non modificabili)",
     "rating": "Valutazione",
     "ratingExcellent": "Eccellente!",
@@ -608,6 +629,11 @@
   },
   "recipeEdit": {
     "title": "Modifica ricetta",
+    "visibility": "Visibilità",
+    "publicRecipe": "Ricetta pubblica",
+    "privateRecipe": "Ricetta privata",
+    "publicHint": "Chiunque può vedere questa ricetta",
+    "privateHint": "Solo tu puoi vedere questa ricetta",
     "backToRecipe": "Torna alla ricetta",
     "cannotEdit": "Impossibile modificare la ricetta",
     "photos": "Foto",

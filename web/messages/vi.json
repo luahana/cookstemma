@@ -307,6 +307,11 @@
     "hashtagsLabel": "Hashtag (tùy chọn, tối đa {max})",
     "hashtagPlaceholder": "Thêm hashtag...",
     "hashtagHint": "Nhấn Enter hoặc dấu phẩy để thêm • {count}/{max} thẻ",
+    "visibility": "Hiển thị",
+    "publicLog": "Nhật ký công khai",
+    "privateLog": "Nhật ký riêng tư",
+    "publicHint": "Mọi người đều có thể xem nhật ký này",
+    "privateHint": "Chỉ bạn mới có thể xem nhật ký này",
     "createLog": "Tạo nhật ký",
     "creating": "Đang tạo...",
     "add": "Thêm",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "Chia sẻ lên Facebook",
     "shareOnPinterest": "Chia sẻ lên Pinterest"
   },
+  "visibility": {
+    "all": "Tất cả",
+    "public": "Công khai",
+    "private": "Riêng tư"
+  },
   "card": {
     "variant": "Biến thể",
     "recipe": "Công thức",
-    "cookingLog": "Nhật ký nấu ăn"
+    "cookingLog": "Nhật ký nấu ăn",
+    "private": "Riêng tư"
   },
   "bookmark": {
     "add": "Thêm bookmark",
@@ -436,6 +447,11 @@
     "whatDidYouChangePlaceholder": "VD: Thêm tỏi và giảm đường cho phiên bản lành mạnh hơn",
     "whatDidYouChangeHelp": "Giải thích điều gì làm biến thể của bạn khác biệt",
     "cancel": "Hủy",
+    "visibility": "Hiển thị",
+    "publicRecipe": "Công thức công khai",
+    "privateRecipe": "Công thức riêng tư",
+    "publicHint": "Mọi người đều có thể xem công thức này",
+    "privateHint": "Chỉ bạn mới có thể xem công thức này",
     "createRecipe": "Tạo công thức",
     "createVariation": "Tạo biến thể",
     "creating": "Đang tạo...",
@@ -502,6 +518,11 @@
   },
   "logEdit": {
     "title": "Sửa nhật ký nấu ăn",
+    "visibility": "Hiển thị",
+    "publicLog": "Nhật ký công khai",
+    "privateLog": "Nhật ký riêng tư",
+    "publicHint": "Mọi người đều có thể xem nhật ký này",
+    "privateHint": "Chỉ bạn mới có thể xem nhật ký này",
     "photosReadOnly": "Ảnh (không thể thay đổi)",
     "rating": "Đánh giá",
     "ratingExcellent": "Xuất sắc!",
@@ -609,6 +630,11 @@
   "recipeEdit": {
     "title": "Sửa công thức",
     "backToRecipe": "Quay lại công thức",
+    "visibility": "Hiển thị",
+    "publicRecipe": "Công thức công khai",
+    "privateRecipe": "Công thức riêng tư",
+    "publicHint": "Mọi người đều có thể xem công thức này",
+    "privateHint": "Chỉ bạn mới có thể xem công thức này",
     "cannotEdit": "Không thể sửa công thức",
     "photos": "Ảnh",
     "photosCount": "{count}/{max} ảnh",

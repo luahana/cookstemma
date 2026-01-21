@@ -307,6 +307,11 @@
     "hashtagsLabel": "Hashtagler (isteğe bağlı, maks {max})",
     "hashtagPlaceholder": "Hashtag ekle...",
     "hashtagHint": "Eklemek için Enter veya virgül tuşuna basın • {count}/{max} etiket",
+    "visibility": "Görünürlük",
+    "publicLog": "Herkese Açık Günlük",
+    "privateLog": "Özel Günlük",
+    "publicHint": "Herkes bu günlüğü görebilir",
+    "privateHint": "Yalnızca siz bu günlüğü görebilirsiniz",
     "createLog": "Günlük Oluştur",
     "creating": "Oluşturuluyor...",
     "add": "Ekle",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "Facebook'ta paylaş",
     "shareOnPinterest": "Pinterest'te paylaş"
   },
+  "visibility": {
+    "all": "Tümü",
+    "public": "Herkese Açık",
+    "private": "Özel"
+  },
   "card": {
     "variant": "Varyant",
     "recipe": "Tarif",
-    "cookingLog": "Yemek Günlüğü"
+    "cookingLog": "Yemek Günlüğü",
+    "private": "Özel"
   },
   "bookmark": {
     "add": "Yer imi ekle",
@@ -436,6 +447,11 @@
     "whatDidYouChangePlaceholder": "örn., Daha sağlıklı bir versiyon için daha fazla sarımsak ekledim ve şekeri azalttım",
     "whatDidYouChangeHelp": "Varyasyonunuzu farklı kılan şeyi açıklayın",
     "cancel": "İptal",
+    "visibility": "Görünürlük",
+    "publicRecipe": "Herkese Açık Tarif",
+    "privateRecipe": "Özel Tarif",
+    "publicHint": "Herkes bu tarifi görebilir",
+    "privateHint": "Yalnızca siz bu tarifi görebilirsiniz",
     "createRecipe": "Tarif Oluştur",
     "createVariation": "Varyasyon Oluştur",
     "creating": "Oluşturuluyor...",
@@ -502,6 +518,11 @@
   },
   "logEdit": {
     "title": "Yemek Günlüğünü Düzenle",
+    "visibility": "Görünürlük",
+    "publicLog": "Herkese Açık Günlük",
+    "privateLog": "Özel Günlük",
+    "publicHint": "Herkes bu günlüğü görebilir",
+    "privateHint": "Yalnızca siz bu günlüğü görebilirsiniz",
     "photosReadOnly": "Fotoğraflar (değiştirilemez)",
     "rating": "Değerlendirme",
     "ratingExcellent": "Mükemmel!",
@@ -609,6 +630,11 @@
   "recipeEdit": {
     "title": "Tarifi Düzenle",
     "backToRecipe": "Tarife dön",
+    "visibility": "Görünürlük",
+    "publicRecipe": "Herkese Açık Tarif",
+    "privateRecipe": "Özel Tarif",
+    "publicHint": "Herkes bu tarifi görebilir",
+    "privateHint": "Yalnızca siz bu tarifi görebilirsiniz",
     "cannotEdit": "Tarif Düzenlenemiyor",
     "photos": "Fotoğraflar",
     "photosCount": "{count}/{max} fotoğraf",

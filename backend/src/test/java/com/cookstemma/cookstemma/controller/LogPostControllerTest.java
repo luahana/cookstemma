@@ -126,7 +126,8 @@ class LogPostControllerTest extends BaseIntegrationTest {
                     "Updated content",
                     3,  // 3 stars
                     List.of("tag1", "tag2"),
-                    null
+                    null,
+                    null  // isPrivate
             );
 
             mockMvc.perform(put("/api/v1/log_posts/" + testLogPost.getPublicId())
@@ -150,7 +151,8 @@ class LogPostControllerTest extends BaseIntegrationTest {
                     "Updated content",
                     3,  // 3 stars
                     null,
-                    null
+                    null,
+                    null  // isPrivate
             );
 
             mockMvc.perform(put("/api/v1/log_posts/" + testLogPost.getPublicId())
@@ -168,7 +170,8 @@ class LogPostControllerTest extends BaseIntegrationTest {
                     "Updated content",
                     3,  // 3 stars
                     null,
-                    null
+                    null,
+                    null  // isPrivate
             );
 
             mockMvc.perform(put("/api/v1/log_posts/" + testLogPost.getPublicId())
@@ -185,7 +188,8 @@ class LogPostControllerTest extends BaseIntegrationTest {
                     "Updated content",
                     3,  // 3 stars
                     null,
-                    null
+                    null,
+                    null  // isPrivate
             );
 
             mockMvc.perform(put("/api/v1/log_posts/" + UUID.randomUUID())
@@ -203,7 +207,8 @@ class LogPostControllerTest extends BaseIntegrationTest {
                     "",  // blank content
                     3,  // 3 stars
                     null,
-                    null
+                    null,
+                    null  // isPrivate
             );
 
             mockMvc.perform(put("/api/v1/log_posts/" + testLogPost.getPublicId())
@@ -221,7 +226,8 @@ class LogPostControllerTest extends BaseIntegrationTest {
                     "Updated content",
                     6,  // invalid rating (max is 5)
                     null,
-                    null
+                    null,
+                    null  // isPrivate
             );
 
             mockMvc.perform(put("/api/v1/log_posts/" + testLogPost.getPublicId())

@@ -316,7 +316,12 @@
     "errorNotes": "Bitte gib deine Kochnotizen ein",
     "errorUploading": "Bitte warte, bis die Bilder hochgeladen sind",
     "errorFailedImages": "Einige Bilder konnten nicht hochgeladen werden. Bitte entferne sie und versuche es erneut.",
-    "errorCreate": "Kochprotokoll konnte nicht erstellt werden. Bitte versuche es erneut."
+    "errorCreate": "Kochprotokoll konnte nicht erstellt werden. Bitte versuche es erneut.",
+    "visibility": "Sichtbarkeit",
+    "publicLog": "Öffentliches Protokoll",
+    "privateLog": "Privates Protokoll",
+    "publicHint": "Jeder kann dieses Protokoll sehen",
+    "privateHint": "Nur du kannst dieses Protokoll sehen"
   },
   "filters": {
     "sort": "Sortieren:",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "Auf Facebook teilen",
     "shareOnPinterest": "Auf Pinterest teilen"
   },
+  "visibility": {
+    "all": "Alle",
+    "public": "Öffentlich",
+    "private": "Privat"
+  },
   "card": {
     "variant": "Variante",
     "recipe": "Rezept",
-    "cookingLog": "Kochprotokoll"
+    "cookingLog": "Kochprotokoll",
+    "private": "Privat"
   },
   "bookmark": {
     "add": "Lesezeichen hinzufügen",
@@ -457,7 +468,12 @@
     "errorStepUploading": "Bitte warte, bis die Schrittbilder hochgeladen sind",
     "errorStepUploadFailed": "Einige Schrittbilder konnten nicht hochgeladen werden. Bitte entferne sie und versuche es erneut.",
     "errorCreate": "Rezept konnte nicht erstellt werden. Bitte versuche es erneut.",
-    "errorLoadParent": "Originalrezept konnte nicht geladen werden. Bitte versuche es erneut."
+    "errorLoadParent": "Originalrezept konnte nicht geladen werden. Bitte versuche es erneut.",
+    "visibility": "Sichtbarkeit",
+    "publicRecipe": "Öffentliches Rezept",
+    "privateRecipe": "Privates Rezept",
+    "publicHint": "Jeder kann dieses Rezept sehen",
+    "privateHint": "Nur du kannst dieses Rezept sehen"
   },
   "profileEdit": {
     "title": "Profil bearbeiten",
@@ -527,7 +543,12 @@
     "backToLog": "Zurück zum Kochprotokoll",
     "cannotEdit": "Protokoll kann nicht bearbeitet werden",
     "photos": "Fotos",
-    "photosCount": "{count}/{max} Fotos"
+    "photosCount": "{count}/{max} Fotos",
+    "visibility": "Sichtbarkeit",
+    "publicLog": "Öffentliches Protokoll",
+    "privateLog": "Privates Protokoll",
+    "publicHint": "Jeder kann dieses Protokoll sehen",
+    "privateHint": "Nur du kannst dieses Protokoll sehen"
   },
   "variant": {
     "madeItYourWay": "Auf deine Art gemacht?",
@@ -646,7 +667,12 @@
     "errorSave": "Änderungen konnten nicht gespeichert werden. Bitte versuche es erneut.",
     "categoryMain": "Hauptzutaten",
     "categorySecondary": "Nebenzutaten",
-    "categorySeasoning": "Soße & Gewürze"
+    "categorySeasoning": "Soße & Gewürze",
+    "visibility": "Sichtbarkeit",
+    "publicRecipe": "Öffentliches Rezept",
+    "privateRecipe": "Privates Rezept",
+    "publicHint": "Jeder kann dieses Rezept sehen",
+    "privateHint": "Nur du kannst dieses Rezept sehen"
   },
   "appDownload": {
     "appStore": "App Store",

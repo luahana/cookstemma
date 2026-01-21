@@ -316,7 +316,12 @@
     "errorNotes": "请输入烹饪笔记",
     "errorUploading": "请等待图片上传完成",
     "errorFailedImages": "部分图片上传失败，请移除后重试。",
-    "errorCreate": "创建烹饪日志失败，请重试。"
+    "errorCreate": "创建烹饪日志失败，请重试。",
+    "visibility": "可见性",
+    "publicLog": "公开日志",
+    "privateLog": "私密日志",
+    "publicHint": "任何人都可以看到这条日志",
+    "privateHint": "只有你自己可以看到这条日志"
   },
   "filters": {
     "sort": "排序：",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "分享到 Facebook",
     "shareOnPinterest": "分享到 Pinterest"
   },
+  "visibility": {
+    "all": "全部",
+    "public": "公开",
+    "private": "私密"
+  },
   "card": {
     "variant": "变体",
     "recipe": "食谱",
-    "cookingLog": "烹饪日志"
+    "cookingLog": "烹饪日志",
+    "private": "私密"
   },
   "bookmark": {
     "add": "添加收藏",
@@ -457,7 +468,12 @@
     "errorStepUploading": "请等待步骤图片上传完成",
     "errorStepUploadFailed": "部分步骤图片上传失败，请移除后重试。",
     "errorCreate": "创建食谱失败，请重试。",
-    "errorLoadParent": "加载原食谱失败，请重试。"
+    "errorLoadParent": "加载原食谱失败，请重试。",
+    "visibility": "可见性",
+    "publicRecipe": "公开食谱",
+    "privateRecipe": "私密食谱",
+    "publicHint": "任何人都可以看到这个食谱",
+    "privateHint": "只有你自己可以看到这个食谱"
   },
   "profileEdit": {
     "title": "编辑资料",
@@ -527,7 +543,12 @@
     "backToLog": "返回烹饪日志",
     "cannotEdit": "无法编辑日志",
     "photos": "照片",
-    "photosCount": "{count}/{max} 张照片"
+    "photosCount": "{count}/{max} 张照片",
+    "visibility": "可见性",
+    "publicLog": "公开日志",
+    "privateLog": "私密日志",
+    "publicHint": "任何人都可以看到这条日志",
+    "privateHint": "只有你自己可以看到这条日志"
   },
   "variant": {
     "madeItYourWay": "用你的方式做了？",
@@ -646,7 +667,12 @@
     "errorSave": "保存失败，请重试。",
     "categoryMain": "主料",
     "categorySecondary": "辅料",
-    "categorySeasoning": "调味料"
+    "categorySeasoning": "调味料",
+    "visibility": "可见性",
+    "publicRecipe": "公开食谱",
+    "privateRecipe": "私密食谱",
+    "publicHint": "任何人都可以看到这个食谱",
+    "privateHint": "只有你自己可以看到这个食谱"
   },
   "appDownload": {
     "appStore": "App Store",

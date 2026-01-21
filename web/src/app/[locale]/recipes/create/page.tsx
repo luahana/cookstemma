@@ -206,6 +206,7 @@ function CreateRecipeContent() {
   const [steps, setSteps] = useState<FormStep[]>([
     { id: crypto.randomUUID(), description: '', image: null },
   ]);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -862,6 +863,7 @@ function CreateRecipeContent() {
         })(),
         servings,
         cookingTimeRange,
+        isPrivate,
         // Variant-specific fields
         parentPublicId: isVariantMode ? parentRecipe?.publicId : undefined,
         rootPublicId: isVariantMode
@@ -1734,6 +1736,36 @@ function CreateRecipeContent() {
               </div>
             </section>
           )}
+
+          {/* Visibility Section */}
+          <section className="bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)]">
+            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+              {t('visibility')}
+            </h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-[var(--text-primary)]">
+                  {isPrivate ? t('privateRecipe') : t('publicRecipe')}
+                </p>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">
+                  {isPrivate ? t('privateHint') : t('publicHint')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPrivate(!isPrivate)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isPrivate ? 'bg-[var(--primary)]' : 'bg-[var(--border)]'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isPrivate ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </section>
 
           {/* Error */}
           {error && (

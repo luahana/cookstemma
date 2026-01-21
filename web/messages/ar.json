@@ -287,6 +287,11 @@
   },
   "logCreate": {
     "subtitle": "شارك تجربتك في الطبخ مع المجتمع",
+    "visibility": "الظهور",
+    "publicLog": "سجل عام",
+    "privateLog": "سجل خاص",
+    "publicHint": "يمكن لأي شخص رؤية هذا السجل",
+    "privateHint": "أنت فقط يمكنك رؤية هذا السجل",
     "recipeLabel": "الوصفة",
     "selectRecipe": "اختر وصفة",
     "selectRecipePlaceholder": "انقر لاختيار وصفة قمت بطهيها...",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "مشاركة على Facebook",
     "shareOnPinterest": "مشاركة على Pinterest"
   },
+  "visibility": {
+    "all": "الكل",
+    "public": "عام",
+    "private": "خاص"
+  },
   "card": {
     "variant": "تنويع",
     "recipe": "وصفة",
-    "cookingLog": "سجل طبخ"
+    "cookingLog": "سجل طبخ",
+    "private": "خاص"
   },
   "bookmark": {
     "add": "إضافة للمحفوظات",
@@ -384,6 +395,11 @@
     "title": "إنشاء وصفة",
     "titleVariant": "إنشاء تنويع",
     "subtitle": "شارك إبداعك الطهوي مع المجتمع",
+    "visibility": "الظهور",
+    "publicRecipe": "وصفة عامة",
+    "privateRecipe": "وصفة خاصة",
+    "publicHint": "يمكن لأي شخص رؤية هذه الوصفة",
+    "privateHint": "أنت فقط يمكنك رؤية هذه الوصفة",
     "subtitleVariant": "أنشئ نسختك الخاصة مع التعديلات",
     "backToRecipes": "العودة للوصفات",
     "backToRecipe": "العودة للوصفة",
@@ -502,6 +518,11 @@
   },
   "logEdit": {
     "title": "تعديل سجل الطبخ",
+    "visibility": "الظهور",
+    "publicLog": "سجل عام",
+    "privateLog": "سجل خاص",
+    "publicHint": "يمكن لأي شخص رؤية هذا السجل",
+    "privateHint": "أنت فقط يمكنك رؤية هذا السجل",
     "photosReadOnly": "الصور (لا يمكن تغييرها)",
     "rating": "التقييم",
     "ratingExcellent": "ممتاز!",
@@ -608,6 +629,11 @@
   },
   "recipeEdit": {
     "title": "تعديل الوصفة",
+    "visibility": "الظهور",
+    "publicRecipe": "وصفة عامة",
+    "privateRecipe": "وصفة خاصة",
+    "publicHint": "يمكن لأي شخص رؤية هذه الوصفة",
+    "privateHint": "أنت فقط يمكنك رؤية هذه الوصفة",
     "backToRecipe": "العودة للوصفة",
     "cannotEdit": "لا يمكن تعديل الوصفة",
     "photos": "الصور",

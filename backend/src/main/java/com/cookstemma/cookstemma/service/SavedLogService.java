@@ -163,7 +163,8 @@ public class SavedLogService {
                 foodName,
                 recipeTitle,
                 hashtags,
-                isVariant
+                isVariant,
+                log.getIsPrivate() != null ? log.getIsPrivate() : false
         );
     }
 

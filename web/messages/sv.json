@@ -316,7 +316,12 @@
     "errorNotes": "Skriv dina matlagningsanteckningar",
     "errorUploading": "Vänta tills bilderna har laddats upp",
     "errorFailedImages": "Vissa bilder kunde inte laddas upp. Ta bort dem och försök igen.",
-    "errorCreate": "Kunde inte skapa dagbokspost. Försök igen."
+    "errorCreate": "Kunde inte skapa dagbokspost. Försök igen.",
+    "visibility": "Synlighet",
+    "publicLog": "Offentlig post",
+    "privateLog": "Privat post",
+    "publicHint": "Vem som helst kan se denna post",
+    "privateHint": "Endast du kan se denna post"
   },
   "filters": {
     "sort": "Sortera:",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "Dela på Facebook",
     "shareOnPinterest": "Dela på Pinterest"
   },
+  "visibility": {
+    "all": "Alla",
+    "public": "Offentlig",
+    "private": "Privat"
+  },
   "card": {
     "variant": "Variant",
     "recipe": "Recept",
-    "cookingLog": "Dagbokspost"
+    "cookingLog": "Dagbokspost",
+    "private": "Privat"
   },
   "bookmark": {
     "add": "Lägg till bokmärke",
@@ -457,7 +468,12 @@
     "errorStepUploading": "Vänta tills stegbilderna har laddats upp",
     "errorStepUploadFailed": "Vissa stegbilder kunde inte laddas upp. Ta bort dem och försök igen.",
     "errorCreate": "Kunde inte skapa recept. Försök igen.",
-    "errorLoadParent": "Kunde inte ladda föräldrareceptet. Försök igen."
+    "errorLoadParent": "Kunde inte ladda föräldrareceptet. Försök igen.",
+    "visibility": "Synlighet",
+    "publicRecipe": "Offentligt recept",
+    "privateRecipe": "Privat recept",
+    "publicHint": "Vem som helst kan se detta recept",
+    "privateHint": "Endast du kan se detta recept"
   },
   "profileEdit": {
     "title": "Redigera profil",
@@ -527,7 +543,12 @@
     "backToLog": "Tillbaka till matlagningsdagbok",
     "cannotEdit": "Kan inte redigera dagbok",
     "photos": "Bilder",
-    "photosCount": "{count}/{max} bilder"
+    "photosCount": "{count}/{max} bilder",
+    "visibility": "Synlighet",
+    "publicLog": "Offentlig post",
+    "privateLog": "Privat post",
+    "publicHint": "Vem som helst kan se denna post",
+    "privateHint": "Endast du kan se denna post"
   },
   "variant": {
     "madeItYourWay": "Gjort det på ditt sätt?",
@@ -646,7 +667,12 @@
     "errorSave": "Kunde inte spara ändringar. Försök igen.",
     "categoryMain": "Huvud",
     "categorySecondary": "Sekundär",
-    "categorySeasoning": "Sås och kryddor"
+    "categorySeasoning": "Sås och kryddor",
+    "visibility": "Synlighet",
+    "publicRecipe": "Offentligt recept",
+    "privateRecipe": "Privat recept",
+    "publicHint": "Vem som helst kan se detta recept",
+    "privateHint": "Endast du kan se detta recept"
   },
   "appDownload": {
     "appStore": "App Store",

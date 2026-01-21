@@ -101,7 +101,8 @@ class RecipeMultiImageTest extends BaseIntegrationTest {
                     null, // changeReason
                     List.of(), // hashtags
                     2, // servings
-                    "MIN_30_TO_60" // cookingTimeRange
+                    "MIN_30_TO_60", // cookingTimeRange
+                    null // isPrivate
             );
 
             // When: Create recipe
@@ -147,7 +148,8 @@ class RecipeMultiImageTest extends BaseIntegrationTest {
                     null,
                     List.of(),
                     2,
-                    "MIN_30_TO_60"
+                    "MIN_30_TO_60",
+                    null // isPrivate
             );
 
             // When

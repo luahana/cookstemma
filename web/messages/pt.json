@@ -287,6 +287,11 @@
   },
   "logCreate": {
     "subtitle": "Compartilhe sua experiência culinária com a comunidade",
+    "visibility": "Visibilidade",
+    "publicLog": "Diário público",
+    "privateLog": "Diário privado",
+    "publicHint": "Qualquer pessoa pode ver este diário",
+    "privateHint": "Somente você pode ver este diário",
     "recipeLabel": "Receita",
     "selectRecipe": "Selecionar receita",
     "selectRecipePlaceholder": "Clique para selecionar uma receita que você cozinhou...",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "Compartilhar no Facebook",
     "shareOnPinterest": "Compartilhar no Pinterest"
   },
+  "visibility": {
+    "all": "Todos",
+    "public": "Público",
+    "private": "Privado"
+  },
   "card": {
     "variant": "Variação",
     "recipe": "Receita",
-    "cookingLog": "Diário de cozinha"
+    "cookingLog": "Diário de cozinha",
+    "private": "Privado"
   },
   "bookmark": {
     "add": "Adicionar favorito",
@@ -384,6 +395,11 @@
     "title": "Criar receita",
     "titleVariant": "Criar variação",
     "subtitle": "Compartilhe sua criação culinária com a comunidade",
+    "visibility": "Visibilidade",
+    "publicRecipe": "Receita pública",
+    "privateRecipe": "Receita privada",
+    "publicHint": "Qualquer pessoa pode ver esta receita",
+    "privateHint": "Somente você pode ver esta receita",
     "subtitleVariant": "Crie sua própria versão com modificações",
     "backToRecipes": "Voltar às receitas",
     "backToRecipe": "Voltar à receita",
@@ -502,6 +518,11 @@
   },
   "logEdit": {
     "title": "Editar diário de cozinha",
+    "visibility": "Visibilidade",
+    "publicLog": "Diário público",
+    "privateLog": "Diário privado",
+    "publicHint": "Qualquer pessoa pode ver este diário",
+    "privateHint": "Somente você pode ver este diário",
     "photosReadOnly": "Fotos (não podem ser alteradas)",
     "rating": "Avaliação",
     "ratingExcellent": "Excelente!",
@@ -608,6 +629,11 @@
   },
   "recipeEdit": {
     "title": "Editar receita",
+    "visibility": "Visibilidade",
+    "publicRecipe": "Receita pública",
+    "privateRecipe": "Receita privada",
+    "publicHint": "Qualquer pessoa pode ver esta receita",
+    "privateHint": "Somente você pode ver esta receita",
     "backToRecipe": "Voltar à receita",
     "cannotEdit": "Não é possível editar a receita",
     "photos": "Fotos",

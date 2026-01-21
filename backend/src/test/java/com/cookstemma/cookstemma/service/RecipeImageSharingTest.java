@@ -101,7 +101,8 @@ class RecipeImageSharingTest extends BaseIntegrationTest {
                 null, // changeReason
                 List.of(), // hashtags
                 2, // servings
-                "MIN_30_TO_60" // cookingTimeRange
+                "MIN_30_TO_60", // cookingTimeRange
+                null // isPrivate
         );
     }
 
@@ -123,7 +124,8 @@ class RecipeImageSharingTest extends BaseIntegrationTest {
                 "테스트 변형",
                 List.of(),
                 2,
-                "MIN_30_TO_60"
+                "MIN_30_TO_60",
+                null // isPrivate
         );
     }
 

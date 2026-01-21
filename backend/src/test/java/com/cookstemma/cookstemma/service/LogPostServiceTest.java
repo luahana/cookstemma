@@ -97,7 +97,8 @@ class LogPostServiceTest extends BaseIntegrationTest {
                     "Updated content",
                     3,  // 3 stars (equivalent to PARTIAL)
                     List.of("tag1", "tag2"),
-                    null
+                    null,
+                    null  // isPrivate
             );
 
             LogPostDetailResponseDto result = logPostService.updateLog(
@@ -123,7 +124,8 @@ class LogPostServiceTest extends BaseIntegrationTest {
                     "Updated content",
                     3,  // 3 stars
                     null,
-                    null
+                    null,
+                    null  // isPrivate
             );
 
             assertThatThrownBy(() -> logPostService.updateLog(
@@ -142,7 +144,8 @@ class LogPostServiceTest extends BaseIntegrationTest {
                     "Updated content",
                     3,  // 3 stars
                     null,
-                    null
+                    null,
+                    null  // isPrivate
             );
 
             assertThatThrownBy(() -> logPostService.updateLog(
@@ -162,7 +165,8 @@ class LogPostServiceTest extends BaseIntegrationTest {
                     "Content with tags",
                     5,  // 5 stars
                     List.of("tag1", "tag2"),
-                    null
+                    null,
+                    null  // isPrivate
             );
             logPostService.updateLog(testLogPost.getPublicId(), addTagsRequest, testUser.getId());
 
@@ -172,7 +176,8 @@ class LogPostServiceTest extends BaseIntegrationTest {
                     "Content without tags",
                     5,  // 5 stars
                     null,
-                    null
+                    null,
+                    null  // isPrivate
             );
             logPostService.updateLog(testLogPost.getPublicId(), clearTagsRequest, testUser.getId());
 

@@ -27,5 +27,7 @@ public record UpdateRecipeRequestDto(
         // Servings (default: 2)
         Integer servings,
         // Cooking time range (e.g., "UNDER_15_MIN", "MIN_15_TO_30", etc.)
-        String cookingTimeRange
+        String cookingTimeRange,
+        // Private visibility (null = no change, true/false = update)
+        Boolean isPrivate
 ) {}

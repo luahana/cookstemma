@@ -22,6 +22,9 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // 2. 내 로그 목록 (최신순)
     Slice<LogPost> findByCreatorIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long creatorId, Pageable pageable);
 
+    // 2-0. 내 로그 목록 with visibility filter (최신순)
+    Slice<LogPost> findByCreatorIdAndDeletedAtIsNullAndIsPrivateOrderByCreatedAtDesc(Long creatorId, Boolean isPrivate, Pageable pageable);
+
     // 2-1. 내 로그 목록 (rating 범위 필터링)
     @Query(value = """
         SELECT lp.* FROM log_posts lp
@@ -41,7 +44,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // 3. 특정 지역/언어 기반 최신 로그 피드
     Slice<LogPost> findByLocaleAndDeletedAtIsNullAndIsPrivateFalseOrderByCreatedAtDesc(String locale, Pageable pageable);
 
-    @Query("SELECT l FROM LogPost l ORDER BY l.createdAt DESC")
+    @Query("SELECT l FROM LogPost l WHERE l.deletedAt IS NULL AND (l.isPrivate IS NULL OR l.isPrivate = false) ORDER BY l.createdAt DESC")
     Slice<LogPost> findAllOrderByCreatedAtDesc(Pageable pageable);
 
     // Filter by rating range
@@ -49,6 +52,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL
+        AND (lp.is_private IS NULL OR lp.is_private = false)
         AND rl.rating BETWEEN :minRating AND :maxRating
         ORDER BY lp.created_at DESC
         """,
@@ -64,7 +68,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT DISTINCT lp.* FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         AND (
@@ -85,7 +89,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT COUNT(DISTINCT lp.id) FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         AND (
@@ -106,7 +110,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT lp.* FROM log_posts lp
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         ORDER BY lp.created_at DESC, lp.id DESC
@@ -117,7 +121,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT lp.* FROM log_posts lp
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
@@ -130,7 +134,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         AND rl.rating BETWEEN :minRating AND :maxRating
@@ -144,7 +148,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         AND rl.rating BETWEEN :minRating AND :maxRating
@@ -195,14 +199,14 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT lp.* FROM log_posts lp
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         ORDER BY lp.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM log_posts lp
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         """,
@@ -214,14 +218,14 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT lp.* FROM log_posts lp
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         ORDER BY (COALESCE(lp.view_count, 0) + COALESCE(lp.saved_count, 0) * 5) DESC, lp.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM log_posts lp
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         """,
@@ -233,7 +237,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT lp.* FROM log_posts lp
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         ORDER BY ((COALESCE(lp.view_count, 0) + COALESCE(lp.saved_count, 0) * 5)::float / (1.0 + EXTRACT(EPOCH FROM (NOW() - lp.created_at)) / 604800.0)) DESC,
@@ -241,7 +245,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         """,
         countQuery = """
         SELECT COUNT(*) FROM log_posts lp
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         """,
@@ -253,7 +257,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         AND rl.rating BETWEEN :minRating AND :maxRating
@@ -261,7 +265,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         countQuery = """
         SELECT COUNT(lp.id) FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         AND rl.rating BETWEEN :minRating AND :maxRating
@@ -297,7 +301,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT DISTINCT lp.* FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         AND (
@@ -318,7 +322,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT COUNT(DISTINCT lp.id) FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         AND (
@@ -341,7 +345,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT lp.* FROM log_posts lp
         JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
-        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         ORDER BY lp.created_at DESC, lp.id DESC
@@ -357,7 +361,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT lp.* FROM log_posts lp
         JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
-        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
@@ -376,7 +380,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT lp.* FROM log_posts lp
         JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
-        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         """,
@@ -384,7 +388,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT COUNT(lp.id) FROM log_posts lp
         JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
-        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
              OR jsonb_exists(lp.title_translations, :langCode))
         """,
@@ -396,7 +400,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
 
     // Count log posts by hashtag (unfiltered - for hashtag display purposes)
     @Query("SELECT COUNT(l) FROM LogPost l JOIN l.hashtags h " +
-           "WHERE h.name = :hashtagName AND l.deletedAt IS NULL AND l.isPrivate = false")
+           "WHERE h.name = :hashtagName AND l.deletedAt IS NULL AND (l.isPrivate IS NULL OR l.isPrivate = false)")
     long countByHashtag(@Param("hashtagName") String hashtagName);
 
     // ==================== UNIFIED SEARCH COUNT ====================
@@ -408,7 +412,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT COUNT(DISTINCT lp.id) FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
-        WHERE lp.deleted_at IS NULL AND lp.is_private = false
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND (
             lp.title ILIKE '%' || :keyword || '%'
             OR lp.content ILIKE '%' || :keyword || '%'

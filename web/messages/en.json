@@ -317,7 +317,12 @@
     "errorNotes": "Please enter your cooking notes",
     "errorUploading": "Please wait for images to finish uploading",
     "errorFailedImages": "Some images failed to upload. Please remove them and try again.",
-    "errorCreate": "Failed to create cooking log. Please try again."
+    "errorCreate": "Failed to create cooking log. Please try again.",
+    "visibility": "Visibility",
+    "publicLog": "Public Log",
+    "privateLog": "Private Log",
+    "publicHint": "Anyone can see this log",
+    "privateHint": "Only you can see this log"
   },
   "filters": {
     "sort": "Sort:",
@@ -367,10 +372,16 @@
     "shareOnFacebook": "Share on Facebook",
     "shareOnPinterest": "Share on Pinterest"
   },
+  "visibility": {
+    "all": "All",
+    "public": "Public",
+    "private": "Private"
+  },
   "card": {
     "variant": "Variant",
     "recipe": "Recipe",
-    "cookingLog": "Cooking Log"
+    "cookingLog": "Cooking Log",
+    "private": "Private"
   },
   "bookmark": {
     "add": "Add bookmark",
@@ -458,7 +469,12 @@
     "errorStepUploading": "Please wait for step images to finish uploading",
     "errorStepUploadFailed": "Some step images failed to upload. Please remove them and try again.",
     "errorCreate": "Failed to create recipe. Please try again.",
-    "errorLoadParent": "Failed to load parent recipe. Please try again."
+    "errorLoadParent": "Failed to load parent recipe. Please try again.",
+    "visibility": "Visibility",
+    "publicRecipe": "Public Recipe",
+    "privateRecipe": "Private Recipe",
+    "publicHint": "Anyone can see this recipe",
+    "privateHint": "Only you can see this recipe"
   },
   "profileEdit": {
     "title": "Edit Profile",
@@ -532,7 +548,12 @@
     "errorSave": "Failed to save changes. Please try again.",
     "errorUploading": "Please wait for photos to finish uploading",
     "errorFailedImages": "Please remove failed photos before saving",
-    "errorUpload": "Upload failed"
+    "errorUpload": "Upload failed",
+    "visibility": "Visibility",
+    "publicLog": "Public Log",
+    "privateLog": "Private Log",
+    "publicHint": "Anyone can see this log",
+    "privateHint": "Only you can see this log"
   },
   "variant": {
     "madeItYourWay": "Made it your own way?",
@@ -651,7 +672,12 @@
     "errorSave": "Failed to save changes. Please try again.",
     "categoryMain": "Main",
     "categorySecondary": "Secondary",
-    "categorySeasoning": "Sauce & Seasoning"
+    "categorySeasoning": "Sauce & Seasoning",
+    "visibility": "Visibility",
+    "publicRecipe": "Public Recipe",
+    "privateRecipe": "Private Recipe",
+    "publicHint": "Anyone can see this recipe",
+    "privateHint": "Only you can see this recipe"
   },
   "appDownload": {
     "appStore": "App Store",

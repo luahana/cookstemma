@@ -307,6 +307,11 @@
     "hashtagsLabel": "Hashtag (opsional, maks {max})",
     "hashtagPlaceholder": "Tambahkan hashtag...",
     "hashtagHint": "Tekan Enter atau koma untuk menambah • {count}/{max} tag",
+    "visibility": "Visibilitas",
+    "publicLog": "Catatan Publik",
+    "privateLog": "Catatan Privat",
+    "publicHint": "Semua orang dapat melihat catatan ini",
+    "privateHint": "Hanya Anda yang dapat melihat catatan ini",
     "createLog": "Buat Catatan",
     "creating": "Membuat...",
     "add": "Tambah",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "Bagikan di Facebook",
     "shareOnPinterest": "Bagikan di Pinterest"
   },
+  "visibility": {
+    "all": "Semua",
+    "public": "Publik",
+    "private": "Privat"
+  },
   "card": {
     "variant": "Varian",
     "recipe": "Resep",
-    "cookingLog": "Catatan Memasak"
+    "cookingLog": "Catatan Memasak",
+    "private": "Privat"
   },
   "bookmark": {
     "add": "Tambah bookmark",
@@ -436,6 +447,11 @@
     "whatDidYouChangePlaceholder": "mis. Menambahkan lebih banyak bawang putih dan mengurangi gula untuk versi lebih sehat",
     "whatDidYouChangeHelp": "Jelaskan apa yang membuat variasi Anda berbeda",
     "cancel": "Batal",
+    "visibility": "Visibilitas",
+    "publicRecipe": "Resep Publik",
+    "privateRecipe": "Resep Privat",
+    "publicHint": "Semua orang dapat melihat resep ini",
+    "privateHint": "Hanya Anda yang dapat melihat resep ini",
     "createRecipe": "Buat Resep",
     "createVariation": "Buat Variasi",
     "creating": "Membuat...",
@@ -502,6 +518,11 @@
   },
   "logEdit": {
     "title": "Edit Catatan Memasak",
+    "visibility": "Visibilitas",
+    "publicLog": "Catatan Publik",
+    "privateLog": "Catatan Privat",
+    "publicHint": "Semua orang dapat melihat catatan ini",
+    "privateHint": "Hanya Anda yang dapat melihat catatan ini",
     "photosReadOnly": "Foto (tidak dapat diubah)",
     "rating": "Rating",
     "ratingExcellent": "Luar biasa!",
@@ -609,6 +630,11 @@
   "recipeEdit": {
     "title": "Edit Resep",
     "backToRecipe": "Kembali ke resep",
+    "visibility": "Visibilitas",
+    "publicRecipe": "Resep Publik",
+    "privateRecipe": "Resep Privat",
+    "publicHint": "Semua orang dapat melihat resep ini",
+    "privateHint": "Hanya Anda yang dapat melihat resep ini",
     "cannotEdit": "Tidak Dapat Mengedit Resep",
     "photos": "Foto",
     "photosCount": "{count}/{max} foto",

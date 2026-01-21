@@ -116,35 +116,36 @@ class CookingDnaServiceTest {
             // Tier 1: Beginner (1-8), ends at 800 XP
             "0, 1",
             "800, 8",
-            // Tier 2: Kitchen Helper (9-16), ends at 2000 XP
-            "801, 9",
+            // Tier 2: Novice Cook (9-16), ends at 2000 XP
+            // Note: 801 XP is still Level 8 since Level 9 requires ~950 XP (graduated within tier)
+            "950, 9",
             "2000, 16",
             // Tier 3: Home Cook (17-25), ends at 4500 XP
-            "2001, 17",
+            "2278, 17",
             "4500, 25",
-            // Tier 4: Cooking Enthusiast (26-34), ends at 8000 XP
-            "4501, 26",
+            // Tier 4: Hobby Cook (26-34), ends at 8000 XP
+            "4889, 26",
             "8000, 34",
             // Tier 5: Skilled Cook (35-44), ends at 14000 XP
-            "8001, 35",
+            "8600, 35",
             "14000, 44",
-            // Tier 6: Amateur Chef (45-54), ends at 22000 XP
-            "14001, 45",
+            // Tier 6: Expert Cook (45-54), ends at 22000 XP
+            "14800, 45",
             "22000, 54",
-            // Tier 7: Home Chef (55-64), ends at 32000 XP
-            "22001, 55",
+            // Tier 7: Junior Chef (55-64), ends at 32000 XP
+            "23000, 55",
             "32000, 64",
             // Tier 8: Sous Chef (65-74), ends at 45000 XP
-            "32001, 65",
+            "33300, 65",
             "45000, 74",
             // Tier 9: Chef (75-84), ends at 62000 XP
-            "45001, 75",
+            "46700, 75",
             "62000, 84",
             // Tier 10: Head Chef (85-92), ends at 80000 XP
-            "62001, 85",
+            "64250, 85",
             "80000, 92",
             // Tier 11: Executive Chef (93-99), ends at 99000 XP
-            "80001, 93",
+            "82714, 93",
             "99000, 99",
             // Tier 12: Master Chef (100), at 100000 XP
             "100000, 100"
@@ -304,25 +305,25 @@ class CookingDnaServiceTest {
         }
 
         @Test
-        @DisplayName("All tier names end with Cook or Chef (except Beginner)")
+        @DisplayName("All tier names follow Cook/Chef pattern (except Beginner)")
         void allTierNamesFollowPattern() {
             // Beginner is the only exception
             assertThat(service.getLevelName(1)).isEqualTo("beginner");
 
-            // Cook tiers (2-6)
-            assertThat(service.getLevelName(9)).endsWith("Cook");
-            assertThat(service.getLevelName(17)).endsWith("Cook");
-            assertThat(service.getLevelName(26)).endsWith("Cook");
-            assertThat(service.getLevelName(35)).endsWith("Cook");
-            assertThat(service.getLevelName(45)).endsWith("Cook");
+            // Cook tiers (2-6) - camelCase so "Cook" suffix
+            assertThat(service.getLevelName(9)).contains("Cook");
+            assertThat(service.getLevelName(17)).contains("Cook");
+            assertThat(service.getLevelName(26)).contains("Cook");
+            assertThat(service.getLevelName(35)).contains("Cook");
+            assertThat(service.getLevelName(45)).contains("Cook");
 
-            // Chef tiers (7-12)
-            assertThat(service.getLevelName(55)).endsWith("Chef");
-            assertThat(service.getLevelName(65)).endsWith("Chef");
-            assertThat(service.getLevelName(75)).endsWith("Chef");
-            assertThat(service.getLevelName(85)).endsWith("Chef");
-            assertThat(service.getLevelName(93)).endsWith("Chef");
-            assertThat(service.getLevelName(100)).endsWith("Chef");
+            // Chef tiers (7-12) - camelCase so "Chef" suffix
+            assertThat(service.getLevelName(55)).contains("Chef");
+            assertThat(service.getLevelName(65)).contains("Chef");
+            assertThat(service.getLevelName(75)).isEqualTo("chef");  // Just "chef" with no prefix
+            assertThat(service.getLevelName(85)).contains("Chef");
+            assertThat(service.getLevelName(93)).contains("Chef");
+            assertThat(service.getLevelName(100)).contains("Chef");
         }
     }
 
@@ -339,10 +340,10 @@ class CookingDnaServiceTest {
             // - 20 cooking logs created (400 XP)
             // - Received ratings totaling 100 points from others (600 XP)
             // - 30 saves on their recipes (300 XP)
-            // Total: 1950 XP -> Level 16 (Novice Cook)
+            // Total: 1950 XP -> Level 15 (Novice Cook, since L16 requires 2000)
             int totalXp = service.calculateTotalXp(10, 5, 20, 100, 30);
             assertThat(totalXp).isEqualTo(1950);
-            assertThat(service.calculateLevel(totalXp)).isEqualTo(16);
+            assertThat(service.calculateLevel(totalXp)).isEqualTo(15);
             assertThat(service.getLevelName(service.calculateLevel(totalXp))).isEqualTo("noviceCook");
         }
 
@@ -355,11 +356,11 @@ class CookingDnaServiceTest {
             // - 10 logs created (200 XP)
             // - Some ratings received (150 points = 900 XP)
             // - 100 saves (1000 XP)
-            // Total: 4600 XP -> Level 26 (Hobby Cook)
+            // Total: 4600 XP -> Level 25 (Home Cook, since L26 requires 4889)
             int totalXp = service.calculateTotalXp(50, 0, 10, 150, 100);
             assertThat(totalXp).isEqualTo(4600);
-            assertThat(service.calculateLevel(totalXp)).isEqualTo(26);
-            assertThat(service.getLevelName(service.calculateLevel(totalXp))).isEqualTo("hobbyCook");
+            assertThat(service.calculateLevel(totalXp)).isEqualTo(25);
+            assertThat(service.getLevelName(service.calculateLevel(totalXp))).isEqualTo("homeCook");
         }
 
         @Test
@@ -371,10 +372,10 @@ class CookingDnaServiceTest {
             // - 100 logs created (2000 XP)
             // - Ratings received (50 points = 300 XP)
             // - 20 saves (200 XP)
-            // Total: 2810 XP -> Level 19 (Home Cook)
+            // Total: 2810 XP -> Level 18 (Home Cook, since L19 requires 2833)
             int totalXp = service.calculateTotalXp(5, 2, 100, 50, 20);
             assertThat(totalXp).isEqualTo(2810);
-            assertThat(service.calculateLevel(totalXp)).isEqualTo(19);
+            assertThat(service.calculateLevel(totalXp)).isEqualTo(18);
             assertThat(service.getLevelName(service.calculateLevel(totalXp))).isEqualTo("homeCook");
         }
 

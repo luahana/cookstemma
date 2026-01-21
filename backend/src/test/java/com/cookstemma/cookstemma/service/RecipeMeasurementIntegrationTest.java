@@ -98,7 +98,8 @@ class RecipeMeasurementIntegrationTest extends BaseIntegrationTest {
                     null, // changeReason
                     null, // hashtags
                     null, // servings
-                    null  // cookingTimeRange
+                    null, // cookingTimeRange
+                    null  // isPrivate
             );
 
             // Act
@@ -141,7 +142,7 @@ class RecipeMeasurementIntegrationTest extends BaseIntegrationTest {
                     List.of(mainIngredient, seasoningIngredient),
                     List.of(new StepDto(1, "Combine", null, null)),
                     List.of(),
-                    null, null, null, null, null, null, null, null
+                    null, null, null, null, null, null, null, null, null  // isPrivate
             );
 
             // Act

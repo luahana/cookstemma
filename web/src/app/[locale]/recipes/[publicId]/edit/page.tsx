@@ -154,6 +154,7 @@ export default function RecipeEditPage() {
   const [hashtagInput, setHashtagInput] = useState('');
   const [servings, setServings] = useState(2);
   const [cookingTimeRange, setCookingTimeRange] = useState('MIN_30_TO_60');
+  const [isPrivate, setIsPrivate] = useState(false);
 
   // Load recipe data
   useEffect(() => {
@@ -181,6 +182,7 @@ export default function RecipeEditPage() {
         setDescription(recipeData.description || '');
         setServings(recipeData.servings);
         setCookingTimeRange(recipeData.cookingTimeRange);
+        setIsPrivate(recipeData.isPrivate);
 
         // Photos as original
         setPhotos(
@@ -578,6 +580,7 @@ export default function RecipeEditPage() {
         hashtags: activeHashtags.map((h) => h.name),
         servings,
         cookingTimeRange,
+        isPrivate,
       };
 
       await updateRecipe(publicId!, data);
@@ -1166,6 +1169,36 @@ export default function RecipeEditPage() {
                 </button>
               </div>
             )}
+          </section>
+
+          {/* Visibility Section */}
+          <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
+            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+              {t('visibility')}
+            </h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-[var(--text-primary)]">
+                  {isPrivate ? t('privateRecipe') : t('publicRecipe')}
+                </p>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">
+                  {isPrivate ? t('privateHint') : t('publicHint')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPrivate(!isPrivate)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isPrivate ? 'bg-[var(--primary)]' : 'bg-[var(--border)]'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isPrivate ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
           </section>
 
           {/* Error */}

@@ -138,6 +138,7 @@ public class RecipeService {
                 .changeCategories(changeCategories)
                 .servings(req.servings() != null ? req.servings() : 2)
                 .cookingTimeRange(cookingTimeRange)
+                .isPrivate(req.isPrivate() != null ? req.isPrivate() : false)
                 .build();
 
         recipeRepository.save(recipe);
@@ -193,6 +194,13 @@ public class RecipeService {
         Recipe recipe = recipeRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
 
+        // Access control for private recipes - only owner can view
+        if (Boolean.TRUE.equals(recipe.getIsPrivate())) {
+            if (userId == null || !recipe.getCreatorId().equals(userId)) {
+                throw new org.springframework.security.access.AccessDeniedException("This recipe is private");
+            }
+        }
+
         // Increment view count for analytics
         recipe.incrementViewCount();
         recipeRepository.save(recipe);
@@ -244,7 +252,8 @@ public class RecipeService {
                             foodName,
                             LocaleUtils.getLocalizedValue(recipe.getTitleTranslations(), normalizedLocale, recipe.getTitle()),
                             logHashtags,
-                            isVariant
+                            isVariant,
+                            logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false
                     );
                 }).toList();
 
@@ -568,7 +577,8 @@ public class RecipeService {
                 rootTitle,
                 recipe.getServings() != null ? recipe.getServings() : 2,
                 recipe.getCookingTimeRange() != null ? recipe.getCookingTimeRange().name() : "MIN_30_TO_60",
-                hashtags
+                hashtags,
+                recipe.getIsPrivate() != null ? recipe.getIsPrivate() : false
         );
     }
 
@@ -794,6 +804,11 @@ public class RecipeService {
             } catch (IllegalArgumentException ignored) {
                 // Keep existing value if invalid
             }
+        }
+
+        // Update privacy setting
+        if (req.isPrivate() != null) {
+            recipe.setIsPrivate(req.isPrivate());
         }
 
         // Update ingredients (clear and re-add)

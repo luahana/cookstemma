@@ -72,7 +72,8 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
                     null,                 // changeReason
                     List.of(),            // hashtags
                     2,                    // servings
-                    "MIN_30_TO_60"        // cookingTimeRange
+                    "MIN_30_TO_60",       // cookingTimeRange
+                    null                  // isPrivate
             );
 
             // Act
@@ -98,7 +99,7 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
             // Arrange - Create first recipe with new food
             CreateRecipeRequestDto request1 = new CreateRecipeRequestDto(
                     "Recipe 1", "Desc 1", "ko-KR", null, "Unique Food Name",
-                    List.of(), List.of(), List.of(), null, null, null, null, null, List.of(), 2, null
+                    List.of(), List.of(), List.of(), null, null, null, null, null, List.of(), 2, null, null  // isPrivate
             );
             recipeService.createRecipe(request1, principal);
 
@@ -115,7 +116,7 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
             // Act - Create second recipe with same food name
             CreateRecipeRequestDto request2 = new CreateRecipeRequestDto(
                     "Recipe 2", "Desc 2", "ko-KR", null, "Unique Food Name",
-                    List.of(), List.of(), List.of(), null, null, null, null, null, List.of(), 2, null
+                    List.of(), List.of(), List.of(), null, null, null, null, null, List.of(), 2, null, null  // isPrivate
             );
             recipeService.createRecipe(request2, principal);
 
@@ -134,7 +135,7 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
             // Arrange
             CreateRecipeRequestDto request = new CreateRecipeRequestDto(
                     "Test Recipe", "Desc", "ja-JP", null, "Another Test Food",
-                    List.of(), List.of(), List.of(), null, null, null, null, null, List.of(), 2, null
+                    List.of(), List.of(), List.of(), null, null, null, null, null, List.of(), 2, null, null  // isPrivate
             );
 
             // Act

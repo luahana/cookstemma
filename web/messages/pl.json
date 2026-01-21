@@ -307,6 +307,11 @@
     "hashtagsLabel": "Hashtagi (opcjonalne, maks. {max})",
     "hashtagPlaceholder": "Dodaj hashtag...",
     "hashtagHint": "Naciśnij Enter lub przecinek, aby dodać • {count}/{max} tagów",
+    "visibility": "Widoczność",
+    "publicLog": "Publiczny wpis",
+    "privateLog": "Prywatny wpis",
+    "publicHint": "Każdy może zobaczyć ten wpis",
+    "privateHint": "Tylko Ty możesz zobaczyć ten wpis",
     "createLog": "Utwórz wpis",
     "creating": "Tworzenie...",
     "add": "Dodaj",
@@ -366,10 +371,16 @@
     "shareOnFacebook": "Udostępnij na Facebooku",
     "shareOnPinterest": "Udostępnij na Pintereście"
   },
+  "visibility": {
+    "all": "Wszystko",
+    "public": "Publiczny",
+    "private": "Prywatny"
+  },
   "card": {
     "variant": "Wariant",
     "recipe": "Przepis",
-    "cookingLog": "Wpis w dzienniku"
+    "cookingLog": "Wpis w dzienniku",
+    "private": "Prywatny"
   },
   "bookmark": {
     "add": "Dodaj zakładkę",
@@ -436,6 +447,11 @@
     "whatDidYouChangePlaceholder": "np. Dodałem więcej czosnku i zmniejszyłem ilość cukru dla zdrowszej wersji",
     "whatDidYouChangeHelp": "Wyjaśnij, co sprawia, że Twój wariant jest inny",
     "cancel": "Anuluj",
+    "visibility": "Widoczność",
+    "publicRecipe": "Publiczny przepis",
+    "privateRecipe": "Prywatny przepis",
+    "publicHint": "Każdy może zobaczyć ten przepis",
+    "privateHint": "Tylko Ty możesz zobaczyć ten przepis",
     "createRecipe": "Utwórz przepis",
     "createVariation": "Utwórz wariant",
     "creating": "Tworzenie...",
@@ -502,6 +518,11 @@
   },
   "logEdit": {
     "title": "Edytuj wpis w dzienniku",
+    "visibility": "Widoczność",
+    "publicLog": "Publiczny wpis",
+    "privateLog": "Prywatny wpis",
+    "publicHint": "Każdy może zobaczyć ten wpis",
+    "privateHint": "Tylko Ty możesz zobaczyć ten wpis",
     "photosReadOnly": "Zdjęcia (nie można zmienić)",
     "rating": "Ocena",
     "ratingExcellent": "Doskonale!",
@@ -609,6 +630,11 @@
   "recipeEdit": {
     "title": "Edytuj przepis",
     "backToRecipe": "Powrót do przepisu",
+    "visibility": "Widoczność",
+    "publicRecipe": "Publiczny przepis",
+    "privateRecipe": "Prywatny przepis",
+    "publicHint": "Każdy może zobaczyć ten przepis",
+    "privateHint": "Tylko Ty możesz zobaczyć ten przepis",
     "cannotEdit": "Nie można edytować przepisu",
     "photos": "Zdjęcia",
     "photosCount": "{count}/{max} zdjęć",

@@ -290,7 +290,8 @@ class RecipeControllerTest extends BaseIntegrationTest {
                     null,
                     null,
                     null,
-                    null
+                    null,
+                    null  // isPrivate
             );
 
             mockMvc.perform(post("/api/v1/recipes")
@@ -306,7 +307,7 @@ class RecipeControllerTest extends BaseIntegrationTest {
         void createRecipe_NoAuth_Returns401() throws Exception {
             CreateRecipeRequestDto request = new CreateRecipeRequestDto(
                     "New Recipe", "Description", "ko-KR", testFood.getPublicId(),
-                    null, List.of(), List.of(), List.of(), null, null, null, null, null, null, null, null
+                    null, List.of(), List.of(), List.of(), null, null, null, null, null, null, null, null, null  // isPrivate
             );
 
             mockMvc.perform(post("/api/v1/recipes")
@@ -384,7 +385,8 @@ class RecipeControllerTest extends BaseIntegrationTest {
                     "Added more spice",
                     null,
                     null,
-                    null
+                    null,
+                    null  // isPrivate
             );
 
             mockMvc.perform(post("/api/v1/recipes")

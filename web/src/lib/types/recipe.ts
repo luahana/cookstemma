@@ -24,6 +24,7 @@ export interface RecipeSummary {
   servings: number;
   cookingTimeRange: string;
   hashtags: string[];
+  isPrivate: boolean; // Whether this recipe is private (only visible to creator)
 }
 
 /**
@@ -107,6 +108,7 @@ export interface RecipeDetail {
   changeReason: string | null;
   servings: number;
   cookingTimeRange: string;
+  isPrivate: boolean; // Whether this recipe is private (only visible to creator)
 }
 
 /**
@@ -171,6 +173,7 @@ export interface UpdateRecipeRequest {
   hashtags?: string[];
   servings?: number;
   cookingTimeRange?: string;
+  isPrivate?: boolean; // Whether this recipe is private
 }
 
 /**
@@ -193,6 +196,7 @@ export interface CreateRecipeRequest {
   hashtags?: string[];
   servings?: number;
   cookingTimeRange?: string;
+  isPrivate?: boolean; // Whether this recipe is private
   // Variant fields
   parentPublicId?: string | null;
   rootPublicId?: string | null;

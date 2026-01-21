@@ -317,7 +317,12 @@
     "errorNotes": "요리 노트를 입력해 주세요",
     "errorUploading": "이미지 업로드가 완료될 때까지 기다려 주세요",
     "errorFailedImages": "일부 이미지 업로드에 실패했습니다. 해당 이미지를 삭제하고 다시 시도해 주세요.",
-    "errorCreate": "요리 일지 생성에 실패했습니다. 다시 시도해 주세요."
+    "errorCreate": "요리 일지 생성에 실패했습니다. 다시 시도해 주세요.",
+    "visibility": "공개 설정",
+    "publicLog": "공개 로그",
+    "privateLog": "비공개 로그",
+    "publicHint": "누구나 이 로그를 볼 수 있습니다",
+    "privateHint": "나만 이 로그를 볼 수 있습니다"
   },
   "filters": {
     "sort": "정렬:",
@@ -367,10 +372,16 @@
     "shareOnFacebook": "페이스북에 공유",
     "shareOnPinterest": "핀터레스트에 공유"
   },
+  "visibility": {
+    "all": "전체",
+    "public": "공개",
+    "private": "비공개"
+  },
   "card": {
     "variant": "변형",
     "recipe": "레시피",
-    "cookingLog": "요리 일지"
+    "cookingLog": "요리 일지",
+    "private": "비공개"
   },
   "bookmark": {
     "add": "북마크 추가",
@@ -458,7 +469,12 @@
     "errorStepUploading": "단계 이미지 업로드가 완료될 때까지 기다려 주세요",
     "errorStepUploadFailed": "일부 단계 이미지 업로드에 실패했습니다. 삭제 후 다시 시도해 주세요.",
     "errorCreate": "레시피 생성에 실패했습니다. 다시 시도해 주세요.",
-    "errorLoadParent": "원본 레시피를 불러오지 못했습니다. 다시 시도해 주세요."
+    "errorLoadParent": "원본 레시피를 불러오지 못했습니다. 다시 시도해 주세요.",
+    "visibility": "공개 설정",
+    "publicRecipe": "공개 레시피",
+    "privateRecipe": "비공개 레시피",
+    "publicHint": "누구나 이 레시피를 볼 수 있습니다",
+    "privateHint": "나만 이 레시피를 볼 수 있습니다"
   },
   "profileEdit": {
     "title": "프로필 수정",
@@ -532,7 +548,12 @@
     "errorSave": "변경사항 저장에 실패했습니다. 다시 시도해 주세요.",
     "errorUploading": "사진 업로드가 완료될 때까지 기다려주세요",
     "errorFailedImages": "저장하기 전에 실패한 사진을 삭제해 주세요",
-    "errorUpload": "업로드 실패"
+    "errorUpload": "업로드 실패",
+    "visibility": "공개 설정",
+    "publicLog": "공개 로그",
+    "privateLog": "비공개 로그",
+    "publicHint": "누구나 이 로그를 볼 수 있습니다",
+    "privateHint": "나만 이 로그를 볼 수 있습니다"
   },
   "variant": {
     "madeItYourWay": "나만의 방식으로 만드셨나요?",
@@ -651,7 +672,12 @@
     "errorSave": "변경사항 저장에 실패했습니다. 다시 시도해 주세요.",
     "categoryMain": "주재료",
     "categorySecondary": "부재료",
-    "categorySeasoning": "소스 & 양념"
+    "categorySeasoning": "소스 & 양념",
+    "visibility": "공개 설정",
+    "publicRecipe": "공개 레시피",
+    "privateRecipe": "비공개 레시피",
+    "publicHint": "누구나 이 레시피를 볼 수 있습니다",
+    "privateHint": "나만 이 레시피를 볼 수 있습니다"
   },
   "appDownload": {
     "appStore": "App Store",
