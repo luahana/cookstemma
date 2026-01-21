@@ -129,10 +129,9 @@ class TestTextGenerator:
                 persona=english_persona,
                 recipe_title="Test Recipe",
                 recipe_description="A test description",
-                outcome="SUCCESS",
+                rating=5,
             )
 
-            assert "title" in result
             assert "content" in result
             assert isinstance(result["content"], str)
 

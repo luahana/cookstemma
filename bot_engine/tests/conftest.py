@@ -10,8 +10,8 @@ from src.api.models import (
     CreateLogRequest,
     CreateRecipeRequest,
     IngredientType,
-    LogOutcome,
     LogPost,
+    LinkedRecipeSummary,
     MeasurementUnit,
     Recipe,
     RecipeIngredient,
@@ -83,14 +83,12 @@ def sample_recipe() -> Recipe:
         ],
         steps=[
             RecipeStep(
-                order=1,
+                step_number=1,
                 description="Prepare the ingredients",
-                image_public_ids=[],
             ),
             RecipeStep(
-                order=2,
+                step_number=2,
                 description="Cook everything together",
-                image_public_ids=[],
             ),
         ],
         image_urls=["https://example.com/img-123.jpg"],
@@ -103,15 +101,15 @@ def sample_log() -> LogPost:
     """Create a sample log post for testing."""
     return LogPost(
         public_id="log-123-456",
-        recipe_public_id="recipe-123-456",
-        recipe_title="Test Recipe",
+        linked_recipe=LinkedRecipeSummary(
+            public_id="recipe-123-456",
+            title="Test Recipe",
+        ),
         title="Making Test Recipe",
         content="Today I made the test recipe and it turned out great!",
-        outcome=LogOutcome.SUCCESS,
-        locale="en",
-        creator_id="author-123",
-        creator_username="test_chef",
-        image_urls=["https://example.com/log-img-123.jpg"],
+        rating=5,
+        creator_public_id="author-123",
+        user_name="test_chef",
         hashtags=["cooking", "success"],
     )
 

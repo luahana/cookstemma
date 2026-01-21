@@ -161,14 +161,24 @@ class TextGenerator:
         persona: BotPersona,
         recipe_title: str,
         recipe_description: str,
-        outcome: str,
+        rating: int,
     ) -> Dict[str, Any]:
-        """Generate a cooking log."""
+        """Generate a cooking log.
+
+        Args:
+            persona: Bot persona to use
+            recipe_title: Title of the recipe
+            recipe_description: Description of the recipe
+            rating: Star rating 1-5
+
+        Returns:
+            Dict with 'content' and 'hashtags' keys
+        """
         system_prompt = persona.build_system_prompt()
         user_prompt = LogPrompts.generate_log(
             recipe_title=recipe_title,
             recipe_description=recipe_description,
-            outcome=outcome,
+            rating=rating,
             locale=persona.locale,
             persona_background=persona.background_story,
         )
@@ -185,7 +195,7 @@ class TextGenerator:
             "log_generated",
             persona=persona.name,
             recipe=recipe_title,
-            outcome=outcome,
+            rating=rating,
         )
         return log_data
 

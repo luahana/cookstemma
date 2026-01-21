@@ -57,12 +57,7 @@ class ChangeCategory(str, Enum):
     PRESENTATION = "PRESENTATION"
 
 
-class LogOutcome(str, Enum):
-    """Outcome of a cooking attempt."""
-
-    SUCCESS = "SUCCESS"
-    PARTIAL = "PARTIAL"
-    FAILED = "FAILED"
+# Note: LogOutcome enum removed - backend API now uses 'rating' (1-5) instead
 
 
 class RecipeIngredient(BaseModel):
@@ -170,14 +165,14 @@ class CreateLogRequest(BaseModel):
     """Request to create a cooking log."""
 
     recipe_public_id: str = Field(description="Recipe that was cooked")
-    title: str = Field(max_length=100)
-    content: str = Field(max_length=1000, description="Log notes/description")
-    outcome: LogOutcome = Field(description="Cooking outcome")
+    content: str = Field(max_length=1000, description="Cook's note/description")
+    rating: int = Field(ge=1, le=5, description="Star rating 1-5")
     image_public_ids: List[str] = Field(
         default_factory=list,
         description="Log photo IDs",
     )
     hashtags: List[str] = Field(default_factory=list)
+    is_private: bool = Field(default=False, description="Private visibility")
 
 
 class LogPostImage(BaseModel):
@@ -203,7 +198,7 @@ class LogPost(BaseModel):
     public_id: str = Field(alias="publicId")
     title: Optional[str] = None
     content: str
-    outcome: LogOutcome
+    rating: int = Field(ge=1, le=5, description="Star rating 1-5")
     images: List[LogPostImage] = Field(default_factory=list)
     linked_recipe: Optional[LinkedRecipeSummary] = Field(default=None, alias="linkedRecipe")
     created_at: Optional[str] = Field(default=None, alias="createdAt")
@@ -211,8 +206,7 @@ class LogPost(BaseModel):
     is_saved_by_current_user: Optional[bool] = Field(default=None, alias="isSavedByCurrentUser")
     creator_public_id: Optional[str] = Field(default=None, alias="creatorPublicId")
     user_name: Optional[str] = Field(default=None, alias="userName")
-    title_translations: Optional[dict] = Field(default=None, alias="titleTranslations")
-    content_translations: Optional[dict] = Field(default=None, alias="contentTranslations")
+    is_private: Optional[bool] = Field(default=None, alias="isPrivate")
 
     model_config = {"populate_by_name": True, "extra": "ignore"}
 

@@ -7,7 +7,6 @@ from src.api.models import (
     CreateLogRequest,
     CreateRecipeRequest,
     IngredientType,
-    LogOutcome,
     LogPost,
     MeasurementUnit,
     Recipe,
@@ -88,24 +87,23 @@ class TestRecipeStep:
     def test_create_step(self) -> None:
         """Test creating a recipe step."""
         step = RecipeStep(
-            order=1,
+            step_number=1,
             description="Preheat the oven to 180°C",
-            image_public_ids=["img-123"],
+            image_public_id="img-123",
         )
 
-        assert step.order == 1
+        assert step.step_number == 1
         assert step.description == "Preheat the oven to 180°C"
-        assert step.image_public_ids == ["img-123"]
+        assert step.image_public_id == "img-123"
 
     def test_step_without_images(self) -> None:
         """Test creating a step without images."""
         step = RecipeStep(
-            order=1,
+            step_number=1,
             description="Mix ingredients",
-            image_public_ids=[],
         )
 
-        assert step.image_public_ids == []
+        assert step.image_public_id is None
 
 
 class TestRecipe:
@@ -173,7 +171,7 @@ class TestCreateRecipeRequest:
                 )
             ],
             steps=[
-                RecipeStep(order=1, description="준비합니다", image_public_ids=[])
+                RecipeStep(step_number=1, description="준비합니다")
             ],
             image_public_ids=["img-1"],
             hashtags=["한식", "요리"],
@@ -205,16 +203,6 @@ class TestCreateRecipeRequest:
         assert ChangeCategory.SEASONING_CHANGE in request.change_categories
 
 
-class TestLogOutcome:
-    """Tests for LogOutcome enum."""
-
-    def test_outcome_values(self) -> None:
-        """Test all outcome values."""
-        assert LogOutcome.SUCCESS.value == "SUCCESS"
-        assert LogOutcome.PARTIAL.value == "PARTIAL"
-        assert LogOutcome.FAILED.value == "FAILED"
-
-
 class TestLogPost:
     """Tests for LogPost model."""
 
@@ -222,41 +210,27 @@ class TestLogPost:
         """Test log has all required attributes."""
         assert sample_log.public_id == "log-123-456"
         assert sample_log.recipe_public_id == "recipe-123-456"
-        assert sample_log.outcome == LogOutcome.SUCCESS
+        assert sample_log.rating == 5
         assert "great" in sample_log.content
 
-    def test_log_outcomes(self) -> None:
-        """Test different log outcomes."""
-        success_log = LogPost(
+    def test_log_ratings(self) -> None:
+        """Test different log ratings."""
+        high_rating_log = LogPost(
             public_id="log-1",
-            recipe_public_id="recipe-1",
-            recipe_title="Test Recipe",
-            title="Success",
-            content="It worked!",
-            outcome=LogOutcome.SUCCESS,
-            locale="en",
-            creator_id="author-1",
-            creator_username="test_chef",
-            image_urls=[],
+            content="It worked great!",
+            rating=5,
             hashtags=[],
         )
 
-        failed_log = LogPost(
+        low_rating_log = LogPost(
             public_id="log-2",
-            recipe_public_id="recipe-1",
-            recipe_title="Test Recipe",
-            title="Failed",
             content="It burned...",
-            outcome=LogOutcome.FAILED,
-            locale="en",
-            creator_id="author-1",
-            creator_username="test_chef",
-            image_urls=[],
+            rating=1,
             hashtags=[],
         )
 
-        assert success_log.outcome == LogOutcome.SUCCESS
-        assert failed_log.outcome == LogOutcome.FAILED
+        assert high_rating_log.rating == 5
+        assert low_rating_log.rating == 1
 
 
 class TestCreateLogRequest:
@@ -266,17 +240,27 @@ class TestCreateLogRequest:
         """Test creating a log request."""
         request = CreateLogRequest(
             recipe_public_id="recipe-123",
-            title="My Cooking Experience",
             content="Today I tried this recipe and it turned out amazing!",
-            outcome=LogOutcome.SUCCESS,
-            locale="en",
+            rating=5,
             image_public_ids=["img-1", "img-2"],
             hashtags=["cooking", "success"],
         )
 
         assert request.recipe_public_id == "recipe-123"
-        assert request.outcome == LogOutcome.SUCCESS
+        assert request.rating == 5
         assert len(request.image_public_ids) == 2
+
+    def test_create_log_request_with_private(self) -> None:
+        """Test creating a private log request."""
+        request = CreateLogRequest(
+            recipe_public_id="recipe-123",
+            content="Private log content",
+            rating=4,
+            is_private=True,
+        )
+
+        assert request.is_private is True
+        assert request.rating == 4
 
 
 class TestChangeCategory:

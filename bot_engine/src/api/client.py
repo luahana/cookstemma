@@ -370,7 +370,7 @@ class CookstemmaClient:
             "log_created",
             public_id=data.get("publicId"),
             recipe=data.get("linkedRecipe", {}).get("publicId") if data.get("linkedRecipe") else None,
-            outcome=data.get("outcome"),
+            rating=data.get("rating"),
         )
         return LogPost(**data)
 
