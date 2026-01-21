@@ -102,10 +102,10 @@ class AdminSuggestedFoodServiceTest extends BaseIntegrationTest {
                     .findByEntityTypeAndEntityId(TranslatableEntity.FOOD_MASTER, foodMaster.getId());
 
             assertThat(translationEvent).isPresent();
-            assertThat(translationEvent.get().getSourceLocale()).isEqualTo("ko");
+            assertThat(translationEvent.get().getSourceLocale()).isEqualTo("ko-KR");  // BCP47 format
             assertThat(translationEvent.get().getStatus()).isEqualTo(TranslationStatus.PENDING);
             assertThat(translationEvent.get().getTargetLocales()).hasSize(19); // 20 - 1 (source)
-            assertThat(translationEvent.get().getTargetLocales()).contains("en", "ja", "zh", "fr");
+            assertThat(translationEvent.get().getTargetLocales()).contains("en-US", "ja-JP", "zh-CN", "fr-FR");  // BCP47 format
         }
 
         @Test
