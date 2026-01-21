@@ -357,18 +357,35 @@ def get_gemini_client() -> GeminiTranslator:
 
 
 def fetch_pending_events(conn, limit: int = 10) -> list[dict]:
-    """Fetch pending or retryable translation events."""
+    """
+    Fetch pending or retryable translation events.
+
+    Includes:
+    - PENDING events
+    - FAILED events with retry_count < 3
+    - PROCESSING events stuck for >10 minutes (likely from crashed Lambda)
+    """
     with conn.cursor() as cur:
         cur.execute("""
-            SELECT id, entity_type, entity_id, source_locale, target_locales, completed_locales
+            SELECT id, entity_type, entity_id, source_locale, target_locales, completed_locales, status, started_at
             FROM translation_events
             WHERE status = 'PENDING'
                OR (status = 'FAILED' AND retry_count < 3)
+               OR (status = 'PROCESSING' AND started_at < NOW() - INTERVAL '10 minutes')
             ORDER BY created_at ASC
             LIMIT %s
             FOR UPDATE SKIP LOCKED
         """, (limit,))
-        return cur.fetchall()
+        events = cur.fetchall()
+
+        # Log if we're recovering stuck PROCESSING events
+        for event in events:
+            if event.get('status') == 'PROCESSING':
+                logger.warning(f"Recovering stuck PROCESSING event {event['id']} "
+                              f"(entity_type: {event['entity_type']}, entity_id: {event['entity_id']}, "
+                              f"started_at: {event.get('started_at')})")
+
+        return events
 
 
 def mark_event_processing(conn, event_id: int):
@@ -1106,7 +1123,7 @@ def handler(event: dict, context) -> dict:
             for event_id in event_ids:
                 with conn.cursor() as cur:
                     cur.execute("""
-                        SELECT id, entity_type, entity_id, source_locale, target_locales, completed_locales
+                        SELECT id, entity_type, entity_id, source_locale, target_locales, completed_locales, status
                         FROM translation_events
                         WHERE id = %s
                         FOR UPDATE
@@ -1133,6 +1150,14 @@ def handler(event: dict, context) -> dict:
         else:
             # Batch processing - fetch pending events
             events = fetch_pending_events(conn, limit=10)
+            logger.info(f"Batch processing: found {len(events)} pending events")
+
+            if events:
+                # Log summary of what we're about to process
+                event_summary = []
+                for e in events:
+                    event_summary.append(f"{e['entity_type']}:{e['entity_id']}")
+                logger.info(f"Processing events: {', '.join(event_summary)}")
 
             for translation_event in events:
                 event_id = translation_event['id']
