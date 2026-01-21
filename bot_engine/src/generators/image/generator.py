@@ -1,4 +1,4 @@
-"""Image generator using Imagen 3 with retry logic."""
+"""Image generator using Gemini Nano Banana (native image generation)."""
 
 import io
 import random
@@ -22,7 +22,7 @@ logger = structlog.get_logger()
 
 
 class ImageGenerator:
-    """Generate professional food images using Imagen 3."""
+    """Generate professional food images using Gemini Nano Banana."""
 
     def __init__(
         self,
@@ -34,7 +34,8 @@ class ImageGenerator:
         self.client = genai.Client(
             api_key=gemini_api_key or settings.gemini_api_key
         )
-        self.model = settings.gemini_image_model or "imagen-3.0-fast-generate-001"
+        # Nano Banana: gemini-2.5-flash-image (fast) or gemini-3-pro-image-preview (pro)
+        self.model = settings.gemini_image_model or "gemini-2.5-flash-image"
 
     async def close(self) -> None:
         """Close any resources (kept for interface compatibility)."""
@@ -85,7 +86,7 @@ Lighting: Natural indoor lighting, high-quality amateur photography."""
         stop=stop_after_attempt(5),
         wait=wait_exponential(multiplier=2, min=10, max=120),
         before_sleep=lambda retry_state: logger.warning(
-            "imagen_retry",
+            "nano_banana_retry",
             attempt=retry_state.attempt_number,
             wait=retry_state.next_action.sleep,
         ),
@@ -94,33 +95,36 @@ Lighting: Natural indoor lighting, high-quality amateur photography."""
         self,
         prompt: str,
     ) -> bytes:
-        """Generate image using Imagen 3 with retry."""
-        response = await self.client.aio.models.generate_images(
+        """Generate image using Gemini Nano Banana with retry."""
+        response = await self.client.aio.models.generate_content(
             model=self.model,
-            prompt=prompt,
-            config=types.GenerateImagesConfig(
-                number_of_images=1,
-                aspect_ratio="1:1",
+            contents=[prompt],
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE"],
+                image_config=types.ImageConfig(
+                    aspect_ratio="1:1",
+                ),
             ),
         )
 
-        if response.generated_images:
-            image = response.generated_images[0]
-            logger.info(
-                "imagen_generated",
-                model=self.model,
-                prompt_preview=prompt[:50],
-            )
-            return image.image.image_bytes
+        # Extract image from response parts
+        for part in response.parts:
+            if part.inline_data is not None:
+                logger.info(
+                    "nano_banana_generated",
+                    model=self.model,
+                    prompt_preview=prompt[:50],
+                )
+                return part.inline_data.data
 
-        raise ValueError("Imagen failed to return an image")
+        raise ValueError("Nano Banana failed to return an image")
 
     async def generate_image(
         self,
         prompt: str,
         add_imperfections: bool = True,
     ) -> bytes:
-        """Generate image using Imagen 3 with automatic retries."""
+        """Generate image using Gemini Nano Banana with automatic retries."""
         if add_imperfections:
             prompt = self._add_realism_imperfections(prompt)
 
