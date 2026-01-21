@@ -90,7 +90,7 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
 
             assertThat(events).hasSize(1);
             assertThat(events.get(0).getEntityType()).isEqualTo(TranslatableEntity.FOOD_MASTER);
-            assertThat(events.get(0).getSourceLocale()).isEqualTo("ko");
+            assertThat(events.get(0).getSourceLocale()).isEqualTo("ko-KR");  // BCP47 format
         }
 
         @Test
@@ -149,10 +149,10 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
                     TranslatableEntity.FOOD_MASTER, newFood.getId(),
                     List.of(TranslationStatus.PENDING)).get(0);
 
-            assertThat(event.getSourceLocale()).isEqualTo("ja");
+            assertThat(event.getSourceLocale()).isEqualTo("ja-JP");  // BCP47 format
             assertThat(event.getTargetLocales()).hasSize(19);
-            assertThat(event.getTargetLocales()).doesNotContain("ja");
-            assertThat(event.getTargetLocales()).contains("ko", "en", "zh", "es");
+            assertThat(event.getTargetLocales()).doesNotContain("ja-JP");  // BCP47 format
+            assertThat(event.getTargetLocales()).contains("ko-KR", "en-US", "zh-CN", "es-ES");  // BCP47 format
         }
     }
 
@@ -181,7 +181,7 @@ class RecipeServiceFoodTranslationTest extends BaseIntegrationTest {
                     List.of(TranslationStatus.PENDING));
 
             assertThat(events).hasSize(1);
-            assertThat(events.get(0).getSourceLocale()).isEqualTo("id");
+            assertThat(events.get(0).getSourceLocale()).isEqualTo("id-ID");  // BCP47 format
         }
 
         @Test

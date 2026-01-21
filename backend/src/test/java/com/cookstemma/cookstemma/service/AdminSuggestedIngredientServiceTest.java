@@ -161,9 +161,9 @@ class AdminSuggestedIngredientServiceTest extends BaseIntegrationTest {
                     .orElseThrow(() -> new AssertionError("Translation event should be created"));
 
             assertThat(translationEvent.getStatus()).isEqualTo(TranslationStatus.PENDING);
-            assertThat(translationEvent.getSourceLocale()).isEqualTo("ko");
+            assertThat(translationEvent.getSourceLocale()).isEqualTo("ko-KR");  // BCP47 format
             assertThat(translationEvent.getTargetLocales()).hasSize(19); // All locales except source
-            assertThat(translationEvent.getTargetLocales()).doesNotContain("ko");
+            assertThat(translationEvent.getTargetLocales()).doesNotContain("ko-KR");  // BCP47 format
         }
 
         @Test

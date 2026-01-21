@@ -99,7 +99,7 @@ class TranslationAdminControllerTest extends BaseIntegrationTest {
                 List.of(TranslationStatus.PENDING));
 
         assertThat(events).hasSize(1);
-        assertThat(events.get(0).getSourceLocale()).isEqualTo("en");
+        assertThat(events.get(0).getSourceLocale()).isEqualTo("en-US");  // BCP47 format
         assertThat(events.get(0).getTargetLocales()).hasSize(20);
     }
 
