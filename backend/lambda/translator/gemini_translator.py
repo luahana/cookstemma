@@ -1,6 +1,6 @@
 """
 Google Gemini Translation Service
-Uses Gemini 2.0 Flash for cost-effective, high-quality translations.
+Uses Gemini 2.5 Flash for cost-effective, high-quality translations.
 """
 import json
 import logging
@@ -39,7 +39,7 @@ LANGUAGE_NAMES = {
 class GeminiTranslator:
     """Translates cooking content using Google Gemini."""
 
-    def __init__(self, api_key: str, model: str = "gemini-2.0-flash"):
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash"):
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(
             model_name=model,
