@@ -1,4 +1,4 @@
-"""Image generator using Gemini 3 Pro Image with retry logic."""
+"""Image generator using Gemini 2 with retry logic."""
 
 import io
 import random
@@ -22,7 +22,7 @@ logger = structlog.get_logger()
 
 
 class ImageGenerator:
-    """Generate professional food images using Gemini 3 Pro."""
+    """Generate professional food images using Gemini 2."""
 
     def __init__(
         self,
@@ -30,13 +30,11 @@ class ImageGenerator:
     ) -> None:
         settings = get_settings()
 
-        # Initialize Gemini 3 Pro Client
-        self.gemini_client = genai.Client(
+        # Initialize Gemini Client
+        self.client = genai.Client(
             api_key=gemini_api_key or settings.gemini_api_key
         )
-        self.gemini_image_model = (
-            settings.gemini_image_model or "gemini-3-pro-image-preview"
-        )
+        self.model = settings.gemini_image_model or "gemini-2.0-flash-exp"
 
     async def close(self) -> None:
         """Close any resources (kept for interface compatibility)."""
@@ -48,8 +46,7 @@ class ImageGenerator:
         persona: BotPersona,
         style: str = "cover",
     ) -> str:
-        """Build detailed prompts optimized for Gemini 3 visual reasoning."""
-        # Gemini 3 Pro benefits from clear, descriptive reasoning
+        """Build detailed prompts for food image generation."""
         base_prompt = f"Professional food photography of {dish_name}."
 
         if style == "cover":
@@ -93,21 +90,18 @@ Lighting: Natural indoor lighting, high-quality amateur photography."""
             wait=retry_state.next_action.sleep,
         ),
     )
-    async def generate_with_gemini(
+    async def _generate_image_internal(
         self,
         prompt: str,
-        res: str = "4K",
     ) -> bytes:
-        """Generate high-fidelity 4K images using Gemini 3 Pro Image with retry."""
-        # Gemini 3 Pro Image supports up to 4K resolution
-        response = await self.gemini_client.aio.models.generate_content(
-            model=self.gemini_image_model,
+        """Generate image using Gemini 2 with retry."""
+        response = await self.client.aio.models.generate_content(
+            model=self.model,
             contents=[prompt],
             config=types.GenerateContentConfig(
                 response_modalities=["IMAGE"],
                 image_config=types.ImageConfig(
                     aspect_ratio="1:1",
-                    image_size=res,  # Native 4K support
                 ),
             ),
         )
@@ -115,22 +109,24 @@ Lighting: Natural indoor lighting, high-quality amateur photography."""
         for part in response.parts:
             if part.inline_data:
                 logger.info(
-                    "gemini_3_pro_generated", res=res, prompt_preview=prompt[:50]
+                    "gemini_image_generated",
+                    model=self.model,
+                    prompt_preview=prompt[:50],
                 )
                 return part.inline_data.data
 
-        raise ValueError("Gemini 3 Pro failed to return an image part")
+        raise ValueError("Gemini failed to return an image part")
 
     async def generate_image(
         self,
         prompt: str,
         add_imperfections: bool = True,
     ) -> bytes:
-        """Generate image using Gemini 3 Pro with automatic retries."""
+        """Generate image using Gemini 2 with automatic retries."""
         if add_imperfections:
             prompt = self._add_realism_imperfections(prompt)
 
-        return await self.generate_with_gemini(prompt, res="4K")
+        return await self._generate_image_internal(prompt)
 
     async def generate_recipe_images(
         self,
@@ -177,10 +173,10 @@ Lighting: Natural indoor lighting, high-quality amateur photography."""
     def optimize_image(
         self,
         image_bytes: bytes,
-        max_size: tuple = (2048, 2048), # Increased for Gemini 3 4K outputs
+        max_size: tuple = (1024, 1024),
         quality: int = 90,
     ) -> bytes:
-        """Optimize and compress high-res images."""
+        """Optimize and compress images for upload."""
         img = Image.open(io.BytesIO(image_bytes))
         if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
