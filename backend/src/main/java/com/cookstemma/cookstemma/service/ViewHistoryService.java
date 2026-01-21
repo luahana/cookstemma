@@ -278,7 +278,8 @@ public class ViewHistoryService {
                 recipeTitle,
                 hashtags,
                 isVariant,
-                logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false
+                logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false,
+                logPost.getCommentCount() != null ? logPost.getCommentCount() : 0
         );
     }
 }

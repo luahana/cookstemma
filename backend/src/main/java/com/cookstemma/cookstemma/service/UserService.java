@@ -515,7 +515,8 @@ public class UserService {
                 recipeTitle,
                 hashtags,
                 isVariant,
-                log.getIsPrivate() != null ? log.getIsPrivate() : false
+                log.getIsPrivate() != null ? log.getIsPrivate() : false,
+                log.getCommentCount() != null ? log.getCommentCount() : 0
         );
     }
 

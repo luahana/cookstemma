@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -10,19 +11,29 @@ export default function NotFound() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        {/* Icon */}
-        <div className="text-8xl mb-6">🍳</div>
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-8">
+          <Image
+            src="/logo-icon.svg"
+            alt="Cookstemma"
+            width={64}
+            height={64}
+            className="w-16 h-16 mb-3"
+          />
+          <span className="text-xl font-bold text-[var(--text-logo)]">
+            Cookstemma
+          </span>
+        </div>
 
-        {/* Error Code */}
-        <h1 className="text-6xl font-bold text-[var(--primary)] mb-4">404</h1>
+        {/* Error Code - subtle gray */}
+        <h1 className="text-8xl font-bold text-[var(--border)] mb-4">404</h1>
 
         {/* Message */}
         <h2 className="text-2xl font-semibold text-[var(--text-primary)] mb-2">
-          Recipe Not Found
+          Page Not Found
         </h2>
         <p className="text-[var(--text-secondary)] mb-8">
-          Oops! The page you&apos;re looking for seems to have wandered off the kitchen.
-          Let&apos;s get you back to cooking.
+          The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
 
         {/* Actions */}

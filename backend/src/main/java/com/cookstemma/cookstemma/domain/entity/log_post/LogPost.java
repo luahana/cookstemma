@@ -77,6 +77,10 @@ public class LogPost extends BaseEntity {
     @Column(name = "view_count")
     private Integer viewCount = 0;
 
+    @Builder.Default
+    @Column(name = "comment_count")
+    private Integer commentCount = 0;
+
     public void incrementSavedCount() {
         this.savedCount = (this.savedCount == null ? 0 : this.savedCount) + 1;
     }

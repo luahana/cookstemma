@@ -253,7 +253,8 @@ public class RecipeService {
                             LocaleUtils.getLocalizedValue(recipe.getTitleTranslations(), normalizedLocale, recipe.getTitle()),
                             logHashtags,
                             isVariant,
-                            logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false
+                            logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false,
+                            logPost.getCommentCount() != null ? logPost.getCommentCount() : 0
                     );
                 }).toList();
 

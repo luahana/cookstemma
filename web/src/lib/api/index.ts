@@ -6,3 +6,4 @@ export * from './users';
 export * from './hashtags';
 export * from './home';
 export * from './search';
+export * from './comments';

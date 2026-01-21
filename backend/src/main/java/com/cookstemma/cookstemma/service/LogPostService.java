@@ -226,7 +226,8 @@ public class LogPostService {
                 isSavedByCurrentUser,
                 creatorPublicId,
                 userName,
-                logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false
+                logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false,
+                logPost.getCommentCount() != null ? logPost.getCommentCount() : 0
         );
     }
 
@@ -288,7 +289,8 @@ public class LogPostService {
                 recipeTitle,
                 hashtags,
                 isVariant,
-                log.getIsPrivate() != null ? log.getIsPrivate() : false
+                log.getIsPrivate() != null ? log.getIsPrivate() : false,
+                log.getCommentCount() != null ? log.getCommentCount() : 0
         );
     }
 

@@ -23,6 +23,7 @@ export interface LogPostSummary {
   hashtags: string[];
   isVariant: boolean | null;
   isPrivate: boolean; // Whether this log is private (only visible to creator)
+  commentCount: number; // Number of comments on this log
 }
 
 /**
@@ -43,6 +44,7 @@ export interface LogPostDetail {
   creatorPublicId: string | null;
   userName: string | null;
   isPrivate: boolean; // Whether this log is private (only visible to creator)
+  commentCount: number; // Number of comments on this log
 }
 
 /**

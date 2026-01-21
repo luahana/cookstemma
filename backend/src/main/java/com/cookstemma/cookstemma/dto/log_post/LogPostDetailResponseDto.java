@@ -25,5 +25,6 @@ public record LogPostDetailResponseDto(
         Boolean isSavedByCurrentUser,  // null if not logged in
         UUID creatorPublicId,          // for ownership check (UUID for frontend comparison)
         String userName,               // Creator's username for display
-        Boolean isPrivate              // Whether this log is private
+        Boolean isPrivate,             // Whether this log is private
+        Integer commentCount           // Number of comments on this log
 ) {}
