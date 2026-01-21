@@ -332,6 +332,18 @@ Return JSON: {{"is_appropriate": true/false, "reason": "explanation if inappropr
         # Build the prompt
         fields_json = json.dumps(non_empty_content, ensure_ascii=False, indent=2)
 
+        # Add ingredient-specific rules if context is about ingredients
+        ingredient_rules = ""
+        if "ingredient" in context.lower():
+            ingredient_rules = """
+8. IMPORTANT - Strip all adjectives and adverbs, keep only the core ingredient noun:
+   - Remove size adjectives: large, small, medium, big, little
+   - Remove freshness adjectives: fresh, ripe, dried, frozen, raw
+   - Remove preparation words: chopped, diced, minced, sliced, grated, crushed, ground, peeled
+   - Remove quality adjectives: organic, premium, homemade, store-bought
+   - Examples: "freshly chopped garlic" → "garlic", "large ripe tomatoes" → "tomato"
+"""
+
         prompt = f"""You are a professional translator specializing in {context} content.
 Translate the following JSON fields from {source_lang} to {target_lang}.
 
@@ -343,7 +355,7 @@ Rules:
 5. If a field is empty, return empty string
 6. For Arabic, ensure proper RTL text
 7. Be concise but accurate
-
+{ingredient_rules}
 Input JSON to translate to {target_lang}:
 
 {fields_json}
@@ -455,6 +467,12 @@ RULES:
 6. The number of steps in output MUST exactly match the input ({len(content.get('steps', []))} steps)
 7. The number of ingredients in output MUST exactly match the input ({len(content.get('ingredients', []))} ingredients)
 8. Preserve the cooking intent and nuance of the original recipe
+9. INGREDIENTS ONLY - Strip all adjectives and adverbs, keep only the core ingredient noun:
+   - Remove size adjectives: large, small, medium, big, little
+   - Remove freshness adjectives: fresh, ripe, dried, frozen, raw
+   - Remove preparation words: chopped, diced, minced, sliced, grated, crushed, ground, peeled
+   - Remove quality adjectives: organic, premium, homemade, store-bought
+   - Examples: "freshly chopped garlic" → "garlic", "large ripe tomatoes" → "tomato", "finely diced onion" → "onion"
 
 Return ONLY the JSON object, no explanation or markdown formatting."""
 
