@@ -1,6 +1,6 @@
 """
 Suggestion Verifier Lambda Handler
-Processes pending food and ingredient suggestions, validates them using AI,
+Processes pending food and ingredient suggestions, validates them using Google Gemini,
 and auto-approves valid items with translations or rejects invalid ones.
 """
 import json
@@ -58,8 +58,8 @@ def get_db_connection():
 
 def get_ai_verifier() -> AIVerifier:
     """Create AI verifier client using secrets."""
-    openai_secret = get_secret(os.environ['OPENAI_SECRET_ARN'])
-    return AIVerifier(api_key=openai_secret['api_key'])
+    gemini_secret = get_secret(os.environ['GEMINI_SECRET_ARN'])
+    return AIVerifier(api_key=gemini_secret['api_key'])
 
 
 def fetch_pending_foods(conn, limit: int = 50) -> list[dict]:

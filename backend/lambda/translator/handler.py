@@ -1,6 +1,6 @@
 """
 Translation Lambda Handler
-Processes translation events from the database and uses OpenAI GPT to translate content.
+Processes translation events from the database and uses Google Gemini to translate content.
 """
 import json
 import logging
@@ -11,7 +11,7 @@ import boto3
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from openai_translator import OpenAITranslator
+from gemini_translator import GeminiTranslator
 
 # Configure logging
 logger = logging.getLogger()
@@ -241,10 +241,10 @@ def run_migrations(conn):
         logger.info("V8 translations migrations completed successfully")
 
 
-def get_openai_client() -> OpenAITranslator:
-    """Create OpenAI translator client using secrets."""
-    openai_secret = get_secret(os.environ['OPENAI_SECRET_ARN'])
-    return OpenAITranslator(api_key=openai_secret['api_key'])
+def get_gemini_client() -> GeminiTranslator:
+    """Create Gemini translator client using secrets."""
+    gemini_secret = get_secret(os.environ['GEMINI_SECRET_ARN'])
+    return GeminiTranslator(api_key=gemini_secret['api_key'])
 
 
 def fetch_pending_events(conn, limit: int = 10) -> list[dict]:
@@ -408,7 +408,7 @@ def save_translations(conn, entity_type: str, entity_id: int, translations: dict
             """, (json.dumps(translations.get('bio', {})), entity_id))
 
 
-def process_event(conn, translator: OpenAITranslator, event: dict) -> bool:
+def process_event(conn, translator: GeminiTranslator, event: dict) -> bool:
     """Process a single translation event."""
     entity_type = event['entity_type']
     entity_id = event['entity_id']
@@ -569,7 +569,7 @@ def handler(event: dict, context) -> dict:
         # Run migrations if needed (creates translation tables)
         run_migrations(conn)
 
-        translator = get_openai_client()
+        translator = get_gemini_client()
 
         # Test mode: create and process a test translation
         if event.get('test_mode'):

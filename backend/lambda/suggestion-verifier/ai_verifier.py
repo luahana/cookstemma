@@ -1,16 +1,16 @@
 """
 AI Verifier Module
-Uses OpenAI GPT to validate food/ingredient names and translate them.
+Uses Google Gemini to validate food/ingredient names and translate them.
 """
 import json
 import logging
 from typing import Any
 
-from openai import OpenAI
+import google.generativeai as genai
 
 logger = logging.getLogger()
 
-# Language names for better GPT context
+# Language names for better context
 LANGUAGE_NAMES = {
     'ko': 'Korean', 'ko-KR': 'Korean',
     'en': 'English', 'en-US': 'English',
@@ -85,11 +85,26 @@ Respond ONLY with a JSON object mapping locale codes to translated names (no mar
 
 
 class AIVerifier:
-    """Verifies and translates food/ingredient names using OpenAI GPT."""
+    """Verifies and translates food/ingredient names using Google Gemini."""
 
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini"):
-        self.client = OpenAI(api_key=api_key)
-        self.model = model
+    def __init__(self, api_key: str, model: str = "gemini-2.0-flash"):
+        genai.configure(api_key=api_key)
+        self.verify_model = genai.GenerativeModel(
+            model_name=model,
+            generation_config={
+                "temperature": 0.1,
+                "max_output_tokens": 500,
+                "response_mime_type": "application/json"
+            }
+        )
+        self.translate_model = genai.GenerativeModel(
+            model_name=model,
+            generation_config={
+                "temperature": 0.3,
+                "max_output_tokens": 2000,
+                "response_mime_type": "application/json"
+            }
+        )
 
     def verify_name(
         self,
@@ -125,16 +140,8 @@ class AIVerifier:
         )
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.1,
-                max_tokens=500
-            )
-
-            result_text = response.choices[0].message.content.strip()
+            response = self.verify_model.generate_content(prompt)
+            result_text = response.text.strip()
 
             # Parse JSON response, handle markdown code blocks
             if result_text.startswith('```'):
@@ -200,16 +207,8 @@ class AIVerifier:
         )
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3,
-                max_tokens=2000
-            )
-
-            result_text = response.choices[0].message.content.strip()
+            response = self.translate_model.generate_content(prompt)
+            result_text = response.text.strip()
 
             # Parse JSON response
             if result_text.startswith('```'):
@@ -250,16 +249,16 @@ Provide just the simple, commonly used English name.
 English (respond with just the translated name, no explanation):"""
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.1,
-                max_tokens=100
+            # Use a simple model config for single-word translation
+            simple_model = genai.GenerativeModel(
+                model_name="gemini-2.0-flash",
+                generation_config={
+                    "temperature": 0.1,
+                    "max_output_tokens": 100
+                }
             )
-
-            return response.choices[0].message.content.strip()
+            response = simple_model.generate_content(prompt)
+            return response.text.strip()
 
         except Exception as e:
             logger.error(f"English translation error: {e}")

@@ -1,16 +1,16 @@
 """
-OpenAI GPT Translation Service
-Uses GPT-4o-mini for cost-effective, high-quality translations.
+Google Gemini Translation Service
+Uses Gemini 2.0 Flash for cost-effective, high-quality translations.
 """
 import json
 import logging
 from typing import Any
 
-from openai import OpenAI
+import google.generativeai as genai
 
 logger = logging.getLogger()
 
-# Language names for better GPT context
+# Language names for better context
 LANGUAGE_NAMES = {
     'ko': 'Korean',
     'en': 'English',
@@ -23,16 +23,32 @@ LANGUAGE_NAMES = {
     'ru': 'Russian',
     'pt': 'Portuguese',
     'el': 'Greek',
-    'ar': 'Arabic'
+    'ar': 'Arabic',
+    'id': 'Indonesian',
+    'vi': 'Vietnamese',
+    'hi': 'Hindi',
+    'th': 'Thai',
+    'pl': 'Polish',
+    'tr': 'Turkish',
+    'nl': 'Dutch',
+    'sv': 'Swedish',
+    'fa': 'Persian'
 }
 
 
-class OpenAITranslator:
-    """Translates cooking content using OpenAI GPT."""
+class GeminiTranslator:
+    """Translates cooking content using Google Gemini."""
 
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini"):
-        self.client = OpenAI(api_key=api_key)
-        self.model = model
+    def __init__(self, api_key: str, model: str = "gemini-2.0-flash"):
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel(
+            model_name=model,
+            generation_config={
+                "temperature": 0.3,
+                "max_output_tokens": 2000,
+                "response_mime_type": "application/json"
+            }
+        )
 
     def translate_content(
         self,
@@ -65,7 +81,7 @@ class OpenAITranslator:
         # Build the prompt
         fields_json = json.dumps(non_empty_content, ensure_ascii=False, indent=2)
 
-        system_prompt = f"""You are a professional translator specializing in {context} content.
+        prompt = f"""You are a professional translator specializing in {context} content.
 Translate the following JSON fields from {source_lang} to {target_lang}.
 
 Rules:
@@ -77,24 +93,15 @@ Rules:
 6. For Arabic, ensure proper RTL text
 7. Be concise but accurate
 
+Input JSON to translate to {target_lang}:
+
+{fields_json}
+
 Return ONLY the JSON object with translated values, no explanation."""
 
-        user_prompt = f"""Translate this JSON to {target_lang}:
-
-{fields_json}"""
-
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.3,  # Lower temperature for more consistent translations
-                max_tokens=2000
-            )
-
-            result_text = response.choices[0].message.content.strip()
+            response = self.model.generate_content(prompt)
+            result_text = response.text.strip()
 
             # Parse JSON response
             # Handle potential markdown code blocks
