@@ -31,23 +31,45 @@ public final class LocaleUtils {
         // Normalize locale (e.g., "ko_KR" -> "ko-KR")
         String normalizedLocale = normalizeLocale(locale);
 
-        // 1. Try exact locale match
-        if (normalizedLocale != null && translations.containsKey(normalizedLocale)) {
+        // 1. Try exact locale match ONLY for BCP47 format locales (e.g., "ko-KR")
+        // For short codes (e.g., "ko"), skip to language fallback which prefers BCP47 keys
+        if (normalizedLocale != null && normalizedLocale.contains("-") && translations.containsKey(normalizedLocale)) {
             return translations.get(normalizedLocale);
         }
 
         // 2. Try language-only match (e.g., "ko" matches "ko-KR", or "ko-KR" matches "ko")
+        // IMPORTANT: Prefer BCP47 keys (e.g., "ko-KR") over short keys (e.g., "ko") for consistency.
+        // This ensures that when both "ko-KR" and "ko" exist with different values,
+        // we always return the BCP47 value regardless of which locale was requested.
         if (normalizedLocale != null) {
             String languageOnly = normalizedLocale.contains("-")
                     ? normalizedLocale.split("-")[0]
                     : normalizedLocale;
+
+            String bcp47Match = null;
+            String shortMatch = null;
+
             for (Map.Entry<String, String> entry : translations.entrySet()) {
-                String keyLang = entry.getKey().contains("-")
-                        ? entry.getKey().split("-")[0]
-                        : entry.getKey();
+                String key = entry.getKey();
+                String keyLang = key.contains("-") ? key.split("-")[0] : key;
+
                 if (keyLang.equalsIgnoreCase(languageOnly)) {
-                    return entry.getValue();
+                    if (key.contains("-")) {
+                        // BCP47 format (e.g., "ko-KR") - prefer this
+                        bcp47Match = entry.getValue();
+                    } else if (shortMatch == null) {
+                        // Short format (e.g., "ko") - fallback only
+                        shortMatch = entry.getValue();
+                    }
                 }
+            }
+
+            // Return BCP47 match if available, otherwise short match
+            if (bcp47Match != null) {
+                return bcp47Match;
+            }
+            if (shortMatch != null) {
+                return shortMatch;
             }
         }
 

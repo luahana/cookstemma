@@ -141,6 +141,73 @@ class LocaleUtilsTest {
             // Assert - Should try en-US first, then any en, then first available
             assertThat(result).isEqualTo("김치");
         }
+
+        @Test
+        @DisplayName("Should prefer BCP47 key over short key when both exist with different values")
+        void getLocalizedValue_WithBothBCP47AndShortKey_PrefersBCP47() {
+            // Arrange - Both "ko-KR" and "ko" exist with different values
+            // This can happen when translation adds short key with stripped adjectives
+            Map<String, String> translations = new HashMap<>();
+            translations.put("ko-KR", "연어 구이");  // Original: grilled salmon
+            translations.put("ko", "연어");          // Stripped: salmon (shorter name)
+            translations.put("en-US", "Grilled Salmon");
+
+            // Act - Request with short code "ko"
+            String resultWithShortCode = LocaleUtils.getLocalizedValue(translations, "ko");
+
+            // Assert - Should prefer BCP47 "ko-KR" over short "ko"
+            assertThat(resultWithShortCode).isEqualTo("연어 구이");
+        }
+
+        @Test
+        @DisplayName("Should prefer BCP47 key when requesting with BCP47 locale and short key also exists")
+        void getLocalizedValue_WithBCP47Request_PrefersBCP47Key() {
+            // Arrange
+            Map<String, String> translations = new HashMap<>();
+            translations.put("ko-KR", "연어 구이");
+            translations.put("ko", "연어");
+
+            // Act - Request with BCP47 "ko-KR" should exact match first
+            String result = LocaleUtils.getLocalizedValue(translations, "ko-KR");
+
+            // Assert
+            assertThat(result).isEqualTo("연어 구이");
+        }
+
+        @Test
+        @DisplayName("Should fall back to short key when only short key exists")
+        void getLocalizedValue_WithOnlyShortKey_FallsBackToShortKey() {
+            // Arrange - Only short key exists (no BCP47)
+            Map<String, String> translations = Map.of(
+                    "ko", "김치",
+                    "en-US", "Kimchi"
+            );
+
+            // Act
+            String result = LocaleUtils.getLocalizedValue(translations, "ko-KR");
+
+            // Assert - Should use short key as fallback
+            assertThat(result).isEqualTo("김치");
+        }
+
+        @Test
+        @DisplayName("Should prefer BCP47 key consistently regardless of map iteration order")
+        void getLocalizedValue_MultipleCallsWithMixedKeys_AlwaysPrefersBCP47() {
+            // Arrange - Test multiple times to catch iteration order issues
+            for (int i = 0; i < 10; i++) {
+                Map<String, String> translations = new HashMap<>();
+                translations.put("ko-KR", "연어 구이");
+                translations.put("ko", "연어");
+
+                // Act
+                String result = LocaleUtils.getLocalizedValue(translations, "ko");
+
+                // Assert - Should always return BCP47 value
+                assertThat(result)
+                        .as("Iteration %d: Should always prefer BCP47 key", i)
+                        .isEqualTo("연어 구이");
+            }
+        }
     }
 
     @Nested
