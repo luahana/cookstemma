@@ -156,7 +156,23 @@
     "editProfile": "Sửa hồ sơ",
     "follow": "Theo dõi",
     "unfollow": "Bỏ theo dõi",
-    "level": "Cấp độ {level}"
+    "level": "Cấp độ {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{xp} XP đến {tierName}"
+  },
+  "levels": {
+    "beginner": "Người mới bắt đầu",
+    "noviceCook": "Người nấu tập sự",
+    "homeCook": "Người nấu tại nhà",
+    "hobbyCook": "Người nấu nghiệp dư",
+    "skilledCook": "Người nấu lành nghề",
+    "expertCook": "Người nấu chuyên nghiệp",
+    "juniorChef": "Đầu bếp mới",
+    "sousChef": "Đầu bếp phó",
+    "chef": "Đầu bếp",
+    "headChef": "Bếp trưởng",
+    "executiveChef": "Tổng bếp trưởng",
+    "masterChef": "Đầu bếp bậc thầy"
   },
   "auth": {
     "signInTitle": "Đăng nhập",

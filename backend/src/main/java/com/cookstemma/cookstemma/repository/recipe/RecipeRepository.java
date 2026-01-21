@@ -31,6 +31,12 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
 
     long countByCreatorIdAndDeletedAtIsNull(Long creatorId);
 
+    // Count original recipes (no parent) created by user
+    long countByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNull(Long creatorId);
+
+    // Count variant recipes (has parent) created by user
+    long countByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNotNull(Long creatorId);
+
     // [Home] 오리지널 레시피(Root) 중 로케일에 맞는 것만 슬라이스로 조회
     @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.cookingStyle = :locale AND r.deletedAt IS NULL")
     Slice<Recipe> findRootRecipesByLocale(@Param("locale") String locale, Pageable pageable);

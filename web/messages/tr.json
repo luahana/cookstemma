@@ -156,7 +156,23 @@
     "editProfile": "Profili Düzenle",
     "follow": "Takip Et",
     "unfollow": "Takibi Bırak",
-    "level": "Seviye {level}"
+    "level": "Seviye {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{tierName} için {xp} XP"
+  },
+  "levels": {
+    "beginner": "Başlangıç",
+    "noviceCook": "Acemi Aşçı",
+    "homeCook": "Ev Aşçısı",
+    "hobbyCook": "Hobi Aşçısı",
+    "skilledCook": "Deneyimli Aşçı",
+    "expertCook": "Uzman Aşçı",
+    "juniorChef": "Junior Şef",
+    "sousChef": "Sous Şef",
+    "chef": "Şef",
+    "headChef": "Baş Şef",
+    "executiveChef": "Yönetici Şef",
+    "masterChef": "Usta Şef"
   },
   "auth": {
     "signInTitle": "Giriş Yap",

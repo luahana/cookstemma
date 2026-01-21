@@ -157,7 +157,23 @@
     "editProfile": "프로필 수정",
     "follow": "팔로우",
     "unfollow": "팔로우 취소",
-    "level": "레벨 {level}"
+    "level": "레벨 {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{tierName}까지 {xp} XP"
+  },
+  "levels": {
+    "beginner": "초보자",
+    "noviceCook": "초보 요리사",
+    "homeCook": "가정 요리사",
+    "hobbyCook": "취미 요리사",
+    "skilledCook": "숙련 요리사",
+    "expertCook": "전문 요리사",
+    "juniorChef": "주니어 셰프",
+    "sousChef": "수 셰프",
+    "chef": "셰프",
+    "headChef": "헤드 셰프",
+    "executiveChef": "총괄 셰프",
+    "masterChef": "마스터 셰프"
   },
   "auth": {
     "signInTitle": "로그인",

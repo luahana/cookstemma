@@ -10,8 +10,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Unit tests for CookingDnaService level calculation methods.
- * These methods are pure functions that don't require Spring context.
+ * Unit tests for CookingDnaService level and XP calculation methods.
+ * Tests the 100-level, 12-tier system with new XP reward structure.
  */
 class CookingDnaServiceTest {
 
@@ -25,43 +25,75 @@ class CookingDnaServiceTest {
     }
 
     @Nested
-    @DisplayName("calculateTotalXp")
+    @DisplayName("calculateTotalXp - New XP Formula")
     class CalculateTotalXpTests {
 
         @Test
         @DisplayName("Should return 0 XP when all counts are zero")
         void zeroCountsReturnsZeroXp() {
-            int result = service.calculateTotalXp(0, 0);
+            int result = service.calculateTotalXp(0, 0, 0, 0, 0);
             assertThat(result).isEqualTo(0);
         }
 
         @Test
-        @DisplayName("Should return 50 XP per recipe created")
-        void recipesGive50XpEach() {
-            int result = service.calculateTotalXp(3, 0);
+        @DisplayName("Should return 50 XP per original recipe")
+        void originalRecipesGive50XpEach() {
+            int result = service.calculateTotalXp(3, 0, 0, 0, 0);
             assertThat(result).isEqualTo(150); // 3 * 50 = 150
         }
 
         @Test
-        @DisplayName("Should add rating XP correctly")
-        void ratingXpAddsCorrectly() {
-            // Rating XP is pre-calculated: rating * 6 per log
-            // e.g., 5 logs with rating 5 = 5 * 5 * 6 = 150 XP
-            int result = service.calculateTotalXp(0, 150);
-            assertThat(result).isEqualTo(150);
+        @DisplayName("Should return 30 XP per variant recipe")
+        void variantRecipesGive30XpEach() {
+            int result = service.calculateTotalXp(0, 4, 0, 0, 0);
+            assertThat(result).isEqualTo(120); // 4 * 30 = 120
         }
 
         @Test
-        @DisplayName("Should correctly combine XP from recipes and ratings")
+        @DisplayName("Should return 20 XP per log created")
+        void logsCreatedGive20XpEach() {
+            int result = service.calculateTotalXp(0, 0, 5, 0, 0);
+            assertThat(result).isEqualTo(100); // 5 * 20 = 100
+        }
+
+        @Test
+        @DisplayName("Should return rating * 6 XP for ratings received")
+        void ratingsReceivedGive6XpPerPoint() {
+            // If someone gives a 5-star rating, author gets 5 * 6 = 30 XP
+            // Sum of all ratings received (e.g., 5+4+3 = 12 rating points)
+            int result = service.calculateTotalXp(0, 0, 0, 12, 0);
+            assertThat(result).isEqualTo(72); // 12 * 6 = 72
+        }
+
+        @Test
+        @DisplayName("Should return 10 XP per save received")
+        void savesReceivedGive10XpEach() {
+            int result = service.calculateTotalXp(0, 0, 0, 0, 7);
+            assertThat(result).isEqualTo(70); // 7 * 10 = 70
+        }
+
+        @Test
+        @DisplayName("Should correctly combine all XP sources")
         void combinesAllXpSources() {
-            // 2 recipes (100) + 120 rating XP = 220
-            int result = service.calculateTotalXp(2, 120);
-            assertThat(result).isEqualTo(220);
+            // 2 original recipes (100) + 3 variant recipes (90) + 4 logs (80) +
+            // 15 rating points (90) + 5 saves (50) = 410
+            int result = service.calculateTotalXp(2, 3, 4, 15, 5);
+            assertThat(result).isEqualTo(410);
+        }
+
+        @Test
+        @DisplayName("Variant recipes give less XP than original recipes")
+        void variantRecipesGiveLessXpThanOriginal() {
+            int originalXp = service.calculateTotalXp(1, 0, 0, 0, 0);
+            int variantXp = service.calculateTotalXp(0, 1, 0, 0, 0);
+            assertThat(originalXp).isGreaterThan(variantXp);
+            assertThat(originalXp).isEqualTo(50);
+            assertThat(variantXp).isEqualTo(30);
         }
     }
 
     @Nested
-    @DisplayName("calculateLevel")
+    @DisplayName("calculateLevel - 100 Level System")
     class CalculateLevelTests {
 
         @Test
@@ -72,32 +104,50 @@ class CookingDnaServiceTest {
         }
 
         @Test
-        @DisplayName("Should return level 1 for 99 XP (just under threshold)")
-        void justUnderThresholdReturnsLevel1() {
-            int result = service.calculateLevel(99);
+        @DisplayName("Should return level 1 for XP just under first threshold")
+        void justUnderFirstThresholdReturnsLevel1() {
+            int result = service.calculateLevel(113);
             assertThat(result).isEqualTo(1);
         }
 
-        @Test
-        @DisplayName("Should return level 2 for exactly 100 XP")
-        void atThresholdReturnsLevel2() {
-            int result = service.calculateLevel(100);
-            assertThat(result).isEqualTo(2);
-        }
-
         @ParameterizedTest
-        @DisplayName("Should return correct level at each tier boundary")
+        @DisplayName("Should return correct level at tier boundaries")
         @CsvSource({
-            "500, 5",    // End of beginner tier
-            "700, 6",    // Start of homeCook tier
-            "1700, 10",  // End of homeCook tier
-            "2000, 11",  // Start of skilledCook tier
-            "3900, 15",  // End of skilledCook tier
-            "4500, 16",  // Start of homeChef tier
-            "7900, 20",  // End of homeChef tier
-            "9000, 21",  // Start of expertChef tier
-            "14400, 25", // End of expertChef tier
-            "16000, 26"  // Master Chef
+            // Tier 1: Beginner (1-8), ends at 800 XP
+            "0, 1",
+            "800, 8",
+            // Tier 2: Kitchen Helper (9-16), ends at 2000 XP
+            "801, 9",
+            "2000, 16",
+            // Tier 3: Home Cook (17-25), ends at 4500 XP
+            "2001, 17",
+            "4500, 25",
+            // Tier 4: Cooking Enthusiast (26-34), ends at 8000 XP
+            "4501, 26",
+            "8000, 34",
+            // Tier 5: Skilled Cook (35-44), ends at 14000 XP
+            "8001, 35",
+            "14000, 44",
+            // Tier 6: Amateur Chef (45-54), ends at 22000 XP
+            "14001, 45",
+            "22000, 54",
+            // Tier 7: Home Chef (55-64), ends at 32000 XP
+            "22001, 55",
+            "32000, 64",
+            // Tier 8: Sous Chef (65-74), ends at 45000 XP
+            "32001, 65",
+            "45000, 74",
+            // Tier 9: Chef (75-84), ends at 62000 XP
+            "45001, 75",
+            "62000, 84",
+            // Tier 10: Head Chef (85-92), ends at 80000 XP
+            "62001, 85",
+            "80000, 92",
+            // Tier 11: Executive Chef (93-99), ends at 99000 XP
+            "80001, 93",
+            "99000, 99",
+            // Tier 12: Master Chef (100), at 100000 XP
+            "100000, 100"
         })
         void levelAtTierBoundaries(int xp, int expectedLevel) {
             int result = service.calculateLevel(xp);
@@ -105,63 +155,244 @@ class CookingDnaServiceTest {
         }
 
         @Test
-        @DisplayName("Should return level 26 for very high XP")
+        @DisplayName("Should return level 100 for very high XP")
         void veryHighXpReturnsMaxLevel() {
-            int result = service.calculateLevel(100000);
-            assertThat(result).isEqualTo(26);
+            int result = service.calculateLevel(500000);
+            assertThat(result).isEqualTo(100);
+        }
+
+        @Test
+        @DisplayName("Level 100 requires exactly 100000 XP")
+        void level100RequiresExact100kXp() {
+            assertThat(service.calculateLevel(99999)).isEqualTo(99);
+            assertThat(service.calculateLevel(100000)).isEqualTo(100);
         }
     }
 
     @Nested
-    @DisplayName("getLevelName")
+    @DisplayName("getXpForLevel - XP Thresholds")
+    class GetXpForLevelTests {
+
+        @Test
+        @DisplayName("Level 1 requires 0 XP")
+        void level1Requires0Xp() {
+            assertThat(service.getXpForLevel(1)).isEqualTo(0);
+        }
+
+        @ParameterizedTest
+        @DisplayName("Should return correct XP threshold for tier end levels")
+        @CsvSource({
+            "8, 800",      // End of Beginner
+            "16, 2000",    // End of Kitchen Helper
+            "25, 4500",    // End of Home Cook
+            "34, 8000",    // End of Cooking Enthusiast
+            "44, 14000",   // End of Skilled Cook
+            "54, 22000",   // End of Amateur Chef
+            "64, 32000",   // End of Home Chef
+            "74, 45000",   // End of Sous Chef
+            "84, 62000",   // End of Chef
+            "92, 80000",   // End of Head Chef
+            "99, 99000",   // End of Executive Chef
+            "100, 100000"  // Master Chef
+        })
+        void xpThresholdsForTierEndLevels(int level, int expectedXp) {
+            assertThat(service.getXpForLevel(level)).isEqualTo(expectedXp);
+        }
+
+        @Test
+        @DisplayName("Level 0 or negative returns 0")
+        void level0ReturnsZero() {
+            assertThat(service.getXpForLevel(0)).isEqualTo(0);
+            assertThat(service.getXpForLevel(-1)).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("Level above 100 returns max XP (100000)")
+        void levelAbove100ReturnsMax() {
+            assertThat(service.getXpForLevel(101)).isEqualTo(100000);
+            assertThat(service.getXpForLevel(150)).isEqualTo(100000);
+        }
+    }
+
+    @Nested
+    @DisplayName("getLevelName - 12 Tier System (Cook/Chef pattern)")
     class GetLevelNameTests {
 
         @ParameterizedTest
-        @DisplayName("Should return 'beginner' for levels 1-5")
-        @CsvSource({"1", "2", "3", "4", "5"})
+        @DisplayName("Tier 1: Beginner for levels 1-8")
+        @CsvSource({"1", "4", "8"})
         void beginnerTier(int level) {
-            String result = service.getLevelName(level);
-            assertThat(result).isEqualTo("beginner");
+            assertThat(service.getLevelName(level)).isEqualTo("beginner");
         }
 
         @ParameterizedTest
-        @DisplayName("Should return 'homeCook' for levels 6-10")
-        @CsvSource({"6", "7", "8", "9", "10"})
+        @DisplayName("Tier 2: Novice Cook for levels 9-16")
+        @CsvSource({"9", "12", "16"})
+        void noviceCookTier(int level) {
+            assertThat(service.getLevelName(level)).isEqualTo("noviceCook");
+        }
+
+        @ParameterizedTest
+        @DisplayName("Tier 3: Home Cook for levels 17-25")
+        @CsvSource({"17", "21", "25"})
         void homeCookTier(int level) {
-            String result = service.getLevelName(level);
-            assertThat(result).isEqualTo("homeCook");
+            assertThat(service.getLevelName(level)).isEqualTo("homeCook");
         }
 
         @ParameterizedTest
-        @DisplayName("Should return 'skilledCook' for levels 11-15")
-        @CsvSource({"11", "12", "13", "14", "15"})
+        @DisplayName("Tier 4: Hobby Cook for levels 26-34")
+        @CsvSource({"26", "30", "34"})
+        void hobbyCookTier(int level) {
+            assertThat(service.getLevelName(level)).isEqualTo("hobbyCook");
+        }
+
+        @ParameterizedTest
+        @DisplayName("Tier 5: Skilled Cook for levels 35-44")
+        @CsvSource({"35", "40", "44"})
         void skilledCookTier(int level) {
-            String result = service.getLevelName(level);
-            assertThat(result).isEqualTo("skilledCook");
+            assertThat(service.getLevelName(level)).isEqualTo("skilledCook");
         }
 
         @ParameterizedTest
-        @DisplayName("Should return 'homeChef' for levels 16-20")
-        @CsvSource({"16", "17", "18", "19", "20"})
-        void homeChefTier(int level) {
-            String result = service.getLevelName(level);
-            assertThat(result).isEqualTo("homeChef");
+        @DisplayName("Tier 6: Expert Cook for levels 45-54")
+        @CsvSource({"45", "50", "54"})
+        void expertCookTier(int level) {
+            assertThat(service.getLevelName(level)).isEqualTo("expertCook");
         }
 
         @ParameterizedTest
-        @DisplayName("Should return 'expertChef' for levels 21-25")
-        @CsvSource({"21", "22", "23", "24", "25"})
-        void expertChefTier(int level) {
-            String result = service.getLevelName(level);
-            assertThat(result).isEqualTo("expertChef");
+        @DisplayName("Tier 7: Junior Chef for levels 55-64")
+        @CsvSource({"55", "60", "64"})
+        void juniorChefTier(int level) {
+            assertThat(service.getLevelName(level)).isEqualTo("juniorChef");
         }
 
         @ParameterizedTest
-        @DisplayName("Should return 'masterChef' for level 26 and above")
-        @CsvSource({"26", "27", "50", "100"})
-        void masterChefTier(int level) {
-            String result = service.getLevelName(level);
-            assertThat(result).isEqualTo("masterChef");
+        @DisplayName("Tier 8: Sous Chef for levels 65-74")
+        @CsvSource({"65", "70", "74"})
+        void sousChefTier(int level) {
+            assertThat(service.getLevelName(level)).isEqualTo("sousChef");
+        }
+
+        @ParameterizedTest
+        @DisplayName("Tier 9: Chef for levels 75-84")
+        @CsvSource({"75", "80", "84"})
+        void chefTier(int level) {
+            assertThat(service.getLevelName(level)).isEqualTo("chef");
+        }
+
+        @ParameterizedTest
+        @DisplayName("Tier 10: Head Chef for levels 85-92")
+        @CsvSource({"85", "88", "92"})
+        void headChefTier(int level) {
+            assertThat(service.getLevelName(level)).isEqualTo("headChef");
+        }
+
+        @ParameterizedTest
+        @DisplayName("Tier 11: Executive Chef for levels 93-99")
+        @CsvSource({"93", "96", "99"})
+        void executiveChefTier(int level) {
+            assertThat(service.getLevelName(level)).isEqualTo("executiveChef");
+        }
+
+        @Test
+        @DisplayName("Tier 12: Master Chef only for level 100")
+        void masterChefOnlyForLevel100() {
+            assertThat(service.getLevelName(100)).isEqualTo("masterChef");
+            // Level 99 should NOT be Master Chef
+            assertThat(service.getLevelName(99)).isEqualTo("executiveChef");
+        }
+
+        @Test
+        @DisplayName("All tier names end with Cook or Chef (except Beginner)")
+        void allTierNamesFollowPattern() {
+            // Beginner is the only exception
+            assertThat(service.getLevelName(1)).isEqualTo("beginner");
+
+            // Cook tiers (2-6)
+            assertThat(service.getLevelName(9)).endsWith("Cook");
+            assertThat(service.getLevelName(17)).endsWith("Cook");
+            assertThat(service.getLevelName(26)).endsWith("Cook");
+            assertThat(service.getLevelName(35)).endsWith("Cook");
+            assertThat(service.getLevelName(45)).endsWith("Cook");
+
+            // Chef tiers (7-12)
+            assertThat(service.getLevelName(55)).endsWith("Chef");
+            assertThat(service.getLevelName(65)).endsWith("Chef");
+            assertThat(service.getLevelName(75)).endsWith("Chef");
+            assertThat(service.getLevelName(85)).endsWith("Chef");
+            assertThat(service.getLevelName(93)).endsWith("Chef");
+            assertThat(service.getLevelName(100)).endsWith("Chef");
+        }
+    }
+
+    @Nested
+    @DisplayName("XP Reward Structure Scenarios")
+    class XpRewardScenarios {
+
+        @Test
+        @DisplayName("Active content creator earns XP from multiple sources")
+        void activeContentCreatorScenario() {
+            // User has:
+            // - 10 original recipes (500 XP)
+            // - 5 variant recipes (150 XP)
+            // - 20 cooking logs created (400 XP)
+            // - Received ratings totaling 100 points from others (600 XP)
+            // - 30 saves on their recipes (300 XP)
+            // Total: 1950 XP -> Level 16 (Novice Cook)
+            int totalXp = service.calculateTotalXp(10, 5, 20, 100, 30);
+            assertThat(totalXp).isEqualTo(1950);
+            assertThat(service.calculateLevel(totalXp)).isEqualTo(16);
+            assertThat(service.getLevelName(service.calculateLevel(totalXp))).isEqualTo("noviceCook");
+        }
+
+        @Test
+        @DisplayName("Recipe-focused user earns more from original recipes")
+        void recipeFocusedUserScenario() {
+            // User focused on creating original recipes
+            // - 50 original recipes (2500 XP)
+            // - 0 variant recipes
+            // - 10 logs created (200 XP)
+            // - Some ratings received (150 points = 900 XP)
+            // - 100 saves (1000 XP)
+            // Total: 4600 XP -> Level 26 (Hobby Cook)
+            int totalXp = service.calculateTotalXp(50, 0, 10, 150, 100);
+            assertThat(totalXp).isEqualTo(4600);
+            assertThat(service.calculateLevel(totalXp)).isEqualTo(26);
+            assertThat(service.getLevelName(service.calculateLevel(totalXp))).isEqualTo("hobbyCook");
+        }
+
+        @Test
+        @DisplayName("Engagement-focused user earns from logs and saves")
+        void engagementFocusedUserScenario() {
+            // User focused on cooking and engagement
+            // - 5 original recipes (250 XP)
+            // - 2 variant recipes (60 XP)
+            // - 100 logs created (2000 XP)
+            // - Ratings received (50 points = 300 XP)
+            // - 20 saves (200 XP)
+            // Total: 2810 XP -> Level 19 (Home Cook)
+            int totalXp = service.calculateTotalXp(5, 2, 100, 50, 20);
+            assertThat(totalXp).isEqualTo(2810);
+            assertThat(service.calculateLevel(totalXp)).isEqualTo(19);
+            assertThat(service.getLevelName(service.calculateLevel(totalXp))).isEqualTo("homeCook");
+        }
+
+        @Test
+        @DisplayName("Master Chef requires significant all-around activity")
+        void masterChefRequiresSignificantActivity() {
+            // To reach Master Chef (100k XP), user needs substantial activity
+            // For example:
+            // - 500 original recipes (25000 XP)
+            // - 200 variant recipes (6000 XP)
+            // - 1000 logs created (20000 XP)
+            // - Ratings received: ~5000 rating points (30000 XP)
+            // - 1900 saves (19000 XP)
+            // Total: 100000 XP -> Level 100 (Master Chef)
+            int totalXp = service.calculateTotalXp(500, 200, 1000, 5000, 1900);
+            assertThat(totalXp).isEqualTo(100000);
+            assertThat(service.calculateLevel(totalXp)).isEqualTo(100);
+            assertThat(service.getLevelName(service.calculateLevel(totalXp))).isEqualTo("masterChef");
         }
     }
 }

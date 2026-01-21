@@ -148,7 +148,23 @@
     "editProfile": "Editar perfil",
     "follow": "Seguir",
     "unfollow": "Dejar de seguir",
-    "level": "Nivel {level}"
+    "level": "Nivel {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{xp} XP para {tierName}"
+  },
+  "levels": {
+    "beginner": "Principiante",
+    "noviceCook": "Cocinero Novato",
+    "homeCook": "Cocinero Casero",
+    "hobbyCook": "Cocinero Aficionado",
+    "skilledCook": "Cocinero Hábil",
+    "expertCook": "Cocinero Experto",
+    "juniorChef": "Chef Junior",
+    "sousChef": "Sous Chef",
+    "chef": "Chef",
+    "headChef": "Chef Principal",
+    "executiveChef": "Chef Ejecutivo",
+    "masterChef": "Master Chef"
   },
   "auth": {
     "signInTitle": "Iniciar sesión",

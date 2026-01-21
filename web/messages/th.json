@@ -156,7 +156,23 @@
     "editProfile": "แก้ไขโปรไฟล์",
     "follow": "ติดตาม",
     "unfollow": "เลิกติดตาม",
-    "level": "ระดับ {level}"
+    "level": "ระดับ {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{xp} XP ถึง{tierName}"
+  },
+  "levels": {
+    "beginner": "เริ่มต้น",
+    "noviceCook": "คนทำอาหารมือใหม่",
+    "homeCook": "คนทำอาหารที่บ้าน",
+    "hobbyCook": "คนทำอาหารสมัครเล่น",
+    "skilledCook": "คนทำอาหารชำนาญ",
+    "expertCook": "คนทำอาหารเชี่ยวชาญ",
+    "juniorChef": "เชฟจูเนียร์",
+    "sousChef": "ซูเชฟ",
+    "chef": "เชฟ",
+    "headChef": "หัวหน้าเชฟ",
+    "executiveChef": "เชฟบริหาร",
+    "masterChef": "มาสเตอร์เชฟ"
   },
   "auth": {
     "signInTitle": "เข้าสู่ระบบ",

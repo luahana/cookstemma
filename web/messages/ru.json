@@ -156,7 +156,23 @@
     "editProfile": "Редактировать профиль",
     "follow": "Подписаться",
     "unfollow": "Отписаться",
-    "level": "Уровень {level}"
+    "level": "Уровень {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{xp} XP до {tierName}"
+  },
+  "levels": {
+    "beginner": "Новичок",
+    "noviceCook": "Начинающий Повар",
+    "homeCook": "Домашний Повар",
+    "hobbyCook": "Повар-Любитель",
+    "skilledCook": "Опытный Повар",
+    "expertCook": "Повар-Эксперт",
+    "juniorChef": "Младший Шеф",
+    "sousChef": "Су-Шеф",
+    "chef": "Шеф",
+    "headChef": "Главный Шеф",
+    "executiveChef": "Шеф-Повар",
+    "masterChef": "Мастер-Шеф"
   },
   "auth": {
     "signInTitle": "Вход",

@@ -76,7 +76,7 @@ public class UserService {
 
     /**
      * 사용자 상세 정보 조회 (공통)
-     * Returns user profile with recipe and log counts, including gamification level
+     * Returns user profile with recipe and log counts, including gamification level and XP progress
      * @param locale locale for bio translation
      */
     public UserDto getUserProfile(UUID publicId, String locale) {
@@ -88,23 +88,30 @@ public class UserService {
         long logCount = logPostRepository.countByCreatorIdAndDeletedAtIsNull(userId);
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
 
-        // Calculate gamification level using rating-based XP
-        List<Object[]> ratingCounts = recipeLogRepository.countByRatingForUser(userId);
-        int totalRatingXp = 0;
-        for (Object[] row : ratingCounts) {
-            Integer rating = (Integer) row[0];
-            Long count = (Long) row[1];
-            if (rating != null && count != null) {
-                // rating * 6 XP per log (1=6, 2=12, 3=18, 4=24, 5=30)
-                totalRatingXp += rating * 6 * count.intValue();
-            }
-        }
+        // Get recipe counts (original vs variant)
+        long originalRecipeCount = recipeRepository.countByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNull(userId);
+        long variantRecipeCount = recipeRepository.countByCreatorIdAndDeletedAtIsNullAndParentRecipeIsNotNull(userId);
 
-        int totalXp = cookingDnaService.calculateTotalXp(recipeCount, totalRatingXp);
+        // Get log count created by user
+        long logsCreated = recipeLogRepository.countLogsCreatedByUser(userId);
+
+        // Get ratings received on user's recipes (when others log their recipes)
+        int ratingsReceived = recipeLogRepository.sumRatingsReceivedOnUserRecipes(userId);
+
+        // Get saves received on user's recipes
+        long savesReceived = savedRecipeRepository.countSavesReceivedOnUserRecipes(userId);
+
+        // Calculate XP using new formula
+        int totalXp = cookingDnaService.calculateTotalXp(originalRecipeCount, variantRecipeCount, logsCreated, ratingsReceived, savesReceived);
         int level = cookingDnaService.calculateLevel(totalXp);
         String levelName = cookingDnaService.getLevelName(level);
 
-        return UserDto.from(user, urlPrefix, recipeCount, logCount, level, levelName, normalizedLocale);
+        // Get XP thresholds for progress display
+        int xpForCurrentLevel = cookingDnaService.getXpForLevel(level);
+        int xpForNextLevel = cookingDnaService.getXpForLevel(level + 1);
+
+        return UserDto.from(user, urlPrefix, recipeCount, logCount, level, levelName, normalizedLocale,
+                totalXp, xpForCurrentLevel, xpForNextLevel);
     }
 
     /**

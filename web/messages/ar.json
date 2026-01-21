@@ -156,7 +156,23 @@
     "editProfile": "تعديل الملف الشخصي",
     "follow": "متابعة",
     "unfollow": "إلغاء المتابعة",
-    "level": "المستوى {level}"
+    "level": "المستوى {level}",
+    "xpProgress": "{current} / {next} نقطة خبرة",
+    "xpToNextTier": "{xp} نقطة خبرة لـ{tierName}"
+  },
+  "levels": {
+    "beginner": "مبتدئ",
+    "noviceCook": "طباخ مبتدئ",
+    "homeCook": "طباخ منزلي",
+    "hobbyCook": "طباخ هاوٍ",
+    "skilledCook": "طباخ ماهر",
+    "expertCook": "طباخ خبير",
+    "juniorChef": "شيف مبتدئ",
+    "sousChef": "شيف مساعد",
+    "chef": "شيف",
+    "headChef": "شيف رئيسي",
+    "executiveChef": "شيف تنفيذي",
+    "masterChef": "ماستر شيف"
   },
   "auth": {
     "signInTitle": "تسجيل الدخول",

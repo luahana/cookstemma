@@ -156,7 +156,23 @@
     "editProfile": "प्रोफ़ाइल संपादित करें",
     "follow": "फॉलो करें",
     "unfollow": "अनफॉलो करें",
-    "level": "लेवल {level}"
+    "level": "लेवल {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{tierName} के लिए {xp} XP"
+  },
+  "levels": {
+    "beginner": "शुरुआती",
+    "noviceCook": "नौसिखिया रसोइया",
+    "homeCook": "घरेलू रसोइया",
+    "hobbyCook": "शौकिया रसोइया",
+    "skilledCook": "कुशल रसोइया",
+    "expertCook": "विशेषज्ञ रसोइया",
+    "juniorChef": "जूनियर शेफ",
+    "sousChef": "सूस शेफ",
+    "chef": "शेफ",
+    "headChef": "हेड शेफ",
+    "executiveChef": "एग्जीक्यूटिव शेफ",
+    "masterChef": "मास्टर शेफ"
   },
   "auth": {
     "signInTitle": "साइन इन",

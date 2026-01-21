@@ -156,7 +156,23 @@
     "editProfile": "プロフィールを編集",
     "follow": "フォロー",
     "unfollow": "フォロー解除",
-    "level": "レベル{level}"
+    "level": "レベル{level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{tierName}まであと{xp} XP"
+  },
+  "levels": {
+    "beginner": "初心者",
+    "noviceCook": "見習い料理人",
+    "homeCook": "家庭料理人",
+    "hobbyCook": "趣味料理人",
+    "skilledCook": "熟練料理人",
+    "expertCook": "達人料理人",
+    "juniorChef": "ジュニアシェフ",
+    "sousChef": "スーシェフ",
+    "chef": "シェフ",
+    "headChef": "ヘッドシェフ",
+    "executiveChef": "総料理長",
+    "masterChef": "マスターシェフ"
   },
   "auth": {
     "signInTitle": "ログイン",

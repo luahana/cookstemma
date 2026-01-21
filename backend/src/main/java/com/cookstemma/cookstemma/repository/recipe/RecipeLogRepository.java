@@ -74,4 +74,31 @@ public interface RecipeLogRepository extends JpaRepository<RecipeLog, Long> {
         """, nativeQuery = true)
     List<java.sql.Date> getCookingDatesForUser(@Param("userId") Long userId);
 
+    /**
+     * Sum of ratings received on recipes created by a user (when others log their recipes).
+     * This calculates XP for recipe authors when others cook their recipes.
+     */
+    @Query(value = """
+        SELECT COALESCE(SUM(rl.rating), 0)
+        FROM recipe_logs rl
+        JOIN log_posts lp ON rl.log_post_id = lp.id
+        JOIN recipes r ON rl.recipe_id = r.id
+        WHERE r.creator_id = :userId
+        AND lp.creator_id != :userId
+        AND lp.deleted_at IS NULL
+        AND r.deleted_at IS NULL
+        """, nativeQuery = true)
+    int sumRatingsReceivedOnUserRecipes(@Param("userId") Long userId);
+
+    /**
+     * Count logs created by a user (for log creator XP).
+     */
+    @Query("""
+        SELECT COUNT(rl)
+        FROM RecipeLog rl
+        JOIN rl.logPost lp
+        WHERE lp.creatorId = :userId AND lp.deletedAt IS NULL
+        """)
+    long countLogsCreatedByUser(@Param("userId") Long userId);
+
 }

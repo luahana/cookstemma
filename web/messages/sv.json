@@ -156,7 +156,23 @@
     "editProfile": "Redigera profil",
     "follow": "Följ",
     "unfollow": "Sluta följa",
-    "level": "Nivå {level}"
+    "level": "Nivå {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{xp} XP till {tierName}"
+  },
+  "levels": {
+    "beginner": "Nybörjare",
+    "noviceCook": "Novis Kock",
+    "homeCook": "Hemmakock",
+    "hobbyCook": "Hobbykock",
+    "skilledCook": "Erfaren Kock",
+    "expertCook": "Expertkock",
+    "juniorChef": "Juniorkock",
+    "sousChef": "Souschef",
+    "chef": "Kökschef",
+    "headChef": "Huvudkock",
+    "executiveChef": "Executive Chef",
+    "masterChef": "Mästerkock"
   },
   "auth": {
     "signInTitle": "Logga in",

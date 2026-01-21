@@ -156,7 +156,23 @@
     "editProfile": "Profiel bewerken",
     "follow": "Volgen",
     "unfollow": "Ontvolgen",
-    "level": "Niveau {level}"
+    "level": "Niveau {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{xp} XP tot {tierName}"
+  },
+  "levels": {
+    "beginner": "Beginner",
+    "noviceCook": "Beginnende Kok",
+    "homeCook": "Thuiskok",
+    "hobbyCook": "Hobbykok",
+    "skilledCook": "Ervaren Kok",
+    "expertCook": "Expert Kok",
+    "juniorChef": "Junior Chef",
+    "sousChef": "Sous Chef",
+    "chef": "Chef",
+    "headChef": "Hoofdchef",
+    "executiveChef": "Executive Chef",
+    "masterChef": "Meesterchef"
   },
   "auth": {
     "signInTitle": "Inloggen",

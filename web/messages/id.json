@@ -156,7 +156,23 @@
     "editProfile": "Edit Profil",
     "follow": "Ikuti",
     "unfollow": "Berhenti Mengikuti",
-    "level": "Level {level}"
+    "level": "Level {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{xp} XP ke {tierName}"
+  },
+  "levels": {
+    "beginner": "Pemula",
+    "noviceCook": "Juru Masak Pemula",
+    "homeCook": "Juru Masak Rumahan",
+    "hobbyCook": "Juru Masak Hobi",
+    "skilledCook": "Juru Masak Terampil",
+    "expertCook": "Juru Masak Ahli",
+    "juniorChef": "Koki Junior",
+    "sousChef": "Sous Chef",
+    "chef": "Koki",
+    "headChef": "Kepala Koki",
+    "executiveChef": "Koki Eksekutif",
+    "masterChef": "Master Chef"
   },
   "auth": {
     "signInTitle": "Masuk",

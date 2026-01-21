@@ -45,4 +45,8 @@ public interface SavedRecipeRepository extends JpaRepository<SavedRecipe, SavedR
     // [Offset] Saved recipes - page
     @Query("SELECT sr FROM SavedRecipe sr JOIN FETCH sr.recipe r WHERE sr.userId = :userId AND r.deletedAt IS NULL")
     Page<SavedRecipe> findSavedRecipesPage(@Param("userId") Long userId, Pageable pageable);
+
+    // Count total saves received on recipes created by a user
+    @Query("SELECT COUNT(sr) FROM SavedRecipe sr JOIN sr.recipe r WHERE r.creatorId = :creatorId AND r.deletedAt IS NULL")
+    long countSavesReceivedOnUserRecipes(@Param("creatorId") Long creatorId);
 }

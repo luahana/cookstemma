@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { UserProfile } from '@/lib/types';
+import { getNextTierKey, getXpToNextTier } from '@/lib/types/user';
 import { getImageUrl } from '@/lib/utils/image';
 import { getAvatarInitial } from '@/lib/utils/string';
 import { FollowButton } from '@/components/common/FollowButton';
@@ -18,6 +19,7 @@ interface UserProfileHeaderProps {
 
 export function UserProfileHeader({ user, publicId }: UserProfileHeaderProps) {
   const t = useTranslations('profile');
+  const tLevels = useTranslations('levels');
   const { user: currentUser } = useAuth();
   const [followerCount, setFollowerCount] = useState(user.followerCount);
   const [imageError, setImageError] = useState(false);
@@ -79,12 +81,47 @@ export function UserProfileHeader({ user, publicId }: UserProfileHeaderProps) {
             )}
           </div>
 
+          {/* Level Badge */}
           <div className="flex items-center justify-center sm:justify-start gap-3 mt-2">
             <span className="px-3 py-1 bg-[var(--primary-light)] text-[var(--primary)] text-sm font-medium rounded-full">
-              {user.levelName}
+              {tLevels(user.levelName)}
             </span>
             <span className="text-[var(--text-secondary)]">{t('level', { level: user.level })}</span>
           </div>
+
+          {/* XP Progress Bar */}
+          {user.totalXp !== null && user.xpForCurrentLevel !== null && user.xpForNextLevel !== null && (
+            <div className="mt-3 max-w-md">
+              {/* Progress bar */}
+              <div className="h-2 bg-[var(--border)] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[var(--primary)] rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, (user.levelProgress || 0) * 100)}%` }}
+                />
+              </div>
+              {/* XP text */}
+              <div className="flex justify-between items-center mt-1.5 text-xs text-[var(--text-secondary)]">
+                <span>
+                  {t('xpProgress', {
+                    current: user.totalXp.toLocaleString(),
+                    next: user.xpForNextLevel.toLocaleString(),
+                  })}
+                </span>
+                {(() => {
+                  const nextTierKey = getNextTierKey(user.level);
+                  const xpToTier = getXpToNextTier(user.level, user.totalXp);
+                  if (nextTierKey && xpToTier !== null && xpToTier > 0) {
+                    return (
+                      <span className="text-[var(--text-tertiary)]">
+                        {t('xpToNextTier', { xp: xpToTier.toLocaleString(), tierName: tLevels(nextTierKey) })}
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            </div>
+          )}
 
           {user.bio && (
             <p className="text-[var(--text-secondary)] mt-4 max-w-xl">{user.bio}</p>

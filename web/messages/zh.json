@@ -156,7 +156,23 @@
     "editProfile": "编辑资料",
     "follow": "关注",
     "unfollow": "取消关注",
-    "level": "等级 {level}"
+    "level": "等级 {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "距离{tierName}还需{xp} XP"
+  },
+  "levels": {
+    "beginner": "初学者",
+    "noviceCook": "新手厨师",
+    "homeCook": "家庭厨师",
+    "hobbyCook": "业余厨师",
+    "skilledCook": "熟练厨师",
+    "expertCook": "专家厨师",
+    "juniorChef": "初级主厨",
+    "sousChef": "副主厨",
+    "chef": "主厨",
+    "headChef": "厨师长",
+    "executiveChef": "行政主厨",
+    "masterChef": "大师级主厨"
   },
   "auth": {
     "signInTitle": "登录",

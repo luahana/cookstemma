@@ -156,7 +156,23 @@
     "editProfile": "ویرایش پروفایل",
     "follow": "دنبال کردن",
     "unfollow": "لغو دنبال کردن",
-    "level": "سطح {level}"
+    "level": "سطح {level}",
+    "xpProgress": "{current} / {next} XP",
+    "xpToNextTier": "{xp} XP تا {tierName}"
+  },
+  "levels": {
+    "beginner": "مبتدی",
+    "noviceCook": "آشپز تازه‌کار",
+    "homeCook": "آشپز خانگی",
+    "hobbyCook": "آشپز سرگرمی",
+    "skilledCook": "آشپز ماهر",
+    "expertCook": "آشپز متخصص",
+    "juniorChef": "سرآشپز تازه‌کار",
+    "sousChef": "سرآشپز دستیار",
+    "chef": "سرآشپز",
+    "headChef": "سرآشپز ارشد",
+    "executiveChef": "سرآشپز اجرایی",
+    "masterChef": "استاد سرآشپز"
   },
   "auth": {
     "signInTitle": "ورود",
