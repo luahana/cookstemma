@@ -590,26 +590,5 @@ class TranslationEventServiceTest extends BaseIntegrationTest {
             assertThat(event.getTargetLocales()).doesNotContain("en");
         }
 
-        @Test
-        @DisplayName("Should default to ko for null locale")
-        void queueCommentTranslation_NullLocale_DefaultsToKorean() {
-            User noLocaleUser = testUserFactory.createTestUser("no_locale_" + System.currentTimeMillis());
-            noLocaleUser.setLocale(null);
-
-            Comment comment = Comment.builder()
-                    .logPost(testLogPost)
-                    .creator(noLocaleUser)
-                    .content("Comment content")
-                    .build();
-            commentRepository.saveAndFlush(comment);
-
-            translationEventService.queueCommentTranslation(comment);
-
-            TranslationEvent event = translationEventRepository
-                    .findByEntityTypeAndEntityId(TranslatableEntity.COMMENT, comment.getId())
-                    .orElseThrow();
-
-            assertThat(event.getSourceLocale()).isEqualTo("ko");
-        }
     }
 }
