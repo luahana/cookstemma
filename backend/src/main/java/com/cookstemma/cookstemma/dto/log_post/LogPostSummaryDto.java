@@ -15,5 +15,6 @@ public record LogPostSummaryDto(
         String recipeTitle,    // Linked recipe's title
         List<String> hashtags,  // Hashtag names
         Boolean isVariant,     // Whether the linked recipe is a variant
-        Boolean isPrivate      // Whether this log is private
+        Boolean isPrivate,     // Whether this log is private
+        Integer commentCount   // Number of comments on this log
 ) {}

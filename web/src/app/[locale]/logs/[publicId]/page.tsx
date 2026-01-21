@@ -12,6 +12,7 @@ import { StarRating } from '@/components/log/StarRating';
 import { RecipeCard } from '@/components/recipe/RecipeCard';
 import { ShareButtons } from '@/components/common/ShareButtons';
 import { BookmarkButton } from '@/components/common/BookmarkButton';
+import { CommentSection } from '@/components/comment';
 import { getImageUrl } from '@/lib/utils/image';
 import { getAvatarInitial } from '@/lib/utils/string';
 import { siteConfig } from '@/config/site';
@@ -247,6 +248,13 @@ export default async function LogDetailPage({ params }: Props) {
             </div>
           </section>
         )}
+
+        {/* Comments section */}
+        <CommentSection
+          logPublicId={publicId}
+          initialCommentCount={log.commentCount}
+          className="mt-8 pt-8 border-t border-[var(--border)]"
+        />
       </article>
     </>
   );

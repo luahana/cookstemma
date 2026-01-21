@@ -11,7 +11,6 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Capture error in Sentry (only sends if DSN is configured)
     Sentry.captureException(error);
     console.error('[Global Error]', error);
   }, [error]);
@@ -19,42 +18,53 @@ export default function GlobalError({
   return (
     <html>
       <body>
-        <div className="min-h-screen flex items-center justify-center px-4 bg-white">
+        <div className="min-h-screen flex items-center justify-center px-4 bg-[#F9F9F9]">
           <div className="text-center max-w-md">
-            {/* Icon */}
-            <div className="text-8xl mb-6">🔥</div>
+            {/* Logo */}
+            <div className="flex flex-col items-center mb-8">
+              {/* eslint-disable-next-line @next/next/no-img-element -- global-error cannot use next/image */}
+              <img
+                src="/logo-icon.svg"
+                alt="Cookstemma"
+                width={64}
+                height={64}
+                className="w-16 h-16 mb-3"
+              />
+              <span className="text-xl font-bold text-[#494F57]">
+                Cookstemma
+              </span>
+            </div>
 
-            {/* Error Code */}
-            <h1 className="text-6xl font-bold text-orange-500 mb-4">Oops!</h1>
+            {/* Error indicator - subtle gray */}
+            <h1 className="text-8xl font-bold text-[#DFE6E9] mb-4">Oops!</h1>
 
             {/* Message */}
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+            <h2 className="text-2xl font-semibold text-[#2D3436] mb-2">
               Something went wrong
             </h2>
-            <p className="text-gray-600 mb-8">
-              We encountered an unexpected error. Our team has been notified and
-              is working to fix it.
+            <p className="text-[#636E72] mb-8">
+              We encountered an unexpected error. Our team has been notified.
             </p>
 
             {/* Error digest for support */}
             {error.digest && (
-              <p className="text-sm text-gray-400 mb-4 font-mono">
+              <p className="text-sm text-[#636E72] mb-4 font-mono bg-[#F1F1F1] px-3 py-1 rounded inline-block">
                 Error ID: {error.digest}
               </p>
             )}
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
               <button
                 onClick={reset}
-                className="px-6 py-3 bg-orange-500 text-white font-medium rounded-xl hover:bg-orange-600 transition-colors"
+                className="px-6 py-3 bg-[#E67E22] text-white font-medium rounded-xl hover:bg-[#D35400] transition-colors"
               >
                 Try Again
               </button>
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- global-error needs hard navigation */}
               <a
                 href="/"
-                className="px-6 py-3 bg-gray-100 text-gray-900 font-medium rounded-xl border border-gray-200 hover:border-orange-500 transition-colors"
+                className="px-6 py-3 bg-white text-[#2D3436] font-medium rounded-xl border border-[#DFE6E9] hover:border-[#E67E22] transition-colors"
               >
                 Go Home
               </a>

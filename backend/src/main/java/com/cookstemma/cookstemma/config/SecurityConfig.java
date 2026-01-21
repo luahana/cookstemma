@@ -107,6 +107,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/log_posts", "/api/v1/log_posts/**").permitAll()
                         .requestMatchers("/api/v1/users/**").permitAll()
                         .requestMatchers("/api/v1/hashtags/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/comments/**").permitAll()
 
                         // Protected endpoints (auth required)
                         .requestMatchers("/api/v1/images/**").authenticated()
