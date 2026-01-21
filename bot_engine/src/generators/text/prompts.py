@@ -53,7 +53,7 @@ Generate a recipe with the following structure in JSON format:
     "cookingTimeRange": "UNDER_15_MIN" | "MIN_15_TO_30" | "MIN_30_TO_60" | "HOUR_1_TO_2" | "OVER_2_HOURS",
     "ingredients": [
         {{
-            "name": "ingredient name",
+            "name": "ingredient name (plain noun only - no adjectives like 'fresh', 'diced', 'boneless', etc.)",
             "quantity": number (e.g., 2.0, 100, 0.5),
             "unit": "UNIT_CODE",
             "type": "MAIN" | "SECONDARY" | "SEASONING"
@@ -75,6 +75,7 @@ Requirements:
 - Write EVERYTHING in {lang}
 - IMPORTANT: Keep title under 100 characters, description under 1000 characters, each step under 1000 characters
 - Include 5-15 ingredients with realistic amounts
+- IMPORTANT: Ingredient names must be plain nouns only (e.g., "chicken breast", "onion", "garlic"). Do NOT include adjectives or preparation methods (NO "fresh", "diced", "minced", "boneless", "organic", etc.)
 - {unit_instruction}
 - IMPORTANT: Every ingredient MUST have both quantity (number) and unit filled
 - Include 4-10 detailed cooking steps
@@ -147,7 +148,7 @@ Generate a variant recipe in JSON format:
     "cookingTimeRange": "UNDER_15_MIN" | "MIN_15_TO_30" | "MIN_30_TO_60" | "HOUR_1_TO_2" | "OVER_2_HOURS",
     "ingredients": [
         {{
-            "name": "ingredient name",
+            "name": "ingredient name (plain noun only - no adjectives like 'fresh', 'diced', 'boneless', etc.)",
             "quantity": number (e.g., 2.0, 100, 0.5),
             "unit": "UNIT_CODE",
             "type": "MAIN" | "SECONDARY" | "SEASONING"
@@ -172,6 +173,7 @@ Requirements:
 - IMPORTANT: Keep title under 100 characters, description under 1000 characters, each step under 1000 characters, changeReason under 1000 characters
 - Make meaningful, noticeable changes (not just minor tweaks)
 - Keep the dish recognizable as a variant of the original
+- IMPORTANT: Ingredient names must be plain nouns only (e.g., "chicken breast", "onion", "garlic"). Do NOT include adjectives or preparation methods (NO "fresh", "diced", "minced", "boneless", "organic", etc.)
 - {unit_instruction}
 - IMPORTANT: Every ingredient MUST have both quantity (number) and unit filled
 - Clearly explain what changed and why
