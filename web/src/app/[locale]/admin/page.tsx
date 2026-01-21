@@ -1285,16 +1285,32 @@ function UntranslatedRecipesTab() {
       ),
     },
     {
+      key: 'url',
+      header: 'URL',
+      sortable: false,
+      width: '80px',
+      render: (item) => (
+        <a
+          href={`/recipes/${item.publicId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[var(--primary)] hover:underline text-sm"
+        >
+          View
+        </a>
+      ),
+    },
+    {
       key: 'cookingStyle',
       header: 'Locale',
       sortable: true,
-      width: '100px',
+      width: '80px',
     },
     {
       key: 'translationStatus',
       header: 'Status',
       sortable: false,
-      width: '120px',
+      width: '110px',
       render: (item) => (
         <span
           className={`px-2 py-1 text-xs font-medium rounded ${getStatusBadgeClass(item.translationStatus)}`}
@@ -1307,7 +1323,7 @@ function UntranslatedRecipesTab() {
       key: 'progress',
       header: 'Progress',
       sortable: false,
-      width: '100px',
+      width: '80px',
       render: (item) => (
         <span className="text-sm">
           {item.translatedLocaleCount}/{item.totalLocaleCount}
@@ -1318,10 +1334,10 @@ function UntranslatedRecipesTab() {
       key: 'lastError',
       header: 'Error',
       sortable: false,
-      width: '200px',
+      width: '150px',
       render: (item) => item.lastError ? (
         <span className="text-sm text-red-600" title={item.lastError}>
-          {item.lastError.length > 50 ? `${item.lastError.substring(0, 50)}...` : item.lastError}
+          {item.lastError.length > 30 ? `${item.lastError.substring(0, 30)}...` : item.lastError}
         </span>
       ) : '-',
     },
@@ -1329,13 +1345,13 @@ function UntranslatedRecipesTab() {
       key: 'creatorUsername',
       header: 'Creator',
       sortable: false,
-      width: '120px',
+      width: '100px',
     },
     {
       key: 'createdAt',
       header: 'Created',
       sortable: true,
-      width: '180px',
+      width: '160px',
       render: (item) => formatDate(item.createdAt),
     },
   ];
@@ -1582,10 +1598,26 @@ function UntranslatedLogsTab() {
       ),
     },
     {
+      key: 'url',
+      header: 'URL',
+      sortable: false,
+      width: '80px',
+      render: (item) => (
+        <a
+          href={`/logs/${item.publicId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[var(--primary)] hover:underline text-sm"
+        >
+          View
+        </a>
+      ),
+    },
+    {
       key: 'translationStatus',
       header: 'Status',
       sortable: false,
-      width: '120px',
+      width: '110px',
       render: (item) => (
         <span
           className={`px-2 py-1 text-xs font-medium rounded ${getStatusBadgeClass(item.translationStatus)}`}
@@ -1598,7 +1630,7 @@ function UntranslatedLogsTab() {
       key: 'progress',
       header: 'Progress',
       sortable: false,
-      width: '100px',
+      width: '80px',
       render: (item) => (
         <span className="text-sm">
           {item.translatedLocaleCount}/{item.totalLocaleCount}
@@ -1609,10 +1641,10 @@ function UntranslatedLogsTab() {
       key: 'lastError',
       header: 'Error',
       sortable: false,
-      width: '200px',
+      width: '150px',
       render: (item) => item.lastError ? (
         <span className="text-sm text-red-600" title={item.lastError}>
-          {item.lastError.length > 50 ? `${item.lastError.substring(0, 50)}...` : item.lastError}
+          {item.lastError.length > 30 ? `${item.lastError.substring(0, 30)}...` : item.lastError}
         </span>
       ) : '-',
     },
@@ -1620,13 +1652,13 @@ function UntranslatedLogsTab() {
       key: 'creatorUsername',
       header: 'Creator',
       sortable: false,
-      width: '120px',
+      width: '100px',
     },
     {
       key: 'createdAt',
       header: 'Created',
       sortable: true,
-      width: '180px',
+      width: '160px',
       render: (item) => formatDate(item.createdAt),
     },
   ];
