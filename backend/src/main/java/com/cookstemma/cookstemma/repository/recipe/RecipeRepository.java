@@ -560,7 +560,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT r.* FROM recipes r
-        JOIN recipe_hashtags rh ON rh.recipe_id = r.id
+        JOIN recipe_hashtag_map rh ON rh.recipe_id = r.id
         JOIN hashtags h ON h.id = rh.hashtag_id
         WHERE h.name = :hashtagName AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
         AND (SUBSTRING(r.cooking_style FROM 1 FOR 2) = :langCode
@@ -576,7 +576,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT r.* FROM recipes r
-        JOIN recipe_hashtags rh ON rh.recipe_id = r.id
+        JOIN recipe_hashtag_map rh ON rh.recipe_id = r.id
         JOIN hashtags h ON h.id = rh.hashtag_id
         WHERE h.name = :hashtagName AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
         AND (SUBSTRING(r.cooking_style FROM 1 FOR 2) = :langCode
@@ -595,7 +595,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     // Filters by translation availability: source locale matches OR translation exists
     @Query(value = """
         SELECT r.* FROM recipes r
-        JOIN recipe_hashtags rh ON rh.recipe_id = r.id
+        JOIN recipe_hashtag_map rh ON rh.recipe_id = r.id
         JOIN hashtags h ON h.id = rh.hashtag_id
         WHERE h.name = :hashtagName AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
         AND (SUBSTRING(r.cooking_style FROM 1 FOR 2) = :langCode
@@ -603,7 +603,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
         """,
         countQuery = """
         SELECT COUNT(r.id) FROM recipes r
-        JOIN recipe_hashtags rh ON rh.recipe_id = r.id
+        JOIN recipe_hashtag_map rh ON rh.recipe_id = r.id
         JOIN hashtags h ON h.id = rh.hashtag_id
         WHERE h.name = :hashtagName AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
         AND (SUBSTRING(r.cooking_style FROM 1 FOR 2) = :langCode
