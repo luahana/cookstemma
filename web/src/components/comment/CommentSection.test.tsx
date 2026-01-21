@@ -29,8 +29,8 @@ jest.mock('next-intl', () => ({
   },
 }));
 
-// Mock @/i18n/routing
-jest.mock('@/i18n/routing', () => ({
+// Mock @/i18n/navigation
+jest.mock('@/i18n/navigation', () => ({
   Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
     <a href={href}>{children}</a>
   ),

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/routing';
+import { Link } from '@/i18n/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { likeComment, unlikeComment, editComment, deleteComment } from '@/lib/api/comments';
 import { CommentInput } from './CommentInput';
