@@ -27,27 +27,6 @@ public class TranslationAdminController {
     private final RecipeRepository recipeRepository;
 
     /**
-     * Get translation status for a recipe.
-     *
-     * GET /api/v1/admin/translations/recipes/{publicId}/status
-     *
-     * @param publicId Recipe's public ID
-     * @return Translation status including all events
-     */
-    @GetMapping("/recipes/{publicId}/status")
-    public ResponseEntity<Map<String, Object>> getRecipeTranslationStatus(@PathVariable UUID publicId) {
-        Recipe recipe = recipeRepository.findByPublicId(publicId)
-                .orElseThrow(() -> new IllegalArgumentException("Recipe not found: " + publicId));
-
-        Map<String, Object> status = translationEventService.getRecipeTranslationStatus(recipe.getId());
-        status.put("recipePublicId", publicId);
-        status.put("recipeTitle", recipe.getTitle());
-        status.put("recipeId", recipe.getId());
-
-        return ResponseEntity.ok(status);
-    }
-
-    /**
      * Force re-translation of a recipe with a specified source locale.
      * Use this when the recipe's cookingStyle doesn't match the actual content language.
      *

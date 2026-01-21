@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -334,49 +333,6 @@ public class TranslationEventService {
             event.markCompleted();
         }
         translationEventRepository.save(event);
-    }
-
-    /**
-     * Get translation status for a recipe including all translation events.
-     *
-     * @param recipeId The internal recipe ID
-     * @return Map containing translation status information
-     */
-    @Transactional(readOnly = true)
-    public Map<String, Object> getRecipeTranslationStatus(Long recipeId) {
-        List<TranslationEvent> events = translationEventRepository.findByEntityTypeAndEntityIdOrderByCreatedAtDesc(
-                TranslatableEntity.RECIPE_FULL, recipeId);
-
-        List<Map<String, Object>> eventDetails = new ArrayList<>();
-        for (TranslationEvent event : events) {
-            Map<String, Object> detail = new HashMap<>();
-            detail.put("id", event.getId());
-            detail.put("status", event.getStatus().name());
-            detail.put("entityType", event.getEntityType().name());
-            detail.put("sourceLocale", event.getSourceLocale());
-            detail.put("targetLocales", event.getTargetLocales());
-            detail.put("completedLocales", event.getCompletedLocales() != null ? event.getCompletedLocales() : List.of());
-            detail.put("completedCount", event.getCompletedLocales() != null ? event.getCompletedLocales().size() : 0);
-            detail.put("targetCount", event.getTargetLocales() != null ? event.getTargetLocales().size() : 0);
-            detail.put("errorMessage", event.getErrorMessage());
-            detail.put("retryCount", event.getRetryCount());
-            detail.put("createdAt", event.getCreatedAt());
-            detail.put("startedAt", event.getStartedAt());
-            detail.put("completedAt", event.getCompletedAt());
-            eventDetails.add(detail);
-        }
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("events", eventDetails);
-        result.put("totalEvents", events.size());
-
-        if (!events.isEmpty()) {
-            TranslationEvent latestEvent = events.get(0);
-            result.put("latestStatus", latestEvent.getStatus().name());
-            result.put("latestError", latestEvent.getErrorMessage());
-        }
-
-        return result;
     }
 
     /**

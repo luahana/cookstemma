@@ -38,12 +38,6 @@ public interface TranslationEventRepository extends JpaRepository<TranslationEve
             TranslatableEntity entityType, Long entityId);
 
     /**
-     * Find all translation events for a specific entity, ordered by creation time descending.
-     */
-    List<TranslationEvent> findByEntityTypeAndEntityIdOrderByCreatedAtDesc(
-            TranslatableEntity entityType, Long entityId);
-
-    /**
      * Find the most recent translation events for multiple entities of a specific type.
      */
     @Query("""
