@@ -29,7 +29,7 @@ SQS_QUEUE_URL = os.environ.get('SQS_QUEUE_URL')
 # Cache for secrets
 _secrets_cache: dict[str, Any] = {}
 
-# Variant configurations
+# Variant configurations (matching Java ImageVariant enum)
 VARIANTS = {
     'LARGE_1200': {'max_size': 1200, 'quality': 85},
     'MEDIUM_800': {'max_size': 800, 'quality': 80},
@@ -37,7 +37,8 @@ VARIANTS = {
     'THUMB_200': {'max_size': 200, 'quality': 70},
 }
 
-SUPPORTED_FORMATS = ['JPEG']
+# WebP is the primary format for better compression and quality
+SUPPORTED_FORMATS = ['WEBP']
 
 
 def get_secret(secret_name: str) -> dict:
@@ -89,35 +90,45 @@ def resize_image(image: Image.Image, max_size: int) -> Image.Image:
 
 
 def convert_to_format(image: Image.Image, format: str, quality: int) -> tuple[bytes, str]:
-    """Convert image to JPEG format and return bytes + content type."""
+    """Convert image to specified format and return bytes + content type."""
     output = BytesIO()
 
-    # Ensure RGB mode for JPEG (no alpha channel)
-    if image.mode in ('RGBA', 'P'):
-        image = image.convert('RGB')
-
-    image.save(output, format='JPEG', quality=quality, optimize=True)
-    content_type = 'image/jpeg'
+    if format.upper() == 'WEBP':
+        # WebP supports alpha channel, but convert RGBA for consistency
+        if image.mode == 'P':
+            image = image.convert('RGBA')
+        image.save(output, format='WEBP', quality=quality, method=6)
+        content_type = 'image/webp'
+    else:
+        # Fallback to JPEG
+        if image.mode in ('RGBA', 'P'):
+            image = image.convert('RGB')
+        image.save(output, format='JPEG', quality=quality, optimize=True)
+        content_type = 'image/jpeg'
 
     return output.getvalue(), content_type
 
 
 def generate_variant_key(original_key: str, variant_name: str, format: str) -> str:
-    """Generate S3 key for variant image."""
-    # Original: images/abc123.jpg
-    # Variant: images/variants/LARGE_1200/abc123.jpg
+    """Generate S3 key for variant image.
+
+    Matches Java ImageProcessingService path structure:
+    Original: cover/abc123.jpg
+    Variant: LARGE_1200/abc123_large_1200.webp
+    """
     parts = original_key.rsplit('/', 1)
     if len(parts) == 2:
-        prefix, filename = parts
+        _, filename = parts
     else:
-        prefix = ''
         filename = original_key
 
     name, _ = os.path.splitext(filename)
 
-    if prefix:
-        return f"{prefix}/variants/{variant_name}/{name}.jpg"
-    return f"variants/{variant_name}/{name}.jpg"
+    # Determine file extension based on format
+    ext = 'webp' if format.upper() == 'WEBP' else 'jpg'
+
+    # Match Java naming: VARIANT_NAME/filename_variant_name.ext
+    return f"{variant_name}/{name}_{variant_name.lower()}.{ext}"
 
 
 def process_single_variant(
@@ -287,8 +298,9 @@ def orchestrator_handler(event: dict, context) -> dict:
         public_id = event.get('request_id') or event.get('public_id') or str(uuid.uuid4())
         image_id = event.get('image_id')
 
-        # Skip if this is already a variant
-        if '/variants/' in key:
+        # Skip if this is already a variant (stored in VARIANT_NAME/ folders)
+        variant_prefixes = tuple(VARIANTS.keys())
+        if key.startswith(variant_prefixes) or '/variants/' in key:
             logger.info(f"Skipping variant image: {key}")
             return {'statusCode': 200, 'message': 'Skipped variant image'}
 

@@ -281,9 +281,12 @@ resource "aws_cloudwatch_event_rule" "image_upload" {
         name = [var.s3_bucket_name]
       }
       object = {
-        key = [{
-          prefix = "images/"
-        }]
+        key = [
+          { prefix = "cover/" },
+          { prefix = "step/" },
+          { prefix = "log_post/" },
+          { prefix = "profile/" }
+        ]
       }
     }
   })
