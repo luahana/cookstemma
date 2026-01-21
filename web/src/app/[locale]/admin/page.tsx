@@ -1124,19 +1124,17 @@ function SuggestedIngredientsTab() {
 }
 
 function UntranslatedRecipesTab() {
-  const format = useFormatter();
   const formatDate = useCallback((dateString: string | null): string => {
     if (!dateString) return '-';
     const date = new Date(dateString);
-    return format.dateTime(date, {
+    return date.toLocaleString(undefined, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      timeZoneName: 'short',
     });
-  }, [format]);
+  }, []);
 
   const [data, setData] = useState<UntranslatedRecipe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1437,19 +1435,17 @@ function UntranslatedRecipesTab() {
 }
 
 function UntranslatedLogsTab() {
-  const format = useFormatter();
   const formatDate = useCallback((dateString: string | null): string => {
     if (!dateString) return '-';
     const date = new Date(dateString);
-    return format.dateTime(date, {
+    return date.toLocaleString(undefined, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      timeZoneName: 'short',
     });
-  }, [format]);
+  }, []);
 
   const [data, setData] = useState<UntranslatedLog[]>([]);
   const [loading, setLoading] = useState(true);
