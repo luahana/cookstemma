@@ -90,8 +90,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--persona",
         type=str,
-        default="chef_park_soojin",
-        help="Bot persona to use (default: chef_park_soojin)",
+        default=None,
+        help="Bot persona to use. If not specified, picks random.",
     )
     return parser.parse_args()
 
@@ -115,44 +115,45 @@ async def main() -> None:
         print("  OPENAI_API_KEY=sk-your-key-here")
         sys.exit(1)
 
-    # 1. Get persona
-    registry = get_persona_registry()
-    persona = registry.get(args.persona)
-
-    if not persona:
-        print(f"Error: Persona '{args.persona}' not found")
-        available = list(registry._personas.keys())
-        print(f"Available personas: {', '.join(available)}")
-        sys.exit(1)
-
-    print(f"Using persona: {persona.display_name.get('en', persona.name)}")
-
-    # 2. Setup clients
+    # 1. Setup clients
     api_client = CookstemmaClient()
     text_gen = TextGenerator()
     image_gen = ImageGenerator()
 
     try:
-        # 3. Authenticate with bot API key
-        persona_key_env = f"BOT_API_KEY_{args.persona.upper()}"
-        api_key = os.getenv(
-            persona_key_env,
-            os.getenv("BOT_API_KEY", ""),
-        )
+        # 2. Initialize persona registry from API
+        print("Fetching personas from backend...")
+        registry = get_persona_registry()
+        await registry.initialize(api_client)
 
-        if not api_key:
-            print("Error: Bot API key not configured")
-            print(f"Set {persona_key_env} or BOT_API_KEY in .env")
+        all_personas = registry.get_all()
+        if not all_personas:
+            print("Error: No personas found in backend")
             sys.exit(1)
 
-        print("Authenticating with backend...")
-        await api_client.login_bot(api_key=api_key)
-        print("Authenticated successfully!")
+        # 3. Get persona (specific or random)
+        if args.persona:
+            persona = registry.get(args.persona)
+            if not persona:
+                print(f"Error: Persona '{args.persona}' not found")
+                print("Available personas:")
+                for p in all_personas:
+                    print(f"  - {p.name}")
+                sys.exit(1)
+        else:
+            persona = random.choice(all_personas)
 
-        # 4. Create pipeline
+        print(f"Using persona: {persona.name} ({persona.display_name.get('en', persona.name)})")
+
+        # 4. Authenticate with persona (auto-creates user if needed)
+        print("Authenticating (will create user if needed)...")
+        auth = await api_client.login_by_persona(persona.name)
+        print(f"Authenticated as: {auth.username}")
+
+        # 5. Create pipeline
         pipeline = LogPipeline(api_client, text_gen, image_gen)
 
-        # 5. Get recipes (specific or for random selection)
+        # 6. Get recipes (specific or for random selection)
         if args.recipe_id:
             print(f"\nFetching recipe: {args.recipe_id}")
             recipe = await api_client.get_recipe(args.recipe_id)
@@ -166,7 +167,7 @@ async def main() -> None:
                 sys.exit(1)
             print(f"Found {len(recipes)} recipes for selection")
 
-        # 6. Generate logs
+        # 7. Generate logs
         print(f"\nGenerating {args.count} cooking log(s)...")
         print(f"  Rating: {args.rating if args.rating else f'random ({args.min_rating}-{args.max_rating})'}")
         print(f"  Images per log: {args.images}")
@@ -199,7 +200,7 @@ async def main() -> None:
 
             print(f"  Created: {log.public_id}")
 
-        # 7. Print summary
+        # 8. Print summary
         print("\n" + "=" * 50)
         print(f"Successfully created {len(created_logs)} cooking log(s)!")
         print("=" * 50)
