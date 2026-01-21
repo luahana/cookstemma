@@ -650,4 +650,51 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
         """,
         nativeQuery = true)
     long countSearchResults(@Param("keyword") String keyword);
+
+    // ==================== ADMIN: UNTRANSLATED CONTENT ====================
+
+    /**
+     * Find recipes with incomplete translations (fewer than 19 locales in title_translations).
+     * Returns recipes ordered by creation date descending.
+     */
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.deleted_at IS NULL
+        AND (r.title_translations IS NULL
+             OR jsonb_typeof(r.title_translations) != 'object'
+             OR (SELECT COUNT(*) FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb))) < 19)
+        ORDER BY r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        WHERE r.deleted_at IS NULL
+        AND (r.title_translations IS NULL
+             OR jsonb_typeof(r.title_translations) != 'object'
+             OR (SELECT COUNT(*) FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb))) < 19)
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findUntranslatedRecipes(Pageable pageable);
+
+    /**
+     * Find recipes with incomplete translations filtered by title.
+     */
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.deleted_at IS NULL
+        AND (r.title_translations IS NULL
+             OR jsonb_typeof(r.title_translations) != 'object'
+             OR (SELECT COUNT(*) FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb))) < 19)
+        AND r.title ILIKE '%' || :title || '%'
+        ORDER BY r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        WHERE r.deleted_at IS NULL
+        AND (r.title_translations IS NULL
+             OR jsonb_typeof(r.title_translations) != 'object'
+             OR (SELECT COUNT(*) FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb))) < 19)
+        AND r.title ILIKE '%' || :title || '%'
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findUntranslatedRecipesByTitle(@Param("title") String title, Pageable pageable);
 }

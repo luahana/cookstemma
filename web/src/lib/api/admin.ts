@@ -9,6 +9,10 @@ import type {
   UserSuggestedIngredient,
   SuggestedIngredientFilter,
   IngredientType,
+  UntranslatedRecipe,
+  UntranslatedRecipeFilter,
+  UntranslatedLog,
+  UntranslatedLogFilter,
 } from '@/lib/types/admin';
 
 /**
@@ -124,6 +128,74 @@ export async function updateSuggestedIngredientStatus(
     {
       method: 'PATCH',
       body: JSON.stringify({ status }),
+    },
+  );
+}
+
+/**
+ * Get paginated list of untranslated recipes
+ */
+export async function getUntranslatedRecipes(
+  params: UntranslatedRecipeFilter & { page?: number; size?: number } = {},
+): Promise<PageResponse<UntranslatedRecipe>> {
+  const queryString = buildQueryString({
+    page: params.page ?? 0,
+    size: params.size ?? 20,
+    title: params.title,
+    sortBy: params.sortBy ?? 'createdAt',
+    sortOrder: params.sortOrder ?? 'desc',
+  });
+
+  return apiFetch<PageResponse<UntranslatedRecipe>>(
+    `/admin/untranslated-recipes${queryString}`,
+  );
+}
+
+/**
+ * Trigger re-translation for selected recipes
+ */
+export async function triggerRecipeRetranslation(
+  publicIds: string[],
+): Promise<{ message: string; recipesQueued: number }> {
+  return apiFetch<{ message: string; recipesQueued: number }>(
+    '/admin/untranslated-recipes/retranslate',
+    {
+      method: 'POST',
+      body: JSON.stringify({ publicIds }),
+    },
+  );
+}
+
+/**
+ * Get paginated list of untranslated logs
+ */
+export async function getUntranslatedLogs(
+  params: UntranslatedLogFilter & { page?: number; size?: number } = {},
+): Promise<PageResponse<UntranslatedLog>> {
+  const queryString = buildQueryString({
+    page: params.page ?? 0,
+    size: params.size ?? 20,
+    content: params.content,
+    sortBy: params.sortBy ?? 'createdAt',
+    sortOrder: params.sortOrder ?? 'desc',
+  });
+
+  return apiFetch<PageResponse<UntranslatedLog>>(
+    `/admin/untranslated-logs${queryString}`,
+  );
+}
+
+/**
+ * Trigger re-translation for selected logs
+ */
+export async function triggerLogRetranslation(
+  publicIds: string[],
+): Promise<{ message: string; logsQueued: number }> {
+  return apiFetch<{ message: string; logsQueued: number }>(
+    '/admin/untranslated-logs/retranslate',
+    {
+      method: 'POST',
+      body: JSON.stringify({ publicIds }),
     },
   );
 }

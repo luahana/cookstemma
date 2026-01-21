@@ -12,6 +12,10 @@ import {
   updateUserRole,
   getSuggestedIngredients,
   updateSuggestedIngredientStatus,
+  getUntranslatedRecipes,
+  triggerRecipeRetranslation,
+  getUntranslatedLogs,
+  triggerLogRetranslation,
 } from '@/lib/api/admin';
 import type {
   UserSuggestedFood,
@@ -21,6 +25,9 @@ import type {
   UserRole,
   UserSuggestedIngredient,
   IngredientType,
+  UntranslatedRecipe,
+  UntranslatedLog,
+  TranslationStatus,
 } from '@/lib/types/admin';
 
 const STATUS_OPTIONS = [
@@ -47,9 +54,16 @@ const INGREDIENT_TYPE_OPTIONS = [
   { value: 'SEASONING', label: 'Seasoning' },
 ];
 
+const TRANSLATION_STATUS_OPTIONS = [
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'PROCESSING', label: 'Processing' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'FAILED', label: 'Failed' },
+];
+
 // formatDate is now a hook-based function created inside the component
 
-type TabType = 'suggested-foods' | 'suggested-ingredients' | 'users';
+type TabType = 'suggested-foods' | 'suggested-ingredients' | 'users' | 'untranslated-recipes' | 'untranslated-logs';
 
 export default function AdminPage() {
   const { user, isLoading: authLoading, isAdmin } = useAuth();
@@ -143,6 +157,26 @@ export default function AdminPage() {
             >
               Users
             </button>
+            <button
+              onClick={() => setActiveTab('untranslated-recipes')}
+              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'untranslated-recipes'
+                  ? 'border-[var(--primary)] text-[var(--primary)]'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              Untranslated Recipes
+            </button>
+            <button
+              onClick={() => setActiveTab('untranslated-logs')}
+              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'untranslated-logs'
+                  ? 'border-[var(--primary)] text-[var(--primary)]'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              Untranslated Logs
+            </button>
           </nav>
         </div>
 
@@ -150,6 +184,8 @@ export default function AdminPage() {
         {activeTab === 'suggested-foods' && <SuggestedFoodsTab />}
         {activeTab === 'suggested-ingredients' && <SuggestedIngredientsTab />}
         {activeTab === 'users' && <UsersTab currentUserPublicId={user?.publicId} />}
+        {activeTab === 'untranslated-recipes' && <UntranslatedRecipesTab />}
+        {activeTab === 'untranslated-logs' && <UntranslatedLogsTab />}
       </div>
     </div>
   );
@@ -1059,6 +1095,594 @@ function SuggestedIngredientsTab() {
           onFilterChange={handleFilterChange}
           loading={loading}
           emptyMessage="No suggested ingredients found"
+        />
+      </div>
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="px-4 py-2 text-[var(--text-secondary)]">
+            Page {page + 1} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+function UntranslatedRecipesTab() {
+  const format = useFormatter();
+  const formatDate = useCallback((dateString: string | null): string => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return format.dateTime(date, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    });
+  }, [format]);
+
+  const [data, setData] = useState<UntranslatedRecipe[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [retranslating, setRetranslating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const pageSize = 20;
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response: PageResponse<UntranslatedRecipe> = await getUntranslatedRecipes({
+        page,
+        size: pageSize,
+        title: filters.title || undefined,
+        sortBy,
+        sortOrder,
+      });
+      setData(response.content);
+      setTotalPages(response.totalPages);
+      setTotalElements(response.totalElements);
+      setSelectedItems(new Set());
+    } catch (err) {
+      console.error('Error fetching untranslated recipes:', err);
+      setError('Failed to load data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filters, sortBy, sortOrder]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleSort = (key: string) => {
+    if (sortBy === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortOrder('desc');
+    }
+    setPage(0);
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(0);
+  };
+
+  const handleSelectItem = (publicId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(publicId)) {
+        newSet.delete(publicId);
+      } else {
+        newSet.add(publicId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.size === data.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(data.map(item => item.publicId)));
+    }
+  };
+
+  const handleRetranslate = async () => {
+    if (selectedItems.size === 0) return;
+
+    setRetranslating(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const result = await triggerRecipeRetranslation(Array.from(selectedItems));
+      setSuccessMessage(`Successfully queued ${result.recipesQueued} recipe(s) for re-translation.`);
+      setTimeout(() => setSuccessMessage(null), 5000);
+      setSelectedItems(new Set());
+      fetchData();
+    } catch (err) {
+      console.error('Error triggering re-translation:', err);
+      setError('Failed to trigger re-translation. Please try again.');
+    } finally {
+      setRetranslating(false);
+    }
+  };
+
+  const getStatusBadgeClass = (status: TranslationStatus | null): string => {
+    switch (status) {
+      case 'PENDING':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'PROCESSING':
+        return 'bg-blue-100 text-blue-800';
+      case 'COMPLETED':
+        return 'bg-green-100 text-green-800';
+      case 'FAILED':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const columns: Column<UntranslatedRecipe>[] = [
+    {
+      key: 'select',
+      header: (
+        <input
+          type="checkbox"
+          checked={data.length > 0 && selectedItems.size === data.length}
+          onChange={handleSelectAll}
+          className="w-4 h-4"
+        />
+      ) as unknown as string,
+      sortable: false,
+      width: '50px',
+      render: (item) => (
+        <input
+          type="checkbox"
+          checked={selectedItems.has(item.publicId)}
+          onChange={() => handleSelectItem(item.publicId)}
+          className="w-4 h-4"
+        />
+      ),
+    },
+    {
+      key: 'title',
+      header: 'Title',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      render: (item) => (
+        <span className="font-medium" title={item.title}>
+          {item.title && item.title.length > 40 ? `${item.title.substring(0, 40)}...` : item.title || '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'cookingStyle',
+      header: 'Locale',
+      sortable: true,
+      width: '100px',
+    },
+    {
+      key: 'translationStatus',
+      header: 'Status',
+      sortable: false,
+      width: '120px',
+      render: (item) => (
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded ${getStatusBadgeClass(item.translationStatus)}`}
+        >
+          {item.translationStatus || 'NONE'}
+        </span>
+      ),
+    },
+    {
+      key: 'progress',
+      header: 'Progress',
+      sortable: false,
+      width: '100px',
+      render: (item) => (
+        <span className="text-sm">
+          {item.translatedLocaleCount}/{item.totalLocaleCount}
+        </span>
+      ),
+    },
+    {
+      key: 'lastError',
+      header: 'Error',
+      sortable: false,
+      width: '200px',
+      render: (item) => item.lastError ? (
+        <span className="text-sm text-red-600" title={item.lastError}>
+          {item.lastError.length > 50 ? `${item.lastError.substring(0, 50)}...` : item.lastError}
+        </span>
+      ) : '-',
+    },
+    {
+      key: 'creatorUsername',
+      header: 'Creator',
+      sortable: false,
+      width: '120px',
+    },
+    {
+      key: 'createdAt',
+      header: 'Created',
+      sortable: true,
+      width: '180px',
+      render: (item) => formatDate(item.createdAt),
+    },
+  ];
+
+  return (
+    <>
+      <div className="mb-4 p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border)]">
+        <p className="text-sm text-[var(--text-secondary)]">
+          Total items: <span className="font-semibold text-[var(--text-primary)]">{totalElements}</span>
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+          {successMessage}
+        </div>
+      )}
+
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-sm text-[var(--text-secondary)]">
+          {selectedItems.size > 0 && (
+            <span className="text-[var(--primary)] font-medium">
+              {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected
+            </span>
+          )}
+        </div>
+        <button
+          onClick={handleRetranslate}
+          disabled={selectedItems.size === 0 || retranslating}
+          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+            selectedItems.size > 0
+              ? 'bg-[var(--primary)] text-white hover:opacity-90'
+              : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] cursor-not-allowed'
+          } disabled:opacity-50`}
+        >
+          {retranslating ? 'Queueing...' : 'Retranslate Selected'}
+        </button>
+      </div>
+
+      <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg overflow-hidden">
+        <DataTable
+          data={data}
+          columns={columns}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          loading={loading}
+          emptyMessage="No untranslated recipes found"
+        />
+      </div>
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="px-4 py-2 text-[var(--text-secondary)]">
+            Page {page + 1} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+function UntranslatedLogsTab() {
+  const format = useFormatter();
+  const formatDate = useCallback((dateString: string | null): string => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return format.dateTime(date, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    });
+  }, [format]);
+
+  const [data, setData] = useState<UntranslatedLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [retranslating, setRetranslating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const pageSize = 20;
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response: PageResponse<UntranslatedLog> = await getUntranslatedLogs({
+        page,
+        size: pageSize,
+        content: filters.content || undefined,
+        sortBy,
+        sortOrder,
+      });
+      setData(response.content);
+      setTotalPages(response.totalPages);
+      setTotalElements(response.totalElements);
+      setSelectedItems(new Set());
+    } catch (err) {
+      console.error('Error fetching untranslated logs:', err);
+      setError('Failed to load data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filters, sortBy, sortOrder]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleSort = (key: string) => {
+    if (sortBy === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortOrder('desc');
+    }
+    setPage(0);
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(0);
+  };
+
+  const handleSelectItem = (publicId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(publicId)) {
+        newSet.delete(publicId);
+      } else {
+        newSet.add(publicId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.size === data.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(data.map(item => item.publicId)));
+    }
+  };
+
+  const handleRetranslate = async () => {
+    if (selectedItems.size === 0) return;
+
+    setRetranslating(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const result = await triggerLogRetranslation(Array.from(selectedItems));
+      setSuccessMessage(`Successfully queued ${result.logsQueued} log(s) for re-translation.`);
+      setTimeout(() => setSuccessMessage(null), 5000);
+      setSelectedItems(new Set());
+      fetchData();
+    } catch (err) {
+      console.error('Error triggering re-translation:', err);
+      setError('Failed to trigger re-translation. Please try again.');
+    } finally {
+      setRetranslating(false);
+    }
+  };
+
+  const getStatusBadgeClass = (status: TranslationStatus | null): string => {
+    switch (status) {
+      case 'PENDING':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'PROCESSING':
+        return 'bg-blue-100 text-blue-800';
+      case 'COMPLETED':
+        return 'bg-green-100 text-green-800';
+      case 'FAILED':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const columns: Column<UntranslatedLog>[] = [
+    {
+      key: 'select',
+      header: (
+        <input
+          type="checkbox"
+          checked={data.length > 0 && selectedItems.size === data.length}
+          onChange={handleSelectAll}
+          className="w-4 h-4"
+        />
+      ) as unknown as string,
+      sortable: false,
+      width: '50px',
+      render: (item) => (
+        <input
+          type="checkbox"
+          checked={selectedItems.has(item.publicId)}
+          onChange={() => handleSelectItem(item.publicId)}
+          className="w-4 h-4"
+        />
+      ),
+    },
+    {
+      key: 'content',
+      header: 'Content',
+      sortable: false,
+      filterable: true,
+      filterType: 'text',
+      render: (item) => (
+        <span className="font-medium" title={item.content}>
+          {item.content && item.content.length > 50 ? `${item.content.substring(0, 50)}...` : item.content || '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'translationStatus',
+      header: 'Status',
+      sortable: false,
+      width: '120px',
+      render: (item) => (
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded ${getStatusBadgeClass(item.translationStatus)}`}
+        >
+          {item.translationStatus || 'NONE'}
+        </span>
+      ),
+    },
+    {
+      key: 'progress',
+      header: 'Progress',
+      sortable: false,
+      width: '100px',
+      render: (item) => (
+        <span className="text-sm">
+          {item.translatedLocaleCount}/{item.totalLocaleCount}
+        </span>
+      ),
+    },
+    {
+      key: 'lastError',
+      header: 'Error',
+      sortable: false,
+      width: '200px',
+      render: (item) => item.lastError ? (
+        <span className="text-sm text-red-600" title={item.lastError}>
+          {item.lastError.length > 50 ? `${item.lastError.substring(0, 50)}...` : item.lastError}
+        </span>
+      ) : '-',
+    },
+    {
+      key: 'creatorUsername',
+      header: 'Creator',
+      sortable: false,
+      width: '120px',
+    },
+    {
+      key: 'createdAt',
+      header: 'Created',
+      sortable: true,
+      width: '180px',
+      render: (item) => formatDate(item.createdAt),
+    },
+  ];
+
+  return (
+    <>
+      <div className="mb-4 p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border)]">
+        <p className="text-sm text-[var(--text-secondary)]">
+          Total items: <span className="font-semibold text-[var(--text-primary)]">{totalElements}</span>
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+          {successMessage}
+        </div>
+      )}
+
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-sm text-[var(--text-secondary)]">
+          {selectedItems.size > 0 && (
+            <span className="text-[var(--primary)] font-medium">
+              {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected
+            </span>
+          )}
+        </div>
+        <button
+          onClick={handleRetranslate}
+          disabled={selectedItems.size === 0 || retranslating}
+          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+            selectedItems.size > 0
+              ? 'bg-[var(--primary)] text-white hover:opacity-90'
+              : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] cursor-not-allowed'
+          } disabled:opacity-50`}
+        >
+          {retranslating ? 'Queueing...' : 'Retranslate Selected'}
+        </button>
+      </div>
+
+      <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg overflow-hidden">
+        <DataTable
+          data={data}
+          columns={columns}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          loading={loading}
+          emptyMessage="No untranslated logs found"
         />
       </div>
 

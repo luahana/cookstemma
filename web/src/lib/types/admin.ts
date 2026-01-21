@@ -74,3 +74,40 @@ export interface SuggestedIngredientFilter {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
+
+export type TranslationStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+
+export interface UntranslatedRecipe {
+  publicId: string;
+  title: string;
+  cookingStyle: string;
+  translationStatus: TranslationStatus | null;
+  lastError: string | null;
+  translatedLocaleCount: number;
+  totalLocaleCount: number;
+  creatorUsername: string;
+  createdAt: string;
+}
+
+export interface UntranslatedRecipeFilter {
+  title?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface UntranslatedLog {
+  publicId: string;
+  content: string;
+  translationStatus: TranslationStatus | null;
+  lastError: string | null;
+  translatedLocaleCount: number;
+  totalLocaleCount: number;
+  creatorUsername: string;
+  createdAt: string;
+}
+
+export interface UntranslatedLogFilter {
+  content?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}

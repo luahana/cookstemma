@@ -30,4 +30,25 @@ public interface TranslationEventRepository extends JpaRepository<TranslationEve
 
     List<TranslationEvent> findByEntityTypeAndEntityIdAndStatusIn(
             TranslatableEntity entityType, Long entityId, List<TranslationStatus> statuses);
+
+    /**
+     * Find the most recent translation event for a specific entity.
+     */
+    Optional<TranslationEvent> findFirstByEntityTypeAndEntityIdOrderByCreatedAtDesc(
+            TranslatableEntity entityType, Long entityId);
+
+    /**
+     * Find the most recent translation events for multiple entities of a specific type.
+     */
+    @Query("""
+        SELECT te FROM TranslationEvent te
+        WHERE te.entityType = :entityType AND te.entityId IN :entityIds
+        AND te.createdAt = (
+            SELECT MAX(te2.createdAt) FROM TranslationEvent te2
+            WHERE te2.entityType = te.entityType AND te2.entityId = te.entityId
+        )
+        """)
+    List<TranslationEvent> findLatestByEntityTypeAndEntityIds(
+            @Param("entityType") TranslatableEntity entityType,
+            @Param("entityIds") List<Long> entityIds);
 }

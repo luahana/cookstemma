@@ -424,4 +424,51 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         """,
         nativeQuery = true)
     long countSearchResults(@Param("keyword") String keyword);
+
+    // ==================== ADMIN: UNTRANSLATED CONTENT ====================
+
+    /**
+     * Find log posts with incomplete translations (fewer than 19 locales in title_translations).
+     * Returns log posts ordered by creation date descending.
+     */
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL
+        AND (lp.title_translations IS NULL
+             OR jsonb_typeof(lp.title_translations) != 'object'
+             OR (SELECT COUNT(*) FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb))) < 19)
+        ORDER BY lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        WHERE lp.deleted_at IS NULL
+        AND (lp.title_translations IS NULL
+             OR jsonb_typeof(lp.title_translations) != 'object'
+             OR (SELECT COUNT(*) FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb))) < 19)
+        """,
+        nativeQuery = true)
+    Page<LogPost> findUntranslatedLogPosts(Pageable pageable);
+
+    /**
+     * Find log posts with incomplete translations filtered by content.
+     */
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL
+        AND (lp.title_translations IS NULL
+             OR jsonb_typeof(lp.title_translations) != 'object'
+             OR (SELECT COUNT(*) FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb))) < 19)
+        AND (lp.content ILIKE '%' || :content || '%' OR lp.title ILIKE '%' || :content || '%')
+        ORDER BY lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        WHERE lp.deleted_at IS NULL
+        AND (lp.title_translations IS NULL
+             OR jsonb_typeof(lp.title_translations) != 'object'
+             OR (SELECT COUNT(*) FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb))) < 19)
+        AND (lp.content ILIKE '%' || :content || '%' OR lp.title ILIKE '%' || :content || '%')
+        """,
+        nativeQuery = true)
+    Page<LogPost> findUntranslatedLogPostsByContent(@Param("content") String content, Pageable pageable);
 }
