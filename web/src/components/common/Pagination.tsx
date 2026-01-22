@@ -60,7 +60,7 @@ function generatePageNumbers(
  */
 function buildPageUrl(baseUrl: string, page: number): string {
   const separator = baseUrl.includes('?') ? '&' : '?';
-  return `${baseUrl}${separator}page=${page}`;
+  return `${baseUrl}${separator}page=${page + 1}`;
 }
 
 export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: PaginationProps) {

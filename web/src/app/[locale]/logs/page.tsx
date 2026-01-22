@@ -39,7 +39,7 @@ export default async function LogsPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const queryParams = await searchParams;
   const t = await getTranslations('logs');
-  const page = parseInt(queryParams.page || '0', 10);
+  const page = Math.max(0, parseInt(queryParams.page || '1', 10) - 1);
   const sort = queryParams.sort || 'recent';
   const minRating = queryParams.minRating ? parseInt(queryParams.minRating, 10) : undefined;
   const maxRating = queryParams.maxRating ? parseInt(queryParams.maxRating, 10) : undefined;
