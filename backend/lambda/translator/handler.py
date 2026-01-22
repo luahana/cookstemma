@@ -365,9 +365,15 @@ def fetch_pending_events(conn, limit: int = 10) -> list[dict]:
     Fetch pending or retryable translation events.
 
     Includes:
-    - PENDING events
-    - FAILED events with retry_count < 3
-    - PROCESSING events stuck for >3 minutes (likely from crashed Lambda)
+    - PENDING events (not yet processed, or SQS send failed)
+    - FAILED events with retry_count < 3 (automatic retry)
+    - PROCESSING events stuck for >12 minutes (crashed Lambda recovery)
+
+    Note: 12-minute threshold chosen because:
+    - Lambda timeout: 10 minutes
+    - Add 2-minute buffer for edge cases
+    - Prevents false recovery of legitimately running Lambdas
+    - EventBridge runs every 5 minutes, so T+5min check won't interfere
     """
     with conn.cursor() as cur:
         cur.execute("""
@@ -375,7 +381,7 @@ def fetch_pending_events(conn, limit: int = 10) -> list[dict]:
             FROM translation_events
             WHERE status = 'PENDING'
                OR (status = 'FAILED' AND retry_count < 3)
-               OR (status = 'PROCESSING' AND started_at < NOW() - INTERVAL '3 minutes')
+               OR (status = 'PROCESSING' AND started_at < NOW() - INTERVAL '12 minutes')
             ORDER BY created_at ASC
             LIMIT %s
             FOR UPDATE SKIP LOCKED
@@ -387,7 +393,7 @@ def fetch_pending_events(conn, limit: int = 10) -> list[dict]:
             if event.get('status') == 'PROCESSING':
                 logger.warning(f"Recovering stuck PROCESSING event {event['id']} "
                               f"(entity_type: {event['entity_type']}, entity_id: {event['entity_id']}, "
-                              f"started_at: {event.get('started_at')})")
+                              f"started_at: {event.get('started_at')}, stuck for >12 minutes)")
 
         return events
 
