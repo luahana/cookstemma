@@ -14,12 +14,21 @@ import com.cookstemma.cookstemma.domain.enums.TranslationStatus;
 import com.cookstemma.cookstemma.repository.food.FoodMasterRepository;
 import com.cookstemma.cookstemma.repository.translation.TranslationEventRepository;
 import com.cookstemma.cookstemma.util.LocaleUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +39,16 @@ public class TranslationEventService {
 
     private final TranslationEventRepository translationEventRepository;
     private final FoodMasterRepository foodMasterRepository;
+    private final ObjectMapper objectMapper;
+
+    @Autowired(required = false)
+    private SqsClient sqsClient;
+
+    @Value("${aws.sqs.translation-queue-url:}")
+    private String translationQueueUrl;
+
+    @Value("${aws.sqs.enabled:false}")
+    private boolean sqsEnabled;
 
     // All supported languages in BCP47 format (20 total)
     private static final List<String> ALL_LOCALES = List.of(
@@ -68,8 +87,61 @@ public class TranslationEventService {
     );
 
     /**
+     * Send translation event to SQS for immediate processing.
+     * Hybrid architecture: SQS provides real-time processing, EventBridge is safety net.
+     *
+     * @param event The translation event that was saved to database
+     */
+    private void sendToSqs(TranslationEvent event) {
+        // Skip if SQS is disabled or not configured
+        if (!sqsEnabled || sqsClient == null || translationQueueUrl == null || translationQueueUrl.isEmpty()) {
+            log.debug("SQS disabled or not configured, event {} will be picked up by EventBridge", event.getId());
+            return;
+        }
+
+        try {
+            // Create SQS message body
+            Map<String, Object> messageBody = new HashMap<>();
+            messageBody.put("event_id", event.getId());
+            messageBody.put("entity_type", event.getEntityType().name());
+            messageBody.put("entity_id", event.getEntityId());
+
+            String messageJson = objectMapper.writeValueAsString(messageBody);
+
+            // Send to SQS
+            SendMessageRequest request = SendMessageRequest.builder()
+                    .queueUrl(translationQueueUrl)
+                    .messageBody(messageJson)
+                    .build();
+
+            sqsClient.sendMessage(request);
+
+            log.info("Sent {} translation event {} to SQS for immediate processing",
+                    event.getEntityType(), event.getId());
+
+        } catch (JsonProcessingException e) {
+            // Log but don't fail - EventBridge will pick it up
+            log.warn("Failed to serialize SQS message for event {}, will be picked up by EventBridge: {}",
+                    event.getId(), e.getMessage());
+        } catch (SqsException e) {
+            // Log but don't fail - EventBridge will pick it up
+            log.warn("Failed to send event {} to SQS ({}), will be picked up by EventBridge in ~5 minutes",
+                    event.getId(), e.getMessage());
+        } catch (Exception e) {
+            // Catch all other exceptions to prevent translation from failing
+            log.error("Unexpected error sending event {} to SQS, will be picked up by EventBridge: {}",
+                    event.getId(), e.getMessage(), e);
+        }
+    }
+
+    /**
      * Queue a full recipe translation (title, description, all steps, all ingredients).
      * Uses RECIPE_FULL entity type for context-aware translation in a single API call.
+     *
+     * Hybrid Architecture:
+     * 1. Saves event to database (source of truth)
+     * 2. Sends to SQS for immediate processing (~1 min latency)
+     * 3. If SQS fails, EventBridge picks it up (~5 min latency)
      */
     @Transactional
     public void queueRecipeTranslation(Recipe recipe) {
@@ -99,6 +171,9 @@ public class TranslationEventService {
         log.info("Queued full recipe translation for recipe {} ({} steps, {} ingredients, source: {}, targets: {})",
                 recipe.getId(), recipe.getSteps().size(), recipe.getIngredients().size(),
                 sourceLocale, targetLocales.size());
+
+        // Push to SQS for immediate processing (hybrid architecture)
+        sendToSqs(event);
     }
 
     @Transactional
@@ -172,6 +247,9 @@ public class TranslationEventService {
         translationEventRepository.save(event);
         log.info("Queued translation for log post {} (source: {}, targets: {})",
                 logPost.getId(), sourceLocale, targetLocales.size());
+
+        // Push to SQS for immediate processing
+        sendToSqs(event);
     }
 
     /**
@@ -210,6 +288,9 @@ public class TranslationEventService {
         translationEventRepository.save(event);
         log.info("Queued translation for comment {} (source: {}, targets: {})",
                 comment.getId(), sourceLocale, targetLocales.size());
+
+        // Push to SQS for immediate processing
+        sendToSqs(event);
     }
 
     @Transactional

@@ -35,6 +35,12 @@ spring:
       stack:
         auto: false
 
+# AWS SQS Configuration for translation queue
+aws:
+  sqs:
+    translation-queue-url: ${SQS_TRANSLATION_QUEUE_URL:}
+    enabled: ${SQS_ENABLED:true}  # Set to false to disable SQS push (EventBridge-only mode)
+
   flyway:
     enabled: true
     locations: classpath:db/migration

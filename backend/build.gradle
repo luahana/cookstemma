@@ -67,6 +67,9 @@ dependencies {
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
     implementation 'io.minio:minio:8.5.7'
 
+    // AWS SQS SDK for translation queue push
+    implementation 'software.amazon.awssdk:sqs'
+
     implementation 'com.google.firebase:firebase-admin:9.2.0'
 
     // Image processing for variant generation
