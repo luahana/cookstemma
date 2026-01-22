@@ -3,7 +3,7 @@
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 
-export interface PaginationProps {
+export interface PaginationProps { 
   currentPage: number;
   totalPages: number;
   baseUrl: string;
