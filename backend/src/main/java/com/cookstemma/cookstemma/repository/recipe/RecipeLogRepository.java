@@ -101,4 +101,15 @@ public interface RecipeLogRepository extends JpaRepository<RecipeLog, Long> {
         """)
     long countLogsCreatedByUser(@Param("userId") Long userId);
 
+    // ==================== BATCH STATS FOR SEARCH PERFORMANCE ====================
+
+    /**
+     * Get log counts for multiple recipe IDs in a single query.
+     * Returns List of [recipeId, count] pairs.
+     */
+    @Query("SELECT rl.recipe.id, COUNT(rl) FROM RecipeLog rl " +
+           "WHERE rl.recipe.id IN :recipeIds " +
+           "GROUP BY rl.recipe.id")
+    List<Object[]> countLogsByRecipeIds(@Param("recipeIds") List<Long> recipeIds);
+
 }
