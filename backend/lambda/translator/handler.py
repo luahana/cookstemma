@@ -563,8 +563,19 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
         if 'description' not in translated:
             raise ValueError(f"Translation missing 'description' for locale {target_locale}")
 
-        existing_title = full_recipe['recipe']['title_translations'] or {}
-        existing_desc = full_recipe['recipe']['description_translations'] or {}
+        # CRITICAL: Fetch CURRENT translations from database, not from stale full_recipe
+        # Otherwise each iteration overwrites the previous translations!
+        cur.execute("""
+            SELECT title_translations, description_translations
+            FROM recipes
+            WHERE id = %s
+        """, (recipe_id,))
+        row = cur.fetchone()
+        if not row:
+            raise ValueError(f"Recipe {recipe_id} not found in database")
+
+        existing_title = row[0] or {}
+        existing_desc = row[1] or {}
 
         existing_title[target_bcp47] = translated['title']
         existing_desc[target_bcp47] = translated['description']  # Can be empty string
@@ -610,7 +621,17 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
             if not translated_steps[i]:
                 raise ValueError(f"Step {i} translation is empty for locale {target_locale}")
 
-            existing_step_trans = step['description_translations'] or {}
+            # CRITICAL: Fetch CURRENT translations from database, not from stale full_recipe
+            cur.execute("""
+                SELECT description_translations
+                FROM recipe_steps
+                WHERE id = %s
+            """, (step['id'],))
+            step_row = cur.fetchone()
+            if not step_row:
+                raise ValueError(f"Step {step['id']} not found in database")
+
+            existing_step_trans = step_row[0] or {}
             existing_step_trans[target_bcp47] = translated_steps[i]
             cur.execute("""
                 UPDATE recipe_steps
@@ -639,7 +660,17 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
             if not translated_name:
                 raise ValueError(f"Ingredient {i} translation is empty for locale {target_locale}")
 
-            existing_ing_trans = ingredient['name_translations'] or {}
+            # CRITICAL: Fetch CURRENT translations from database, not from stale full_recipe
+            cur.execute("""
+                SELECT name_translations
+                FROM recipe_ingredients
+                WHERE id = %s
+            """, (ingredient['id'],))
+            ing_row = cur.fetchone()
+            if not ing_row:
+                raise ValueError(f"Ingredient {ingredient['id']} not found in database")
+
+            existing_ing_trans = ing_row[0] or {}
             existing_ing_trans[target_bcp47] = translated_name
 
             # Update recipe_ingredients
