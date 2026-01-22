@@ -411,8 +411,10 @@ Return ONLY the JSON object with translated values, no explanation."""
                     # Field was empty, keep empty
                     result[key] = ''
 
-            # Only fail if ALL non-empty fields are unchanged (indicates real translation failure)
-            if unchanged_fields and len(unchanged_fields) == len(non_empty_content):
+            # Only fail if ALL non-empty fields are unchanged AND there are multiple fields
+            # For single-field entities (comments, log posts), allow unchanged content
+            # (could be proper nouns, universal terms, already in target language, etc.)
+            if unchanged_fields and len(unchanged_fields) == len(non_empty_content) and len(non_empty_content) > 1:
                 raise ValueError(f"All fields unchanged from source: {', '.join(unchanged_fields)}")
 
             logger.info(f"Successfully translated {len(non_empty_content)} fields to {target_lang}")
