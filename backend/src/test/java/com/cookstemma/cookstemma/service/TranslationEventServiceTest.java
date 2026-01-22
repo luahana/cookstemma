@@ -427,12 +427,23 @@ class TranslationEventServiceTest extends BaseIntegrationTest {
             translationEventService.queueRecipeTranslation(testRecipe);
             translationEventService.queueRecipeTranslation(testRecipe);
 
-            long count = translationEventRepository.findAll().stream()
+            // After the change to support edit re-translation, the first PENDING event
+            // is cancelled (marked as FAILED) and a new PENDING event is created.
+            // So there will be 2 events total, but only 1 should be PENDING.
+            long pendingCount = translationEventRepository.findAll().stream()
                     .filter(e -> e.getEntityType() == TranslatableEntity.RECIPE_FULL)
                     .filter(e -> e.getEntityId().equals(testRecipe.getId()))
+                    .filter(e -> e.getStatus() == TranslationStatus.PENDING)
                     .count();
 
-            assertThat(count).isEqualTo(1);
+            long failedCount = translationEventRepository.findAll().stream()
+                    .filter(e -> e.getEntityType() == TranslatableEntity.RECIPE_FULL)
+                    .filter(e -> e.getEntityId().equals(testRecipe.getId()))
+                    .filter(e -> e.getStatus() == TranslationStatus.FAILED)
+                    .count();
+
+            assertThat(pendingCount).isEqualTo(1);
+            assertThat(failedCount).isEqualTo(1);
         }
     }
 
@@ -569,12 +580,23 @@ class TranslationEventServiceTest extends BaseIntegrationTest {
             translationEventService.queueCommentTranslation(testComment);
             translationEventService.queueCommentTranslation(testComment);
 
-            long count = translationEventRepository.findAll().stream()
+            // After the change to support edit re-translation, the first PENDING event
+            // is cancelled (marked as FAILED) and a new PENDING event is created.
+            // So there will be 2 events total, but only 1 should be PENDING.
+            long pendingCount = translationEventRepository.findAll().stream()
                     .filter(e -> e.getEntityType() == TranslatableEntity.COMMENT)
                     .filter(e -> e.getEntityId().equals(testComment.getId()))
+                    .filter(e -> e.getStatus() == TranslationStatus.PENDING)
                     .count();
 
-            assertThat(count).isEqualTo(1);
+            long failedCount = translationEventRepository.findAll().stream()
+                    .filter(e -> e.getEntityType() == TranslatableEntity.COMMENT)
+                    .filter(e -> e.getEntityId().equals(testComment.getId()))
+                    .filter(e -> e.getStatus() == TranslationStatus.FAILED)
+                    .count();
+
+            assertThat(pendingCount).isEqualTo(1);
+            assertThat(failedCount).isEqualTo(1);
         }
 
         @Test
