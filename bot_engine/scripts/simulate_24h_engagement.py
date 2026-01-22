@@ -354,12 +354,17 @@ class SocialInteractionEngine:
         if count == 0 or len(personas) < 2:
             return 0
 
+        # Filter to personas with valid user_public_id
+        valid_personas = [p for p in personas if p.user_public_id]
+        if len(valid_personas) < 2:
+            return 0
+
         successes = 0
 
         for _ in range(count):
             try:
                 # Pick two random personas
-                follower, target = random.sample(personas, 2)
+                follower, target = random.sample(valid_personas, 2)
 
                 # Authenticate as follower
                 await client.login_by_persona(follower.name)
@@ -842,7 +847,26 @@ class EngagementSimulator:
                 return
 
             print(f"Loaded {len(personas)} personas")
+
+            # Authenticate all personas to populate user_public_id
+            print("Authenticating personas...")
+            for persona in personas:
+                try:
+                    auth = await client.login_by_persona(persona.name)
+                    persona.user_public_id = auth.user_public_id
+                except Exception as e:
+                    print(f"  Warning: Failed to authenticate {persona.name}: {e}")
+
+            authenticated = [p for p in personas if p.user_public_id]
+            print(f"Authenticated {len(authenticated)}/{len(personas)} personas")
             print()
+
+            if len(authenticated) < 2:
+                print("Error: Need at least 2 authenticated personas for social interactions")
+                return
+
+            # Use authenticated personas for the simulation
+            personas = authenticated
 
             # Execute each hour
             for activity in schedule:
