@@ -194,6 +194,7 @@ export default async function LogDetailPage({ params }: Props) {
                   className="object-cover"
                   priority
                   sizes="(max-width: 896px) 100vw, 896px"
+                  unoptimized
                 />
               </div>
             ) : (
@@ -212,6 +213,7 @@ export default async function LogDetailPage({ params }: Props) {
                       className="object-cover"
                       priority={idx === 0}
                       sizes="(max-width: 896px) 50vw, 448px"
+                      unoptimized
                     />
                   </div>
                 ))}
