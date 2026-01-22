@@ -106,6 +106,31 @@ bot-engine scheduler
 bot-engine scheduler --time 10:00 --timezone America/New_York
 ```
 
+### 24-Hour Engagement Simulation
+
+Simulate realistic user engagement over 24 hours with constant activity (global service):
+
+```bash
+# Run with default settings (30 recipes, 100 logs, 270 social actions)
+python scripts/simulate_24h_engagement.py
+
+# Custom volume (high activity)
+python scripts/simulate_24h_engagement.py --recipes 100 --logs 300 --social 500
+
+# Shorter duration for testing (1 hour)
+python scripts/simulate_24h_engagement.py --duration-hours 1 --recipes 2 --logs 5 --social 10
+
+# Dry run (show schedule without executing)
+python scripts/simulate_24h_engagement.py --dry-run
+```
+
+**Features:**
+- Constant activity throughout the day (global service with users across timezones)
+- Recipe and cooking log creation
+- Social interactions: follows, saves, comments, replies, likes
+- Detailed hourly progress reporting
+- Configurable via .env settings
+
 ## Bot Personas
 
 ### Korean Personas

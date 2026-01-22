@@ -296,3 +296,20 @@ class BotPersonaResponse(BaseModel):
     is_active: bool = Field(alias="isActive")
 
     model_config = {"populate_by_name": True}
+
+
+class Comment(BaseModel):
+    """Comment response from API."""
+
+    public_id: str = Field(alias="publicId")
+    content: str
+    log_post_public_id: Optional[str] = Field(default=None, alias="logPostPublicId")
+    parent_comment_public_id: Optional[str] = Field(default=None, alias="parentCommentPublicId")
+    commenter_public_id: str = Field(alias="commenterPublicId")
+    commenter_username: Optional[str] = Field(default=None, alias="commenterUsername")
+    like_count: int = Field(default=0, alias="likeCount")
+    reply_count: int = Field(default=0, alias="replyCount")
+    is_liked_by_current_user: bool = Field(default=False, alias="isLikedByCurrentUser")
+    created_at: Optional[str] = Field(default=None, alias="createdAt")
+
+    model_config = {"populate_by_name": True, "extra": "ignore"}

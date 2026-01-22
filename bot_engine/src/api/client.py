@@ -18,6 +18,7 @@ from ..personas import BotPersona
 from .models import (
     AuthResponse,
     BotPersonaResponse,
+    Comment,
     CreateLogRequest,
     CreateRecipeRequest,
     ImageUploadResponse,
@@ -379,6 +380,278 @@ class CookstemmaClient:
         response = await self._request("GET", f"/log_posts/{public_id}", auth=False)
         data = response.json()
         return LogPost(**data)
+
+    async def get_logs(
+        self,
+        page: int = 0,
+        size: int = 20,
+    ) -> List[LogPost]:
+        """Get paginated list of log posts."""
+        response = await self._request(
+            "GET",
+            "/log_posts",
+            params={"page": page, "size": size},
+            auth=False,
+        )
+        data = response.json()
+        content = data.get("content", [])
+        return [LogPost(**log) for log in content]
+
+    # ==================== Social Interactions ====================
+
+    async def follow_user(self, user_public_id: str) -> bool:
+        """Follow a user.
+
+        Args:
+            user_public_id: Public ID (UUID) of user to follow
+
+        Returns:
+            True if successful
+        """
+        try:
+            await self._request("POST", f"/users/{user_public_id}/follow")
+            logger.info("user_followed", user_id=user_public_id)
+            return True
+        except httpx.HTTPStatusError as e:
+            logger.error("follow_failed", user_id=user_public_id, error=str(e))
+            return False
+
+    async def unfollow_user(self, user_public_id: str) -> bool:
+        """Unfollow a user.
+
+        Args:
+            user_public_id: Public ID (UUID) of user to unfollow
+
+        Returns:
+            True if successful
+        """
+        try:
+            await self._request("DELETE", f"/users/{user_public_id}/follow")
+            logger.info("user_unfollowed", user_id=user_public_id)
+            return True
+        except httpx.HTTPStatusError as e:
+            logger.error("unfollow_failed", user_id=user_public_id, error=str(e))
+            return False
+
+    async def save_recipe(self, recipe_public_id: str) -> bool:
+        """Save/bookmark a recipe.
+
+        Args:
+            recipe_public_id: Public ID (UUID) of recipe to save
+
+        Returns:
+            True if successful
+        """
+        try:
+            await self._request("POST", f"/recipes/{recipe_public_id}/save")
+            logger.info("recipe_saved", recipe_id=recipe_public_id)
+            return True
+        except httpx.HTTPStatusError as e:
+            logger.error("save_recipe_failed", recipe_id=recipe_public_id, error=str(e))
+            return False
+
+    async def unsave_recipe(self, recipe_public_id: str) -> bool:
+        """Unsave/unbookmark a recipe.
+
+        Args:
+            recipe_public_id: Public ID (UUID) of recipe to unsave
+
+        Returns:
+            True if successful
+        """
+        try:
+            await self._request("DELETE", f"/recipes/{recipe_public_id}/save")
+            logger.info("recipe_unsaved", recipe_id=recipe_public_id)
+            return True
+        except httpx.HTTPStatusError as e:
+            logger.error("unsave_recipe_failed", recipe_id=recipe_public_id, error=str(e))
+            return False
+
+    async def save_log(self, log_public_id: str) -> bool:
+        """Save/bookmark a log post.
+
+        Args:
+            log_public_id: Public ID (UUID) of log to save
+
+        Returns:
+            True if successful
+        """
+        try:
+            await self._request("POST", f"/log_posts/{log_public_id}/save")
+            logger.info("log_saved", log_id=log_public_id)
+            return True
+        except httpx.HTTPStatusError as e:
+            logger.error("save_log_failed", log_id=log_public_id, error=str(e))
+            return False
+
+    async def unsave_log(self, log_public_id: str) -> bool:
+        """Unsave/unbookmark a log post.
+
+        Args:
+            log_public_id: Public ID (UUID) of log to unsave
+
+        Returns:
+            True if successful
+        """
+        try:
+            await self._request("DELETE", f"/log_posts/{log_public_id}/save")
+            logger.info("log_unsaved", log_id=log_public_id)
+            return True
+        except httpx.HTTPStatusError as e:
+            logger.error("unsave_log_failed", log_id=log_public_id, error=str(e))
+            return False
+
+    async def create_comment(
+        self,
+        log_public_id: str,
+        content: str,
+    ) -> Optional[Comment]:
+        """Create a comment on a log post.
+
+        Args:
+            log_public_id: Public ID (UUID) of log to comment on
+            content: Comment text
+
+        Returns:
+            Created Comment object, or None if failed
+        """
+        try:
+            response = await self._request(
+                "POST",
+                f"/log_posts/{log_public_id}/comments",
+                json={"content": content},
+            )
+            data = response.json()
+            logger.info("comment_created", log_id=log_public_id, comment_id=data.get("publicId"))
+            return Comment(**data)
+        except httpx.HTTPStatusError as e:
+            logger.error("create_comment_failed", log_id=log_public_id, error=str(e))
+            return None
+
+    async def create_reply(
+        self,
+        comment_public_id: str,
+        content: str,
+    ) -> Optional[Comment]:
+        """Create a reply to a comment.
+
+        Args:
+            comment_public_id: Public ID (UUID) of comment to reply to
+            content: Reply text
+
+        Returns:
+            Created Comment object, or None if failed
+        """
+        try:
+            response = await self._request(
+                "POST",
+                f"/comments/{comment_public_id}/replies",
+                json={"content": content},
+            )
+            data = response.json()
+            logger.info("reply_created", comment_id=comment_public_id, reply_id=data.get("publicId"))
+            return Comment(**data)
+        except httpx.HTTPStatusError as e:
+            logger.error("create_reply_failed", comment_id=comment_public_id, error=str(e))
+            return None
+
+    async def like_comment(self, comment_public_id: str) -> bool:
+        """Like a comment.
+
+        Args:
+            comment_public_id: Public ID (UUID) of comment to like
+
+        Returns:
+            True if successful
+        """
+        try:
+            await self._request("POST", f"/comments/{comment_public_id}/like")
+            logger.info("comment_liked", comment_id=comment_public_id)
+            return True
+        except httpx.HTTPStatusError as e:
+            logger.error("like_comment_failed", comment_id=comment_public_id, error=str(e))
+            return False
+
+    async def unlike_comment(self, comment_public_id: str) -> bool:
+        """Unlike a comment.
+
+        Args:
+            comment_public_id: Public ID (UUID) of comment to unlike
+
+        Returns:
+            True if successful
+        """
+        try:
+            await self._request("DELETE", f"/comments/{comment_public_id}/like")
+            logger.info("comment_unliked", comment_id=comment_public_id)
+            return True
+        except httpx.HTTPStatusError as e:
+            logger.error("unlike_comment_failed", comment_id=comment_public_id, error=str(e))
+            return False
+
+    async def record_recipe_view(self, recipe_public_id: str) -> bool:
+        """Record a view history entry for a recipe.
+
+        Args:
+            recipe_public_id: Public ID (UUID) of recipe viewed
+
+        Returns:
+            True if successful
+        """
+        try:
+            await self._request("POST", f"/view-history/recipes/{recipe_public_id}")
+            logger.debug("recipe_view_recorded", recipe_id=recipe_public_id)
+            return True
+        except httpx.HTTPStatusError as e:
+            logger.error("record_recipe_view_failed", recipe_id=recipe_public_id, error=str(e))
+            return False
+
+    async def record_log_view(self, log_public_id: str) -> bool:
+        """Record a view history entry for a log post.
+
+        Args:
+            log_public_id: Public ID (UUID) of log viewed
+
+        Returns:
+            True if successful
+        """
+        try:
+            await self._request("POST", f"/view-history/logs/{log_public_id}")
+            logger.debug("log_view_recorded", log_id=log_public_id)
+            return True
+        except httpx.HTTPStatusError as e:
+            logger.error("record_log_view_failed", log_id=log_public_id, error=str(e))
+            return False
+
+    async def get_comments_for_log(
+        self,
+        log_public_id: str,
+        page: int = 0,
+        size: int = 20,
+    ) -> List[Comment]:
+        """Get comments for a log post.
+
+        Args:
+            log_public_id: Public ID (UUID) of log post
+            page: Page number (0-indexed)
+            size: Page size
+
+        Returns:
+            List of Comment objects
+        """
+        try:
+            response = await self._request(
+                "GET",
+                f"/log_posts/{log_public_id}/comments",
+                params={"page": page, "size": size},
+                auth=False,
+            )
+            data = response.json()
+            content = data.get("content", [])
+            return [Comment(**c) for c in content]
+        except httpx.HTTPStatusError as e:
+            logger.error("get_comments_failed", log_id=log_public_id, error=str(e))
+            return []
 
     # ==================== Helpers ====================
 

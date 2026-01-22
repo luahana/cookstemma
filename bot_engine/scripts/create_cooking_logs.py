@@ -1,23 +1,31 @@
 #!/usr/bin/env python3
-"""Create one recipe for each bot persona with concurrent processing.
+"""Create cooking logs for existing recipes.
 
-This script generates AI-generated recipes using Gemini 3 Pro Image (with GPT fallback).
-Supports concurrent processing for rapid fleet-wide generation.
+This script generates cooking logs using the LogPipeline with AI-generated content.
 
 Usage:
     cd bot_engine
-    python scripts/create_recipes_all_bots.py --concurrency 8
+
+    # Generate log for a specific recipe
+    python scripts/create_cooking_logs.py --recipe-id <uuid> --persona chef_park_soojin
+
+    # Generate logs for random recipes
+    python scripts/create_cooking_logs.py --count 5 --random-recipes
+
+    # Generate multiple logs for a specific recipe
+    python scripts/create_cooking_logs.py --recipe-id <uuid> --count 3
 
 Prerequisites:
     - Backend running at http://localhost:4000
-    - GEMINI_API_KEY configured in .env (Primary)
-    - OPENAI_API_KEY configured in .env (Fallback)
-    - BOT_INTERNAL_SECRET configured in .env
+    - GEMINI_API_KEY in .env
+    - BOT_INTERNAL_SECRET in .env
+    - Existing recipes in the database
 """
 
 import argparse
 import asyncio
 import os
+import random
 import sys
 from dataclasses import dataclass
 from typing import List, Optional
@@ -29,135 +37,252 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from src.api import CookstemmaClient
+from src.api.models import Recipe
 from src.config import get_settings
 from src.generators import ImageGenerator, TextGenerator
-from src.orchestrator.recipe_pipeline import RecipePipeline
+from src.orchestrator.log_pipeline import LogPipeline
 from src.personas import BotPersona, get_persona_registry
 
+
 @dataclass
-class RecipeResult:
-    """Result of recipe creation for a persona."""
+class LogResult:
+    """Result of log creation."""
     persona_name: str
+    recipe_title: str
     success: bool
-    recipe_id: Optional[str] = None
-    recipe_title: Optional[str] = None
+    log_id: Optional[str] = None
+    rating: Optional[int] = None
     error: Optional[str] = None
 
+
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Fleet-wide generation using Gemini 3 Pro")
-    parser.add_argument("--limit", type=int, default=None, help="Limit to first N personas")
-    parser.add_argument("--step-images", action="store_true", help="Generate step images")
-    parser.add_argument("--cover", type=int, choices=[1, 2, 3], default=1, help="Cover image count")
-    parser.add_argument("--continue-on-error", action="store_true", default=True)
-    parser.add_argument("--concurrency", type=int, default=5, help="Concurrent generations (max: 10)")
-    parser.add_argument("--sequential", action="store_true", help="Debug sequential mode")
-    parser.add_argument("--batch-size", type=int, default=5)
-    parser.add_argument("--delay", type=int, default=3)
-    parser.add_argument("--batch-delay", type=int, default=15)
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Create cooking logs using Gemini AI"
+    )
+    parser.add_argument(
+        "--persona",
+        type=str,
+        default=None,
+        help="Specific persona name (defaults to random)",
+    )
+    parser.add_argument(
+        "--recipe-id",
+        type=str,
+        default=None,
+        help="Recipe public ID (UUID)",
+    )
+    parser.add_argument(
+        "--count",
+        type=int,
+        default=1,
+        help="Number of logs to generate",
+    )
+    parser.add_argument(
+        "--random-recipes",
+        action="store_true",
+        help="Generate logs for random existing recipes",
+    )
+    parser.add_argument(
+        "--num-images",
+        type=int,
+        default=1,
+        help="Number of images per log (1-3)",
+    )
+    parser.add_argument(
+        "--rating",
+        type=int,
+        choices=[1, 2, 3, 4, 5],
+        default=None,
+        help="Fixed rating (1-5), or auto-select if not specified",
+    )
+    parser.add_argument(
+        "--delay",
+        type=int,
+        default=3,
+        help="Seconds between log generations",
+    )
     return parser.parse_args()
 
-async def create_recipe_for_persona(
+
+async def create_log_for_recipe(
     persona: BotPersona,
+    recipe: Recipe,
     api_client: CookstemmaClient,
-    text_gen: TextGenerator,
-    image_gen: ImageGenerator,
-    generate_step_images: bool,
-    cover_image_count: int = 1,
-    semaphore: asyncio.Semaphore | None = None,
-    index: int = 0,
-    total: int = 0,
-) -> RecipeResult:
-    async def _do_create() -> RecipeResult:
-        prefix = f"[{index}/{total}]" if total > 0 else ""
-        print(f"{prefix} {persona.name} - Initializing Gemini 3 Flow...")
+    log_pipeline: LogPipeline,
+    rating: Optional[int] = None,
+    num_images: int = 1,
+) -> LogResult:
+    """Generate a cooking log for a specific recipe.
 
-        try:
-            auth = await api_client.login_by_persona(persona.name)
-            persona.user_public_id = auth.user_public_id
-            persona.persona_public_id = auth.persona_public_id
+    Args:
+        persona: Bot persona to use for log creation
+        recipe: Recipe to create log for
+        api_client: Authenticated API client
+        log_pipeline: Log generation pipeline
+        rating: Optional fixed rating (1-5)
+        num_images: Number of images to generate
 
-            existing_foods = await api_client.get_created_foods()
-            
-            # Text Generation using Gemini 3
-            suggestions = await text_gen.suggest_food_names(
-                persona=persona, count=1, exclude=existing_foods
-            )
+    Returns:
+        LogResult with success status and details
+    """
+    try:
+        # Authenticate as persona
+        auth = await api_client.login_by_persona(persona.name)
+        persona.user_public_id = auth.user_public_id
+        persona.persona_public_id = auth.persona_public_id
 
-            if not suggestions:
-                return RecipeResult(persona.name, False, error="Gemini suggest failed")
+        # Generate log using pipeline
+        log = await log_pipeline.generate_log(
+            persona=persona,
+            recipe=recipe,
+            rating=rating,
+            num_images=num_images,
+        )
 
-            food_name = suggestions[0]
-            print(f"  {prefix} Recipe target: {food_name}")
+        return LogResult(
+            persona_name=persona.name,
+            recipe_title=recipe.title,
+            success=True,
+            log_id=log.public_id,
+            rating=log.rating,
+        )
 
-            # Pipeline uses ImageGenerator with 4K Gemini 3 Pro + Fallback
-            pipeline = RecipePipeline(api_client, text_gen, image_gen)
-            recipe = await pipeline.generate_original_recipe(
-                persona=persona,
-                food_name=food_name,
-                generate_images=True,
-                cover_image_count=cover_image_count,
-                generate_step_images=generate_step_images,
-            )
+    except Exception as e:
+        return LogResult(
+            persona_name=persona.name,
+            recipe_title=recipe.title,
+            success=False,
+            error=str(e),
+        )
 
-            print(f"  {prefix} ✓ Created: {recipe.title}")
-            return RecipeResult(persona.name, True, recipe.public_id, recipe.title)
 
-        except Exception as e:
-            print(f"  {prefix} ✗ Error: {e}")
-            return RecipeResult(persona.name, False, error=str(e))
+async def get_random_recipes(
+    api_client: CookstemmaClient,
+    count: int = 10,
+) -> List[Recipe]:
+    """Fetch random recipes from the backend.
 
-    if semaphore:
-        async with semaphore:
-            return await _do_create()
-    return await _do_create()
+    Args:
+        api_client: API client
+        count: Number of recipes to fetch
 
-async def run_concurrent(personas, api_client, text_gen, image_gen, args):
-    total = len(personas)
-    concurrency = min(args.concurrency, total)
-    print(f"Concurrent Mode: {concurrency} workers active")
-    
-    semaphore = asyncio.Semaphore(concurrency)
-    tasks = [
-        create_recipe_for_persona(p, api_client, text_gen, image_gen, args.step_images, args.cover, semaphore, i, total)
-        for i, p in enumerate(personas, 1)
-    ]
-    return await asyncio.gather(*tasks, return_exceptions=True)
+    Returns:
+        List of Recipe objects
+    """
+    # Fetch first few pages and randomly select
+    all_recipes = []
+    for page in range(3):  # Fetch 3 pages
+        recipes = await api_client.get_recipes(page=page, size=20)
+        all_recipes.extend(recipes)
+        if len(all_recipes) >= count:
+            break
+
+    if not all_recipes:
+        raise ValueError("No recipes found in database")
+
+    # Randomly select recipes
+    return random.sample(all_recipes, min(count, len(all_recipes)))
+
 
 async def main() -> None:
+    """Main entry point."""
     args = parse_args()
     settings = get_settings()
 
-    # Verify Gemini configuration
+    # Validate API keys
     if not settings.gemini_api_key or settings.gemini_api_key == "placeholder":
-        print("Error: GEMINI_API_KEY required in .env for primary generation.")
+        print("Error: GEMINI_API_KEY not found in .env")
         sys.exit(1)
 
+    # Initialize clients
     api_client = CookstemmaClient()
     text_gen = TextGenerator()
     image_gen = ImageGenerator()
+    log_pipeline = LogPipeline(api_client, text_gen, image_gen)
 
     try:
+        # Initialize persona registry
         registry = get_persona_registry()
         await registry.initialize(api_client)
-        all_personas = registry.get_all()[:args.limit] if args.limit else registry.get_all()
+        all_personas = registry.get_all()
 
-        print(f"Starting Gemini-powered generation for {len(all_personas)} bots...")
-        
-        if args.sequential:
-            # Sequential logic remains as fallback for deep debugging
-            results = [] 
-            # (Logic omitted for brevity, same as original sequential block)
+        if not all_personas:
+            print("Error: No personas found")
+            sys.exit(1)
+
+        # Determine which recipes to use
+        recipes: List[Recipe] = []
+
+        if args.recipe_id:
+            # Use specific recipe
+            recipe = await api_client.get_recipe(args.recipe_id)
+            # Repeat the same recipe for multiple logs
+            recipes = [recipe] * args.count
+        elif args.random_recipes:
+            # Fetch random recipes
+            recipes = await get_random_recipes(api_client, args.count)
         else:
-            raw_results = await run_concurrent(all_personas, api_client, text_gen, image_gen, args)
-            results = [r if not isinstance(r, Exception) else RecipeResult("Unknown", False, error=str(r)) for r in raw_results]
+            print("Error: Must specify --recipe-id or --random-recipes")
+            sys.exit(1)
 
-        # Final Summary
+        print(f"\n🚀 Generating {len(recipes)} cooking log(s)...")
+        print(f"   Images per log: {args.num_images}")
+        print(f"   Rating: {'auto-select' if not args.rating else args.rating}")
+        print()
+
+        # Generate logs
+        results: List[LogResult] = []
+
+        for i, recipe in enumerate(recipes, 1):
+            # Select persona
+            if args.persona:
+                persona = registry.get(args.persona)
+                if not persona:
+                    print(f"Error: Persona '{args.persona}' not found")
+                    sys.exit(1)
+            else:
+                persona = random.choice(all_personas)
+
+            print(f"[{i}/{len(recipes)}] Generating log for '{recipe.title}'")
+            print(f"           Using persona: {persona.name}")
+
+            result = await create_log_for_recipe(
+                persona=persona,
+                recipe=recipe,
+                api_client=api_client,
+                log_pipeline=log_pipeline,
+                rating=args.rating,
+                num_images=args.num_images,
+            )
+
+            results.append(result)
+
+            if result.success:
+                print(f"           ✓ Success: Rating {result.rating}/5 (ID: {result.log_id})")
+            else:
+                print(f"           ✗ Failed: {result.error}")
+
+            # Delay between logs (except for last one)
+            if i < len(recipes):
+                await asyncio.sleep(args.delay)
+
+        # Print summary
+        print()
+        print("=" * 60)
         successful = [r for r in results if r.success]
-        print(f"\nFleet Generation Complete: {len(successful)}/{len(results)} success rate.")
+        print(f"Summary: {len(successful)}/{len(results)} logs created successfully")
+
+        if successful:
+            avg_rating = sum(r.rating for r in successful) / len(successful)
+            print(f"Average rating: {avg_rating:.1f}/5")
+
+        print("=" * 60)
 
     finally:
         await api_client.close()
         await image_gen.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
