@@ -8,7 +8,7 @@ ENVIRONMENT=${1:-dev}
 AWS_REGION=${AWS_REGION:-us-east-2}
 PROJECT_NAME="cookstemma"
 LAMBDA_NAME="${PROJECT_NAME}-${ENVIRONMENT}-translator"
-ECR_REPO="${PROJECT_NAME}-${ENVIRONMENT}-translator"
+ECR_REPO="${PROJECT_NAME}-translator"  # Single repo, environment via tags
 
 echo "Deploying translation Lambda to ${ENVIRONMENT}..."
 
@@ -24,21 +24,21 @@ aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS 
 
 # Build Docker image
 echo "Building Docker image..."
-docker build -t ${ECR_REPO}:latest .
+docker build -t ${ECR_REPO}:${ENVIRONMENT}-latest .
 
 # Tag for ECR
 echo "Tagging image for ECR..."
-docker tag ${ECR_REPO}:latest ${ECR_URL}:latest
+docker tag ${ECR_REPO}:${ENVIRONMENT}-latest ${ECR_URL}:${ENVIRONMENT}-latest
 
 # Push to ECR
 echo "Pushing image to ECR..."
-docker push ${ECR_URL}:latest
+docker push ${ECR_URL}:${ENVIRONMENT}-latest
 
 # Update Lambda function
 echo "Updating Lambda function..."
 aws lambda update-function-code \
     --function-name ${LAMBDA_NAME} \
-    --image-uri ${ECR_URL}:latest \
+    --image-uri ${ECR_URL}:${ENVIRONMENT}-latest \
     --region ${AWS_REGION}
 
 echo "Waiting for Lambda to update..."
