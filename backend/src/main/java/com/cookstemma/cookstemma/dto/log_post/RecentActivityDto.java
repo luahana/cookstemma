@@ -20,5 +20,6 @@ public record RecentActivityDto(
         UUID recipePublicId,      // Link to recipe
         String foodName,          // Food name for display
         Instant createdAt,        // When the log was created
-        List<String> hashtags     // Hashtag names for display
+        List<String> hashtags,    // Hashtag names for display
+        Integer commentCount      // Number of comments on this log
 ) {}

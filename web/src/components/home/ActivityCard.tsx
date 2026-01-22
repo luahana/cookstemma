@@ -14,6 +14,7 @@ interface Activity {
   userName?: string | null;
   thumbnailUrl?: string | null;
   rating?: number | null;
+  commentCount?: number;
 }
 
 interface ActivityCardProps {
@@ -53,11 +54,19 @@ export function ActivityCard({ activity }: ActivityCardProps) {
                 variant="inline"
               />
             </div>
-            {activity.rating && (
-              <div className="mt-1">
+            <div className="flex items-center gap-2 mt-1">
+              {activity.rating && (
                 <StarRating rating={activity.rating} size="sm" />
-              </div>
-            )}
+              )}
+              {activity.commentCount !== undefined && activity.commentCount > 0 && (
+                <span className="flex items-center gap-0.5 text-xs text-[var(--text-secondary)]">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  {activity.commentCount}
+                </span>
+              )}
+            </div>
           </div>
           <p className="font-medium text-[var(--text-primary)] truncate">
             {activity.recipeTitle}

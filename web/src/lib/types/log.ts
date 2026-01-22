@@ -60,6 +60,7 @@ export interface RecentActivity {
   foodName: string;
   createdAt: string; // ISO date string
   hashtags: string[];
+  commentCount: number; // Number of comments on this log
 }
 
 /**

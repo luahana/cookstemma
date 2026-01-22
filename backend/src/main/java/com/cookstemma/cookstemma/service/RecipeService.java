@@ -624,6 +624,7 @@ public class RecipeService {
                             .foodName(foodName)
                             .createdAt(log.getCreatedAt())
                             .hashtags(log.getHashtags().stream().map(Hashtag::getName).toList())
+                            .commentCount(log.getCommentCount())
                             .build();
                 })
                 .toList();
