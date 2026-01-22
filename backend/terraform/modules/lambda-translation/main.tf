@@ -284,7 +284,7 @@ resource "aws_lambda_permission" "eventbridge" {
 
 # Alarm #1: Lambda Duration Approaching Timeout
 resource "aws_cloudwatch_metric_alarm" "translator_duration" {
-  count = var.sns_alarm_topic_arn != "" ? 1 : 0
+  count = var.enable_alarms ? 1 : 0
 
   alarm_name          = "${var.project_name}-${var.environment}-translator-duration-high"
   comparison_operator = "GreaterThanThreshold"
@@ -313,7 +313,7 @@ resource "aws_cloudwatch_metric_alarm" "translator_duration" {
 
 # Alarm #2: Lambda Errors
 resource "aws_cloudwatch_metric_alarm" "translator_errors" {
-  count = var.sns_alarm_topic_arn != "" ? 1 : 0
+  count = var.enable_alarms ? 1 : 0
 
   alarm_name          = "${var.project_name}-${var.environment}-translator-errors"
   comparison_operator = "GreaterThanThreshold"
@@ -342,7 +342,7 @@ resource "aws_cloudwatch_metric_alarm" "translator_errors" {
 
 # Alarm #3: SQS Queue Depth
 resource "aws_cloudwatch_metric_alarm" "translation_queue_depth" {
-  count = var.sns_alarm_topic_arn != "" ? 1 : 0
+  count = var.enable_alarms ? 1 : 0
 
   alarm_name          = "${var.project_name}-${var.environment}-translation-queue-depth"
   comparison_operator = "GreaterThanThreshold"
@@ -371,7 +371,7 @@ resource "aws_cloudwatch_metric_alarm" "translation_queue_depth" {
 
 # Alarm #4: Dead Letter Queue Messages
 resource "aws_cloudwatch_metric_alarm" "translation_dlq" {
-  count = var.sns_alarm_topic_arn != "" ? 1 : 0
+  count = var.enable_alarms ? 1 : 0
 
   alarm_name          = "${var.project_name}-${var.environment}-translation-dlq"
   comparison_operator = "GreaterThanThreshold"
@@ -400,7 +400,7 @@ resource "aws_cloudwatch_metric_alarm" "translation_dlq" {
 
 # Alarm #5: Lambda Throttles
 resource "aws_cloudwatch_metric_alarm" "translator_throttles" {
-  count = var.sns_alarm_topic_arn != "" ? 1 : 0
+  count = var.enable_alarms ? 1 : 0
 
   alarm_name          = "${var.project_name}-${var.environment}-translator-throttles"
   comparison_operator = "GreaterThanThreshold"

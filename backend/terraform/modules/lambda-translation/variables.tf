@@ -77,7 +77,13 @@ variable "cdn_url_prefix" {
 }
 
 variable "sns_alarm_topic_arn" {
-  description = "SNS topic ARN for CloudWatch alarm notifications"
+  description = "ARN of the SNS topic for CloudWatch alarms. Required when enable_alarms is true."
   type        = string
-  default     = ""  # Optional - alarms won't notify if not provided
+  default     = ""
+}
+
+variable "enable_alarms" {
+  description = "Enable CloudWatch alarms for Lambda monitoring. Requires sns_alarm_topic_arn to be set."
+  type        = bool
+  default     = true
 }

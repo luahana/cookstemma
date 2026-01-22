@@ -171,21 +171,8 @@ resource "aws_cloudwatch_dashboard" "translation_monitoring" {
           dimensions = {
             FunctionName = aws_lambda_function.translator.function_name
           }
-          yAxis = {
-            left = {
-              min = 0
-              max = var.reserved_concurrent_executions
-            }
-          }
-          annotations = {
-            horizontal = [
-              {
-                label = "Reserved Limit"
-                value = var.reserved_concurrent_executions
-                color = "#d62728"
-              }
-            ]
-          }
+          # Note: yAxis removed - reserved_concurrent_executions is -1 (unreserved)
+          # CloudWatch will auto-scale based on actual concurrency values
         }
       }
     ]

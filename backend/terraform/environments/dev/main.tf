@@ -143,6 +143,9 @@ module "rds" {
   multi_az                = false
   backup_retention_period = 0 # Free tier doesn't support backups
   snapshot_identifier     = var.rds_snapshot_identifier
+
+  # CloudWatch Alarms
+  sns_alarm_topic_arn = aws_sns_topic.alerts.arn
 }
 
 # Secrets Module
@@ -195,6 +198,9 @@ module "alb" {
   enable_web            = true
   web_port              = 3000
   web_health_check_path = "/"
+
+  # CloudWatch Alarms
+  sns_alarm_topic_arn = aws_sns_topic.alerts.arn
 }
 
 # ECS Module - With ALB for stable DNS
@@ -237,6 +243,9 @@ module "ecs" {
   sqs_translation_queue_url = module.lambda_translation.sqs_queue_url
   sqs_translation_queue_arn = module.lambda_translation.sqs_queue_arn
   sqs_enabled               = true
+
+  # CloudWatch Alarms
+  sns_alarm_topic_arn = aws_sns_topic.alerts.arn
 }
 
 # ECS Web Module - Next.js application
@@ -258,6 +267,9 @@ module "ecs_web" {
   # ALB configuration
   alb_security_group_id = module.alb.security_group_id
   target_group_arn      = module.alb.web_target_group_arn
+
+  # CloudWatch Alarms
+  sns_alarm_topic_arn = aws_sns_topic.alerts.arn
 }
 
 # Lambda Translation Module - Gemini-powered content translation
@@ -289,6 +301,9 @@ module "lambda_translation" {
 
   # CDN URL for content moderation (image validation)
   cdn_url_prefix = "https://drms7t3elqlu.cloudfront.net"
+
+  # CloudWatch Alarms
+  sns_alarm_topic_arn = aws_sns_topic.alerts.arn
 }
 
 # Lambda Image Processing Module - Parallel variant generation with Step Functions
@@ -307,6 +322,9 @@ module "lambda_image_processing" {
   memory_size                    = 1024
   timeout                        = 60
   reserved_concurrent_executions = -1 # No reserved concurrency (account quota limit)
+
+  # CloudWatch Alarms
+  sns_alarm_topic_arn = aws_sns_topic.alerts.arn
 }
 
 # Lambda Suggestion Verifier Module - AI-powered validation of user suggestions
@@ -335,6 +353,9 @@ module "lambda_suggestion_verifier" {
   memory_size                    = 512
   timeout                        = 300
   reserved_concurrent_executions = -1 # No reserved concurrency (account quota limit)
+
+  # CloudWatch Alarms
+  sns_alarm_topic_arn = aws_sns_topic.alerts.arn
 }
 
 # CloudFront CDN Module - Image delivery with WebP auto-selection
@@ -375,4 +396,29 @@ resource "aws_route53_record" "dev" {
     zone_id                = module.alb.alb_zone_id
     evaluate_target_health = true
   }
+}
+
+# =============================================================================
+# CLOUDWATCH ALARMS - SNS Topic for Email Notifications
+# =============================================================================
+
+resource "aws_sns_topic" "alerts" {
+  name              = "${var.project_name}-${var.environment}-alerts"
+  display_name      = "Cookstemma ${title(var.environment)} Infrastructure Alerts"
+  kms_master_key_id = "alias/aws/sns" # Use default AWS managed key for encryption
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-alerts"
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
+# Email subscription (requires manual confirmation via email)
+resource "aws_sns_topic_subscription" "email" {
+  count     = var.alarm_email != "" ? 1 : 0
+  topic_arn = aws_sns_topic.alerts.arn
+  protocol  = "email"
+  endpoint  = var.alarm_email
 }

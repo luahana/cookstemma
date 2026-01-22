@@ -141,3 +141,16 @@ variable "sqs_enabled" {
   type        = bool
   default     = true
 }
+
+# CloudWatch Alarms
+variable "sns_alarm_topic_arn" {
+  description = "ARN of the SNS topic for CloudWatch alarms. Required when enable_alarms is true."
+  type        = string
+  default     = ""
+}
+
+variable "enable_alarms" {
+  description = "Enable CloudWatch alarms for ECS monitoring. Requires sns_alarm_topic_arn to be set."
+  type        = bool
+  default     = true
+}

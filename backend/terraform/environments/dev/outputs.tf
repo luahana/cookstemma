@@ -122,3 +122,14 @@ output "dev_api_url" {
   description = "Dev API URL"
   value       = var.create_dns_record ? "http://${var.environment}.${var.domain_name}/api/v1" : "http://${module.alb.alb_dns_name}/api/v1"
 }
+
+# CloudWatch Alarms outputs
+output "sns_topic_arn" {
+  description = "ARN of the SNS topic for CloudWatch alarms"
+  value       = aws_sns_topic.alerts.arn
+}
+
+output "sns_topic_name" {
+  description = "Name of the SNS topic for CloudWatch alarms"
+  value       = aws_sns_topic.alerts.name
+}

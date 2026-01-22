@@ -135,3 +135,10 @@ variable "certificate_arn" {
   type        = string
   default     = "arn:aws:acm:us-east-2:819551471059:certificate/16192fe2-724c-460e-a4ea-d88270dc6618"
 }
+
+# CloudWatch Alarms
+variable "alarm_email" {
+  description = "Email address for CloudWatch alarm notifications"
+  type        = string
+  default     = "alex873jspark@gmail.com"
+}
