@@ -53,7 +53,7 @@ public class TranslationAdminController {
                 "message", "Translation queued successfully",
                 "recipePublicId", publicId,
                 "sourceLocale", request.sourceLocale(),
-                "targetLocales", 20 // All locales
+                "targetLocales", 19 // All locales except source
         ));
     }
 
