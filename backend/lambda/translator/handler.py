@@ -677,40 +677,62 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
 
 
 def save_translations(conn, entity_type: str, entity_id: int, translations: dict):
-    """Save translations back to the entity."""
+    """
+    Save translations back to the entity using atomic JSONB merge operations.
+    Uses PostgreSQL || operator to merge translations without race conditions.
+    """
     with conn.cursor() as cur:
         if entity_type == 'RECIPE':
+            # CRITICAL: Use atomic JSONB merge to prevent race conditions
             cur.execute("""
                 UPDATE recipes
-                SET title_translations = %s, description_translations = %s
+                SET title_translations = COALESCE(title_translations, '{}'::jsonb) || %s::jsonb,
+                    description_translations = COALESCE(description_translations, '{}'::jsonb) || %s::jsonb
                 WHERE id = %s
+                RETURNING id
             """, (
                 json.dumps(translations.get('title', {})),
                 json.dumps(translations.get('description', {})),
                 entity_id
             ))
+            if not cur.fetchone():
+                raise ValueError(f"Recipe {entity_id} not found in database")
         elif entity_type == 'RECIPE_STEP':
+            # CRITICAL: Use atomic JSONB merge to prevent race conditions
             cur.execute("""
                 UPDATE recipe_steps
-                SET description_translations = %s
+                SET description_translations = COALESCE(description_translations, '{}'::jsonb) || %s::jsonb
                 WHERE id = %s
+                RETURNING id
             """, (json.dumps(translations.get('description', {})), entity_id))
+            if not cur.fetchone():
+                raise ValueError(f"Recipe step {entity_id} not found in database")
         elif entity_type == 'RECIPE_INGREDIENT':
+            # CRITICAL: Use atomic JSONB merge to prevent race conditions
             cur.execute("""
                 UPDATE recipe_ingredients
-                SET name_translations = %s
+                SET name_translations = COALESCE(name_translations, '{}'::jsonb) || %s::jsonb
                 WHERE id = %s
+                RETURNING id
             """, (json.dumps(translations.get('name', {})), entity_id))
+            if not cur.fetchone():
+                raise ValueError(f"Recipe ingredient {entity_id} not found in database")
         elif entity_type == 'LOG_POST':
+            # CRITICAL: Use atomic JSONB merge to prevent race conditions
+            # Multiple Lambda invocations may process different locales concurrently
             cur.execute("""
                 UPDATE log_posts
-                SET title_translations = %s, content_translations = %s
+                SET title_translations = COALESCE(title_translations, '{}'::jsonb) || %s::jsonb,
+                    content_translations = COALESCE(content_translations, '{}'::jsonb) || %s::jsonb
                 WHERE id = %s
+                RETURNING id
             """, (
                 json.dumps(translations.get('title', {})),
                 json.dumps(translations.get('content', {})),
                 entity_id
             ))
+            if not cur.fetchone():
+                raise ValueError(f"Log post {entity_id} not found in database")
         elif entity_type == 'FOOD_MASTER':
             # Merge new translations into existing JSONB name and description
             cur.execute("""
@@ -731,17 +753,25 @@ def save_translations(conn, entity_type: str, entity_id: int, translations: dict
                 WHERE id = %s
             """, (json.dumps(translations.get('name', {})), entity_id))
         elif entity_type == 'USER':
+            # CRITICAL: Use atomic JSONB merge to prevent race conditions
             cur.execute("""
                 UPDATE users
-                SET bio_translations = %s
+                SET bio_translations = COALESCE(bio_translations, '{}'::jsonb) || %s::jsonb
                 WHERE id = %s
+                RETURNING id
             """, (json.dumps(translations.get('bio', {})), entity_id))
+            if not cur.fetchone():
+                raise ValueError(f"User {entity_id} not found in database")
         elif entity_type == 'COMMENT':
+            # CRITICAL: Use atomic JSONB merge to prevent race conditions
             cur.execute("""
                 UPDATE comments
-                SET content_translations = %s
+                SET content_translations = COALESCE(content_translations, '{}'::jsonb) || %s::jsonb
                 WHERE id = %s
+                RETURNING id
             """, (json.dumps(translations.get('content', {})), entity_id))
+            if not cur.fetchone():
+                raise ValueError(f"Comment {entity_id} not found in database")
 
 
 class ModerationFailure(Exception):
