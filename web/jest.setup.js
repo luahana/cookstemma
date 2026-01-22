@@ -34,6 +34,24 @@ jest.mock('@/i18n/routing', () => ({
   rtlLocales: [],
 }));
 
+// Mock window.location (JSDOM doesn't support navigation)
+const mockLocation = {
+  href: 'http://localhost/',
+  origin: 'http://localhost',
+  protocol: 'http:',
+  host: 'localhost',
+  hostname: 'localhost',
+  port: '',
+  pathname: '/',
+  search: '',
+  hash: '',
+  reload: jest.fn(),
+  assign: jest.fn(),
+  replace: jest.fn(),
+};
+delete window.location;
+window.location = mockLocation;
+
 // Reset mocks before each test
 beforeEach(() => {
   jest.clearAllMocks();

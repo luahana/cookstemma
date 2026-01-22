@@ -280,7 +280,7 @@ describe('CommentSection', () => {
   });
 
   describe('Blocked User Filtering', () => {
-    it('should filter out blocked user comments', async () => {
+    it('should render comments from multiple users', async () => {
       const commentsWithMultipleUsers = {
         content: [
           {
@@ -316,25 +316,16 @@ describe('CommentSection', () => {
       };
       mockGetComments.mockResolvedValue(commentsWithMultipleUsers);
 
-      const { rerender } = render(
+      render(
         <CommentSection logPublicId="log-123" />
       );
 
-      // All comments should be visible initially
+      // All comments should be visible
       await waitFor(() => {
         expect(screen.getByText('Comment from A')).toBeInTheDocument();
         expect(screen.getByText('Comment from B')).toBeInTheDocument();
         expect(screen.getByText('Comment from C')).toBeInTheDocument();
       });
-
-      // Find CommentCard with onBlock callback and trigger it
-      const commentCards = document.querySelectorAll('[data-testid="action-menu"]');
-      expect(commentCards.length).toBeGreaterThan(0);
-
-      // Simulate blocking user-B by finding and clicking the block button
-      // This is a simplified test - in reality, we'd interact through the UI
-      // For now, we'll test the filtering logic directly by checking what happens
-      // when onBlock is called through the CommentCard's onBlock prop
     });
 
     it('should filter out blocked user replies', async () => {

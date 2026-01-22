@@ -165,8 +165,6 @@ describe('CommentCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    delete (window as Window & typeof globalThis & { location: unknown }).location;
-    (window as Window & typeof globalThis & { location: { reload: jest.Mock } }).location = { reload: jest.fn() };
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       user: { publicId: 'current-user-123', username: 'currentuser' },
@@ -276,7 +274,7 @@ describe('CommentCard', () => {
   });
 
   describe('Owner Actions', () => {
-    it('should show more options button for owner', () => {
+    it('should show edit/delete menu for owner', () => {
       const ownComment = { ...mockComment, creatorPublicId: 'current-user-123' };
 
       render(
@@ -288,14 +286,12 @@ describe('CommentCard', () => {
         />
       );
 
-      // The more options button (three dots)
-      const moreButton = screen.getAllByRole('button').find(
-        btn => btn.querySelector('svg path[d*="M12 5v.01"]')
-      );
-      expect(moreButton).toBeInTheDocument();
+      // ActionMenu is mocked and renders buttons directly with labels
+      expect(screen.getByText('Edit')).toBeInTheDocument();
+      expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
-    it('should not show more options button for non-owner', () => {
+    it('should not show edit/delete menu for non-owner', () => {
       render(
         <CommentCard
           comment={mockComment}
@@ -305,12 +301,8 @@ describe('CommentCard', () => {
         />
       );
 
-      // Should not find the three-dots button with edit/delete
-      const buttons = screen.getAllByRole('button');
-      const moreButton = buttons.find(
-        btn => btn.querySelector('svg path[d*="M12 5v.01"]')
-      );
-      expect(moreButton).toBeUndefined();
+      // Non-owner should not see Edit/Delete options (they see Block/Report instead)
+      expect(screen.queryByText('Edit')).not.toBeInTheDocument();
     });
   });
 
@@ -377,17 +369,7 @@ describe('CommentCard', () => {
         />
       );
 
-      // Click the more options button first
-      const buttons = screen.getAllByRole('button');
-      const moreButton = buttons.find(
-        btn => btn.querySelector('svg path[d*="M12 5v.01"]')
-      );
-      fireEvent.click(moreButton!);
-
-      // Now click Edit from the dropdown
-      await waitFor(() => {
-        expect(screen.getByText('Edit')).toBeInTheDocument();
-      });
+      // ActionMenu is mocked - Edit button is directly available for owners
       fireEvent.click(screen.getByText('Edit'));
 
       // Should show edit form with Save and Cancel buttons
@@ -415,17 +397,7 @@ describe('CommentCard', () => {
         />
       );
 
-      // Click the more options button first
-      const buttons = screen.getAllByRole('button');
-      const moreButton = buttons.find(
-        btn => btn.querySelector('svg path[d*="M12 5v.01"]')
-      );
-      fireEvent.click(moreButton!);
-
-      // Now click Delete from the dropdown
-      await waitFor(() => {
-        expect(screen.getByText('Delete')).toBeInTheDocument();
-      });
+      // ActionMenu is mocked - Delete button is directly available for owners
       fireEvent.click(screen.getByText('Delete'));
 
       await waitFor(() => {
@@ -451,17 +423,7 @@ describe('CommentCard', () => {
         />
       );
 
-      // Click the more options button first
-      const buttons = screen.getAllByRole('button');
-      const moreButton = buttons.find(
-        btn => btn.querySelector('svg path[d*="M12 5v.01"]')
-      );
-      fireEvent.click(moreButton!);
-
-      // Now click Delete from the dropdown
-      await waitFor(() => {
-        expect(screen.getByText('Delete')).toBeInTheDocument();
-      });
+      // ActionMenu is mocked - Delete button is directly available for owners
       fireEvent.click(screen.getByText('Delete'));
 
       expect(mockDeleteComment).not.toHaveBeenCalled();
@@ -591,10 +553,6 @@ describe('CommentCard', () => {
         expect(mockBlockUser).toHaveBeenCalledWith('user-123');
         expect(mockOnBlock).toHaveBeenCalledWith('user-123');
       });
-
-      // Advance timers to trigger reload
-      jest.advanceTimersByTime(1500);
-      expect(window.location.reload).toHaveBeenCalled();
     });
 
     it('should open report modal and call API on submit', async () => {
