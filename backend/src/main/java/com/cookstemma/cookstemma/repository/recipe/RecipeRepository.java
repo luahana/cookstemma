@@ -651,6 +651,17 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
         nativeQuery = true)
     long countSearchResults(@Param("keyword") String keyword);
 
+    // ==================== BATCH STATS FOR SEARCH PERFORMANCE ====================
+
+    /**
+     * Get variant counts for multiple root recipe IDs in a single query.
+     * Returns List of [rootId, count] pairs.
+     */
+    @Query("SELECT r.rootRecipe.id, COUNT(r) FROM Recipe r " +
+           "WHERE r.rootRecipe.id IN :rootIds AND r.deletedAt IS NULL " +
+           "GROUP BY r.rootRecipe.id")
+    List<Object[]> countVariantsByRootIds(@Param("rootIds") List<Long> rootIds);
+
     // ==================== ADMIN: UNTRANSLATED CONTENT ====================
 
     /**

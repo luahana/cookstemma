@@ -107,4 +107,73 @@ public interface HashtagRepository extends JpaRepository<Hashtag, Long> {
         """,
         nativeQuery = true)
     List<Object[]> findTopContributors(@Param("hashtagId") Long hashtagId);
+
+    // ==================== BATCH METHODS FOR SEARCH PERFORMANCE ====================
+
+    /**
+     * Get recipe counts for multiple hashtag IDs in a single query.
+     * Returns List of [hashtagId, count] pairs.
+     */
+    @Query("SELECT h.id, COUNT(r) FROM Recipe r JOIN r.hashtags h " +
+           "WHERE h.id IN :hashtagIds AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false) " +
+           "GROUP BY h.id")
+    List<Object[]> countRecipesByHashtagIds(@Param("hashtagIds") List<Long> hashtagIds);
+
+    /**
+     * Get log counts for multiple hashtag IDs in a single query.
+     * Returns List of [hashtagId, count] pairs.
+     */
+    @Query("SELECT h.id, COUNT(l) FROM LogPost l JOIN l.hashtags h " +
+           "WHERE h.id IN :hashtagIds AND l.deletedAt IS NULL AND (l.isPrivate IS NULL OR l.isPrivate = false) " +
+           "GROUP BY h.id")
+    List<Object[]> countLogsByHashtagIds(@Param("hashtagIds") List<Long> hashtagIds);
+
+    /**
+     * Get sample thumbnails for multiple hashtag IDs in a single query.
+     * Returns List of [hashtagId, storedFilename] pairs.
+     * Note: Uses a subquery with row_number to limit to 4 per hashtag.
+     */
+    @Query(value = """
+        SELECT ranked.hashtag_id, ranked.stored_filename
+        FROM (
+            SELECT rhm.hashtag_id, img.stored_filename,
+                   ROW_NUMBER() OVER (PARTITION BY rhm.hashtag_id ORDER BY r.created_at DESC) as rn
+            FROM recipe_hashtag_map rhm
+            JOIN recipes r ON r.id = rhm.recipe_id
+            JOIN images img ON img.recipe_id = r.id AND img.type = 'COVER'
+            WHERE rhm.hashtag_id IN :hashtagIds
+            AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        ) ranked
+        WHERE ranked.rn <= 4
+        """,
+        nativeQuery = true)
+    List<Object[]> findSampleThumbnailsByHashtagIds(@Param("hashtagIds") List<Long> hashtagIds);
+
+    /**
+     * Get top contributors for multiple hashtag IDs in a single query.
+     * Returns List of [hashtagId, publicId, username, profileImageUrl] (top 3 per hashtag).
+     */
+    @Query(value = """
+        SELECT ranked.hashtag_id, ranked.public_id, ranked.username, ranked.profile_image_url
+        FROM (
+            SELECT content.hashtag_id, u.public_id, u.username, u.profile_image_url,
+                   COUNT(*) as content_count,
+                   ROW_NUMBER() OVER (PARTITION BY content.hashtag_id ORDER BY COUNT(*) DESC) as rn
+            FROM (
+                SELECT rhm.hashtag_id, r.creator_id FROM recipes r
+                JOIN recipe_hashtag_map rhm ON rhm.recipe_id = r.id
+                WHERE rhm.hashtag_id IN :hashtagIds AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+                UNION ALL
+                SELECT lphm.hashtag_id, lp.creator_id FROM log_posts lp
+                JOIN log_post_hashtag_map lphm ON lphm.log_post_id = lp.id
+                WHERE lphm.hashtag_id IN :hashtagIds AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+            ) content
+            JOIN users u ON u.id = content.creator_id
+            GROUP BY content.hashtag_id, u.id, u.public_id, u.username, u.profile_image_url
+        ) ranked
+        WHERE ranked.rn <= 3
+        ORDER BY ranked.hashtag_id, ranked.rn
+        """,
+        nativeQuery = true)
+    List<Object[]> findTopContributorsByHashtagIds(@Param("hashtagIds") List<Long> hashtagIds);
 }
