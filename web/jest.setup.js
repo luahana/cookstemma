@@ -24,6 +24,16 @@ jest.mock('js-cookie', () => ({
 // Mock fetch globally
 global.fetch = jest.fn();
 
+// Mock @/i18n/routing (prevents ESM import of next-intl/routing)
+jest.mock('@/i18n/routing', () => ({
+  routing: {
+    locales: ['en', 'ko'],
+    defaultLocale: 'en',
+  },
+  isRtlLocale: () => false,
+  rtlLocales: [],
+}));
+
 // Reset mocks before each test
 beforeEach(() => {
   jest.clearAllMocks();

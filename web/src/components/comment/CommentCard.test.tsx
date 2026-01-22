@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 // Mock next-intl
 jest.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => {
+  useTranslations: () => (key: string, args?: Record<string, unknown>) => {
     const translations: Record<string, string> = {
       reply: 'Reply',
       edit: 'Edit',
@@ -27,13 +27,11 @@ jest.mock('next-intl', () => ({
       reportSuccess: 'Report submitted',
       reportFailed: 'Failed to report',
     };
-    return (args?: { username?: string; [key: string]: unknown }) => {
-      const result = translations[key] || key;
-      if (args && typeof result === 'string') {
-        return result.replace('{username}', args.username || '');
-      }
-      return result;
-    };
+    const result = translations[key] || key;
+    if (args?.username && typeof result === 'string') {
+      return result.replace('{username}', args.username as string);
+    }
+    return result;
   },
 }));
 
