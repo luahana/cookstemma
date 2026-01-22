@@ -123,6 +123,9 @@ Return ONLY valid JSON, no additional text."""
             "spicier": "Make a spicier version - add more heat and bold flavors",
             "kid_friendly": "Make a kid-friendly version - milder flavors, fun presentation",
             "gourmet": "Make a gourmet version - elevate with premium ingredients and techniques",
+            "vegan": "Make a vegan version - replace all animal products (meat, dairy, eggs, honey) with plant-based alternatives",
+            "high_protein": "Make a high-protein version - increase protein with chicken, fish, eggs, Greek yogurt, legumes, or protein powder",
+            "low_carb": "Make a low-carb version - substitute high-carb ingredients (pasta, rice, bread, potatoes, sugar) with low-carb alternatives",
         }
 
         instruction = variation_instructions.get(

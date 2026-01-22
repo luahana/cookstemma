@@ -324,6 +324,9 @@ Choose from these variation types:
 - spicier: Add more heat
 - kid_friendly: Make it appealing to children
 - gourmet: Elevate it with premium touches
+- vegan: Make it fully vegan
+- high_protein: Increase protein content
+- low_carb: Reduce carbohydrates
 
 Return as JSON:
 {{

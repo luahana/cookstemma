@@ -52,6 +52,7 @@ load_dotenv()
 from src.api import CookstemmaClient
 from src.api.models import Comment, LogPost, Recipe
 from src.config import get_settings
+from src.orchestrator.recipe_pipeline import RecipePipeline
 from src.personas import BotPersona, get_persona_registry
 
 
@@ -63,13 +64,15 @@ class HourlyActivity:
     """Activity to perform in a given hour."""
     hour: int  # 0-23
     recipes: int
-    logs: int
-    follows: int
-    recipe_saves: int
-    log_saves: int
-    comments: int
-    replies: int
-    comment_likes: int
+    recipes_original: int = 0
+    recipes_variant: int = 0
+    logs: int = 0
+    follows: int = 0
+    recipe_saves: int = 0
+    log_saves: int = 0
+    comments: int = 0
+    replies: int = 0
+    comment_likes: int = 0
 
     @property
     def total_social(self) -> int:
@@ -84,6 +87,8 @@ class HourlyActivity:
 class SimulationStats:
     """Statistics tracking for the simulation."""
     recipes_created: int = 0
+    recipes_original: int = 0
+    recipes_variant: int = 0
     logs_created: int = 0
     follows_done: int = 0
     recipe_saves_done: int = 0
@@ -126,11 +131,13 @@ class ActivityScheduler:
         total_logs: int,
         total_social: int,
         duration_hours: int = 24,
+        variant_ratio: float = 0.5,
     ) -> None:
         self.total_recipes = total_recipes
         self.total_logs = total_logs
         self.total_social = total_social
         self.duration_hours = duration_hours
+        self.variant_ratio = variant_ratio
         self.settings = get_settings()
 
     def get_hourly_schedule(self) -> List[HourlyActivity]:
@@ -150,6 +157,10 @@ class ActivityScheduler:
         social_per_hour = self.total_social // self.duration_hours
 
         for hour in range(self.duration_hours):
+            # Split recipes into original and variant
+            variants_this_hour = round(recipes_per_hour * self.variant_ratio)
+            originals_this_hour = recipes_per_hour - variants_this_hour
+
             # Distribute social actions according to ratios
             follows = int(social_per_hour * self.settings.follow_ratio)
             recipe_saves = int(social_per_hour * self.settings.recipe_save_ratio)
@@ -162,6 +173,8 @@ class ActivityScheduler:
                 HourlyActivity(
                     hour=hour,
                     recipes=recipes_per_hour,
+                    recipes_original=originals_this_hour,
+                    recipes_variant=variants_this_hour,
                     logs=logs_per_hour,
                     follows=follows,
                     recipe_saves=recipe_saves,
@@ -182,13 +195,18 @@ class ActivityScheduler:
         # Distribute any remainder evenly across all hours
         all_indices = list(range(len(schedule)))
 
-        # Adjust recipes
+        # Adjust recipes (maintain original/variant ratio)
         current_recipes = sum(act.recipes for act in schedule)
         remaining_recipes = self.total_recipes - current_recipes
         if remaining_recipes > 0:
             for i in range(remaining_recipes):
                 idx = all_indices[i % len(all_indices)]
                 schedule[idx].recipes += 1
+                # Maintain the ratio when adding remainder
+                if self.variant_ratio >= 0.5:
+                    schedule[idx].recipes_variant += 1
+                else:
+                    schedule[idx].recipes_original += 1
 
         # Adjust logs
         current_logs = sum(act.logs for act in schedule)
@@ -215,56 +233,196 @@ class ContentOrchestrator:
 
     def __init__(self, scripts_dir: Path) -> None:
         self.scripts_dir = scripts_dir
+        self.settings = get_settings()
+        self._parent_recipe_pool: List[Recipe] = []
 
-    async def create_recipes(self, count: int, persona_names: List[str]) -> int:
-        """Create recipes by calling create_recipes.py script.
+    async def fetch_parent_recipes(
+        self, client: CookstemmaClient, min_count: int = 20
+    ) -> int:
+        """Fetch existing recipes from database to use as parents for variants.
 
         Args:
-            count: Number of recipes to create
-            persona_names: List of persona names to use
+            client: API client for fetching recipes
+            min_count: Minimum number of recipes to fetch
 
         Returns:
-            Number of successfully created recipes
+            Number of recipes cached in the pool
+        """
+        print(f"    Fetching parent recipes (target: {min_count})...")
+
+        page = 0
+        page_size = 20
+
+        while len(self._parent_recipe_pool) < min_count:
+            try:
+                # Fetch a page of recipes
+                recipes_page = await client.get_recipes(
+                    page=page,
+                    size=page_size,
+                    sort="createdAt,desc"
+                )
+
+                if not recipes_page.content:
+                    break
+
+                # Filter for quality recipes (has ingredients, steps, min 3 steps)
+                quality_recipes = [
+                    recipe for recipe in recipes_page.content
+                    if recipe.ingredients and len(recipe.ingredients) > 0
+                    and recipe.steps and len(recipe.steps) >= 3
+                ]
+
+                self._parent_recipe_pool.extend(quality_recipes)
+
+                # If this is the last page, stop
+                if recipes_page.last:
+                    break
+
+                page += 1
+
+            except Exception as e:
+                print(f"      Warning: Failed to fetch recipes page {page}: {e}")
+                break
+
+        count = len(self._parent_recipe_pool)
+        print(f"    ✓ Cached {count} parent recipes")
+        return count
+
+    async def create_recipes(
+        self,
+        count: int,  # Original recipes
+        persona_names: List[str],
+        variant_count: int = 0,  # NEW: Variant recipes
+        personas: Optional[List[BotPersona]] = None,  # NEW: For variants
+        client: Optional[CookstemmaClient] = None,  # NEW: For variants
+    ) -> Tuple[int, int]:  # Returns (originals, variants)
+        """Create original and variant recipes.
+
+        Args:
+            count: Number of original recipes to create
+            persona_names: List of persona names to use for originals
+            variant_count: Number of variant recipes to create
+            personas: List of personas for variants (required if variant_count > 0)
+            client: API client for variants (required if variant_count > 0)
+
+        Returns:
+            Tuple of (successful_originals, successful_variants)
+        """
+        success_originals = 0
+        success_variants = 0
+
+        # Create original recipes via subprocess
+        if count > 0:
+            print(f"      Creating {count} original recipes...")
+
+            for _ in range(count):
+                try:
+                    # Call create_recipes.py script
+                    result = subprocess.run(
+                        [
+                            sys.executable,
+                            str(self.scripts_dir / "create_recipes.py"),
+                            "--count", "1",
+                            "--cover", "1",
+                        ],
+                        cwd=self.scripts_dir.parent,
+                        capture_output=True,
+                        text=True,
+                        encoding='utf-8',
+                        errors='replace',  # Replace problematic characters instead of failing
+                        timeout=120,
+                    )
+
+                    if result.returncode == 0:
+                        success_originals += 1
+                    else:
+                        print(f"        Recipe creation failed: {result.stderr[:200]}")
+
+                    # Small delay between creations
+                    await asyncio.sleep(2)
+
+                except subprocess.TimeoutExpired:
+                    print("        Recipe creation timed out")
+                except Exception as e:
+                    print(f"        Recipe creation error: {e}")
+
+        # Create variant recipes
+        if variant_count > 0 and personas and client:
+            success_variants = await self.create_variant_recipes(
+                count=variant_count,
+                personas=personas,
+                client=client,
+            )
+
+        return (success_originals, success_variants)
+
+    async def create_variant_recipes(
+        self,
+        count: int,
+        personas: List[BotPersona],
+        client: CookstemmaClient,
+    ) -> int:
+        """Create variant recipes using RecipePipeline.
+
+        Args:
+            count: Number of variants to create
+            personas: List of personas to randomly assign
+            client: API client for recipe operations
+
+        Returns:
+            Number of successfully created variants
         """
         if count == 0:
             return 0
 
-        print(f"      Creating {count} recipes...")
+        if not self._parent_recipe_pool:
+            print("      Warning: No parent recipes available, skipping variants")
+            return 0
 
-        # For now, use random personas from the list
-        # Future: could be more sophisticated in persona selection
+        print(f"      Creating {count} variant recipes...")
+
+        # All 10 variation types
+        variation_types = [
+            "healthier", "budget", "quick", "vegetarian", "spicier",
+            "kid_friendly", "gourmet", "vegan", "high_protein", "low_carb"
+        ]
+
         successes = 0
 
         for _ in range(count):
             try:
-                # Call create_recipes.py script
-                result = subprocess.run(
-                    [
-                        sys.executable,
-                        str(self.scripts_dir / "create_recipes.py"),
-                        "--count", "1",
-                        "--cover", "1",
-                    ],
-                    cwd=self.scripts_dir.parent,
-                    capture_output=True,
-                    text=True,
-                    encoding='utf-8',
-                    errors='replace',  # Replace problematic characters instead of failing
-                    timeout=120,
+                # Pick random parent from pool
+                parent_recipe = random.choice(self._parent_recipe_pool)
+
+                # Pick random persona
+                persona = random.choice(personas)
+
+                # Pick random variation type
+                variation_type = random.choice(variation_types)
+
+                # Initialize pipeline
+                pipeline = RecipePipeline(
+                    client=client,
+                    persona=persona,
+                    parent_recipe_id=parent_recipe.public_id,
+                    variation_type=variation_type,
                 )
 
-                if result.returncode == 0:
+                # Generate variant
+                variant_recipe = await pipeline.generate_variant_recipe()
+
+                if variant_recipe:
                     successes += 1
+                    # Add the new variant to the pool so it can be a parent too
+                    self._parent_recipe_pool.append(variant_recipe)
                 else:
-                    print(f"        Recipe creation failed: {result.stderr[:200]}")
+                    print(f"        Variant creation returned None")
 
                 # Small delay between creations
                 await asyncio.sleep(2)
 
-            except subprocess.TimeoutExpired:
-                print("        Recipe creation timed out")
             except Exception as e:
-                print(f"        Recipe creation error: {e}")
+                print(f"        Variant creation error: {e}")
 
         return successes
 
@@ -635,12 +793,14 @@ class EngagementSimulator:
         total_social: int,
         duration_hours: int = 24,
         dry_run: bool = False,
+        variant_ratio: float = 0.5,
     ) -> None:
         self.total_recipes = total_recipes
         self.total_logs = total_logs
         self.total_social = total_social
         self.duration_hours = duration_hours
         self.dry_run = dry_run
+        self.variant_ratio = variant_ratio
 
         self.settings = get_settings()
         self.scripts_dir = Path(__file__).parent
@@ -648,7 +808,8 @@ class EngagementSimulator:
 
         # Initialize components
         self.scheduler = ActivityScheduler(
-            total_recipes, total_logs, total_social, duration_hours
+            total_recipes, total_logs, total_social, duration_hours,
+            variant_ratio=variant_ratio
         )
         self.content_orchestrator = ContentOrchestrator(self.scripts_dir)
         self.social_engine = SocialInteractionEngine()
@@ -663,6 +824,7 @@ class EngagementSimulator:
         print("Configuration:")
         print(f"  Duration: {self.duration_hours} hours")
         print(f"  Total Recipes: {self.total_recipes}")
+        print(f"  Variant Ratio: {self.variant_ratio:.0%}")
         print(f"  Total Logs: {self.total_logs}")
         print(f"  Total Social Actions: {self.total_social}")
         print()
@@ -680,9 +842,12 @@ class EngagementSimulator:
         print("Hourly Schedule:")
         print()
         for activity in schedule:
+            recipe_detail = f"{activity.recipes} recipes"
+            if activity.recipes > 0 and (activity.recipes_original > 0 or activity.recipes_variant > 0):
+                recipe_detail += f" ({activity.recipes_original}o/{activity.recipes_variant}v)"
             print(
                 f"  Hour {activity.hour:2d}: "
-                f"{activity.recipes} recipes, {activity.logs} logs, "
+                f"{recipe_detail}, {activity.logs} logs, "
                 f"{activity.total_social} social"
             )
         print()
@@ -706,14 +871,21 @@ class EngagementSimulator:
 
         # Content creation (subprocess calls)
         if activity.recipes > 0:
-            print(f"    ⏳ Creating {activity.recipes} recipes...")
+            print(f"    ⏳ Creating {activity.recipes} recipes "
+                  f"({activity.recipes_original} original, {activity.recipes_variant} variant)...")
             if not self.dry_run:
-                success_count = await self.content_orchestrator.create_recipes(
-                    activity.recipes,
-                    [p.name for p in personas],
+                success_orig, success_var = await self.content_orchestrator.create_recipes(
+                    count=activity.recipes_original,
+                    persona_names=[p.name for p in personas],
+                    variant_count=activity.recipes_variant,
+                    personas=personas,
+                    client=client,
                 )
-                self.stats.recipes_created += success_count
-                self.stats.failed_actions += activity.recipes - success_count
+                self.stats.recipes_created += success_orig + success_var
+                self.stats.recipes_original += success_orig
+                self.stats.recipes_variant += success_var
+                self.stats.failed_actions += (activity.recipes_original - success_orig) + \
+                                              (activity.recipes_variant - success_var)
 
         if activity.logs > 0:
             print(f"    ⏳ Creating {activity.logs} logs...")
@@ -799,7 +971,8 @@ class EngagementSimulator:
         print("Final Report:")
         print(f"  Duration: {int(hours)}h {int(minutes)}m {int(seconds)}s")
         print(f"  Recipes Created: {self.stats.recipes_created}/{self.total_recipes} "
-              f"({self.stats.recipes_created/self.total_recipes*100:.0f}%)")
+              f"({self.stats.recipes_created/self.total_recipes*100:.0f}%) "
+              f"[{self.stats.recipes_original} original, {self.stats.recipes_variant} variant]")
         print(f"  Logs Created: {self.stats.logs_created}/{self.total_logs} "
               f"({self.stats.logs_created/self.total_logs*100:.0f}%)")
         print(f"  Social Actions: {self.stats.total_social}/{self.total_social} "
@@ -868,6 +1041,17 @@ class EngagementSimulator:
             # Use authenticated personas for the simulation
             personas = authenticated
 
+            # Fetch parent recipes if we need to create variants
+            if self.total_recipes > 0:
+                total_variants = int(self.total_recipes * self.variant_ratio)
+                if total_variants > 0:
+                    min_parents = max(20, total_variants * 2)
+                    print(f"Fetching parent recipes for {total_variants} variants...")
+                    await self.content_orchestrator.fetch_parent_recipes(
+                        client=client, min_count=min_parents
+                    )
+                    print()
+
             # Execute each hour
             for activity in schedule:
                 await self.execute_hourly_activity(activity, personas, client)
@@ -922,6 +1106,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Show schedule without executing actions",
     )
+    parser.add_argument(
+        "--variant-ratio",
+        type=float,
+        default=None,
+        help="Ratio of variant recipes (0.0-1.0, default: from settings or 0.5)",
+    )
     return parser.parse_args()
 
 
@@ -935,6 +1125,8 @@ async def main() -> None:
     total_recipes = args.recipes or settings.recipes_per_24h
     total_logs = args.logs or settings.logs_per_24h
     total_social = args.social or settings.social_actions_per_24h
+    variant_ratio = args.variant_ratio if args.variant_ratio is not None else \
+                    getattr(settings, 'variant_ratio', 0.5)
 
     # Create and run simulator
     simulator = EngagementSimulator(
@@ -943,6 +1135,7 @@ async def main() -> None:
         total_social=total_social,
         duration_hours=duration_hours,
         dry_run=args.dry_run,
+        variant_ratio=variant_ratio,
     )
 
     await simulator.run_24h_simulation()
