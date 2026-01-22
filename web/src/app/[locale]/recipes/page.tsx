@@ -91,8 +91,8 @@ export default async function RecipesPage({ params, searchParams }: Props) {
   if (queryParams.minServings) filterParams.set('minServings', queryParams.minServings);
   if (queryParams.maxServings) filterParams.set('maxServings', queryParams.maxServings);
   const baseUrl = filterParams.toString()
-    ? `/recipes?${filterParams.toString()}`
-    : '/recipes';
+    ? `/${pageLocale}/recipes?${filterParams.toString()}`
+    : `/${pageLocale}/recipes`;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -108,7 +108,7 @@ export default async function RecipesPage({ params, searchParams }: Props) {
 
       {/* Filters */}
       <Suspense fallback={<div className="h-12 mb-6" />}>
-        <RecipeFilters baseUrl="/recipes" />
+        <RecipeFilters baseUrl={`/${pageLocale}/recipes`} />
       </Suspense>
 
       {/* Results count */}
