@@ -256,26 +256,22 @@ class ContentOrchestrator:
         while len(self._parent_recipe_pool) < min_count:
             try:
                 # Fetch a page of recipes
-                recipes_page = await client.get_recipes(
-                    page=page,
-                    size=page_size,
-                    sort="createdAt,desc"
-                )
+                recipes = await client.get_recipes(page=page, size=page_size)
 
-                if not recipes_page.content:
+                if not recipes:
                     break
 
                 # Filter for quality recipes (has ingredients, steps, min 3 steps)
                 quality_recipes = [
-                    recipe for recipe in recipes_page.content
+                    recipe for recipe in recipes
                     if recipe.ingredients and len(recipe.ingredients) > 0
                     and recipe.steps and len(recipe.steps) >= 3
                 ]
 
                 self._parent_recipe_pool.extend(quality_recipes)
 
-                # If this is the last page, stop
-                if recipes_page.last:
+                # If we got fewer recipes than requested, we've reached the end
+                if len(recipes) < page_size:
                     break
 
                 page += 1
