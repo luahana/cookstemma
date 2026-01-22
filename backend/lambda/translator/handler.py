@@ -834,7 +834,11 @@ def process_full_recipe_event(conn, translator: GeminiTranslator, event: dict,
     new_completed = list(completed_locales)
     failed_locales = []
 
+    logger.info(f"Recipe {entity_id}: Starting translation for {len(pending_locales)} locales: {pending_locales}")
+    logger.info(f"Recipe {entity_id}: Initial completed_locales: {completed_locales}")
+
     for target_locale in pending_locales:
+        logger.info(f"Recipe {entity_id}: Attempting translation to {target_locale}")
         try:
             # Use batch translation for full recipe context
             translated = translator.translate_recipe_batch(
@@ -842,6 +846,7 @@ def process_full_recipe_event(conn, translator: GeminiTranslator, event: dict,
                 source_locale=source_locale,
                 target_locale=target_locale
             )
+            logger.info(f"Recipe {entity_id}: translate_recipe_batch succeeded for {target_locale}")
 
             # Validate translation completeness
             if not translated.get('title') or not translated.get('steps') or not translated.get('ingredients'):
@@ -859,19 +864,23 @@ def process_full_recipe_event(conn, translator: GeminiTranslator, event: dict,
 
             # Save all translations (recipe, steps, ingredients)
             # + propagate to FoodMaster and AutocompleteItem
+            logger.info(f"Recipe {entity_id}: Calling save_full_recipe_translations for {target_locale}")
             save_full_recipe_translations(
                 conn, entity_id, full_recipe, translated, target_locale
             )
+            logger.info(f"Recipe {entity_id}: save_full_recipe_translations succeeded for {target_locale}")
 
             new_completed.append(target_locale)
-            logger.info(f"Translated full recipe {entity_id} to {target_locale}")
+            logger.info(f"Recipe {entity_id}: Added {target_locale} to new_completed. Current count: {len(new_completed)}")
 
         except Exception as e:
             failed_locales.append(target_locale)
-            logger.error(f"Failed to translate recipe {entity_id} to {target_locale}: {e}", exc_info=True)
+            logger.error(f"Recipe {entity_id}: FAILED to translate to {target_locale}: {e}", exc_info=True)
             # Continue with other locales
 
     # Update completed locales
+    logger.info(f"Recipe {entity_id}: Final new_completed ({len(new_completed)} locales): {new_completed}")
+    logger.info(f"Recipe {entity_id}: Failed locales ({len(failed_locales)}): {failed_locales}")
     update_completed_locales(conn, event['id'], new_completed)
 
     # Log summary of translation results
