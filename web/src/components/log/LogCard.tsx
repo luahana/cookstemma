@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type { LogPostSummary } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
@@ -17,6 +18,14 @@ interface LogCardProps {
 export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCardProps) {
   const tCommon = useTranslations('common');
   const tCard = useTranslations('card');
+  const tComments = useTranslations('comments');
+  const router = useRouter();
+
+  const handleCommentClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/logs/${log.publicId}#comments`);
+  };
 
   return (
     <Link
@@ -139,6 +148,32 @@ export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCard
                 #{tag}
               </span>
             ))}
+          </div>
+        )}
+
+        {/* Engagement metrics */}
+        {log.commentCount > 0 && (
+          <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] mt-2">
+            <button
+              onClick={handleCommentClick}
+              className="flex items-center gap-1 hover:text-[var(--primary)] transition-colors"
+              aria-label={log.commentCount === 1 ? tComments('countSingular') : tComments('count', { count: log.commentCount })}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              {log.commentCount}
+            </button>
           </div>
         )}
       </div>

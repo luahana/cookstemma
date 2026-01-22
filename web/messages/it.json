@@ -174,7 +174,9 @@
     "justNow": "just now",
     "minutesAgo": "{count}m ago",
     "hoursAgo": "{count}h ago",
-    "daysAgo": "{count}d ago"
+    "daysAgo": "{count}d ago",
+    "count": "{count} commenti",
+    "countSingular": "1 commento"
   },
   "profile": {
     "followers": "Follower",

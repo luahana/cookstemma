@@ -174,7 +174,9 @@
     "justNow": "just now",
     "minutesAgo": "{count}m ago",
     "hoursAgo": "{count}h ago",
-    "daysAgo": "{count}d ago"
+    "daysAgo": "{count}d ago",
+    "count": "{count} टिप्पणियाँ",
+    "countSingular": "1 टिप्पणी"
   },
   "profile": {
     "followers": "फॉलोअर्स",

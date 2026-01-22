@@ -250,11 +250,13 @@ export default async function LogDetailPage({ params }: Props) {
         )}
 
         {/* Comments section */}
-        <CommentSection
-          logPublicId={publicId}
-          initialCommentCount={log.commentCount}
-          className="mt-8 pt-8 border-t border-[var(--border)]"
-        />
+        <div id="comments" className="scroll-mt-20">
+          <CommentSection
+            logPublicId={publicId}
+            initialCommentCount={log.commentCount}
+            className="mt-8 pt-8 border-t border-[var(--border)]"
+          />
+        </div>
       </article>
     </>
   );
