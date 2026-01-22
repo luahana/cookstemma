@@ -13,7 +13,7 @@ public record SuggestedFoodFilterDto(
     public SuggestedFoodFilterDto {
         // Default sort order if not provided
         if (sortBy == null || sortBy.isBlank()) {
-            sortBy = "createdAt";
+            sortBy = "createdAt"; 
         }
         if (sortOrder == null || sortOrder.isBlank()) {
             sortOrder = "desc";
