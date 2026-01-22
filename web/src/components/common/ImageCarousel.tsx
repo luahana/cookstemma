@@ -35,6 +35,7 @@ export function ImageCarousel({ images, alt }: ImageCarouselProps) {
           className="object-cover"
           priority
           sizes="(max-width: 896px) 100vw, 896px"
+          unoptimized
         />
       </div>
     );
