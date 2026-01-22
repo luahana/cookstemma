@@ -371,8 +371,9 @@ public class TranslationEventService {
     public void forceRecipeTranslation(Recipe recipe, String sourceLocale) {
         String normalized = normalizeLocale(sourceLocale);
 
-        // Translate to ALL locales (not excluding source, since we want full coverage)
+        // Translate to all locales except source (can't translate a language to itself)
         List<String> targetLocales = new ArrayList<>(ALL_LOCALES);
+        targetLocales.remove(normalized);
 
         // Cancel any existing pending translations for this recipe (all types)
         cancelPendingTranslations(TranslatableEntity.RECIPE_FULL, recipe.getId());
