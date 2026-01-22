@@ -7,12 +7,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import { likeComment, unlikeComment, editComment, deleteComment } from '@/lib/api/comments';
 import { CommentInput } from './CommentInput';
 import type { Comment } from '@/lib/types';
+import { ActionMenu, ActionMenuIcons } from '@/components/shared/ActionMenu';
+import { BlockConfirmDialog } from '@/components/shared/BlockConfirmDialog';
+import { ReportModal } from '@/components/shared/ReportModal';
+import {
+  blockUser,
+  getBlockStatus,
+  reportUser,
+  type ReportReason,
+} from '@/lib/api/moderation';
 
 interface CommentCardProps {
   comment: Comment;
   onReply?: (content: string) => Promise<void>;
   onUpdate?: (updatedComment: Comment) => void;
   onDelete?: () => void;
+  onBlock?: (blockedUserId: string) => void;
   showReplyButton?: boolean;
   className?: string;
 }
@@ -22,10 +32,12 @@ export function CommentCard({
   onReply,
   onUpdate,
   onDelete,
+  onBlock,
   showReplyButton = true,
   className = '',
 }: CommentCardProps) {
   const t = useTranslations('comments');
+  const tModeration = useTranslations('moderation');
   const { user, isAuthenticated } = useAuth();
   const [isLiked, setIsLiked] = useState(comment.isLikedByCurrentUser ?? false);
   const [likeCount, setLikeCount] = useState(comment.likeCount);
@@ -34,6 +46,15 @@ export function CommentCard({
   const [isReplying, setIsReplying] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [isBlocked, setIsBlocked] = useState<boolean | null>(null);
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [isBlocking, setIsBlocking] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
+  const [toast, setToast] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
   const isOwner = isAuthenticated && user?.publicId === comment.creatorPublicId;
 
@@ -96,6 +117,58 @@ export function CommentCard({
     },
     [onReply],
   );
+
+  // Fetch block status when menu opens (lazy load)
+  const checkBlockStatus = useCallback(async () => {
+    if (isBlocked !== null || !comment.creatorPublicId) return;
+    try {
+      const status = await getBlockStatus(comment.creatorPublicId);
+      setIsBlocked(status.isBlocked);
+    } catch (err) {
+      console.error('Failed to check block status:', err);
+    }
+  }, [comment.creatorPublicId, isBlocked]);
+
+  // Handle block confirmation
+  const handleBlockConfirm = async () => {
+    setIsBlocking(true);
+    try {
+      await blockUser(comment.creatorPublicId);
+      setIsBlocked(true);
+      setToast({
+        type: 'success',
+        message: tModeration('blockSuccess', { username: comment.creatorUsername }),
+      });
+      // Notify parent to hide comments
+      onBlock?.(comment.creatorPublicId);
+      // Reload page after short delay to ensure all content is hidden
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err) {
+      console.error('Failed to block user:', err);
+      setToast({ type: 'error', message: tModeration('blockFailed') });
+    } finally {
+      setIsBlocking(false);
+      setShowBlockDialog(false);
+    }
+  };
+
+  // Handle report submission
+  const handleReportSubmit = async (
+    reason: ReportReason,
+    description?: string,
+  ) => {
+    setIsReporting(true);
+    try {
+      await reportUser(comment.creatorPublicId, reason, description);
+      setToast({ type: 'success', message: tModeration('reportSuccess') });
+    } catch (err) {
+      console.error('Failed to report:', err);
+      setToast({ type: 'error', message: tModeration('reportFailed') });
+    } finally {
+      setIsReporting(false);
+      setShowReportModal(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -216,46 +289,44 @@ export function CommentCard({
                 </button>
               )}
 
-              {/* More actions (owner only) */}
-              {isOwner && (
-                <div className="relative">
-                  <button
-                    onClick={() => setShowMenu(!showMenu)}
-                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                      />
-                    </svg>
-                  </button>
-
-                  {showMenu && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                      <div className="absolute right-0 top-6 z-20 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg py-1 min-w-[120px]">
-                        <button
-                          onClick={() => {
-                            setIsEditing(true);
-                            setShowMenu(false);
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm text-[var(--text-primary)] hover:bg-[var(--border)] transition-colors"
-                        >
-                          {t('edit')}
-                        </button>
-                        <button
-                          onClick={handleDelete}
-                          disabled={isDeleting}
-                          className="w-full px-4 py-2 text-left text-sm text-[var(--error)] hover:bg-[var(--border)] transition-colors disabled:opacity-50"
-                        >
-                          {isDeleting ? t('deleting') : t('delete')}
-                        </button>
-                      </div>
-                    </>
-                  )}
+              {/* More actions menu */}
+              {isAuthenticated && (
+                <div className="relative" onMouseEnter={checkBlockStatus}>
+                  <ActionMenu
+                    items={
+                      isOwner
+                        ? [
+                            {
+                              label: t('edit'),
+                              onClick: () => setIsEditing(true),
+                              icon: ActionMenuIcons.edit,
+                            },
+                            {
+                              label: t('delete'),
+                              onClick: handleDelete,
+                              icon: ActionMenuIcons.delete,
+                              isDestructive: true,
+                              disabled: isDeleting,
+                            },
+                          ]
+                        : [
+                            {
+                              label: t('reportComment'),
+                              onClick: () => setShowReportModal(true),
+                              icon: ActionMenuIcons.report,
+                              isDestructive: true,
+                            },
+                            {
+                              label: tModeration('blockUser'),
+                              onClick: () => setShowBlockDialog(true),
+                              icon: ActionMenuIcons.block,
+                              isDestructive: true,
+                              disabled: isBlocked === true,
+                              tooltip: isBlocked ? t('alreadyBlocked') : undefined,
+                            },
+                          ]
+                    }
+                  />
                 </div>
               )}
             </div>
@@ -274,6 +345,45 @@ export function CommentCard({
           )}
         </div>
       </div>
+
+      {/* Block confirmation dialog */}
+      <BlockConfirmDialog
+        isOpen={showBlockDialog}
+        username={comment.creatorUsername}
+        onConfirm={handleBlockConfirm}
+        onCancel={() => setShowBlockDialog(false)}
+        isBlocking={isBlocking}
+      />
+
+      {/* Report modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        targetName={comment.creatorUsername}
+        onSubmit={handleReportSubmit}
+        onCancel={() => setShowReportModal(false)}
+        isSubmitting={isReporting}
+      />
+
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg max-w-sm ${
+            toast.type === 'success'
+              ? 'bg-[var(--success)] text-white'
+              : 'bg-[var(--error)] text-white'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <span>{toast.message}</span>
+            <button
+              onClick={() => setToast(null)}
+              className="text-white/80 hover:text-white"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -25,6 +25,7 @@ export function CommentSection({
   const [totalPages, setTotalPages] = useState(0);
   const [totalComments, setTotalComments] = useState(initialCommentCount);
   const [error, setError] = useState<string | null>(null);
+  const [blockedUserIds, setBlockedUserIds] = useState<Set<string>>(new Set());
 
   // Load comments
   const loadComments = useCallback(
@@ -168,6 +169,11 @@ export function CommentSection({
     [],
   );
 
+  // Handle user blocked
+  const handleUserBlocked = useCallback((blockedUserId: string) => {
+    setBlockedUserIds((prev) => new Set(prev).add(blockedUserId));
+  }, []);
+
   // Load more comments
   const handleLoadMore = useCallback(() => {
     if (currentPage < totalPages - 1) {
@@ -206,59 +212,69 @@ export function CommentSection({
 
       {!isLoading && comments.length > 0 && (
         <div className="divide-y divide-[var(--border)]">
-          {comments.map((commentWithReplies) => (
-            <div key={commentWithReplies.comment.publicId}>
-              {/* Top-level comment */}
-              <CommentCard
-                comment={commentWithReplies.comment}
-                onReply={(content) => handleCreateReply(commentWithReplies, content)}
-                onUpdate={(updated) =>
-                  handleUpdateComment(commentWithReplies.comment.publicId, updated)
-                }
-                onDelete={() => handleDeleteComment(commentWithReplies.comment.publicId)}
-              />
+          {comments
+            .filter((c) => !blockedUserIds.has(c.comment.creatorPublicId))
+            .map((commentWithReplies) => {
+              const filteredReplies = commentWithReplies.replies.filter(
+                (reply) => !blockedUserIds.has(reply.creatorPublicId),
+              );
+              return (
+                <div key={commentWithReplies.comment.publicId}>
+                  {/* Top-level comment */}
+                  <CommentCard
+                    comment={commentWithReplies.comment}
+                    onReply={(content) => handleCreateReply(commentWithReplies, content)}
+                    onUpdate={(updated) =>
+                      handleUpdateComment(commentWithReplies.comment.publicId, updated)
+                    }
+                    onDelete={() => handleDeleteComment(commentWithReplies.comment.publicId)}
+                    onBlock={handleUserBlocked}
+                  />
 
-              {/* Replies */}
-              {commentWithReplies.replies.length > 0 && (
-                <div className="ml-11 border-l-2 border-[var(--border)] pl-4">
-                  {commentWithReplies.replies.map((reply) => (
-                    <CommentCard
-                      key={reply.publicId}
-                      comment={reply}
-                      showReplyButton={false}
-                      onUpdate={(updated) =>
-                        handleUpdateComment(
-                          reply.publicId,
-                          updated,
-                          true,
-                          commentWithReplies.comment.publicId,
-                        )
-                      }
-                      onDelete={() =>
-                        handleDeleteComment(
-                          reply.publicId,
-                          true,
-                          commentWithReplies.comment.publicId,
-                        )
-                      }
-                    />
-                  ))}
+                  {/* Replies */}
+                  {filteredReplies.length > 0 && (
+                    <div className="ml-11 border-l-2 border-[var(--border)] pl-4">
+                      {filteredReplies.map((reply) => (
+                        <CommentCard
+                          key={reply.publicId}
+                          comment={reply}
+                          showReplyButton={false}
+                          onUpdate={(updated) =>
+                            handleUpdateComment(
+                              reply.publicId,
+                              updated,
+                              true,
+                              commentWithReplies.comment.publicId,
+                            )
+                          }
+                          onDelete={() =>
+                            handleDeleteComment(
+                              reply.publicId,
+                              true,
+                              commentWithReplies.comment.publicId,
+                            )
+                          }
+                          onBlock={handleUserBlocked}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Load more replies button */}
+                  {commentWithReplies.hasMoreReplies && (
+                    <button
+                      onClick={() => handleLoadMoreReplies(commentWithReplies)}
+                      className="ml-11 mb-3 text-sm text-[var(--primary)] hover:underline"
+                    >
+                      {t('viewReplies', {
+                        count:
+                          commentWithReplies.comment.replyCount - commentWithReplies.replies.length,
+                      })}
+                    </button>
+                  )}
                 </div>
-              )}
-
-              {/* Load more replies button */}
-              {commentWithReplies.hasMoreReplies && (
-                <button
-                  onClick={() => handleLoadMoreReplies(commentWithReplies)}
-                  className="ml-11 mb-3 text-sm text-[var(--primary)] hover:underline"
-                >
-                  {t('viewReplies', {
-                    count: commentWithReplies.comment.replyCount - commentWithReplies.replies.length,
-                  })}
-                </button>
-              )}
-            </div>
-          ))}
+              );
+            })}
         </div>
       )}
 

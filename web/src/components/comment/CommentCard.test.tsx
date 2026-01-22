@@ -19,8 +19,21 @@ jest.mock('next-intl', () => ({
       deleteConfirm: 'Are you sure you want to delete this comment?',
       loginToComment: 'Sign in to leave a comment',
       justNow: 'just now',
+      reportComment: 'Report Comment',
+      alreadyBlocked: 'Already blocked',
+      blockUser: 'Block User',
+      blockSuccess: '{username} has been blocked',
+      blockFailed: 'Failed to block user',
+      reportSuccess: 'Report submitted',
+      reportFailed: 'Failed to report',
     };
-    return translations[key] || key;
+    return (args?: any) => {
+      const result = translations[key] || key;
+      if (args && typeof result === 'string') {
+        return result.replace('{username}', args.username || '');
+      }
+      return result;
+    };
   },
 }));
 
@@ -41,6 +54,66 @@ jest.mock('@/lib/api/comments', () => ({
   unlikeComment: jest.fn(),
 }));
 
+// Mock moderation API
+jest.mock('@/lib/api/moderation', () => ({
+  blockUser: jest.fn(),
+  getBlockStatus: jest.fn(),
+  reportUser: jest.fn(),
+}));
+
+// Mock shared components
+jest.mock('@/components/shared/ActionMenu', () => ({
+  ActionMenu: ({ items }: { items: any[] }) => (
+    <div data-testid="action-menu">
+      {items.map((item, index) => (
+        <button
+          key={index}
+          onClick={item.onClick}
+          disabled={item.disabled}
+          title={item.tooltip}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  ),
+  ActionMenuIcons: {
+    edit: <span>edit-icon</span>,
+    delete: <span>delete-icon</span>,
+    block: <span>block-icon</span>,
+    report: <span>report-icon</span>,
+  },
+}));
+
+jest.mock('@/components/shared/BlockConfirmDialog', () => ({
+  BlockConfirmDialog: ({
+    isOpen,
+    username,
+    onConfirm,
+    onCancel,
+  }: any) =>
+    isOpen ? (
+      <div data-testid="block-dialog">
+        <p>Block {username}?</p>
+        <button onClick={onConfirm}>Confirm Block</button>
+        <button onClick={onCancel}>Cancel</button>
+      </div>
+    ) : null,
+}));
+
+jest.mock('@/components/shared/ReportModal', () => ({
+  ReportModal: ({ isOpen, targetName, onSubmit, onCancel }: any) =>
+    isOpen ? (
+      <div data-testid="report-modal">
+        <p>Report {targetName}</p>
+        <button onClick={() => onSubmit('SPAM', 'Test description')}>
+          Submit Report
+        </button>
+        <button onClick={onCancel}>Cancel</button>
+      </div>
+    ) : null,
+}));
+
 // Mock the AuthContext
 jest.mock('@/contexts/AuthContext', () => ({
   useAuth: jest.fn(() => ({
@@ -50,12 +123,16 @@ jest.mock('@/contexts/AuthContext', () => ({
 }));
 
 import { editComment, deleteComment, likeComment, unlikeComment } from '@/lib/api/comments';
+import { blockUser, getBlockStatus, reportUser } from '@/lib/api/moderation';
 import { useAuth } from '@/contexts/AuthContext';
 
 const mockEditComment = editComment as jest.Mock;
 const mockDeleteComment = deleteComment as jest.Mock;
 const mockLikeComment = likeComment as jest.Mock;
 const mockUnlikeComment = unlikeComment as jest.Mock;
+const mockBlockUser = blockUser as jest.Mock;
+const mockGetBlockStatus = getBlockStatus as jest.Mock;
+const mockReportUser = reportUser as jest.Mock;
 const mockUseAuth = useAuth as jest.Mock;
 
 const mockComment = {
@@ -76,13 +153,21 @@ describe('CommentCard', () => {
   const mockOnReply = jest.fn();
   const mockOnUpdate = jest.fn();
   const mockOnDelete = jest.fn();
+  const mockOnBlock = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
+    delete (window as any).location;
+    (window as any).location = { reload: jest.fn() };
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       user: { publicId: 'current-user-123', username: 'currentuser' },
     });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('Rendering', () => {
@@ -432,6 +517,182 @@ describe('CommentCard', () => {
       const buttons = screen.getAllByRole('button');
       const likeButton = buttons.find(btn => btn.textContent?.includes('5'));
       expect(likeButton).toBeDisabled();
+    });
+  });
+
+  describe('Block and Report Actions', () => {
+    it('should show block/report menu for non-owners', () => {
+      render(
+        <CommentCard
+          comment={mockComment}
+          onReply={mockOnReply}
+          onUpdate={mockOnUpdate}
+          onDelete={mockOnDelete}
+          onBlock={mockOnBlock}
+        />
+      );
+
+      expect(screen.getByText('Report Comment')).toBeInTheDocument();
+      expect(screen.getByText('Block User')).toBeInTheDocument();
+    });
+
+    it('should not show block/report for owners', () => {
+      const ownComment = { ...mockComment, creatorPublicId: 'current-user-123' };
+
+      render(
+        <CommentCard
+          comment={ownComment}
+          onReply={mockOnReply}
+          onUpdate={mockOnUpdate}
+          onDelete={mockOnDelete}
+          onBlock={mockOnBlock}
+        />
+      );
+
+      expect(screen.queryByText('Report Comment')).not.toBeInTheDocument();
+      expect(screen.queryByText('Block User')).not.toBeInTheDocument();
+      expect(screen.getByText('Edit')).toBeInTheDocument();
+      expect(screen.getByText('Delete')).toBeInTheDocument();
+    });
+
+    it('should open block dialog and call API on confirm', async () => {
+      mockBlockUser.mockResolvedValue(undefined);
+
+      render(
+        <CommentCard
+          comment={mockComment}
+          onReply={mockOnReply}
+          onUpdate={mockOnUpdate}
+          onDelete={mockOnDelete}
+          onBlock={mockOnBlock}
+        />
+      );
+
+      // Click "Block User"
+      fireEvent.click(screen.getByText('Block User'));
+
+      // Dialog should appear
+      await waitFor(() => {
+        expect(screen.getByTestId('block-dialog')).toBeInTheDocument();
+      });
+
+      // Confirm block
+      fireEvent.click(screen.getByText('Confirm Block'));
+
+      // API should be called
+      await waitFor(() => {
+        expect(mockBlockUser).toHaveBeenCalledWith('user-123');
+        expect(mockOnBlock).toHaveBeenCalledWith('user-123');
+      });
+
+      // Advance timers to trigger reload
+      jest.advanceTimersByTime(1500);
+      expect(window.location.reload).toHaveBeenCalled();
+    });
+
+    it('should open report modal and call API on submit', async () => {
+      mockReportUser.mockResolvedValue(undefined);
+
+      render(
+        <CommentCard
+          comment={mockComment}
+          onReply={mockOnReply}
+          onUpdate={mockOnUpdate}
+          onDelete={mockOnDelete}
+          onBlock={mockOnBlock}
+        />
+      );
+
+      // Click "Report Comment"
+      fireEvent.click(screen.getByText('Report Comment'));
+
+      // Modal should appear
+      await waitFor(() => {
+        expect(screen.getByTestId('report-modal')).toBeInTheDocument();
+      });
+
+      // Submit report
+      fireEvent.click(screen.getByText('Submit Report'));
+
+      // API should be called
+      await waitFor(() => {
+        expect(mockReportUser).toHaveBeenCalledWith(
+          'user-123',
+          'SPAM',
+          'Test description'
+        );
+      });
+    });
+
+    it('should show error toast on block failure', async () => {
+      mockBlockUser.mockRejectedValue(new Error('Network error'));
+
+      render(
+        <CommentCard
+          comment={mockComment}
+          onReply={mockOnReply}
+          onUpdate={mockOnUpdate}
+          onDelete={mockOnDelete}
+          onBlock={mockOnBlock}
+        />
+      );
+
+      // Click "Block User"
+      fireEvent.click(screen.getByText('Block User'));
+
+      // Confirm block
+      await waitFor(() => {
+        expect(screen.getByTestId('block-dialog')).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByText('Confirm Block'));
+
+      // Error toast should appear
+      await waitFor(() => {
+        expect(screen.getByText('Failed to block user')).toBeInTheDocument();
+      });
+    });
+
+    it('should disable block button if already blocked', async () => {
+      mockGetBlockStatus.mockResolvedValue({ isBlocked: true, amBlocked: false });
+
+      const { container } = render(
+        <CommentCard
+          comment={mockComment}
+          onReply={mockOnReply}
+          onUpdate={mockOnUpdate}
+          onDelete={mockOnDelete}
+          onBlock={mockOnBlock}
+        />
+      );
+
+      // Trigger hover to load block status
+      const actionMenu = screen.getByTestId('action-menu');
+      fireEvent.mouseEnter(actionMenu.parentElement!);
+
+      await waitFor(() => {
+        const blockButton = screen.getByText('Block User');
+        expect(blockButton).toBeDisabled();
+        expect(blockButton).toHaveAttribute('title', 'Already blocked');
+      });
+    });
+
+    it('should not show actions menu for unauthenticated users', () => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: false,
+        user: null,
+      });
+
+      render(
+        <CommentCard
+          comment={mockComment}
+          onReply={mockOnReply}
+          onUpdate={mockOnUpdate}
+          onDelete={mockOnDelete}
+          onBlock={mockOnBlock}
+        />
+      );
+
+      expect(screen.queryByTestId('action-menu')).not.toBeInTheDocument();
     });
   });
 });
