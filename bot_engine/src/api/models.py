@@ -305,7 +305,7 @@ class Comment(BaseModel):
     content: str
     log_post_public_id: Optional[str] = Field(default=None, alias="logPostPublicId")
     parent_comment_public_id: Optional[str] = Field(default=None, alias="parentCommentPublicId")
-    commenter_public_id: str = Field(alias="commenterPublicId")
+    commenter_public_id: Optional[str] = Field(default=None, alias="commenterPublicId")
     commenter_username: Optional[str] = Field(default=None, alias="commenterUsername")
     like_count: int = Field(default=0, alias="likeCount")
     reply_count: int = Field(default=0, alias="replyCount")
