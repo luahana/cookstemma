@@ -407,12 +407,15 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
 
     /**
      * Count log posts matching search keyword (for unified search chips, multi-language).
+     * Filters by locale availability to match actual search results.
      */
     @Query(value = """
         SELECT COUNT(DISTINCT lp.id) FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (SUBSTRING(lp.locale FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(lp.title_translations, :langCode))
         AND (
             lp.title ILIKE '%' || :keyword || '%'
             OR lp.content ILIKE '%' || :keyword || '%'
@@ -423,7 +426,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         )
         """,
         nativeQuery = true)
-    long countSearchResults(@Param("keyword") String keyword);
+    long countSearchResults(@Param("keyword") String keyword, @Param("langCode") String langCode);
 
     // ==================== ADMIN: UNTRANSLATED CONTENT ====================
 

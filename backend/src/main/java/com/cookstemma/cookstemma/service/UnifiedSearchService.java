@@ -66,9 +66,10 @@ public class UnifiedSearchService {
         String normalizedKeyword = keyword.trim();
         String normalizedType = type != null ? type.toLowerCase() : TYPE_ALL;
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+        String langCode = LocaleUtils.getLanguageCode(normalizedLocale);
 
-        // Get counts for all types (for filter chips)
-        SearchCounts counts = getCounts(normalizedKeyword);
+        // Get counts for all types (for filter chips) - filtered by locale
+        SearchCounts counts = getCounts(normalizedKeyword, langCode);
 
         // Fetch content based on type filter
         List<SearchResultItem> items;
@@ -99,10 +100,11 @@ public class UnifiedSearchService {
 
     /**
      * Get counts for all content types matching the keyword.
+     * Filters by locale to match actual search results.
      */
-    private SearchCounts getCounts(String keyword) {
-        int recipeCount = (int) recipeRepository.countSearchResults(keyword);
-        int logCount = (int) logPostRepository.countSearchResults(keyword);
+    private SearchCounts getCounts(String keyword, String langCode) {
+        int recipeCount = (int) recipeRepository.countSearchResults(keyword, langCode);
+        int logCount = (int) logPostRepository.countSearchResults(keyword, langCode);
         int hashtagCount = (int) hashtagRepository.countSearchResults(keyword);
 
         return SearchCounts.of(recipeCount, logCount, hashtagCount);

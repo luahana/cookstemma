@@ -591,11 +591,14 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     /**
      * Count recipes matching search keyword (for unified search chips, multi-language).
      * Optimized: searches title, description, and food name only (no ingredient/step search for performance).
+     * Filters by locale availability to match actual search results.
      */
     @Query(value = """
         SELECT COUNT(r.id) FROM recipes r
         LEFT JOIN foods_master fm ON fm.id = r.food_master_id
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND (SUBSTRING(r.cooking_style FROM 1 FOR 2) = :langCode
+             OR jsonb_exists(r.title_translations, :langCode))
         AND (
             r.title % :keyword OR r.title ILIKE '%' || :keyword || '%'
             OR r.description % :keyword OR r.description ILIKE '%' || :keyword || '%'
@@ -608,7 +611,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
         )
         """,
         nativeQuery = true)
-    long countSearchResults(@Param("keyword") String keyword);
+    long countSearchResults(@Param("keyword") String keyword, @Param("langCode") String langCode);
 
     // ==================== BATCH STATS FOR SEARCH PERFORMANCE ====================
 
