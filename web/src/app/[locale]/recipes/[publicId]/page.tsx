@@ -259,6 +259,7 @@ export default async function RecipeDetailPage({ params }: Props) {
                         fill
                         className="object-cover"
                         sizes="(max-width: 448px) 100vw, 448px"
+                        unoptimized
                       />
                     </div>
                   )}
