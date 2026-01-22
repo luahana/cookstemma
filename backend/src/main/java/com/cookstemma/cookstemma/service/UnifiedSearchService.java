@@ -66,10 +66,9 @@ public class UnifiedSearchService {
         String normalizedKeyword = keyword.trim();
         String normalizedType = type != null ? type.toLowerCase() : TYPE_ALL;
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
-        String langCode = LocaleUtils.getLanguageCode(normalizedLocale);
 
-        // Get counts for all types (for filter chips) - filtered by locale
-        SearchCounts counts = getCounts(normalizedKeyword, langCode);
+        // Get counts for all types (for filter chips)
+        SearchCounts counts = getCounts(normalizedKeyword);
 
         // Fetch content based on type filter
         List<SearchResultItem> items;
@@ -100,11 +99,10 @@ public class UnifiedSearchService {
 
     /**
      * Get counts for all content types matching the keyword.
-     * Filters by locale to match actual search results.
      */
-    private SearchCounts getCounts(String keyword, String langCode) {
-        int recipeCount = (int) recipeRepository.countSearchResults(keyword, langCode);
-        int logCount = (int) logPostRepository.countSearchResults(keyword, langCode);
+    private SearchCounts getCounts(String keyword) {
+        int recipeCount = (int) recipeRepository.countSearchResults(keyword);
+        int logCount = (int) logPostRepository.countSearchResults(keyword);
         int hashtagCount = (int) hashtagRepository.countSearchResults(keyword);
 
         return SearchCounts.of(recipeCount, logCount, hashtagCount);
@@ -112,7 +110,6 @@ public class UnifiedSearchService {
 
     /**
      * Search all types and merge results by relevance.
-     * Filters recipes and logs by translation availability based on locale.
      */
     private List<SearchResultItem> searchAll(String keyword, int page, int size, String locale, SearchCounts counts) {
         // For "all" type, we fetch proportionally from each type based on counts
@@ -125,9 +122,6 @@ public class UnifiedSearchService {
             return List.of();
         }
 
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(locale);
-
         // Fetch more items than needed to allow for proper pagination
         int fetchSize = size * 3;
         int skip = page * size;
@@ -135,12 +129,12 @@ public class UnifiedSearchService {
         List<SearchResultItem> allItems = new ArrayList<>();
 
         // Fetch recipes with position-based relevance
-        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword, langCode,
+        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword,
             PageRequest.of(0, fetchSize));
         addRecipeItems(allItems, recipes.getContent(), fetchSize, locale);
 
         // Fetch logs
-        Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword, langCode,
+        Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword,
             PageRequest.of(0, fetchSize));
         addLogItems(allItems, logs.getContent(), fetchSize, locale);
 
@@ -161,13 +155,9 @@ public class UnifiedSearchService {
 
     /**
      * Search only recipes.
-     * Filters by translation availability based on locale.
      */
     private List<SearchResultItem> searchRecipesOnly(String keyword, int page, int size, String locale) {
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(locale);
-
-        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword, langCode,
+        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword,
             PageRequest.of(page, size));
 
         List<SearchResultItem> items = new ArrayList<>();
@@ -177,13 +167,9 @@ public class UnifiedSearchService {
 
     /**
      * Search only logs.
-     * Filters by translation availability based on locale.
      */
     private List<SearchResultItem> searchLogsOnly(String keyword, int page, int size, String locale) {
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(locale);
-
-        Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword, langCode,
+        Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword,
             PageRequest.of(page, size));
 
         List<SearchResultItem> items = new ArrayList<>();

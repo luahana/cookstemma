@@ -296,13 +296,11 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     Page<LogPost> findMyLogsByRatingPage(@Param("creatorId") Long creatorId, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
 
     // [Offset] Search logs - page (multi-language)
-    // Filters by translation availability
     @Query(value = """
         SELECT DISTINCT lp.* FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND jsonb_exists(lp.title_translations, :langCode)
         AND (
             -- Base fields
             lp.title ILIKE '%' || :keyword || '%'
@@ -322,7 +320,6 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND jsonb_exists(lp.title_translations, :langCode)
         AND (
             lp.title ILIKE '%' || :keyword || '%'
             OR lp.content ILIKE '%' || :keyword || '%'
@@ -333,7 +330,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         )
         """,
         nativeQuery = true)
-    Page<LogPost> searchLogPostsPage(@Param("keyword") String keyword, @Param("langCode") String langCode, Pageable pageable);
+    Page<LogPost> searchLogPostsPage(@Param("keyword") String keyword, Pageable pageable);
 
     // ==================== HASHTAG-BASED QUERIES ====================
 
@@ -405,14 +402,12 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
 
     /**
      * Count log posts matching search keyword (for unified search chips, multi-language).
-     * Filters by translation availability to match actual search results.
      */
     @Query(value = """
         SELECT COUNT(DISTINCT lp.id) FROM log_posts lp
         LEFT JOIN recipe_logs rl ON rl.log_post_id = lp.id
         LEFT JOIN recipes r ON r.id = rl.recipe_id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND jsonb_exists(lp.title_translations, :langCode)
         AND (
             lp.title ILIKE '%' || :keyword || '%'
             OR lp.content ILIKE '%' || :keyword || '%'
@@ -423,7 +418,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         )
         """,
         nativeQuery = true)
-    long countSearchResults(@Param("keyword") String keyword, @Param("langCode") String langCode);
+    long countSearchResults(@Param("keyword") String keyword);
 
     // ==================== ADMIN: UNTRANSLATED CONTENT ====================
 
