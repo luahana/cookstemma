@@ -98,7 +98,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     Slice<Recipe> findOnlyVariantsByLocale(@Param("locale") String locale, Pageable pageable);
 
     // [검색] pg_trgm 기반 레시피 검색 (제목, 설명, 음식명 포함) - 퍼지 매칭 + 관련도 정렬
-    // Filters by translation availability: source locale matches OR translation exists
+    // Filters by translation availability
     // Optimized: searches title, description, and food name only (no ingredient/step search for performance)
     @Query(value = """
         SELECT r.* FROM (
@@ -113,8 +113,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
             FROM recipes r2
             LEFT JOIN foods_master fm ON fm.id = r2.food_master_id
             WHERE r2.deleted_at IS NULL AND (r2.is_private IS NULL OR r2.is_private = false)
-            AND (SUBSTRING(r2.cooking_style FROM 1 FOR 2) = :langCode
-                 OR jsonb_exists(r2.title_translations, :langCode))
+            AND jsonb_exists(r2.title_translations, :langCode)
             AND (
                 -- Base fields (title, description)
                 r2.title % :keyword OR r2.title ILIKE '%' || :keyword || '%'
@@ -136,8 +135,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
         SELECT COUNT(r.id) FROM recipes r
         LEFT JOIN foods_master fm ON fm.id = r.food_master_id
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND (SUBSTRING(r.cooking_style FROM 1 FOR 2) = :langCode
-             OR jsonb_exists(r.title_translations, :langCode))
+        AND jsonb_exists(r.title_translations, :langCode)
         AND (
             r.title % :keyword OR r.title ILIKE '%' || :keyword || '%'
             OR r.description % :keyword OR r.description ILIKE '%' || :keyword || '%'
@@ -364,7 +362,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     org.springframework.data.domain.Page<Recipe> findMyVariantRecipesPage(@Param("creatorId") Long creatorId, Pageable pageable);
 
     // [Offset] Search recipes with Page (includes total count for pagination UI, multi-language)
-    // Filters by translation availability: source locale matches OR translation exists
+    // Filters by translation availability
     // Optimized: searches title, description, and food name only (no ingredient/step search for performance)
     @Query(value = """
         SELECT r.* FROM (
@@ -379,8 +377,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
             FROM recipes r2
             LEFT JOIN foods_master fm ON fm.id = r2.food_master_id
             WHERE r2.deleted_at IS NULL AND (r2.is_private IS NULL OR r2.is_private = false)
-            AND (SUBSTRING(r2.cooking_style FROM 1 FOR 2) = :langCode
-                 OR jsonb_exists(r2.title_translations, :langCode))
+            AND jsonb_exists(r2.title_translations, :langCode)
             AND (
                 -- Base fields (title, description)
                 r2.title % :keyword OR r2.title ILIKE '%' || :keyword || '%'
@@ -402,8 +399,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
         SELECT COUNT(r.id) FROM recipes r
         LEFT JOIN foods_master fm ON fm.id = r.food_master_id
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND (SUBSTRING(r.cooking_style FROM 1 FOR 2) = :langCode
-             OR jsonb_exists(r.title_translations, :langCode))
+        AND jsonb_exists(r.title_translations, :langCode)
         AND (
             r.title % :keyword OR r.title ILIKE '%' || :keyword || '%'
             OR r.description % :keyword OR r.description ILIKE '%' || :keyword || '%'
@@ -591,14 +587,13 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     /**
      * Count recipes matching search keyword (for unified search chips, multi-language).
      * Optimized: searches title, description, and food name only (no ingredient/step search for performance).
-     * Filters by locale availability to match actual search results.
+     * Filters by translation availability to match actual search results.
      */
     @Query(value = """
         SELECT COUNT(r.id) FROM recipes r
         LEFT JOIN foods_master fm ON fm.id = r.food_master_id
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND (SUBSTRING(r.cooking_style FROM 1 FOR 2) = :langCode
-             OR jsonb_exists(r.title_translations, :langCode))
+        AND jsonb_exists(r.title_translations, :langCode)
         AND (
             r.title % :keyword OR r.title ILIKE '%' || :keyword || '%'
             OR r.description % :keyword OR r.description ILIKE '%' || :keyword || '%'
