@@ -143,8 +143,8 @@ public class HashtagService {
         }
 
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(normalizedLocale);
+        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
+        String langCode = LocaleUtils.toBcp47(normalizedLocale);
 
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
@@ -188,8 +188,8 @@ public class HashtagService {
         }
 
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(normalizedLocale);
+        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
+        String langCode = LocaleUtils.toBcp47(normalizedLocale);
 
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);

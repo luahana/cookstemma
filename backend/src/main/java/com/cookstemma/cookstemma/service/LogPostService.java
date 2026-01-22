@@ -373,8 +373,8 @@ public class LogPostService {
         }
 
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(normalizedLocale);
+        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
+        String langCode = LocaleUtils.toBcp47(normalizedLocale);
 
         return logPostRepository.searchLogPosts(keyword.trim(), langCode, pageable)
                 .map(log -> convertToLogSummary(log, normalizedLocale));
@@ -391,8 +391,8 @@ public class LogPostService {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(LocaleUtils.normalizeLocale(locale));
+        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
+        String langCode = LocaleUtils.toBcp47(locale);
 
         Slice<LogPost> logs;
         if (cursorData == null) {
@@ -413,8 +413,8 @@ public class LogPostService {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(LocaleUtils.normalizeLocale(locale));
+        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
+        String langCode = LocaleUtils.toBcp47(locale);
 
         Slice<LogPost> logs;
         if (cursorData == null) {
@@ -463,8 +463,8 @@ public class LogPostService {
             return CursorPageResponse.empty(size);
         }
 
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(LocaleUtils.normalizeLocale(locale));
+        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
+        String langCode = LocaleUtils.toBcp47(locale);
 
         // Search uses page-based due to complex ordering, cursor decodes to page number for simplicity
         Pageable pageable = PageRequest.of(0, size);
@@ -601,8 +601,8 @@ public class LogPostService {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(LocaleUtils.normalizeLocale(locale));
+        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
+        String langCode = LocaleUtils.toBcp47(locale);
 
         Page<LogPost> logs;
         if (minRating != null && maxRating != null) {
@@ -625,8 +625,8 @@ public class LogPostService {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(LocaleUtils.normalizeLocale(locale));
+        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
+        String langCode = LocaleUtils.toBcp47(locale);
 
         Page<LogPost> logs;
 
@@ -748,8 +748,8 @@ public class LogPostService {
     private UnifiedPageResponse<LogPostSummaryDto> searchLogPostsWithOffset(
             String keyword, int page, int size, String locale) {
 
-        // Extract language code for translation filtering
-        String langCode = LocaleUtils.getLanguageCode(LocaleUtils.normalizeLocale(locale));
+        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
+        String langCode = LocaleUtils.toBcp47(locale);
 
         Pageable pageable = PageRequest.of(page, size);
         Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword.trim(), langCode, pageable);
