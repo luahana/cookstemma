@@ -91,7 +91,7 @@ class TranslationAdminControllerTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Translation queued successfully"))
                 .andExpect(jsonPath("$.recipePublicId").value(testRecipe.getPublicId().toString()))
                 .andExpect(jsonPath("$.sourceLocale").value("en"))
-                .andExpect(jsonPath("$.targetLocales").value(20));
+                .andExpect(jsonPath("$.targetLocales").value(19)); // Excludes source locale
 
         // Verify translation event was created
         List<TranslationEvent> events = translationEventRepository.findByEntityTypeAndEntityIdAndStatusIn(
@@ -100,7 +100,7 @@ class TranslationAdminControllerTest extends BaseIntegrationTest {
 
         assertThat(events).hasSize(1);
         assertThat(events.get(0).getSourceLocale()).isEqualTo("en-US");  // BCP47 format
-        assertThat(events.get(0).getTargetLocales()).hasSize(20);
+        assertThat(events.get(0).getTargetLocales()).hasSize(19); // Excludes source locale
     }
 
     @Test

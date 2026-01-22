@@ -248,9 +248,10 @@ class TranslationEventServiceTest extends BaseIntegrationTest {
                     TranslatableEntity.RECIPE_FULL, testRecipe.getId(),
                     List.of(TranslationStatus.PENDING)).get(0);
 
-            // Force translation includes ALL locales (including source) in BCP47 format
-            assertThat(event.getTargetLocales()).hasSize(20);
-            assertThat(event.getTargetLocales()).contains("ja-JP", "ko-KR", "zh-CN", "en-US");
+            // Force translation includes all locales EXCEPT source (19 locales) in BCP47 format
+            assertThat(event.getTargetLocales()).hasSize(19);
+            assertThat(event.getTargetLocales()).contains("ja-JP", "ko-KR", "zh-CN");
+            assertThat(event.getTargetLocales()).doesNotContain("en-US"); // Source locale excluded
         }
 
         @Test
