@@ -232,6 +232,11 @@ module "ecs" {
 
   # CDN URL for images (CloudFront)
   cdn_url_prefix = "https://drms7t3elqlu.cloudfront.net"
+
+  # SQS Configuration for real-time translations (hybrid architecture)
+  sqs_translation_queue_url = module.lambda_translation.sqs_queue_url
+  sqs_translation_queue_arn = module.lambda_translation.sqs_queue_arn
+  sqs_enabled               = true
 }
 
 # ECS Web Module - Next.js application
