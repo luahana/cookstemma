@@ -122,3 +122,22 @@ variable "cdn_url_prefix" {
   type        = string
   default     = ""
 }
+
+# SQS Configuration for Translation
+variable "sqs_translation_queue_url" {
+  description = "URL of the SQS queue for translation events"
+  type        = string
+  default     = ""
+}
+
+variable "sqs_translation_queue_arn" {
+  description = "ARN of the SQS queue for translation events"
+  type        = string
+  default     = ""
+}
+
+variable "sqs_enabled" {
+  description = "Enable SQS push for real-time translations"
+  type        = bool
+  default     = true
+}

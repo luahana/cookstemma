@@ -159,6 +159,29 @@ resource "aws_iam_role_policy" "ecs_task_s3" {
   })
 }
 
+# SQS access for translation event queue (hybrid push architecture)
+resource "aws_iam_role_policy" "ecs_task_sqs" {
+  count = var.sqs_translation_queue_arn != "" ? 1 : 0
+
+  name = "${var.project_name}-${var.environment}-ecs-task-sqs"
+  role = aws_iam_role.ecs_task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage",
+          "sqs:GetQueueUrl",
+          "sqs:GetQueueAttributes"
+        ]
+        Resource = [var.sqs_translation_queue_arn]
+      }
+    ]
+  })
+}
+
 # ECS Task Definition
 resource "aws_ecs_task_definition" "main" {
   family                   = "${var.project_name}-${var.environment}"
@@ -194,6 +217,14 @@ resource "aws_ecs_task_definition" "main" {
         {
           name  = "CDN_URL_PREFIX"
           value = var.cdn_url_prefix
+        },
+        {
+          name  = "SQS_TRANSLATION_QUEUE_URL"
+          value = var.sqs_translation_queue_url
+        },
+        {
+          name  = "SQS_ENABLED"
+          value = tostring(var.sqs_enabled)
         }
       ]
 
