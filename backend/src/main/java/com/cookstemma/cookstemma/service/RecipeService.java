@@ -721,12 +721,10 @@ public class RecipeService {
         }
 
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(normalizedLocale);
 
         // Use unsorted pageable - the native query handles ordering by relevance score
         Pageable unsortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-        return recipeRepository.searchRecipes(keyword.trim(), langCode, unsortedPageable)
+        return recipeRepository.searchRecipes(keyword.trim(), unsortedPageable)
                 .map(r -> convertToSummary(r, normalizedLocale));
     }
 
@@ -995,9 +993,6 @@ public class RecipeService {
             return CursorPageResponse.empty(size);
         }
 
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(contentLocale);
-
         // Note: Search uses relevance ordering, so we fall back to simple offset pagination
         // decoded from cursor as page number for simplicity
         int page = 0;
@@ -1008,7 +1003,7 @@ public class RecipeService {
         }
 
         Pageable pageable = PageRequest.of(page, size);
-        Slice<Recipe> recipes = recipeRepository.searchRecipes(keyword.trim(), langCode, pageable);
+        Slice<Recipe> recipes = recipeRepository.searchRecipes(keyword.trim(), pageable);
         List<RecipeSummaryDto> content = recipes.getContent().stream()
                 .map(r -> convertToSummary(r, contentLocale))
                 .toList();
@@ -1329,16 +1324,12 @@ public class RecipeService {
 
     /**
      * Offset-based search for web clients.
-     * Filters by translation availability based on contentLocale
      */
     private UnifiedPageResponse<RecipeSummaryDto> searchRecipesWithOffset(
             String keyword, int page, int size, String contentLocale) {
 
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(contentLocale);
-
         Pageable pageable = PageRequest.of(page, size);
-        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword.trim(), langCode, pageable);
+        Page<Recipe> recipes = recipeRepository.searchRecipesPage(keyword.trim(), pageable);
 
         Page<RecipeSummaryDto> mappedPage = recipes.map(r -> convertToSummary(r, contentLocale));
         return UnifiedPageResponse.fromPage(mappedPage, size);

@@ -751,11 +751,8 @@ public class LogPostService {
     private UnifiedPageResponse<LogPostSummaryDto> searchLogPostsWithOffset(
             String keyword, int page, int size, String locale) {
 
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(locale);
-
         Pageable pageable = PageRequest.of(page, size);
-        Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword.trim(), langCode, pageable);
+        Page<LogPost> logs = logPostRepository.searchLogPostsPage(keyword.trim(), pageable);
 
         Page<LogPostSummaryDto> mappedPage = logs.map(log -> convertToLogSummary(log, locale));
         return UnifiedPageResponse.fromPage(mappedPage, size);
