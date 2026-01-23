@@ -195,4 +195,19 @@ public final class LocaleUtils {
         int dashIndex = locale.indexOf('-');
         return dashIndex > 0 ? locale.substring(0, dashIndex) : locale;
     }
+
+    /**
+     * Convert any locale format to 2-letter language code for use as translation map keys.
+     * This ensures consistent key format across all translation maps.
+     *
+     * @param locale Locale in any format (e.g., "ko", "ko-KR", "ko_KR")
+     * @return 2-letter language code (e.g., "ko"), defaults to "en" if null/blank
+     */
+    public static String toLanguageKey(String locale) {
+        if (locale == null || locale.isBlank()) {
+            return "en";
+        }
+        String normalized = normalizeLocale(locale);
+        return getLanguageCode(normalized);
+    }
 }

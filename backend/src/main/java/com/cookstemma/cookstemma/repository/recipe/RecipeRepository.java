@@ -150,130 +150,130 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     // ==================== CURSOR-BASED PAGINATION ====================
 
     // [Cursor] All public recipes - initial page (no cursor)
-    // Filters by translation availability: titleTranslations must contain user's language
+    // Filters by translation availability: titleTranslations must contain user's language (supports both "ko" and "ko-KR" formats)
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findPublicRecipesWithCursorInitial(@Param("langCode") String langCode, Pageable pageable);
+    Slice<Recipe> findPublicRecipesWithCursorInitial(@Param("langCodePattern") String langCodePattern, Pageable pageable);
 
     // [Cursor] All public recipes - with cursor
-    // Filters by translation availability: titleTranslations must contain user's language
+    // Filters by translation availability: titleTranslations must contain user's language (supports both "ko" and "ko-KR" formats)
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findPublicRecipesWithCursor(@Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    Slice<Recipe> findPublicRecipesWithCursor(@Param("langCodePattern") String langCodePattern, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] Public recipes by cooking style - initial page
     // Filters by cooking style AND translation availability
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findPublicRecipesByLocaleWithCursorInitial(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
+    Slice<Recipe> findPublicRecipesByLocaleWithCursorInitial(@Param("cookingStyle") String cookingStyle, @Param("langCodePattern") String langCode, Pageable pageable);
 
     // [Cursor] Public recipes by cooking style - with cursor
     // Filters by cooking style AND translation availability
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findPublicRecipesByLocaleWithCursor(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    Slice<Recipe> findPublicRecipesByLocaleWithCursor(@Param("cookingStyle") String cookingStyle, @Param("langCodePattern") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] Only original recipes - initial page
     // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findOriginalRecipesWithCursorInitial(@Param("langCode") String langCode, Pageable pageable);
+    Slice<Recipe> findOriginalRecipesWithCursorInitial(@Param("langCodePattern") String langCode, Pageable pageable);
 
     // [Cursor] Only original recipes - with cursor
     // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findOriginalRecipesWithCursor(@Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    Slice<Recipe> findOriginalRecipesWithCursor(@Param("langCodePattern") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] Only original recipes by cooking style - initial page
     // Filters by cooking style AND translation availability
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findOriginalRecipesByLocaleWithCursorInitial(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
+    Slice<Recipe> findOriginalRecipesByLocaleWithCursorInitial(@Param("cookingStyle") String cookingStyle, @Param("langCodePattern") String langCode, Pageable pageable);
 
     // [Cursor] Only original recipes by cooking style - with cursor
     // Filters by cooking style AND translation availability
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findOriginalRecipesByLocaleWithCursor(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    Slice<Recipe> findOriginalRecipesByLocaleWithCursor(@Param("cookingStyle") String cookingStyle, @Param("langCodePattern") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] Only variant recipes - initial page
     // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findVariantRecipesWithCursorInitial(@Param("langCode") String langCode, Pageable pageable);
+    Slice<Recipe> findVariantRecipesWithCursorInitial(@Param("langCodePattern") String langCode, Pageable pageable);
 
     // [Cursor] Only variant recipes - with cursor
     // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findVariantRecipesWithCursor(@Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    Slice<Recipe> findVariantRecipesWithCursor(@Param("langCodePattern") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] Only variant recipes by cooking style - initial page
     // Filters by cooking style AND translation availability
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findVariantRecipesByLocaleWithCursorInitial(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
+    Slice<Recipe> findVariantRecipesByLocaleWithCursorInitial(@Param("cookingStyle") String cookingStyle, @Param("langCodePattern") String langCode, Pageable pageable);
 
     // [Cursor] Only variant recipes by cooking style - with cursor
     // Filters by cooking style AND translation availability
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
-    Slice<Recipe> findVariantRecipesByLocaleWithCursor(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    Slice<Recipe> findVariantRecipesByLocaleWithCursor(@Param("cookingStyle") String cookingStyle, @Param("langCodePattern") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] My recipes - initial page
     @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.deletedAt IS NULL ORDER BY r.createdAt DESC, r.id DESC")
@@ -312,96 +312,96 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         """,
         nativeQuery = true)
-    org.springframework.data.domain.Page<Recipe> findPublicRecipesPage(@Param("langCode") String langCode, Pageable pageable);
+    org.springframework.data.domain.Page<Recipe> findPublicRecipesPage(@Param("langCodePattern") String langCode, Pageable pageable);
 
     // [Offset] Public recipes by cooking style with Page
     // Filters by cooking style AND translation availability
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         """,
         nativeQuery = true)
-    org.springframework.data.domain.Page<Recipe> findPublicRecipesByLocalePage(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
+    org.springframework.data.domain.Page<Recipe> findPublicRecipesByLocalePage(@Param("cookingStyle") String cookingStyle, @Param("langCodePattern") String langCode, Pageable pageable);
 
     // [Offset] Only original recipes with Page
     // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         """,
         nativeQuery = true)
-    org.springframework.data.domain.Page<Recipe> findOriginalRecipesPage(@Param("langCode") String langCode, Pageable pageable);
+    org.springframework.data.domain.Page<Recipe> findOriginalRecipesPage(@Param("langCodePattern") String langCode, Pageable pageable);
 
     // [Offset] Only original recipes by cooking style with Page
     // Filters by cooking style AND translation availability
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         """,
         nativeQuery = true)
-    org.springframework.data.domain.Page<Recipe> findOriginalRecipesByLocalePage(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
+    org.springframework.data.domain.Page<Recipe> findOriginalRecipesByLocalePage(@Param("cookingStyle") String cookingStyle, @Param("langCodePattern") String langCode, Pageable pageable);
 
     // [Offset] Only variant recipes with Page
     // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         """,
         nativeQuery = true)
-    org.springframework.data.domain.Page<Recipe> findVariantRecipesPage(@Param("langCode") String langCode, Pageable pageable);
+    org.springframework.data.domain.Page<Recipe> findVariantRecipesPage(@Param("langCodePattern") String langCode, Pageable pageable);
 
     // [Offset] Only variant recipes by cooking style with Page
     // Filters by cooking style AND translation availability
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
-        AND jsonb_exists(r.title_translations, :langCode)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         """,
         nativeQuery = true)
-    org.springframework.data.domain.Page<Recipe> findVariantRecipesByLocalePage(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
+    org.springframework.data.domain.Page<Recipe> findVariantRecipesByLocalePage(@Param("cookingStyle") String cookingStyle, @Param("langCodePattern") String langCode, Pageable pageable);
 
     // [Offset] My recipes with Page
     @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.deletedAt IS NULL")
@@ -472,7 +472,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     /**
      * Find recipes ordered by variant count (most forked/evolved).
      * Only returns root recipes (originals) that have the most variants.
-     * Filters by translation availability: source locale matches OR translation exists
+     * Filters by translation availability using pattern matching (supports "ko" and "ko-KR")
      */
     @Query(value = """
         SELECT r.* FROM recipes r
@@ -483,19 +483,21 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
             GROUP BY root_recipe_id
         ) vc ON r.id = vc.root_recipe_id
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false) AND r.parent_recipe_id IS NULL
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY COALESCE(vc.variant_count, 0) DESC, r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false) AND r.parent_recipe_id IS NULL
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         """,
         nativeQuery = true)
-    org.springframework.data.domain.Page<Recipe> findRecipesOrderByVariantCount(@Param("langCode") String langCode, Pageable pageable);
+    org.springframework.data.domain.Page<Recipe> findRecipesOrderByVariantCount(@Param("langCodePattern") String langCodePattern, Pageable pageable);
 
     /**
      * Find recipes ordered by recent activity (trending).
      * Activity = variants + logs created in last 7 days.
-     * Filters by translation availability: source locale matches OR translation exists
+     * Filters by translation availability using pattern matching (supports "ko" and "ko-KR")
      */
     @Query(value = """
         SELECT r.* FROM recipes r
@@ -515,19 +517,21 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
             GROUP BY rl.recipe_id
         ) rlc ON r.id = rlc.recipe_id
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false) AND r.parent_recipe_id IS NULL
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY (COALESCE(rv.recent_variants, 0) + COALESCE(rlc.recent_logs, 0)) DESC, r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false) AND r.parent_recipe_id IS NULL
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         """,
         nativeQuery = true)
-    org.springframework.data.domain.Page<Recipe> findRecipesOrderByTrending(@Param("langCode") String langCode, Pageable pageable);
+    org.springframework.data.domain.Page<Recipe> findRecipesOrderByTrending(@Param("langCodePattern") String langCodePattern, Pageable pageable);
 
     /**
      * Find recipes ordered by popularity score.
      * Score = viewCount * 1 + savedCount * 3 + variantCount * 5 + logCount * 2
-     * Filters by translation availability: source locale matches OR translation exists
+     * Filters by translation availability using pattern matching (supports "ko" and "ko-KR")
      */
     @Query(value = """
         SELECT r.* FROM recipes r
@@ -545,15 +549,17 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
             GROUP BY rl.recipe_id
         ) lc ON r.id = lc.recipe_id
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false) AND r.parent_recipe_id IS NULL
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         ORDER BY (COALESCE(r.view_count, 0) * 1 + COALESCE(r.saved_count, 0) * 3 + COALESCE(vc.variant_count, 0) * 5 + COALESCE(lc.log_count, 0) * 2) DESC,
                  r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false) AND r.parent_recipe_id IS NULL
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         """,
         nativeQuery = true)
-    org.springframework.data.domain.Page<Recipe> findRecipesOrderByPopular(@Param("langCode") String langCode, Pageable pageable);
+    org.springframework.data.domain.Page<Recipe> findRecipesOrderByPopular(@Param("langCodePattern") String langCodePattern, Pageable pageable);
 
     // ==================== HASHTAG-BASED QUERIES ====================
 
@@ -568,7 +574,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
         """, nativeQuery = true)
     Slice<Recipe> findByHashtagWithCursorInitial(
             @Param("hashtagName") String hashtagName,
-            @Param("langCode") String langCode,
+            @Param("langCodePattern") String langCode,
             Pageable pageable);
 
     // [Cursor] Recipes by hashtag - with cursor
@@ -583,7 +589,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
         """, nativeQuery = true)
     Slice<Recipe> findByHashtagWithCursor(
             @Param("hashtagName") String hashtagName,
-            @Param("langCode") String langCode,
+            @Param("langCodePattern") String langCode,
             @Param("cursorTime") Instant cursorTime,
             @Param("cursorId") Long cursorId,
             Pageable pageable);
@@ -605,7 +611,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
         nativeQuery = true)
     org.springframework.data.domain.Page<Recipe> findByHashtagPage(
             @Param("hashtagName") String hashtagName,
-            @Param("langCode") String langCode,
+            @Param("langCodePattern") String langCode,
             Pageable pageable);
 
     // Count recipes by hashtag (unfiltered - for hashtag display purposes)
