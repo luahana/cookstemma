@@ -1,9 +1,9 @@
 package com.cookstemma.cookstemma.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -18,7 +18,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
  * - Pull: EventBridge polls every 5 min (safety net for failures)
  */
 @Configuration
-@Profile("aws")
+@ConditionalOnProperty(name = "aws.sqs.enabled", havingValue = "true", matchIfMissing = false)
 public class AwsSqsConfig {
 
     @Value("${spring.cloud.aws.credentials.access-key}")

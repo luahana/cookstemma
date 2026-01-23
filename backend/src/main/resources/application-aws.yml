@@ -46,11 +46,11 @@ spring:
     init:
       mode: never
 
-# AWS SQS Configuration for translation queue
+# AWS SQS Configuration for translation queue (override default to enable in AWS)
 aws:
   sqs:
     translation-queue-url: ${SQS_TRANSLATION_QUEUE_URL:}
-    enabled: ${SQS_ENABLED:true}  # Set to false to disable SQS push (EventBridge-only mode)
+    enabled: ${SQS_ENABLED:true}  # Enabled by default in AWS profile
 
 logging:
   level:

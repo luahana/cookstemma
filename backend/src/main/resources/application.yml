@@ -63,6 +63,13 @@ app:
     reissue:
       requests-per-minute: 10
 
+# AWS SQS Configuration for translation queue (disabled by default for local dev)
+# Set SQS_ENABLED=true and SQS_TRANSLATION_QUEUE_URL in deployed environments
+aws:
+  sqs:
+    enabled: ${SQS_ENABLED:false}
+    translation-queue-url: ${SQS_TRANSLATION_QUEUE_URL:}
+
 # Sentry error monitoring - disabled by default (no DSN)
 # Set SENTRY_DSN environment variable to enable in production
 sentry:
