@@ -373,10 +373,10 @@ public class LogPostService {
         }
 
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(normalizedLocale);
+        // Use 2-letter language code with pattern matching for backward compatibility with BCP47 keys
+        String langCodePattern = LocaleUtils.toLanguageKey(normalizedLocale) + "%";
 
-        return logPostRepository.searchLogPosts(keyword.trim(), langCode, pageable)
+        return logPostRepository.searchLogPosts(keyword.trim(), langCodePattern, pageable)
                 .map(log -> convertToLogSummary(log, normalizedLocale));
     }
 
@@ -391,14 +391,14 @@ public class LogPostService {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(locale);
+        // Use 2-letter language code with pattern matching for backward compatibility with BCP47 keys
+        String langCodePattern = LocaleUtils.toLanguageKey(locale) + "%";
 
         Slice<LogPost> logs;
         if (cursorData == null) {
-            logs = logPostRepository.findAllLogsWithCursorInitial(langCode, pageable);
+            logs = logPostRepository.findAllLogsWithCursorInitial(langCodePattern, pageable);
         } else {
-            logs = logPostRepository.findAllLogsWithCursor(langCode, cursorData.createdAt(), cursorData.id(), pageable);
+            logs = logPostRepository.findAllLogsWithCursor(langCodePattern, cursorData.createdAt(), cursorData.id(), pageable);
         }
 
         return buildCursorResponse(logs, size, locale);
@@ -413,14 +413,14 @@ public class LogPostService {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(locale);
+        // Use 2-letter language code with pattern matching for backward compatibility with BCP47 keys
+        String langCodePattern = LocaleUtils.toLanguageKey(locale) + "%";
 
         Slice<LogPost> logs;
         if (cursorData == null) {
-            logs = logPostRepository.findByRatingWithCursorInitial(langCode, minRating, maxRating, pageable);
+            logs = logPostRepository.findByRatingWithCursorInitial(langCodePattern, minRating, maxRating, pageable);
         } else {
-            logs = logPostRepository.findByRatingWithCursor(langCode, minRating, maxRating, cursorData.createdAt(), cursorData.id(), pageable);
+            logs = logPostRepository.findByRatingWithCursor(langCodePattern, minRating, maxRating, cursorData.createdAt(), cursorData.id(), pageable);
         }
 
         return buildCursorResponse(logs, size, locale);
@@ -463,12 +463,12 @@ public class LogPostService {
             return CursorPageResponse.empty(size);
         }
 
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(locale);
+        // Use 2-letter language code with pattern matching for backward compatibility with BCP47 keys
+        String langCodePattern = LocaleUtils.toLanguageKey(locale) + "%";
 
         // Search uses page-based due to complex ordering, cursor decodes to page number for simplicity
         Pageable pageable = PageRequest.of(0, size);
-        Slice<LogPost> logs = logPostRepository.searchLogPosts(keyword.trim(), langCode, pageable);
+        Slice<LogPost> logs = logPostRepository.searchLogPosts(keyword.trim(), langCodePattern, pageable);
         return buildCursorResponse(logs, size, locale);
     }
 
@@ -604,14 +604,14 @@ public class LogPostService {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(locale);
+        // Use 2-letter language code with pattern matching for backward compatibility with BCP47 keys
+        String langCodePattern = LocaleUtils.toLanguageKey(locale) + "%";
 
         Page<LogPost> logs;
         if (minRating != null && maxRating != null) {
-            logs = logPostRepository.findByRatingPage(langCode, minRating, maxRating, pageable);
+            logs = logPostRepository.findByRatingPage(langCodePattern, minRating, maxRating, pageable);
         } else {
-            logs = logPostRepository.findAllLogsPage(langCode, pageable);
+            logs = logPostRepository.findAllLogsPage(langCodePattern, pageable);
         }
 
         Page<LogPostSummaryDto> mappedPage = logs.map(log -> convertToLogSummary(log, locale));
@@ -628,18 +628,18 @@ public class LogPostService {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(locale);
+        // Use 2-letter language code with pattern matching for backward compatibility with BCP47 keys
+        String langCodePattern = LocaleUtils.toLanguageKey(locale) + "%";
 
         Page<LogPost> logs;
 
         if ("popular".equalsIgnoreCase(sort)) {
-            logs = logPostRepository.findAllLogsOrderByPopular(langCode, pageable);
+            logs = logPostRepository.findAllLogsOrderByPopular(langCodePattern, pageable);
         } else if ("trending".equalsIgnoreCase(sort)) {
-            logs = logPostRepository.findAllLogsOrderByTrending(langCode, pageable);
+            logs = logPostRepository.findAllLogsOrderByTrending(langCodePattern, pageable);
         } else {
             // Fallback to recent
-            logs = logPostRepository.findAllLogsPage(langCode, pageable);
+            logs = logPostRepository.findAllLogsPage(langCodePattern, pageable);
         }
 
         Page<LogPostSummaryDto> mappedPage = logs.map(log -> convertToLogSummary(log, locale));
