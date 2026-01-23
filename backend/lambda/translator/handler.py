@@ -47,6 +47,26 @@ def to_bcp47(locale: str) -> str:
     # Convert short code to BCP47
     return LOCALE_MAP.get(locale, f"{locale}-{locale.upper()}")
 
+
+def to_language_key(locale: str) -> str:
+    """
+    Convert any locale format to 2-letter language code for use as translation map keys.
+    This ensures consistent key format across all translation maps.
+
+    Examples:
+        'ko' -> 'ko'
+        'ko-KR' -> 'ko'
+        'en-US' -> 'en'
+    """
+    if not locale:
+        return 'en'
+
+    # Extract language code (before the dash)
+    if '-' in locale:
+        return locale.split('-')[0].lower()
+
+    return locale.lower()
+
 # Map RecipeIngredient.type to AutocompleteItem.type
 INGREDIENT_TO_AUTOCOMPLETE_TYPE = {
     'MAIN': 'MAIN_INGREDIENT',
@@ -530,8 +550,10 @@ def fetch_full_recipe(conn, recipe_id: int, source_locale: str) -> dict | None:
         ingredients = cur.fetchall()
 
     # Extract FoodMaster source name from JSONB
+    # Try both 2-letter code and BCP47 for backwards compatibility
+    source_lang = to_language_key(source_locale)
     fm_name_json = recipe['fm_name'] or {}
-    fm_source_name = fm_name_json.get(source_bcp47) or fm_name_json.get(source_locale)
+    fm_source_name = fm_name_json.get(source_lang) or fm_name_json.get(source_bcp47) or fm_name_json.get(source_locale)
     if not fm_source_name and fm_name_json:
         # Fallback: use first available name
         fm_source_name = next(iter(fm_name_json.values()), '')
@@ -545,7 +567,7 @@ def fetch_full_recipe(conn, recipe_id: int, source_locale: str) -> dict | None:
         },
         'steps': steps,
         'ingredients': ingredients,  # Now includes 'type' field
-        'source_bcp47': source_bcp47
+        'source_locale': source_locale  # Pass original locale, will be converted to 2-letter in save function
     }
 
 
@@ -555,11 +577,11 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
     Save translations for recipe, steps, ingredients AND propagate to master tables.
     - FoodMaster name is propagated from food_name translation
     - AutocompleteItem names are propagated from ingredient translations (matched by name + type)
-    - All translation keys use BCP47 format for consistency
+    - All translation keys use 2-letter language codes for consistency
     """
-    # Convert locale to BCP47 for ALL translation keys (standardized format)
-    target_bcp47 = to_bcp47(target_locale)
-    source_bcp47 = full_recipe.get('source_bcp47', 'ko-KR')
+    # Convert locale to 2-letter language code for ALL translation keys
+    target_lang = to_language_key(target_locale)
+    source_lang = to_language_key(full_recipe.get('source_locale', 'ko'))
 
     with conn.cursor() as cur:
         # 1. Update recipe title and description (use BCP47 keys)
@@ -574,8 +596,8 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
         source_title = full_recipe['recipe'].get('title', '')
         source_description = full_recipe['recipe'].get('description', '')
 
-        title_updates = {source_bcp47: source_title, target_bcp47: translated['title']}
-        description_updates = {source_bcp47: source_description, target_bcp47: translated['description']}
+        title_updates = {source_lang: source_title, target_lang: translated['title']}
+        description_updates = {source_lang: source_description, target_lang: translated['description']}
 
         # CRITICAL: Use atomic UPDATE with JSONB merge to avoid race conditions
         # PostgreSQL || operator merges JSONB objects, appending new keys
@@ -603,10 +625,10 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
                 SET name = name || %s
                 WHERE id = %s
             """, (
-                json.dumps({target_bcp47: translated_food_name}),
+                json.dumps({target_lang: translated_food_name}),
                 food_master['id']
             ))
-            logger.info(f"Propagated food_name translation to FoodMaster {food_master['id']} ({target_bcp47})")
+            logger.info(f"Propagated food_name translation to FoodMaster {food_master['id']} ({target_lang})")
 
         # 3. Update each step (use BCP47 keys)
         # STRICT: Verify steps exist and match count
@@ -623,7 +645,7 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
 
             # Build step update with BOTH source and target languages
             source_step_description = step.get('description', '')
-            step_updates = {source_bcp47: source_step_description, target_bcp47: translated_steps[i]}
+            step_updates = {source_lang: source_step_description, target_lang: translated_steps[i]}
 
             # CRITICAL: Fetch CURRENT translations from database, not from stale full_recipe
             # Use UPDATE with RETURNING to fetch and update in one atomic operation
@@ -660,7 +682,7 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
 
             # Build ingredient update with BOTH source and target languages
             source_ingredient_name = ingredient.get('name', '')
-            ingredient_updates = {source_bcp47: source_ingredient_name, target_bcp47: translated_name}
+            ingredient_updates = {source_lang: source_ingredient_name, target_lang: translated_name}
 
             # CRITICAL: Use atomic UPDATE with JSONB merge
             cur.execute("""
@@ -686,14 +708,14 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
                     WHERE type::text = %s
                       AND LOWER(name ->> %s) = LOWER(%s)
                 """, (
-                    json.dumps({target_bcp47: translated_name}),
+                    json.dumps({target_lang: translated_name}),
                     autocomplete_type,
-                    source_bcp47,
+                    source_lang,
                     ingredient['name']
                 ))
                 if cur.rowcount > 0:
                     logger.info(f"Propagated ingredient translation to AutocompleteItem: "
-                                f"'{ingredient['name']}' -> '{translated_name}' ({target_bcp47})")
+                                f"'{ingredient['name']}' -> '{translated_name}' ({target_lang})")
 
         logger.info(f"Updated {ingredients_updated}/{len(full_recipe['ingredients'])} ingredients for recipe {recipe_id}")
 
@@ -1120,8 +1142,8 @@ def process_event(conn, translator: GeminiTranslator, event: dict) -> bool:
                 context=context
             )
 
-            # Merge translations - always use BCP47 locale keys for consistency
-            translation_key = to_bcp47(target_locale)
+            # Merge translations - always use 2-letter language codes for consistency
+            translation_key = to_language_key(target_locale)
 
             for field, value in translated.items():
                 if field not in existing_translations:

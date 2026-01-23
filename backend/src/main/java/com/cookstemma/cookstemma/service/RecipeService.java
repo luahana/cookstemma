@@ -125,7 +125,7 @@ public class RecipeService {
         }
 
         // Initialize translations with source language to preserve original content
-        String sourceLangCode = LocaleUtils.toBcp47(finalLocale);
+        String sourceLangCode = LocaleUtils.toLanguageKey(finalLocale);
         Map<String, String> titleTranslations = new HashMap<>();
         titleTranslations.put(sourceLangCode, req.title());
         Map<String, String> descriptionTranslations = new HashMap<>();
@@ -348,7 +348,7 @@ public class RecipeService {
 
     private FoodMaster createSuggestedFoodEntity(String foodName, Long userId, String locale) {
         // Convert locale to BCP47 format for consistent FoodMaster keys
-        String bcp47Locale = LocaleUtils.toBcp47(locale);
+        String bcp47Locale = LocaleUtils.toLanguageKey(locale);
 
         // 1. foods_master에 비검증 상태로 등록
         FoodMaster newFood = FoodMaster.builder()
@@ -380,7 +380,7 @@ public class RecipeService {
             String locale
     ) {
         // Get source language code for initializing translations
-        String sourceLangCode = LocaleUtils.toBcp47(locale);
+        String sourceLangCode = LocaleUtils.toLanguageKey(locale);
 
         // 1. 재료 저장
         if (req.ingredients() != null) {
@@ -617,7 +617,7 @@ public class RecipeService {
     public HomeFeedResponseDto getHomeFeed(String locale) {
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
         // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(normalizedLocale);
+        String langCode = LocaleUtils.toLanguageKey(normalizedLocale);
 
         // 1. 최근 요리 활동 (로그) 조회 - "📍 최근 요리 활동" 섹션
         // Use translation-aware query to only show logs available in user's locale
@@ -834,7 +834,7 @@ public class RecipeService {
         }
 
         // Update source language in translations map to preserve original content
-        String sourceLangCode = LocaleUtils.toBcp47(recipe.getCookingStyle());
+        String sourceLangCode = LocaleUtils.toLanguageKey(recipe.getCookingStyle());
         recipe.getTitleTranslations().put(sourceLangCode, req.title());
         if (req.description() != null) {
             recipe.getDescriptionTranslations().put(sourceLangCode, req.description());
@@ -989,45 +989,46 @@ public class RecipeService {
 
         Slice<Recipe> recipes;
 
-        // Get the user's language code for filtering recipes by translation availability
-        String langCode = LocaleUtils.toBcp47(contentLocale);
+        // Get the user's language code pattern for filtering recipes by translation availability
+        // Pattern "ko%" matches both "ko" and "ko-KR" for backward compatibility
+        String langCodePattern = LocaleUtils.toLanguageKey(contentLocale) + "%";
 
         if (cookingStyle == null || cookingStyle.isBlank()) {
             // No cooking style filter - show all recipes with user's language translation
             if (cursorData == null) {
                 if (isVariantFilter) {
-                    recipes = recipeRepository.findVariantRecipesWithCursorInitial(langCode, pageable);
+                    recipes = recipeRepository.findVariantRecipesWithCursorInitial(langCodePattern, pageable);
                 } else if (isOriginalFilter) {
-                    recipes = recipeRepository.findOriginalRecipesWithCursorInitial(langCode, pageable);
+                    recipes = recipeRepository.findOriginalRecipesWithCursorInitial(langCodePattern, pageable);
                 } else {
-                    recipes = recipeRepository.findPublicRecipesWithCursorInitial(langCode, pageable);
+                    recipes = recipeRepository.findPublicRecipesWithCursorInitial(langCodePattern, pageable);
                 }
             } else {
                 if (isVariantFilter) {
-                    recipes = recipeRepository.findVariantRecipesWithCursor(langCode, cursorData.createdAt(), cursorData.id(), pageable);
+                    recipes = recipeRepository.findVariantRecipesWithCursor(langCodePattern, cursorData.createdAt(), cursorData.id(), pageable);
                 } else if (isOriginalFilter) {
-                    recipes = recipeRepository.findOriginalRecipesWithCursor(langCode, cursorData.createdAt(), cursorData.id(), pageable);
+                    recipes = recipeRepository.findOriginalRecipesWithCursor(langCodePattern, cursorData.createdAt(), cursorData.id(), pageable);
                 } else {
-                    recipes = recipeRepository.findPublicRecipesWithCursor(langCode, cursorData.createdAt(), cursorData.id(), pageable);
+                    recipes = recipeRepository.findPublicRecipesWithCursor(langCodePattern, cursorData.createdAt(), cursorData.id(), pageable);
                 }
             }
         } else {
             // Filter by cooking style (e.g., KR, JP, US) AND user's language translation
             if (cursorData == null) {
                 if (isVariantFilter) {
-                    recipes = recipeRepository.findVariantRecipesByLocaleWithCursorInitial(cookingStyle, langCode, pageable);
+                    recipes = recipeRepository.findVariantRecipesByLocaleWithCursorInitial(cookingStyle, langCodePattern, pageable);
                 } else if (isOriginalFilter) {
-                    recipes = recipeRepository.findOriginalRecipesByLocaleWithCursorInitial(cookingStyle, langCode, pageable);
+                    recipes = recipeRepository.findOriginalRecipesByLocaleWithCursorInitial(cookingStyle, langCodePattern, pageable);
                 } else {
-                    recipes = recipeRepository.findPublicRecipesByLocaleWithCursorInitial(cookingStyle, langCode, pageable);
+                    recipes = recipeRepository.findPublicRecipesByLocaleWithCursorInitial(cookingStyle, langCodePattern, pageable);
                 }
             } else {
                 if (isVariantFilter) {
-                    recipes = recipeRepository.findVariantRecipesByLocaleWithCursor(cookingStyle, langCode, cursorData.createdAt(), cursorData.id(), pageable);
+                    recipes = recipeRepository.findVariantRecipesByLocaleWithCursor(cookingStyle, langCodePattern, cursorData.createdAt(), cursorData.id(), pageable);
                 } else if (isOriginalFilter) {
-                    recipes = recipeRepository.findOriginalRecipesByLocaleWithCursor(cookingStyle, langCode, cursorData.createdAt(), cursorData.id(), pageable);
+                    recipes = recipeRepository.findOriginalRecipesByLocaleWithCursor(cookingStyle, langCodePattern, cursorData.createdAt(), cursorData.id(), pageable);
                 } else {
-                    recipes = recipeRepository.findPublicRecipesByLocaleWithCursor(cookingStyle, langCode, cursorData.createdAt(), cursorData.id(), pageable);
+                    recipes = recipeRepository.findPublicRecipesByLocaleWithCursor(cookingStyle, langCodePattern, cursorData.createdAt(), cursorData.id(), pageable);
                 }
             }
         }
@@ -1217,28 +1218,29 @@ public class RecipeService {
         boolean isOriginalFilter = "original".equalsIgnoreCase(typeFilter);
         boolean isVariantFilter = "variant".equalsIgnoreCase(typeFilter);
 
-        // Get the user's language code for filtering recipes by translation availability
-        String langCode = LocaleUtils.toBcp47(contentLocale);
+        // Get the user's language code pattern for filtering recipes by translation availability
+        // Pattern "ko%" matches both "ko" and "ko-KR" for backward compatibility
+        String langCodePattern = LocaleUtils.toLanguageKey(contentLocale) + "%";
 
         Page<Recipe> recipes;
 
         if (cookingStyle == null || cookingStyle.isBlank()) {
             // No cooking style filter - show all recipes with user's language translation
             if (isVariantFilter) {
-                recipes = recipeRepository.findVariantRecipesPage(langCode, pageable);
+                recipes = recipeRepository.findVariantRecipesPage(langCodePattern, pageable);
             } else if (isOriginalFilter) {
-                recipes = recipeRepository.findOriginalRecipesPage(langCode, pageable);
+                recipes = recipeRepository.findOriginalRecipesPage(langCodePattern, pageable);
             } else {
-                recipes = recipeRepository.findPublicRecipesPage(langCode, pageable);
+                recipes = recipeRepository.findPublicRecipesPage(langCodePattern, pageable);
             }
         } else {
             // Filter by cooking style (e.g., KR, JP, US) AND user's language translation
             if (isVariantFilter) {
-                recipes = recipeRepository.findVariantRecipesByLocalePage(cookingStyle, langCode, pageable);
+                recipes = recipeRepository.findVariantRecipesByLocalePage(cookingStyle, langCodePattern, pageable);
             } else if (isOriginalFilter) {
-                recipes = recipeRepository.findOriginalRecipesByLocalePage(cookingStyle, langCode, pageable);
+                recipes = recipeRepository.findOriginalRecipesByLocalePage(cookingStyle, langCodePattern, pageable);
             } else {
-                recipes = recipeRepository.findPublicRecipesByLocalePage(cookingStyle, langCode, pageable);
+                recipes = recipeRepository.findPublicRecipesByLocalePage(cookingStyle, langCodePattern, pageable);
             }
         }
 
@@ -1256,23 +1258,24 @@ public class RecipeService {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(contentLocale);
+        // Get the user's language code pattern for filtering recipes by translation availability
+        // Pattern "ko%" matches both "ko" and "ko-KR" for backward compatibility
+        String langCodePattern = LocaleUtils.toLanguageKey(contentLocale) + "%";
 
         Page<Recipe> recipes;
 
         if ("mostForked".equalsIgnoreCase(sort)) {
             // Order by variant count (most evolved)
-            recipes = recipeRepository.findRecipesOrderByVariantCount(langCode, pageable);
+            recipes = recipeRepository.findRecipesOrderByVariantCount(langCodePattern, pageable);
         } else if ("trending".equalsIgnoreCase(sort)) {
             // Order by recent activity (variants + logs in last 7 days)
-            recipes = recipeRepository.findRecipesOrderByTrending(langCode, pageable);
+            recipes = recipeRepository.findRecipesOrderByTrending(langCodePattern, pageable);
         } else if ("popular".equalsIgnoreCase(sort)) {
             // Order by popularity score (weighted engagement metrics)
-            recipes = recipeRepository.findRecipesOrderByPopular(langCode, pageable);
+            recipes = recipeRepository.findRecipesOrderByPopular(langCodePattern, pageable);
         } else {
             // Fallback to recent
-            recipes = recipeRepository.findPublicRecipesPage(langCode, pageable);
+            recipes = recipeRepository.findPublicRecipesPage(langCodePattern, pageable);
         }
 
         Page<RecipeSummaryDto> mappedPage = recipes.map(r -> convertToSummary(r, contentLocale));
