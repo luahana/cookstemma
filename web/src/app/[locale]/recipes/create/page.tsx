@@ -1105,19 +1105,31 @@ function CreateRecipeContent() {
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                   {t('description')}
+                  {isVariantMode && (
+                    <span className="ml-2 text-xs font-normal text-[var(--text-secondary)]">
+                      {t('inheritedFromOriginal')}
+                    </span>
+                  )}
                 </label>
                 <textarea
                   id="description"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => !isVariantMode && setDescription(e.target.value)}
                   maxLength={2000}
                   rows={3}
-                  className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)] resize-none"
+                  readOnly={isVariantMode}
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none resize-none ${
+                    isVariantMode
+                      ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
+                      : 'bg-[var(--background)] border-[var(--border)] focus:border-[var(--primary)]'
+                  }`}
                   placeholder={t('descriptionPlaceholder')}
                 />
-                <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">
-                  {description.length}/2000
-                </p>
+                {!isVariantMode && (
+                  <p className="text-xs text-[var(--text-secondary)] mt-1 text-right">
+                    {description.length}/2000
+                  </p>
+                )}
               </div>
 
               {/* Culinary Locale & Servings Row */}
