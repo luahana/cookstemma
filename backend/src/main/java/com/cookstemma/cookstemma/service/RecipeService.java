@@ -124,6 +124,15 @@ public class RecipeService {
             }
         }
 
+        // Initialize translations with source language to preserve original content
+        String sourceLangCode = LocaleUtils.toBcp47(finalLocale);
+        Map<String, String> titleTranslations = new HashMap<>();
+        titleTranslations.put(sourceLangCode, req.title());
+        Map<String, String> descriptionTranslations = new HashMap<>();
+        if (req.description() != null) {
+            descriptionTranslations.put(sourceLangCode, req.description());
+        }
+
         Recipe recipe = Recipe.builder()
                 .title(req.title())
                 .description(req.description())
@@ -139,6 +148,8 @@ public class RecipeService {
                 .servings(req.servings() != null ? req.servings() : 2)
                 .cookingTimeRange(cookingTimeRange)
                 .isPrivate(req.isPrivate() != null ? req.isPrivate() : false)
+                .titleTranslations(titleTranslations)
+                .descriptionTranslations(descriptionTranslations)
                 .build();
 
         recipeRepository.save(recipe);
@@ -792,6 +803,13 @@ public class RecipeService {
         recipe.setDescription(req.description());
         if (req.cookingStyle() != null && !req.cookingStyle().isBlank()) {
             recipe.setCookingStyle(req.cookingStyle());
+        }
+
+        // Update source language in translations map to preserve original content
+        String sourceLangCode = LocaleUtils.toBcp47(recipe.getCookingStyle());
+        recipe.getTitleTranslations().put(sourceLangCode, req.title());
+        if (req.description() != null) {
+            recipe.getDescriptionTranslations().put(sourceLangCode, req.description());
         }
 
         // Update servings and cooking time

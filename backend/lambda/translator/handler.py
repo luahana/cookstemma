@@ -569,8 +569,16 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
         if 'description' not in translated:
             raise ValueError(f"Translation missing 'description' for locale {target_locale}")
 
+        # Build translation maps including BOTH source and target languages
+        # This ensures the original content is always preserved in the translations map
+        source_title = full_recipe['recipe'].get('title', '')
+        source_description = full_recipe['recipe'].get('description', '')
+
+        title_updates = {source_bcp47: source_title, target_bcp47: translated['title']}
+        description_updates = {source_bcp47: source_description, target_bcp47: translated['description']}
+
         # CRITICAL: Use atomic UPDATE with JSONB merge to avoid race conditions
-        # PostgreSQL ||operator merges JSONB objects, appending new keys
+        # PostgreSQL || operator merges JSONB objects, appending new keys
         cur.execute("""
             UPDATE recipes
             SET title_translations = COALESCE(title_translations, '{}'::jsonb) || %s::jsonb,
@@ -578,8 +586,8 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
             WHERE id = %s
             RETURNING id
         """, (
-            json.dumps({target_bcp47: translated['title']}),
-            json.dumps({target_bcp47: translated['description']}),
+            json.dumps(title_updates),
+            json.dumps(description_updates),
             recipe_id
         ))
 
