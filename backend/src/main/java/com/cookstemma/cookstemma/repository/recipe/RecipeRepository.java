@@ -150,91 +150,130 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     // ==================== CURSOR-BASED PAGINATION ====================
 
     // [Cursor] All public recipes - initial page (no cursor)
-    // Filters by translation availability: source locale matches OR translation exists
+    // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
     Slice<Recipe> findPublicRecipesWithCursorInitial(@Param("langCode") String langCode, Pageable pageable);
 
     // [Cursor] All public recipes - with cursor
-    // Filters by translation availability: source locale matches OR translation exists
+    // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
     Slice<Recipe> findPublicRecipesWithCursor(@Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
-    // [Cursor] Public recipes by locale - initial page
-    @Query("SELECT r FROM Recipe r WHERE r.cookingStyle = :locale AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false) ORDER BY r.createdAt DESC, r.id DESC")
-    Slice<Recipe> findPublicRecipesByLocaleWithCursorInitial(@Param("locale") String locale, Pageable pageable);
+    // [Cursor] Public recipes by cooking style - initial page
+    // Filters by cooking style AND translation availability
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        ORDER BY r.created_at DESC, r.id DESC
+        """, nativeQuery = true)
+    Slice<Recipe> findPublicRecipesByLocaleWithCursorInitial(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
 
-    // [Cursor] Public recipes by locale - with cursor
-    @Query("SELECT r FROM Recipe r WHERE r.cookingStyle = :locale AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false) " +
-           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
-           "ORDER BY r.createdAt DESC, r.id DESC")
-    Slice<Recipe> findPublicRecipesByLocaleWithCursor(@Param("locale") String locale, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    // [Cursor] Public recipes by cooking style - with cursor
+    // Filters by cooking style AND translation availability
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
+        ORDER BY r.created_at DESC, r.id DESC
+        """, nativeQuery = true)
+    Slice<Recipe> findPublicRecipesByLocaleWithCursor(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] Only original recipes - initial page
-    // Filters by translation availability: source locale matches OR translation exists
+    // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
     Slice<Recipe> findOriginalRecipesWithCursorInitial(@Param("langCode") String langCode, Pageable pageable);
 
     // [Cursor] Only original recipes - with cursor
-    // Filters by translation availability: source locale matches OR translation exists
+    // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
     Slice<Recipe> findOriginalRecipesWithCursor(@Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
-    // [Cursor] Only original recipes by locale - initial page
-    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.cookingStyle = :locale AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false) ORDER BY r.createdAt DESC, r.id DESC")
-    Slice<Recipe> findOriginalRecipesByLocaleWithCursorInitial(@Param("locale") String locale, Pageable pageable);
+    // [Cursor] Only original recipes by cooking style - initial page
+    // Filters by cooking style AND translation availability
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.root_recipe_id IS NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        ORDER BY r.created_at DESC, r.id DESC
+        """, nativeQuery = true)
+    Slice<Recipe> findOriginalRecipesByLocaleWithCursorInitial(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
 
-    // [Cursor] Only original recipes by locale - with cursor
-    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.cookingStyle = :locale AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false) " +
-           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
-           "ORDER BY r.createdAt DESC, r.id DESC")
-    Slice<Recipe> findOriginalRecipesByLocaleWithCursor(@Param("locale") String locale, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    // [Cursor] Only original recipes by cooking style - with cursor
+    // Filters by cooking style AND translation availability
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.root_recipe_id IS NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
+        ORDER BY r.created_at DESC, r.id DESC
+        """, nativeQuery = true)
+    Slice<Recipe> findOriginalRecipesByLocaleWithCursor(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] Only variant recipes - initial page
-    // Filters by translation availability: source locale matches OR translation exists
+    // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
     Slice<Recipe> findVariantRecipesWithCursorInitial(@Param("langCode") String langCode, Pageable pageable);
 
     // [Cursor] Only variant recipes - with cursor
-    // Filters by translation availability: source locale matches OR translation exists
+    // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
         ORDER BY r.created_at DESC, r.id DESC
         """, nativeQuery = true)
     Slice<Recipe> findVariantRecipesWithCursor(@Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
-    // [Cursor] Only variant recipes by locale - initial page
-    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NOT NULL AND r.cookingStyle = :locale AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false) ORDER BY r.createdAt DESC, r.id DESC")
-    Slice<Recipe> findVariantRecipesByLocaleWithCursorInitial(@Param("locale") String locale, Pageable pageable);
+    // [Cursor] Only variant recipes by cooking style - initial page
+    // Filters by cooking style AND translation availability
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.root_recipe_id IS NOT NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        ORDER BY r.created_at DESC, r.id DESC
+        """, nativeQuery = true)
+    Slice<Recipe> findVariantRecipesByLocaleWithCursorInitial(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
 
-    // [Cursor] Only variant recipes by locale - with cursor
-    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NOT NULL AND r.cookingStyle = :locale AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false) " +
-           "AND (r.createdAt < :cursorTime OR (r.createdAt = :cursorTime AND r.id < :cursorId)) " +
-           "ORDER BY r.createdAt DESC, r.id DESC")
-    Slice<Recipe> findVariantRecipesByLocaleWithCursor(@Param("locale") String locale, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+    // [Cursor] Only variant recipes by cooking style - with cursor
+    // Filters by cooking style AND translation availability
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.root_recipe_id IS NOT NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
+        ORDER BY r.created_at DESC, r.id DESC
+        """, nativeQuery = true)
+    Slice<Recipe> findVariantRecipesByLocaleWithCursor(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
     // [Cursor] My recipes - initial page
     @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.deletedAt IS NULL ORDER BY r.createdAt DESC, r.id DESC")
@@ -269,58 +308,100 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
     // ==================== OFFSET-BASED PAGINATION (for Web) ====================
 
     // [Offset] All public recipes with Page (includes total count)
-    // Filters by translation availability: source locale matches OR translation exists
+    // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         ORDER BY r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         """,
         nativeQuery = true)
     org.springframework.data.domain.Page<Recipe> findPublicRecipesPage(@Param("langCode") String langCode, Pageable pageable);
 
-    // [Offset] Public recipes by locale with Page
-    @Query("SELECT r FROM Recipe r WHERE r.cookingStyle = :locale AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false)")
-    org.springframework.data.domain.Page<Recipe> findPublicRecipesByLocalePage(@Param("locale") String locale, Pageable pageable);
+    // [Offset] Public recipes by cooking style with Page
+    // Filters by cooking style AND translation availability
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        ORDER BY r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        WHERE r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findPublicRecipesByLocalePage(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
 
     // [Offset] Only original recipes with Page
-    // Filters by translation availability: source locale matches OR translation exists
+    // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         ORDER BY r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.root_recipe_id IS NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         """,
         nativeQuery = true)
     org.springframework.data.domain.Page<Recipe> findOriginalRecipesPage(@Param("langCode") String langCode, Pageable pageable);
 
-    // [Offset] Only original recipes by locale with Page
-    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NULL AND r.cookingStyle = :locale AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false)")
-    org.springframework.data.domain.Page<Recipe> findOriginalRecipesByLocalePage(@Param("locale") String locale, Pageable pageable);
+    // [Offset] Only original recipes by cooking style with Page
+    // Filters by cooking style AND translation availability
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.root_recipe_id IS NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        ORDER BY r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        WHERE r.root_recipe_id IS NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findOriginalRecipesByLocalePage(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
 
     // [Offset] Only variant recipes with Page
-    // Filters by translation availability: source locale matches OR translation exists
+    // Filters by translation availability: titleTranslations must contain user's language
     @Query(value = """
         SELECT r.* FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         ORDER BY r.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM recipes r
         WHERE r.root_recipe_id IS NOT NULL AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
         """,
         nativeQuery = true)
     org.springframework.data.domain.Page<Recipe> findVariantRecipesPage(@Param("langCode") String langCode, Pageable pageable);
 
-    // [Offset] Only variant recipes by locale with Page
-    @Query("SELECT r FROM Recipe r WHERE r.rootRecipe IS NOT NULL AND r.cookingStyle = :locale AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false)")
-    org.springframework.data.domain.Page<Recipe> findVariantRecipesByLocalePage(@Param("locale") String locale, Pageable pageable);
+    // [Offset] Only variant recipes by cooking style with Page
+    // Filters by cooking style AND translation availability
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.root_recipe_id IS NOT NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        ORDER BY r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        WHERE r.root_recipe_id IS NOT NULL AND r.cooking_style = :cookingStyle AND r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND jsonb_exists(r.title_translations, :langCode)
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findVariantRecipesByLocalePage(@Param("cookingStyle") String cookingStyle, @Param("langCode") String langCode, Pageable pageable);
 
     // [Offset] My recipes with Page
     @Query("SELECT r FROM Recipe r WHERE r.creatorId = :creatorId AND r.deletedAt IS NULL")
