@@ -293,7 +293,7 @@ public class RecipeService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<RecipeSummaryDto> findRecipes(String locale, boolean onlyRoot, String typeFilter, Pageable pageable) {
+    public Slice<RecipeSummaryDto> findRecipes(String cookingStyle, boolean onlyRoot, String typeFilter, Pageable pageable) {
         Slice<Recipe> recipes;
 
         // typeFilter takes precedence over onlyRoot for clarity
@@ -301,14 +301,24 @@ public class RecipeService {
         boolean isOriginalFilter = "original".equalsIgnoreCase(typeFilter) || onlyRoot;
         boolean isVariantFilter = "variant".equalsIgnoreCase(typeFilter);
 
-        // Always use global queries - locale filtering is handled by translation-aware display
-        // (cookingStyle is NOT a language filter, it's a cooking style attribute)
-        if (isVariantFilter) {
-            recipes = recipeRepository.findOnlyVariantsPublic(pageable);
-        } else if (isOriginalFilter) {
-            recipes = recipeRepository.findAllRootRecipes(pageable);
+        if (cookingStyle == null || cookingStyle.isBlank()) {
+            // No cooking style filter - show all recipes
+            if (isVariantFilter) {
+                recipes = recipeRepository.findOnlyVariantsPublic(pageable);
+            } else if (isOriginalFilter) {
+                recipes = recipeRepository.findAllRootRecipes(pageable);
+            } else {
+                recipes = recipeRepository.findPublicRecipes(pageable);
+            }
         } else {
-            recipes = recipeRepository.findPublicRecipes(pageable);
+            // Filter by cooking style (e.g., KR, JP, US)
+            if (isVariantFilter) {
+                recipes = recipeRepository.findOnlyVariantsByLocale(cookingStyle, pageable);
+            } else if (isOriginalFilter) {
+                recipes = recipeRepository.findRootRecipesByLocale(cookingStyle, pageable);
+            } else {
+                recipes = recipeRepository.findPublicRecipesByLocale(cookingStyle, pageable);
+            }
         }
 
         return recipes.map(this::convertToSummary);
@@ -933,40 +943,59 @@ public class RecipeService {
 
     /**
      * Find recipes with cursor-based pagination
-     * Filters by translation availability based on contentLocale
+     * @param cookingStyle Filter by cooking style (e.g., KR, JP, US) - null for all
+     * @param contentLocale Locale from Accept-Language header for content translation
      */
     @Transactional(readOnly = true)
-    public CursorPageResponse<RecipeSummaryDto> findRecipesWithCursor(String locale, boolean onlyRoot, String typeFilter, String cursor, int size, String contentLocale) {
+    public CursorPageResponse<RecipeSummaryDto> findRecipesWithCursor(String cookingStyle, boolean onlyRoot, String typeFilter, String cursor, int size, String contentLocale) {
         Pageable pageable = PageRequest.of(0, size);
         CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
 
         boolean isOriginalFilter = "original".equalsIgnoreCase(typeFilter) || onlyRoot;
         boolean isVariantFilter = "variant".equalsIgnoreCase(typeFilter);
 
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(contentLocale);
-
         Slice<Recipe> recipes;
 
-        // Always use translation-aware methods - locale filtering is handled by translation-aware display
-        // (cookingStyle is NOT a language filter, it's a cooking style attribute)
-        if (cursorData == null) {
-            // Initial page (no cursor)
-            if (isVariantFilter) {
-                recipes = recipeRepository.findVariantRecipesWithCursorInitial(langCode, pageable);
-            } else if (isOriginalFilter) {
-                recipes = recipeRepository.findOriginalRecipesWithCursorInitial(langCode, pageable);
+        // Note: langCode parameter in repository methods is legacy (not used in queries anymore)
+        String dummyLangCode = "en-US";
+
+        if (cookingStyle == null || cookingStyle.isBlank()) {
+            // No cooking style filter - show all recipes
+            if (cursorData == null) {
+                if (isVariantFilter) {
+                    recipes = recipeRepository.findVariantRecipesWithCursorInitial(dummyLangCode, pageable);
+                } else if (isOriginalFilter) {
+                    recipes = recipeRepository.findOriginalRecipesWithCursorInitial(dummyLangCode, pageable);
+                } else {
+                    recipes = recipeRepository.findPublicRecipesWithCursorInitial(dummyLangCode, pageable);
+                }
             } else {
-                recipes = recipeRepository.findPublicRecipesWithCursorInitial(langCode, pageable);
+                if (isVariantFilter) {
+                    recipes = recipeRepository.findVariantRecipesWithCursor(dummyLangCode, cursorData.createdAt(), cursorData.id(), pageable);
+                } else if (isOriginalFilter) {
+                    recipes = recipeRepository.findOriginalRecipesWithCursor(dummyLangCode, cursorData.createdAt(), cursorData.id(), pageable);
+                } else {
+                    recipes = recipeRepository.findPublicRecipesWithCursor(dummyLangCode, cursorData.createdAt(), cursorData.id(), pageable);
+                }
             }
         } else {
-            // With cursor
-            if (isVariantFilter) {
-                recipes = recipeRepository.findVariantRecipesWithCursor(langCode, cursorData.createdAt(), cursorData.id(), pageable);
-            } else if (isOriginalFilter) {
-                recipes = recipeRepository.findOriginalRecipesWithCursor(langCode, cursorData.createdAt(), cursorData.id(), pageable);
+            // Filter by cooking style (e.g., KR, JP, US)
+            if (cursorData == null) {
+                if (isVariantFilter) {
+                    recipes = recipeRepository.findVariantRecipesByLocaleWithCursorInitial(cookingStyle, pageable);
+                } else if (isOriginalFilter) {
+                    recipes = recipeRepository.findOriginalRecipesByLocaleWithCursorInitial(cookingStyle, pageable);
+                } else {
+                    recipes = recipeRepository.findPublicRecipesByLocaleWithCursorInitial(cookingStyle, pageable);
+                }
             } else {
-                recipes = recipeRepository.findPublicRecipesWithCursor(langCode, cursorData.createdAt(), cursorData.id(), pageable);
+                if (isVariantFilter) {
+                    recipes = recipeRepository.findVariantRecipesByLocaleWithCursor(cookingStyle, cursorData.createdAt(), cursorData.id(), pageable);
+                } else if (isOriginalFilter) {
+                    recipes = recipeRepository.findOriginalRecipesByLocaleWithCursor(cookingStyle, cursorData.createdAt(), cursorData.id(), pageable);
+                } else {
+                    recipes = recipeRepository.findPublicRecipesByLocaleWithCursor(cookingStyle, cursorData.createdAt(), cursorData.id(), pageable);
+                }
             }
         }
 
@@ -1144,29 +1173,40 @@ public class RecipeService {
     /**
      * Offset-based pagination for web clients.
      * Returns Page with totalElements, totalPages, currentPage.
-     * Filters by translation availability based on contentLocale
+     * @param cookingStyle Filter by cooking style (e.g., KR, JP, US) - null for all
+     * @param contentLocale Locale from Accept-Language header for content translation
      */
     private UnifiedPageResponse<RecipeSummaryDto> findRecipesWithOffset(
-            String locale, String typeFilter, int page, int size, String contentLocale) {
+            String cookingStyle, String typeFilter, int page, int size, String contentLocale) {
 
         Pageable pageable = PageRequest.of(page, size);
 
         boolean isOriginalFilter = "original".equalsIgnoreCase(typeFilter);
         boolean isVariantFilter = "variant".equalsIgnoreCase(typeFilter);
 
-        // Use BCP47 format for translation filtering (matches how Lambda translator stores keys)
-        String langCode = LocaleUtils.toBcp47(contentLocale);
+        // Note: langCode parameter in repository methods is legacy (not used in queries anymore)
+        String dummyLangCode = "en-US";
 
         Page<Recipe> recipes;
 
-        // Always use translation-aware Page methods - locale filtering is handled by translation-aware display
-        // (cookingStyle is NOT a language filter, it's a cooking style attribute)
-        if (isVariantFilter) {
-            recipes = recipeRepository.findVariantRecipesPage(langCode, pageable);
-        } else if (isOriginalFilter) {
-            recipes = recipeRepository.findOriginalRecipesPage(langCode, pageable);
+        if (cookingStyle == null || cookingStyle.isBlank()) {
+            // No cooking style filter - show all recipes
+            if (isVariantFilter) {
+                recipes = recipeRepository.findVariantRecipesPage(dummyLangCode, pageable);
+            } else if (isOriginalFilter) {
+                recipes = recipeRepository.findOriginalRecipesPage(dummyLangCode, pageable);
+            } else {
+                recipes = recipeRepository.findPublicRecipesPage(dummyLangCode, pageable);
+            }
         } else {
-            recipes = recipeRepository.findPublicRecipesPage(langCode, pageable);
+            // Filter by cooking style (e.g., KR, JP, US)
+            if (isVariantFilter) {
+                recipes = recipeRepository.findVariantRecipesByLocalePage(cookingStyle, pageable);
+            } else if (isOriginalFilter) {
+                recipes = recipeRepository.findOriginalRecipesByLocalePage(cookingStyle, pageable);
+            } else {
+                recipes = recipeRepository.findPublicRecipesByLocalePage(cookingStyle, pageable);
+            }
         }
 
         Page<RecipeSummaryDto> mappedPage = recipes.map(r -> convertToSummary(r, contentLocale));
