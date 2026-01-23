@@ -309,6 +309,7 @@ export default function LogEditPage() {
                     fill
                     className="object-cover"
                     sizes="96px"
+                    unoptimized
                   />
                   {img.uploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

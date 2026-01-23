@@ -667,6 +667,7 @@ export default function RecipeEditPage() {
                     fill
                     className="object-cover"
                     sizes="96px"
+                    unoptimized
                   />
                   {photo.type === 'original' && (
                     <span className="absolute bottom-1 left-1 text-[8px] px-1 py-0.5 bg-black/60 text-white rounded">
@@ -983,6 +984,7 @@ export default function RecipeEditPage() {
                               fill
                               className="object-cover"
                               sizes="80px"
+                              unoptimized
                             />
                             {step.image?.uploading && (
                               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

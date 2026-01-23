@@ -132,6 +132,7 @@ export default function FollowingPage() {
                       fill
                       className="object-cover"
                       sizes="48px"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-lg text-[var(--primary)]">

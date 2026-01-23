@@ -14,7 +14,7 @@ export default function LegalPageLayout({ title, lastUpdated, children }: LegalP
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo-icon.svg" alt="Cookstemma" width={32} height={32} />
+            <Image src="/logo-icon.svg" alt="Cookstemma" width={32} height={32} unoptimized/>
             <span className="font-bold text-xl text-gray-900">Cookstemma</span>
           </Link>
           <nav className="flex gap-4 text-sm">

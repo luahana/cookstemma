@@ -350,6 +350,7 @@ function CreateLogPageContent() {
                       fill
                       className="object-cover"
                       sizes="64px"
+                      unoptimized
                     />
                   </div>
                 )}
@@ -445,6 +446,7 @@ function CreateLogPageContent() {
                                       fill
                                       className="object-cover"
                                       sizes="48px"
+                                      unoptimized
                                     />
                                   </div>
                                 ) : (
@@ -488,6 +490,7 @@ function CreateLogPageContent() {
                                         fill
                                         className="object-cover"
                                         sizes="48px"
+                                        unoptimized
                                       />
                                     </div>
                                   ) : (
@@ -580,6 +583,7 @@ function CreateLogPageContent() {
                     fill
                     className="object-cover"
                     sizes="96px"
+                    unoptimized
                   />
                   {img.uploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

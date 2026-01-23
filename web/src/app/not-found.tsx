@@ -19,6 +19,7 @@ export default function NotFound() {
             width={64}
             height={64}
             className="w-16 h-16 mb-3"
+            unoptimized
           />
           <span className="text-xl font-bold text-[var(--text-logo)]">
             Cookstemma

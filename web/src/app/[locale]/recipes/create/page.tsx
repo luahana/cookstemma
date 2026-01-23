@@ -975,6 +975,7 @@ function CreateRecipeContent() {
                       fill
                       className="object-cover pointer-events-none"
                       sizes="112px"
+                      unoptimized
                     />
                     {/* Original badge for inherited images */}
                     {isInherited && (
@@ -1436,6 +1437,7 @@ function CreateRecipeContent() {
                                       fill
                                       className="object-cover"
                                       sizes="64px"
+                                      unoptimized
                                     />
                                     {step.image?.uploading && (
                                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
