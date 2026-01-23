@@ -621,6 +621,10 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
             if not translated_steps[i]:
                 raise ValueError(f"Step {i} translation is empty for locale {target_locale}")
 
+            # Build step update with BOTH source and target languages
+            source_step_description = step.get('description', '')
+            step_updates = {source_bcp47: source_step_description, target_bcp47: translated_steps[i]}
+
             # CRITICAL: Fetch CURRENT translations from database, not from stale full_recipe
             # Use UPDATE with RETURNING to fetch and update in one atomic operation
             cur.execute("""
@@ -630,7 +634,7 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
                 )
                 WHERE id = %s
                 RETURNING description_translations
-            """, (json.dumps({target_bcp47: translated_steps[i]}), step['id']))
+            """, (json.dumps(step_updates), step['id']))
 
             updated_row = cur.fetchone()
             if updated_row:
@@ -654,13 +658,17 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
             if not translated_name:
                 raise ValueError(f"Ingredient {i} translation is empty for locale {target_locale}")
 
+            # Build ingredient update with BOTH source and target languages
+            source_ingredient_name = ingredient.get('name', '')
+            ingredient_updates = {source_bcp47: source_ingredient_name, target_bcp47: translated_name}
+
             # CRITICAL: Use atomic UPDATE with JSONB merge
             cur.execute("""
                 UPDATE recipe_ingredients
                 SET name_translations = COALESCE(name_translations, '{}'::jsonb) || %s::jsonb
                 WHERE id = %s
                 RETURNING name_translations
-            """, (json.dumps({target_bcp47: translated_name}), ingredient['id']))
+            """, (json.dumps(ingredient_updates), ingredient['id']))
 
             updated_ing = cur.fetchone()
             if updated_ing:

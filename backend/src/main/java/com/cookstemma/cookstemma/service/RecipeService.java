@@ -379,12 +379,22 @@ public class RecipeService {
             Long userId,
             String locale
     ) {
+        // Get source language code for initializing translations
+        String sourceLangCode = LocaleUtils.toBcp47(locale);
+
         // 1. 재료 저장
         if (req.ingredients() != null) {
             var ingredientList = req.ingredients();
             List<RecipeIngredient> ingredients = new java.util.ArrayList<>();
             for (int i = 0; i < ingredientList.size(); i++) {
                 var dto = ingredientList.get(i);
+
+                // Initialize nameTranslations with source language to preserve original content
+                Map<String, String> ingredientNameTranslations = new HashMap<>();
+                if (dto.name() != null) {
+                    ingredientNameTranslations.put(sourceLangCode, dto.name());
+                }
+
                 ingredients.add(RecipeIngredient.builder()
                         .recipe(recipe)
                         .name(dto.name())
@@ -392,6 +402,7 @@ public class RecipeService {
                         .unit(dto.unit())
                         .type(dto.type())
                         .displayOrder(i + 1)
+                        .nameTranslations(ingredientNameTranslations)
                         .build());
 
                 // Capture suggested ingredient if not in autocomplete
@@ -423,10 +434,17 @@ public class RecipeService {
                     imageProcessingService.generateVariantsAsync(stepImage.getId());
                 }
 
+                // Initialize descriptionTranslations with source language to preserve original content
+                Map<String, String> stepDescriptionTranslations = new HashMap<>();
+                if (stepDto.description() != null) {
+                    stepDescriptionTranslations.put(sourceLangCode, stepDto.description());
+                }
+
                 RecipeStep step = RecipeStep.builder()
                         .recipe(recipe)
                         .stepNumber(stepDto.stepNumber())
                         .description(stepDto.description())
+                        .descriptionTranslations(stepDescriptionTranslations)
                         .image(stepImage)
                         .build();
                 stepRepository.save(step);
@@ -846,6 +864,13 @@ public class RecipeService {
             List<RecipeIngredient> newIngredients = new java.util.ArrayList<>();
             for (int i = 0; i < ingredientList.size(); i++) {
                 var dto = ingredientList.get(i);
+
+                // Initialize nameTranslations with source language to preserve original content
+                Map<String, String> ingredientNameTranslations = new HashMap<>();
+                if (dto.name() != null) {
+                    ingredientNameTranslations.put(sourceLangCode, dto.name());
+                }
+
                 newIngredients.add(RecipeIngredient.builder()
                         .recipe(recipe)
                         .name(dto.name())
@@ -853,6 +878,7 @@ public class RecipeService {
                         .unit(dto.unit())
                         .type(dto.type())
                         .displayOrder(i + 1)
+                        .nameTranslations(ingredientNameTranslations)
                         .build());
             }
             ingredientRepository.saveAll(newIngredients);
@@ -877,10 +903,17 @@ public class RecipeService {
                     imageProcessingService.generateVariantsAsync(stepImage.getId());
                 }
 
+                // Initialize descriptionTranslations with source language to preserve original content
+                Map<String, String> stepDescriptionTranslations = new HashMap<>();
+                if (stepDto.description() != null) {
+                    stepDescriptionTranslations.put(sourceLangCode, stepDto.description());
+                }
+
                 RecipeStep step = RecipeStep.builder()
                         .recipe(recipe)
                         .stepNumber(stepDto.stepNumber())
                         .description(stepDto.description())
+                        .descriptionTranslations(stepDescriptionTranslations)
                         .image(stepImage)
                         .build();
                 stepRepository.save(step);
