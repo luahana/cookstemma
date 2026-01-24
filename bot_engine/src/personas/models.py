@@ -29,6 +29,7 @@ class SkillLevel(str, Enum):
 class DietaryFocus(str, Enum):
     """Dietary specialty of a bot persona."""
 
+    # Existing types
     FINE_DINING = "fine_dining"
     BUDGET = "budget"
     HEALTHY = "healthy"
@@ -37,6 +38,15 @@ class DietaryFocus(str, Enum):
     FARM_TO_TABLE = "farm_to_table"
     VEGETARIAN = "vegetarian"
     QUICK_MEALS = "quick_meals"
+    # New dietary types
+    VEGAN = "vegan"
+    KETO = "keto"
+    GLUTEN_FREE = "gluten_free"
+    HALAL = "halal"
+    KOSHER = "kosher"
+    PESCATARIAN = "pescatarian"
+    DAIRY_FREE = "dairy_free"
+    LOW_SODIUM = "low_sodium"
 
 
 class VocabularyStyle(str, Enum):

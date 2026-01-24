@@ -16,6 +16,7 @@ from ..api.models import (
     RecipeStep,
 )
 from ..generators import ImageGenerator, TextGenerator
+from ..generators.text.prompts import CULTURAL_PREFERENCES, DIETARY_PREFERENCES
 from ..personas import BotPersona
 
 logger = structlog.get_logger()
@@ -171,12 +172,107 @@ class RecipePipeline:
         )
         return recipe
 
+    def select_parent_for_cross_cultural(
+        self,
+        persona: BotPersona,
+        available_recipes: List[Recipe],
+        cross_cultural_ratio: float = 0.8,
+    ) -> Optional[Recipe]:
+        """Select a parent recipe, preferring foreign cuisines for cross-cultural variants.
+
+        Args:
+            persona: Bot persona (determines target culture via cooking_style)
+            available_recipes: Pool of recipes to select from
+            cross_cultural_ratio: Probability of selecting foreign cuisine (default 80%)
+
+        Returns:
+            Selected Recipe or None if no suitable recipe found
+        """
+        if not available_recipes:
+            return None
+
+        persona_style = persona.cooking_style  # e.g., "KR", "JP", "US"
+
+        # Separate recipes by cooking style
+        foreign_recipes = [
+            r for r in available_recipes
+            if r.cooking_style and r.cooking_style != persona_style
+        ]
+        same_culture_recipes = [
+            r for r in available_recipes
+            if not r.cooking_style or r.cooking_style == persona_style
+        ]
+
+        # Decide whether to pick foreign or same-culture
+        if foreign_recipes and random.random() < cross_cultural_ratio:
+            selected = random.choice(foreign_recipes)
+            logger.debug(
+                "selected_foreign_parent",
+                persona_style=persona_style,
+                parent_style=selected.cooking_style,
+                parent_title=selected.title,
+            )
+            return selected
+        elif same_culture_recipes:
+            return random.choice(same_culture_recipes)
+        elif foreign_recipes:
+            # Fall back to foreign if no same-culture available
+            return random.choice(foreign_recipes)
+
+        return None
+
+    def get_cultural_context(
+        self,
+        source_style: str,
+        target_style: str,
+        dietary_focus: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Get cultural and dietary adaptation context for variant generation.
+
+        Args:
+            source_style: Cooking style of parent recipe (e.g., "IT")
+            target_style: Cooking style of target persona (e.g., "KR")
+            dietary_focus: Optional dietary focus of persona (e.g., "vegan")
+
+        Returns:
+            Dict with cultural and dietary adaptation guidance
+        """
+        target_prefs = CULTURAL_PREFERENCES.get(target_style, {})
+        source_prefs = CULTURAL_PREFERENCES.get(source_style, {})
+        dietary_prefs = DIETARY_PREFERENCES.get(dietary_focus, {}) if dietary_focus else {}
+
+        # Merge avoid/prefer lists (combine cultural + dietary, remove duplicates)
+        cultural_avoid = target_prefs.get("avoid_ingredients", [])
+        dietary_avoid = dietary_prefs.get("avoid_ingredients", [])
+        avoid = list(set(cultural_avoid + dietary_avoid))
+
+        cultural_prefer = target_prefs.get("prefer_ingredients", [])
+        dietary_prefer = dietary_prefs.get("prefer_ingredients", [])
+        prefer = list(set(cultural_prefer + dietary_prefer))
+
+        # Build combined cooking notes
+        notes_parts = []
+        if target_prefs.get("cooking_notes"):
+            notes_parts.append(target_prefs["cooking_notes"])
+        if dietary_prefs.get("cooking_notes"):
+            notes_parts.append(dietary_prefs["cooking_notes"])
+
+        return {
+            "source_culture": source_prefs.get("name", source_style),
+            "target_culture": target_prefs.get("name", target_style),
+            "dietary_focus": dietary_prefs.get("name", ""),
+            "avoid_ingredients": avoid,
+            "prefer_ingredients": prefer,
+            "cooking_notes": " ".join(notes_parts),
+        }
+
     async def generate_variant_recipe(
         self,
         persona: BotPersona,
         parent_recipe: Recipe,
         variation_type: Optional[str] = None,
         generate_images: bool = True,
+        cultural_context: Optional[Dict[str, Any]] = None,
     ) -> Recipe:
         """Generate and publish a recipe variant.
 
@@ -185,6 +281,7 @@ class RecipePipeline:
             parent_recipe: Recipe to create variant from
             variation_type: Type of variation (or auto-suggest)
             generate_images: Whether to generate AI images
+            cultural_context: Optional cultural adaptation context for cross-cultural variants
 
         Returns:
             Created variant Recipe from API
@@ -198,11 +295,15 @@ class RecipePipeline:
             )
             variation_type = suggestions[0] if suggestions else "creative"
 
+        is_cross_cultural = cultural_context is not None
         logger.info(
             "variant_pipeline_start",
             persona=persona.name,
             parent=parent_recipe.title,
             variation=variation_type,
+            is_cross_cultural=is_cross_cultural,
+            source_culture=cultural_context.get("source_culture") if cultural_context else None,
+            target_culture=cultural_context.get("target_culture") if cultural_context else None,
         )
 
         # Convert parent to dict for text generation
@@ -229,6 +330,7 @@ class RecipePipeline:
             persona=persona,
             parent_recipe=parent_dict,
             variation_type=variation_type,
+            cultural_context=cultural_context,
         )
 
         # 2. Generate images if enabled
@@ -259,6 +361,15 @@ class RecipePipeline:
         ingredients = self._parse_ingredients(variant_data.get("ingredients", []))
         steps = self._parse_steps(variant_data.get("steps", []))
 
+        # Handle changeDiff - convert string to dict if needed (AI sometimes returns string)
+        raw_change_diff = variant_data.get("changeDiff")
+        if isinstance(raw_change_diff, str):
+            change_diff = {"description": raw_change_diff} if raw_change_diff else {}
+        elif isinstance(raw_change_diff, dict):
+            change_diff = raw_change_diff
+        else:
+            change_diff = {}
+
         request = CreateRecipeRequest(
             title=variant_data["title"][:100],
             description=variant_data["description"][:500] if variant_data.get("description") else None,
@@ -271,7 +382,7 @@ class RecipePipeline:
             servings=variant_data.get("servings"),
             cooking_time_range=variant_data.get("cookingTimeRange"),
             parent_public_id=parent_recipe.public_id,
-            change_diff=variant_data.get("changeDiff", ""),
+            change_diff=change_diff,
             change_reason=variant_data.get("changeReason", ""),
             change_categories=change_categories,
         )

@@ -52,6 +52,7 @@ load_dotenv()
 from src.api import CookstemmaClient
 from src.api.models import Comment, LogPost, Recipe
 from src.config import get_settings
+from src.generators import TextGenerator, ImageGenerator
 from src.orchestrator.recipe_pipeline import RecipePipeline
 from src.personas import BotPersona, get_persona_registry
 
@@ -261,14 +262,9 @@ class ContentOrchestrator:
                 if not recipes:
                     break
 
-                # Filter for quality recipes (has ingredients, steps, min 3 steps)
-                quality_recipes = [
-                    recipe for recipe in recipes
-                    if recipe.ingredients and len(recipe.ingredients) > 0
-                    and recipe.steps and len(recipe.steps) >= 3
-                ]
-
-                self._parent_recipe_pool.extend(quality_recipes)
+                # Add all recipes to pool - list API doesn't include ingredients/steps
+                # The variant pipeline will fetch full details when creating variants
+                self._parent_recipe_pool.extend(recipes)
 
                 # If we got fewer recipes than requested, we've reached the end
                 if len(recipes) < page_size:
@@ -344,6 +340,11 @@ class ContentOrchestrator:
 
         # Create variant recipes
         if variant_count > 0 and personas and client:
+            # Refresh parent pool to include newly created original recipes
+            if success_originals > 0 and not self._parent_recipe_pool:
+                print("      Refreshing parent recipe pool with new recipes...")
+                await self.fetch_parent_recipes(client, min_count=1)
+
             success_variants = await self.create_variant_recipes(
                 count=variant_count,
                 personas=personas,
@@ -357,13 +358,15 @@ class ContentOrchestrator:
         count: int,
         personas: List[BotPersona],
         client: CookstemmaClient,
+        cross_cultural_ratio: float = 0.8,
     ) -> int:
-        """Create variant recipes using RecipePipeline.
+        """Create variant recipes using RecipePipeline with cross-cultural adaptation.
 
         Args:
             count: Number of variants to create
             personas: List of personas to randomly assign
             client: API client for recipe operations
+            cross_cultural_ratio: Probability of selecting foreign cuisine for adaptation
 
         Returns:
             Number of successfully created variants
@@ -375,44 +378,81 @@ class ContentOrchestrator:
             print("      Warning: No parent recipes available, skipping variants")
             return 0
 
-        print(f"      Creating {count} variant recipes...")
+        print(f"      Creating {count} variant recipes (cross-cultural ratio: {cross_cultural_ratio:.0%})...")
 
-        # All 10 variation types
-        variation_types = [
+        # Standard variation types (used when NOT doing cross-cultural adaptation)
+        standard_variation_types = [
             "healthier", "budget", "quick", "vegetarian", "spicier",
             "kid_friendly", "gourmet", "vegan", "high_protein", "low_carb"
         ]
 
         successes = 0
+        cross_cultural_count = 0
+
+        # Initialize generators for the pipeline
+        text_gen = TextGenerator()
+        image_gen = ImageGenerator()
 
         for _ in range(count):
             try:
-                # Pick random parent from pool
-                parent_recipe = random.choice(self._parent_recipe_pool)
-
                 # Pick random persona
                 persona = random.choice(personas)
 
-                # Pick random variation type
-                variation_type = random.choice(variation_types)
-
-                # Initialize pipeline
+                # Initialize pipeline with generators
                 pipeline = RecipePipeline(
-                    client=client,
-                    persona=persona,
-                    parent_recipe_id=parent_recipe.public_id,
-                    variation_type=variation_type,
+                    api_client=client,
+                    text_generator=text_gen,
+                    image_generator=image_gen,
                 )
 
-                # Generate variant
-                variant_recipe = await pipeline.generate_variant_recipe()
+                # Use intelligent parent selection (prefers foreign cuisines)
+                parent_recipe = pipeline.select_parent_for_cross_cultural(
+                    persona=persona,
+                    available_recipes=self._parent_recipe_pool,
+                    cross_cultural_ratio=cross_cultural_ratio,
+                )
+
+                if not parent_recipe:
+                    print("        No suitable parent recipe found")
+                    continue
+
+                # Fetch full parent recipe details (list API doesn't include ingredients/steps)
+                full_parent_recipe = await client.get_recipe(parent_recipe.public_id)
+
+                # Determine if this is a cross-cultural adaptation
+                is_cross_cultural = (
+                    full_parent_recipe.cooking_style
+                    and full_parent_recipe.cooking_style != persona.cooking_style
+                )
+
+                # Select variation type and cultural context
+                if is_cross_cultural:
+                    variation_type = "cultural_adaptation"
+                    cultural_context = pipeline.get_cultural_context(
+                        source_style=full_parent_recipe.cooking_style,
+                        target_style=persona.cooking_style,
+                        dietary_focus=persona.dietary_focus.value,
+                    )
+                    cross_cultural_count += 1
+                else:
+                    variation_type = random.choice(standard_variation_types)
+                    cultural_context = None
+
+                # Generate variant with cultural context
+                variant_recipe = await pipeline.generate_variant_recipe(
+                    persona=persona,
+                    parent_recipe=full_parent_recipe,
+                    variation_type=variation_type,
+                    generate_images=True,
+                    cultural_context=cultural_context,
+                )
 
                 if variant_recipe:
                     successes += 1
                     # Add the new variant to the pool so it can be a parent too
                     self._parent_recipe_pool.append(variant_recipe)
                 else:
-                    print(f"        Variant creation returned None")
+                    print("        Variant creation returned None")
 
                 # Small delay between creations
                 await asyncio.sleep(2)
@@ -420,6 +460,7 @@ class ContentOrchestrator:
             except Exception as e:
                 print(f"        Variant creation error: {e}")
 
+        print(f"      ✓ Created {successes} variants ({cross_cultural_count} cross-cultural)")
         return successes
 
     async def create_logs(

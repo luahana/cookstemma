@@ -1,8 +1,391 @@
 """Prompt templates for content generation."""
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from ...personas.models import LOCALE_TO_LANGUAGE
+
+
+# Cultural preferences mapping for cross-cultural recipe adaptation
+CULTURAL_PREFERENCES: Dict[str, Dict[str, Any]] = {
+    "KR": {
+        "name": "Korean",
+        "avoid_ingredients": [
+            "cilantro", "cumin", "blue cheese", "lamb",
+            "strong curry", "fennel", "licorice",
+        ],
+        "prefer_ingredients": [
+            "gochugaru", "gochujang", "doenjang", "sesame oil", "kimchi",
+            "perilla leaves", "soy sauce", "garlic", "green onions", "tofu",
+        ],
+        "cooking_notes": (
+            "Koreans often prefer bold fermented flavors, less raw vegetables, "
+            "more banchan-style sides. Dishes often include rice as a staple."
+        ),
+    },
+    "JP": {
+        "name": "Japanese",
+        "avoid_ingredients": [
+            "cilantro", "strong spices", "excessive oil", "raw garlic",
+            "heavy cream", "blue cheese",
+        ],
+        "prefer_ingredients": [
+            "dashi", "miso", "soy sauce", "mirin", "sake", "nori",
+            "wasabi", "ginger", "rice vinegar", "sesame seeds",
+        ],
+        "cooking_notes": (
+            "Japanese cuisine values subtle umami, clean presentation, "
+            "seasonal ingredients. Less oil, more steaming and grilling."
+        ),
+    },
+    "US": {
+        "name": "American",
+        "avoid_ingredients": [
+            "fish sauce", "fermented bean paste", "offal", "insects",
+            "durian", "natto", "stinky tofu",
+        ],
+        "prefer_ingredients": [
+            "butter", "cheese", "bacon", "ranch", "bbq sauce",
+            "ketchup", "mayonnaise", "cheddar", "cream cheese",
+        ],
+        "cooking_notes": (
+            "American palate prefers familiar comfort flavors, larger portions. "
+            "Grilling, frying, and baking are popular cooking methods."
+        ),
+    },
+    "IT": {
+        "name": "Italian",
+        "avoid_ingredients": [
+            "soy sauce", "gochujang", "fish sauce", "heavy cream in pasta",
+            "ketchup on pasta", "pineapple on pizza",
+        ],
+        "prefer_ingredients": [
+            "olive oil", "parmesan", "basil", "tomato", "garlic",
+            "oregano", "mozzarella", "prosciutto", "balsamic vinegar",
+        ],
+        "cooking_notes": (
+            "Italian cuisine values simplicity, quality ingredients, "
+            "regional traditions. Al dente pasta, fresh herbs."
+        ),
+    },
+    "CN": {
+        "name": "Chinese",
+        "avoid_ingredients": [
+            "cheese", "raw salads", "cold dishes in winter",
+            "rare meat", "blue cheese",
+        ],
+        "prefer_ingredients": [
+            "soy sauce", "oyster sauce", "shaoxing wine", "ginger",
+            "scallions", "five spice", "chili oil", "Sichuan peppercorn",
+        ],
+        "cooking_notes": (
+            "Chinese cooking emphasizes wok hei, balanced textures, "
+            "medicinal food concepts. Hot dishes preferred."
+        ),
+    },
+    "MX": {
+        "name": "Mexican",
+        "avoid_ingredients": [
+            "soy sauce", "fish sauce", "raw fish",
+            "miso", "seaweed",
+        ],
+        "prefer_ingredients": [
+            "chili peppers", "lime", "cilantro", "cumin", "corn tortillas",
+            "avocado", "tomato", "onion", "jalapeño", "queso fresco",
+        ],
+        "cooking_notes": (
+            "Mexican cuisine uses bold spices, fresh salsas, corn-based staples. "
+            "Layered flavors with heat and acidity."
+        ),
+    },
+    "IN": {
+        "name": "Indian",
+        "avoid_ingredients": [
+            "beef", "pork", "raw fish",
+            "rare meat",
+        ],
+        "prefer_ingredients": [
+            "cumin", "turmeric", "garam masala", "ghee", "yogurt",
+            "lentils", "coriander", "cardamom", "chili", "ginger",
+        ],
+        "cooking_notes": (
+            "Indian cooking uses layered spices, often vegetarian-friendly. "
+            "Regional variations significant. Bread and rice as staples."
+        ),
+    },
+    "TH": {
+        "name": "Thai",
+        "avoid_ingredients": [
+            "cheese", "butter", "heavy cream",
+            "raw beef",
+        ],
+        "prefer_ingredients": [
+            "fish sauce", "lemongrass", "galangal", "Thai basil",
+            "coconut milk", "chilies", "lime", "palm sugar", "shrimp paste",
+        ],
+        "cooking_notes": (
+            "Thai cuisine balances sweet, sour, salty, spicy in each dish. "
+            "Fresh herbs essential. Rice as staple."
+        ),
+    },
+    "FR": {
+        "name": "French",
+        "avoid_ingredients": [
+            "fish sauce", "gochujang", "extreme spice",
+            "ketchup", "processed cheese",
+        ],
+        "prefer_ingredients": [
+            "butter", "cream", "wine", "shallots", "herbs de provence",
+            "dijon mustard", "tarragon", "thyme", "gruyere",
+        ],
+        "cooking_notes": (
+            "French cooking emphasizes technique, sauces, regional terroir. "
+            "Quality ingredients and proper methodology."
+        ),
+    },
+    "VN": {
+        "name": "Vietnamese",
+        "avoid_ingredients": [
+            "cheese", "heavy cream", "excessive oil",
+            "butter",
+        ],
+        "prefer_ingredients": [
+            "fish sauce", "rice noodles", "fresh herbs", "lime",
+            "bean sprouts", "cilantro", "mint", "lemongrass", "shrimp paste",
+        ],
+        "cooking_notes": (
+            "Vietnamese cuisine values fresh herbs, light broths, "
+            "balanced flavors. Less oil, more steaming."
+        ),
+    },
+}
+
+
+# Dietary preferences mapping for dietary-focused recipe adaptation
+DIETARY_PREFERENCES: Dict[str, Dict[str, Any]] = {
+    # === Existing types (mapped from DietaryFocus enum values) ===
+    "vegetarian": {
+        "name": "Vegetarian",
+        "avoid_ingredients": [
+            "beef", "pork", "chicken", "fish", "seafood",
+            "gelatin", "lard", "animal rennet",
+        ],
+        "prefer_ingredients": [
+            "tofu", "tempeh", "legumes", "mushrooms",
+            "cheese", "eggs", "paneer",
+        ],
+        "cooking_notes": (
+            "Replace meat with plant-based proteins. Eggs and dairy are allowed."
+        ),
+    },
+    "healthy": {
+        "name": "Healthy",
+        "avoid_ingredients": [
+            "excessive oil", "deep frying", "heavy cream",
+            "processed foods", "refined sugar", "trans fats",
+        ],
+        "prefer_ingredients": [
+            "olive oil", "lean protein", "whole grains", "vegetables",
+            "fresh herbs", "nuts", "seeds",
+        ],
+        "cooking_notes": (
+            "Focus on nutrient-dense ingredients, lighter cooking methods, "
+            "balanced portions."
+        ),
+    },
+    "budget": {
+        "name": "Budget-Friendly",
+        "avoid_ingredients": [
+            "wagyu", "truffle", "saffron", "lobster", "caviar", "premium cuts",
+        ],
+        "prefer_ingredients": [
+            "chicken thighs", "legumes", "seasonal vegetables",
+            "rice", "eggs", "canned goods",
+        ],
+        "cooking_notes": (
+            "Use affordable staples, maximize flavor from simple ingredients."
+        ),
+    },
+    "fine_dining": {
+        "name": "Fine Dining",
+        "avoid_ingredients": [
+            "instant foods", "canned vegetables", "processed cheese",
+        ],
+        "prefer_ingredients": [
+            "fresh herbs", "quality proteins", "compound butter",
+            "reductions", "garnishes",
+        ],
+        "cooking_notes": (
+            "Emphasize technique, presentation, and premium ingredients."
+        ),
+    },
+    "quick_meals": {
+        "name": "Quick Meals",
+        "avoid_ingredients": [
+            "slow-cook meats", "dried beans", "long-marinated items",
+        ],
+        "prefer_ingredients": [
+            "pre-cut vegetables", "quick-cooking proteins",
+            "canned beans", "frozen vegetables",
+        ],
+        "cooking_notes": (
+            "Streamline steps, use time-saving ingredients, prioritize "
+            "30-minute meals."
+        ),
+    },
+    "baking": {
+        "name": "Baking-Focused",
+        "avoid_ingredients": [],
+        "prefer_ingredients": [
+            "flour", "butter", "sugar", "eggs", "yeast", "baking powder",
+        ],
+        "cooking_notes": (
+            "When adapting savory dishes, consider adding baked elements "
+            "or pastry components."
+        ),
+    },
+    "international": {
+        "name": "International Fusion",
+        "avoid_ingredients": [],
+        "prefer_ingredients": [
+            "global spices", "fusion combinations", "cross-cultural ingredients",
+        ],
+        "cooking_notes": (
+            "Embrace ingredient combinations from multiple cuisines."
+        ),
+    },
+    "farm_to_table": {
+        "name": "Farm-to-Table",
+        "avoid_ingredients": [
+            "processed foods", "out-of-season produce", "preservatives",
+        ],
+        "prefer_ingredients": [
+            "seasonal vegetables", "local proteins", "fresh herbs",
+            "farmers market finds",
+        ],
+        "cooking_notes": (
+            "Prioritize seasonal, local, and sustainable ingredients."
+        ),
+    },
+    # === NEW dietary types ===
+    "vegan": {
+        "name": "Vegan",
+        "avoid_ingredients": [
+            "meat", "poultry", "fish", "seafood", "eggs", "dairy",
+            "cheese", "butter", "cream", "honey", "gelatin", "lard",
+        ],
+        "prefer_ingredients": [
+            "tofu", "tempeh", "seitan", "nutritional yeast", "plant milk",
+            "cashew cream", "coconut cream", "legumes", "nuts",
+        ],
+        "cooking_notes": (
+            "Replace ALL animal products with plant-based alternatives. "
+            "No eggs, dairy, or honey."
+        ),
+    },
+    "keto": {
+        "name": "Keto/Low-Carb",
+        "avoid_ingredients": [
+            "rice", "pasta", "bread", "potatoes", "sugar", "flour",
+            "corn", "beans", "high-sugar fruits",
+        ],
+        "prefer_ingredients": [
+            "avocado", "olive oil", "butter", "cheese", "eggs", "fatty fish",
+            "nuts", "leafy greens", "cauliflower",
+        ],
+        "cooking_notes": (
+            "Very low carb, high fat. Use cauliflower rice, zucchini noodles, "
+            "almond flour as substitutes."
+        ),
+    },
+    "gluten_free": {
+        "name": "Gluten-Free",
+        "avoid_ingredients": [
+            "wheat", "barley", "rye", "regular pasta", "bread",
+            "flour", "soy sauce", "beer",
+        ],
+        "prefer_ingredients": [
+            "rice", "quinoa", "rice noodles", "tamari", "corn tortillas",
+            "gluten-free oats", "almond flour",
+        ],
+        "cooking_notes": (
+            "Replace wheat-based ingredients with gluten-free alternatives. "
+            "Use tamari instead of soy sauce."
+        ),
+    },
+    "halal": {
+        "name": "Halal",
+        "avoid_ingredients": [
+            "pork", "bacon", "ham", "lard", "alcohol", "wine",
+            "beer", "gelatin from pork", "non-halal meat",
+        ],
+        "prefer_ingredients": [
+            "halal-certified meat", "lamb", "chicken", "fish",
+            "legumes", "vegetables",
+        ],
+        "cooking_notes": (
+            "No pork products or alcohol. Use halal-certified meats only. "
+            "Replace wine with broth or vinegar."
+        ),
+    },
+    "kosher": {
+        "name": "Kosher",
+        "avoid_ingredients": [
+            "pork", "shellfish", "mixing meat and dairy", "non-kosher meat",
+        ],
+        "prefer_ingredients": [
+            "kosher-certified meat", "fish with scales",
+            "separate dairy", "pareve ingredients",
+        ],
+        "cooking_notes": (
+            "No pork or shellfish. Never mix meat and dairy in same dish. "
+            "Fish must have fins and scales."
+        ),
+    },
+    "pescatarian": {
+        "name": "Pescatarian",
+        "avoid_ingredients": [
+            "beef", "pork", "chicken", "lamb", "poultry", "meat-based broths",
+        ],
+        "prefer_ingredients": [
+            "fish", "shrimp", "salmon", "tuna", "shellfish",
+            "eggs", "dairy", "tofu",
+        ],
+        "cooking_notes": (
+            "No meat or poultry, but fish and seafood are allowed. "
+            "Eggs and dairy permitted."
+        ),
+    },
+    "dairy_free": {
+        "name": "Dairy-Free",
+        "avoid_ingredients": [
+            "milk", "cheese", "butter", "cream", "yogurt",
+            "ghee", "whey", "casein",
+        ],
+        "prefer_ingredients": [
+            "coconut milk", "almond milk", "oat milk", "coconut cream",
+            "olive oil", "vegan butter",
+        ],
+        "cooking_notes": (
+            "Replace all dairy with plant-based alternatives. "
+            "Check for hidden dairy in processed foods."
+        ),
+    },
+    "low_sodium": {
+        "name": "Low-Sodium",
+        "avoid_ingredients": [
+            "table salt", "soy sauce", "fish sauce", "cured meats",
+            "processed foods", "canned soups", "pickled items",
+        ],
+        "prefer_ingredients": [
+            "fresh herbs", "citrus", "vinegar", "garlic", "onion",
+            "low-sodium soy sauce", "fresh vegetables",
+        ],
+        "cooking_notes": (
+            "Minimize salt, maximize flavor with herbs, spices, "
+            "citrus, and aromatics."
+        ),
+    },
+}
 
 
 def _get_language_from_locale(locale: str) -> str:
@@ -95,8 +478,24 @@ Return ONLY valid JSON, no additional text."""
         parent_steps: str,
         locale: str,
         variation_type: str,
+        cultural_context: Optional[Dict[str, Any]] = None,
     ) -> str:
-        """Generate prompt for creating a recipe variant."""
+        """Generate prompt for creating a recipe variant.
+
+        Args:
+            parent_title: Title of the parent recipe
+            parent_description: Description of the parent recipe
+            parent_ingredients: Formatted ingredients string
+            parent_steps: Formatted steps string
+            locale: Target locale for the variant
+            variation_type: Type of variation to create
+            cultural_context: Optional cultural adaptation context with keys:
+                - source_culture: Name of the source culture (e.g., "Italian")
+                - target_culture: Name of the target culture (e.g., "Korean")
+                - avoid_ingredients: List of ingredients to avoid
+                - prefer_ingredients: List of preferred ingredients
+                - cooking_notes: Notes about the target culture's cooking style
+        """
         lang = _get_language_from_locale(locale)
 
         # US uses cups/tablespoons/ounces; rest of world uses metric
@@ -126,12 +525,47 @@ Return ONLY valid JSON, no additional text."""
             "vegan": "Make a vegan version - replace all animal products (meat, dairy, eggs, honey) with plant-based alternatives",
             "high_protein": "Make a high-protein version - increase protein with chicken, fish, eggs, Greek yogurt, legumes, or protein powder",
             "low_carb": "Make a low-carb version - substitute high-carb ingredients (pasta, rice, bread, potatoes, sugar) with low-carb alternatives",
+            "cultural_adaptation": "Adapt this recipe for the target culture's cuisine and preferences",
         }
 
         instruction = variation_instructions.get(
             variation_type,
             "Create a creative variation with meaningful improvements",
         )
+
+        # Build cultural adaptation instructions if provided
+        cultural_instructions = ""
+        if cultural_context:
+            source = cultural_context.get("source_culture", "foreign")
+            target = cultural_context.get("target_culture", "local")
+            dietary = cultural_context.get("dietary_focus", "")
+            avoid = cultural_context.get("avoid_ingredients", [])
+            prefer = cultural_context.get("prefer_ingredients", [])
+            notes = cultural_context.get("cooking_notes", "")
+
+            # Build dietary focus description
+            dietary_info = ""
+            if dietary:
+                dietary_info = f" with a {dietary} focus"
+
+            # Build dietary requirements line
+            dietary_requirements = ""
+            if dietary:
+                dietary_requirements = f"\nIMPORTANT: Ensure the recipe meets {dietary} dietary requirements."
+
+            cultural_instructions = f"""
+
+CULTURAL ADAPTATION CONTEXT:
+This is a {source} recipe being adapted for {target} cuisine{dietary_info}.
+
+Ingredients to AVOID: {', '.join(avoid) if avoid else 'none specified'}
+Ingredients to PREFER: {', '.join(prefer) if prefer else 'none specified'}
+Cooking style notes: {notes}
+
+IMPORTANT: Replace any avoided ingredients with appropriate alternatives from the preferred list.
+Keep the dish's core essence while making it appealing to {target} palates.{dietary_requirements}
+The title should reflect the adaptation (e.g., "Korean-Style Vegan Pasta" or "Japanese Low-Carb Taco Bowl").
+"""
 
         return f"""You are creating a VARIANT of an existing recipe.
 
@@ -142,6 +576,7 @@ Ingredients: {parent_ingredients}
 Steps: {parent_steps}
 
 TASK: {instruction}
+{cultural_instructions}
 
 Generate a variant recipe in JSON format:
 {{

@@ -1,7 +1,7 @@
 """Tests for recipe and log pipelines."""
 
 import pytest
-from typing import Dict
+from typing import Dict, List
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from src.api.models import (
@@ -15,7 +15,8 @@ from src.api.models import (
 )
 from src.orchestrator.recipe_pipeline import RecipePipeline
 from src.orchestrator.log_pipeline import LogPipeline
-from src.personas import BotPersona
+from src.personas import BotPersona, DietaryFocus
+from src.generators.text.prompts import CULTURAL_PREFERENCES, DIETARY_PREFERENCES
 
 
 class TestRecipePipeline:
@@ -195,6 +196,240 @@ class TestRecipePipeline:
         assert result[2].order == 3  # Should use index + 1 as fallback
 
 
+class TestCrossCulturalSelection:
+    """Tests for cross-cultural recipe selection and adaptation."""
+
+    @pytest.fixture
+    def mock_text_generator(self) -> AsyncMock:
+        """Create a mock text generator."""
+        return AsyncMock()
+
+    @pytest.fixture
+    def mock_image_generator(self) -> AsyncMock:
+        """Create a mock image generator."""
+        return AsyncMock()
+
+    @pytest.fixture
+    def mock_api_client(self) -> AsyncMock:
+        """Create a mock API client."""
+        return AsyncMock()
+
+    @pytest.fixture
+    def italian_recipe(self) -> Recipe:
+        """Create a sample Italian recipe."""
+        return Recipe(
+            public_id="recipe-italian-123",
+            title="Classic Pasta Carbonara",
+            description="Traditional Italian pasta with eggs and bacon",
+            locale="it-IT",
+            cooking_style="IT",
+            ingredients=[
+                RecipeIngredient(name="Spaghetti", quantity=400.0, unit=MeasurementUnit.G),
+            ],
+            steps=[RecipeStep(step_number=1, description="Cook pasta")],
+        )
+
+    @pytest.fixture
+    def american_recipe(self) -> Recipe:
+        """Create a sample American recipe."""
+        return Recipe(
+            public_id="recipe-american-456",
+            title="Classic Cheeseburger",
+            description="Juicy American cheeseburger",
+            locale="en-US",
+            cooking_style="US",
+            ingredients=[
+                RecipeIngredient(name="Ground beef", quantity=1.0, unit=MeasurementUnit.LB),
+            ],
+            steps=[RecipeStep(step_number=1, description="Form patties")],
+        )
+
+    @pytest.fixture
+    def korean_recipe(self) -> Recipe:
+        """Create a sample Korean recipe."""
+        return Recipe(
+            public_id="recipe-korean-789",
+            title="Kimchi Jjigae",
+            description="Traditional Korean kimchi stew",
+            locale="ko-KR",
+            cooking_style="KR",
+            ingredients=[
+                RecipeIngredient(name="Kimchi", quantity=300.0, unit=MeasurementUnit.G),
+            ],
+            steps=[RecipeStep(step_number=1, description="Prepare kimchi")],
+        )
+
+    @pytest.fixture
+    def recipe_pool(
+        self,
+        italian_recipe: Recipe,
+        american_recipe: Recipe,
+        korean_recipe: Recipe,
+    ) -> List[Recipe]:
+        """Create a pool of recipes from different cultures."""
+        return [italian_recipe, american_recipe, korean_recipe]
+
+    def test_select_parent_prefers_foreign_recipes(
+        self,
+        korean_persona: BotPersona,
+        recipe_pool: List[Recipe],
+        mock_api_client: AsyncMock,
+        mock_text_generator: AsyncMock,
+        mock_image_generator: AsyncMock,
+    ) -> None:
+        """Test that cross-cultural selection prefers foreign recipes."""
+        pipeline = RecipePipeline(
+            api_client=mock_api_client,
+            text_generator=mock_text_generator,
+            image_generator=mock_image_generator,
+        )
+
+        # With 100% cross-cultural ratio, should never pick Korean recipe
+        foreign_selections = 0
+        for _ in range(100):
+            selected = pipeline.select_parent_for_cross_cultural(
+                persona=korean_persona,
+                available_recipes=recipe_pool,
+                cross_cultural_ratio=1.0,  # 100% foreign
+            )
+            if selected and selected.cooking_style != korean_persona.cooking_style:
+                foreign_selections += 1
+
+        # Should select foreign recipe 100% of the time
+        assert foreign_selections == 100
+
+    def test_select_parent_returns_none_for_empty_pool(
+        self,
+        korean_persona: BotPersona,
+        mock_api_client: AsyncMock,
+        mock_text_generator: AsyncMock,
+        mock_image_generator: AsyncMock,
+    ) -> None:
+        """Test that selection returns None for empty recipe pool."""
+        pipeline = RecipePipeline(
+            api_client=mock_api_client,
+            text_generator=mock_text_generator,
+            image_generator=mock_image_generator,
+        )
+
+        result = pipeline.select_parent_for_cross_cultural(
+            persona=korean_persona,
+            available_recipes=[],
+            cross_cultural_ratio=0.8,
+        )
+
+        assert result is None
+
+    def test_select_parent_falls_back_to_same_culture(
+        self,
+        korean_persona: BotPersona,
+        korean_recipe: Recipe,
+        mock_api_client: AsyncMock,
+        mock_text_generator: AsyncMock,
+        mock_image_generator: AsyncMock,
+    ) -> None:
+        """Test that selection falls back to same culture when no foreign available."""
+        pipeline = RecipePipeline(
+            api_client=mock_api_client,
+            text_generator=mock_text_generator,
+            image_generator=mock_image_generator,
+        )
+
+        # Pool only has Korean recipes
+        result = pipeline.select_parent_for_cross_cultural(
+            persona=korean_persona,
+            available_recipes=[korean_recipe],
+            cross_cultural_ratio=0.8,
+        )
+
+        assert result is not None
+        assert result.cooking_style == "KR"
+
+    def test_get_cultural_context_returns_correct_preferences(
+        self,
+        mock_api_client: AsyncMock,
+        mock_text_generator: AsyncMock,
+        mock_image_generator: AsyncMock,
+    ) -> None:
+        """Test that cultural context is built correctly."""
+        pipeline = RecipePipeline(
+            api_client=mock_api_client,
+            text_generator=mock_text_generator,
+            image_generator=mock_image_generator,
+        )
+
+        context = pipeline.get_cultural_context(
+            source_style="IT",
+            target_style="KR",
+        )
+
+        assert context["source_culture"] == "Italian"
+        assert context["target_culture"] == "Korean"
+        assert "gochujang" in context["prefer_ingredients"]
+        assert "cilantro" in context["avoid_ingredients"]
+        assert "fermented" in context["cooking_notes"].lower()
+
+    def test_get_cultural_context_handles_unknown_styles(
+        self,
+        mock_api_client: AsyncMock,
+        mock_text_generator: AsyncMock,
+        mock_image_generator: AsyncMock,
+    ) -> None:
+        """Test that unknown cooking styles are handled gracefully."""
+        pipeline = RecipePipeline(
+            api_client=mock_api_client,
+            text_generator=mock_text_generator,
+            image_generator=mock_image_generator,
+        )
+
+        context = pipeline.get_cultural_context(
+            source_style="UNKNOWN",
+            target_style="ALSO_UNKNOWN",
+        )
+
+        # Should use style code as fallback for name
+        assert context["source_culture"] == "UNKNOWN"
+        assert context["target_culture"] == "ALSO_UNKNOWN"
+        # Should have empty lists for preferences
+        assert context["avoid_ingredients"] == []
+        assert context["prefer_ingredients"] == []
+        assert context["cooking_notes"] == ""
+
+
+class TestCulturalPreferences:
+    """Tests for the CULTURAL_PREFERENCES data structure."""
+
+    def test_all_cultures_have_required_fields(self) -> None:
+        """Test that all cultures have name, avoid, prefer, and cooking_notes."""
+        required_fields = ["name", "avoid_ingredients", "prefer_ingredients", "cooking_notes"]
+
+        for style, prefs in CULTURAL_PREFERENCES.items():
+            for field in required_fields:
+                assert field in prefs, f"Culture {style} missing field {field}"
+                if field == "name":
+                    assert isinstance(prefs[field], str)
+                elif field == "cooking_notes":
+                    assert isinstance(prefs[field], str)
+                else:
+                    assert isinstance(prefs[field], list)
+                    assert len(prefs[field]) > 0, f"Culture {style} has empty {field}"
+
+    def test_expected_cultures_are_defined(self) -> None:
+        """Test that all expected cultures are defined."""
+        expected_cultures = ["KR", "JP", "US", "IT", "CN", "MX", "IN", "TH", "FR", "VN"]
+
+        for culture in expected_cultures:
+            assert culture in CULTURAL_PREFERENCES, f"Missing culture: {culture}"
+
+    def test_korean_preferences_are_accurate(self) -> None:
+        """Test Korean cultural preferences."""
+        kr = CULTURAL_PREFERENCES["KR"]
+
+        assert kr["name"] == "Korean"
+        assert "gochujang" in kr["prefer_ingredients"]
+        assert "cilantro" in kr["avoid_ingredients"]
+
+
 class TestLogPipeline:
     """Tests for the LogPipeline class."""
 
@@ -347,3 +582,221 @@ class TestLogPipeline:
 
         # Text generator should be called 5 times
         assert mock_text_generator.generate_log.call_count == 5
+
+
+class TestDietaryPreferences:
+    """Tests for the DIETARY_PREFERENCES data structure."""
+
+    def test_all_dietary_types_have_required_fields(self) -> None:
+        """Test that all dietary types have name, avoid, prefer, and cooking_notes."""
+        required_fields = ["name", "avoid_ingredients", "prefer_ingredients", "cooking_notes"]
+
+        for diet_type, prefs in DIETARY_PREFERENCES.items():
+            for field in required_fields:
+                assert field in prefs, f"Diet type {diet_type} missing field {field}"
+                if field == "name":
+                    assert isinstance(prefs[field], str)
+                elif field == "cooking_notes":
+                    assert isinstance(prefs[field], str)
+                else:
+                    assert isinstance(prefs[field], list)
+
+    def test_expected_dietary_types_are_defined(self) -> None:
+        """Test that all expected dietary types are defined."""
+        expected_types = [
+            # Existing types
+            "vegetarian", "healthy", "budget", "fine_dining",
+            "quick_meals", "baking", "international", "farm_to_table",
+            # New types
+            "vegan", "keto", "gluten_free", "halal",
+            "kosher", "pescatarian", "dairy_free", "low_sodium",
+        ]
+
+        for diet_type in expected_types:
+            assert diet_type in DIETARY_PREFERENCES, f"Missing diet type: {diet_type}"
+
+    def test_dietary_types_match_enum(self) -> None:
+        """Test that all DietaryFocus enum values have corresponding preferences."""
+        for focus in DietaryFocus:
+            assert focus.value in DIETARY_PREFERENCES, (
+                f"DietaryFocus.{focus.name} ({focus.value}) not in DIETARY_PREFERENCES"
+            )
+
+    def test_vegan_preferences_are_accurate(self) -> None:
+        """Test vegan dietary preferences."""
+        vegan = DIETARY_PREFERENCES["vegan"]
+
+        assert vegan["name"] == "Vegan"
+        assert "tofu" in vegan["prefer_ingredients"]
+        assert "meat" in vegan["avoid_ingredients"]
+        assert "dairy" in vegan["avoid_ingredients"]
+        assert "eggs" in vegan["avoid_ingredients"]
+
+    def test_halal_preferences_are_accurate(self) -> None:
+        """Test halal dietary preferences."""
+        halal = DIETARY_PREFERENCES["halal"]
+
+        assert halal["name"] == "Halal"
+        assert "pork" in halal["avoid_ingredients"]
+        assert "alcohol" in halal["avoid_ingredients"]
+        assert "lamb" in halal["prefer_ingredients"]
+
+    def test_keto_preferences_are_accurate(self) -> None:
+        """Test keto dietary preferences."""
+        keto = DIETARY_PREFERENCES["keto"]
+
+        assert keto["name"] == "Keto/Low-Carb"
+        assert "rice" in keto["avoid_ingredients"]
+        assert "pasta" in keto["avoid_ingredients"]
+        assert "avocado" in keto["prefer_ingredients"]
+        assert "cauliflower" in keto["prefer_ingredients"]
+
+
+class TestCulturalAndDietaryContext:
+    """Tests for combined cultural and dietary context."""
+
+    @pytest.fixture
+    def mock_text_generator(self) -> AsyncMock:
+        """Create a mock text generator."""
+        return AsyncMock()
+
+    @pytest.fixture
+    def mock_image_generator(self) -> AsyncMock:
+        """Create a mock image generator."""
+        return AsyncMock()
+
+    @pytest.fixture
+    def mock_api_client(self) -> AsyncMock:
+        """Create a mock API client."""
+        return AsyncMock()
+
+    def test_get_cultural_context_with_dietary_focus(
+        self,
+        mock_api_client: AsyncMock,
+        mock_text_generator: AsyncMock,
+        mock_image_generator: AsyncMock,
+    ) -> None:
+        """Test that cultural context includes dietary focus."""
+        pipeline = RecipePipeline(
+            api_client=mock_api_client,
+            text_generator=mock_text_generator,
+            image_generator=mock_image_generator,
+        )
+
+        context = pipeline.get_cultural_context(
+            source_style="IT",
+            target_style="US",
+            dietary_focus="vegan",
+        )
+
+        assert context["dietary_focus"] == "Vegan"
+        # Should include vegan avoid ingredients
+        assert "meat" in context["avoid_ingredients"]
+        assert "dairy" in context["avoid_ingredients"]
+        # Should include vegan prefer ingredients
+        assert "tofu" in context["prefer_ingredients"]
+
+    def test_get_cultural_context_merges_preferences(
+        self,
+        mock_api_client: AsyncMock,
+        mock_text_generator: AsyncMock,
+        mock_image_generator: AsyncMock,
+    ) -> None:
+        """Test that cultural and dietary preferences are merged."""
+        pipeline = RecipePipeline(
+            api_client=mock_api_client,
+            text_generator=mock_text_generator,
+            image_generator=mock_image_generator,
+        )
+
+        context = pipeline.get_cultural_context(
+            source_style="IT",
+            target_style="KR",
+            dietary_focus="vegan",
+        )
+
+        # Should have Korean cultural preferences
+        assert "gochujang" in context["prefer_ingredients"]
+        assert "cilantro" in context["avoid_ingredients"]
+        # Should also have vegan preferences merged
+        assert "tofu" in context["prefer_ingredients"]
+        assert "meat" in context["avoid_ingredients"]
+        # Dietary focus should be set
+        assert context["dietary_focus"] == "Vegan"
+
+    def test_get_cultural_context_halal_korean_combination(
+        self,
+        mock_api_client: AsyncMock,
+        mock_text_generator: AsyncMock,
+        mock_image_generator: AsyncMock,
+    ) -> None:
+        """Test halal + Korean culture combination."""
+        pipeline = RecipePipeline(
+            api_client=mock_api_client,
+            text_generator=mock_text_generator,
+            image_generator=mock_image_generator,
+        )
+
+        context = pipeline.get_cultural_context(
+            source_style="FR",
+            target_style="KR",
+            dietary_focus="halal",
+        )
+
+        assert context["source_culture"] == "French"
+        assert context["target_culture"] == "Korean"
+        assert context["dietary_focus"] == "Halal"
+        # Should have both Korean and halal avoid ingredients
+        assert "pork" in context["avoid_ingredients"]  # From halal
+        assert "alcohol" in context["avoid_ingredients"]  # From halal
+        assert "cilantro" in context["avoid_ingredients"]  # From Korean
+        # Should have Korean prefer ingredients
+        assert "gochujang" in context["prefer_ingredients"]
+
+    def test_get_cultural_context_without_dietary_focus(
+        self,
+        mock_api_client: AsyncMock,
+        mock_text_generator: AsyncMock,
+        mock_image_generator: AsyncMock,
+    ) -> None:
+        """Test that context works without dietary focus."""
+        pipeline = RecipePipeline(
+            api_client=mock_api_client,
+            text_generator=mock_text_generator,
+            image_generator=mock_image_generator,
+        )
+
+        context = pipeline.get_cultural_context(
+            source_style="IT",
+            target_style="KR",
+        )
+
+        # Should still have cultural preferences
+        assert context["target_culture"] == "Korean"
+        assert "gochujang" in context["prefer_ingredients"]
+        # Dietary focus should be empty
+        assert context["dietary_focus"] == ""
+
+    def test_get_cultural_context_combines_cooking_notes(
+        self,
+        mock_api_client: AsyncMock,
+        mock_text_generator: AsyncMock,
+        mock_image_generator: AsyncMock,
+    ) -> None:
+        """Test that cooking notes from both sources are combined."""
+        pipeline = RecipePipeline(
+            api_client=mock_api_client,
+            text_generator=mock_text_generator,
+            image_generator=mock_image_generator,
+        )
+
+        context = pipeline.get_cultural_context(
+            source_style="IT",
+            target_style="KR",
+            dietary_focus="vegan",
+        )
+
+        # Should include notes from both Korean culture and vegan diet
+        notes = context["cooking_notes"]
+        assert "fermented" in notes.lower()  # Korean cooking notes
+        assert "plant-based" in notes.lower()  # Vegan cooking notes
