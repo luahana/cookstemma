@@ -372,7 +372,8 @@ class RecipePipeline:
 
         request = CreateRecipeRequest(
             title=variant_data["title"][:100],
-            description=variant_data["description"][:500] if variant_data.get("description") else None,
+            # Use parent's description directly (not AI-generated)
+            description=parent_recipe.description[:500] if parent_recipe.description else None,
             locale=persona.locale,
             cooking_style=persona.cooking_style,
             ingredients=ingredients,
