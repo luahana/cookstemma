@@ -31,12 +31,13 @@ public class CommentController {
     @GetMapping("/api/v1/log_posts/{logId}/comments")
     public ResponseEntity<Page<CommentWithRepliesDto>> getComments(
             @PathVariable("logId") UUID logPublicId,
+            @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @AuthenticationPrincipal UserPrincipal principal) {
         Long currentUserId = principal != null ? principal.getId() : null;
         PageRequest pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(commentService.getComments(logPublicId, pageable, currentUserId));
+        return ResponseEntity.ok(commentService.getComments(logPublicId, locale, pageable, currentUserId));
     }
 
     /**
@@ -46,9 +47,10 @@ public class CommentController {
     @PostMapping("/api/v1/log_posts/{logId}/comments")
     public ResponseEntity<CommentResponseDto> createComment(
             @PathVariable("logId") UUID logPublicId,
+            @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale,
             @Valid @RequestBody CreateCommentRequestDto request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(commentService.createComment(logPublicId, request, principal));
+        return ResponseEntity.ok(commentService.createComment(logPublicId, locale, request, principal));
     }
 
     // =========== Replies ===========
@@ -60,12 +62,13 @@ public class CommentController {
     @GetMapping("/api/v1/comments/{commentId}/replies")
     public ResponseEntity<Page<CommentResponseDto>> getReplies(
             @PathVariable("commentId") UUID commentPublicId,
+            @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @AuthenticationPrincipal UserPrincipal principal) {
         Long currentUserId = principal != null ? principal.getId() : null;
         PageRequest pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(commentService.getReplies(commentPublicId, pageable, currentUserId));
+        return ResponseEntity.ok(commentService.getReplies(commentPublicId, locale, pageable, currentUserId));
     }
 
     /**
@@ -75,9 +78,10 @@ public class CommentController {
     @PostMapping("/api/v1/comments/{commentId}/replies")
     public ResponseEntity<CommentResponseDto> createReply(
             @PathVariable("commentId") UUID commentPublicId,
+            @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale,
             @Valid @RequestBody CreateCommentRequestDto request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(commentService.createReply(commentPublicId, request, principal));
+        return ResponseEntity.ok(commentService.createReply(commentPublicId, locale, request, principal));
     }
 
     // =========== Comment Actions ===========
@@ -89,9 +93,10 @@ public class CommentController {
     @PutMapping("/api/v1/comments/{commentId}")
     public ResponseEntity<CommentResponseDto> editComment(
             @PathVariable("commentId") UUID commentPublicId,
+            @RequestHeader(value = "Accept-Language", defaultValue = "en") String locale,
             @Valid @RequestBody CreateCommentRequestDto request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.ok(commentService.editComment(commentPublicId, request, principal.getId()));
+        return ResponseEntity.ok(commentService.editComment(commentPublicId, locale, request, principal.getId()));
     }
 
     /**

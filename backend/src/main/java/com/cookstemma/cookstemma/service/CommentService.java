@@ -15,6 +15,7 @@ import com.cookstemma.cookstemma.repository.log_post.LogPostRepository;
 import com.cookstemma.cookstemma.repository.notification.NotificationRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
 import com.cookstemma.cookstemma.security.UserPrincipal;
+import com.cookstemma.cookstemma.util.LocaleUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -46,7 +47,7 @@ public class CommentService {
     /**
      * Create a top-level comment on a log post
      */
-    public CommentResponseDto createComment(UUID logPublicId, CreateCommentRequestDto dto, UserPrincipal principal) {
+    public CommentResponseDto createComment(UUID logPublicId, String locale, CreateCommentRequestDto dto, UserPrincipal principal) {
         LogPost logPost = logPostRepository.findByPublicId(logPublicId)
             .orElseThrow(() -> new IllegalArgumentException("Log post not found"));
 
@@ -75,13 +76,13 @@ public class CommentService {
         translationEventService.queueCommentTranslation(comment);
 
         log.info("Comment created on log {} by user {}", logPublicId, principal.getId());
-        return toCommentResponse(comment, principal.getId());
+        return toCommentResponse(comment, locale, principal.getId());
     }
 
     /**
      * Create a reply to a comment
      */
-    public CommentResponseDto createReply(UUID parentCommentPublicId, CreateCommentRequestDto dto, UserPrincipal principal) {
+    public CommentResponseDto createReply(UUID parentCommentPublicId, String locale, CreateCommentRequestDto dto, UserPrincipal principal) {
         Comment parentComment = commentRepository.findByPublicIdAndDeletedAtIsNull(parentCommentPublicId)
             .orElseThrow(() -> new IllegalArgumentException("Parent comment not found"));
 
@@ -117,14 +118,14 @@ public class CommentService {
         translationEventService.queueCommentTranslation(reply);
 
         log.info("Reply created to comment {} by user {}", parentCommentPublicId, principal.getId());
-        return toCommentResponse(reply, principal.getId());
+        return toCommentResponse(reply, locale, principal.getId());
     }
 
     /**
      * Get paginated top-level comments for a log post with preview replies
      */
     @Transactional(readOnly = true)
-    public Page<CommentWithRepliesDto> getComments(UUID logPublicId, Pageable pageable, Long currentUserId) {
+    public Page<CommentWithRepliesDto> getComments(UUID logPublicId, String locale, Pageable pageable, Long currentUserId) {
         LogPost logPost = logPostRepository.findByPublicId(logPublicId)
             .orElseThrow(() -> new IllegalArgumentException("Log post not found"));
 
@@ -146,11 +147,11 @@ public class CommentService {
 
             List<CommentResponseDto> replyDtos = replies.stream()
                 .limit(MAX_PREVIEW_REPLIES)
-                .map(r -> toCommentResponse(r, currentUserId, likedCommentIds))
+                .map(r -> toCommentResponse(r, locale, currentUserId, likedCommentIds))
                 .toList();
 
             return new CommentWithRepliesDto(
-                toCommentResponse(comment, currentUserId, likedCommentIds),
+                toCommentResponse(comment, locale, currentUserId, likedCommentIds),
                 replyDtos,
                 hasMoreReplies
             );
@@ -161,7 +162,7 @@ public class CommentService {
      * Get paginated replies for a comment
      */
     @Transactional(readOnly = true)
-    public Page<CommentResponseDto> getReplies(UUID commentPublicId, Pageable pageable, Long currentUserId) {
+    public Page<CommentResponseDto> getReplies(UUID commentPublicId, String locale, Pageable pageable, Long currentUserId) {
         Comment parentComment = commentRepository.findByPublicIdAndDeletedAtIsNull(commentPublicId)
             .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
 
@@ -175,13 +176,13 @@ public class CommentService {
             ? commentLikeRepository.findLikedCommentIdsByUserIdAndCommentIds(currentUserId, replyIds)
             : Collections.emptySet();
 
-        return repliesPage.map(reply -> toCommentResponse(reply, currentUserId, likedCommentIds));
+        return repliesPage.map(reply -> toCommentResponse(reply, locale, currentUserId, likedCommentIds));
     }
 
     /**
      * Edit a comment (owner only)
      */
-    public CommentResponseDto editComment(UUID commentPublicId, CreateCommentRequestDto dto, Long userId) {
+    public CommentResponseDto editComment(UUID commentPublicId, String locale, CreateCommentRequestDto dto, Long userId) {
         Comment comment = commentRepository.findByPublicIdAndDeletedAtIsNull(commentPublicId)
             .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
 
@@ -197,7 +198,7 @@ public class CommentService {
         translationEventService.queueCommentTranslation(comment);
 
         log.info("Comment {} edited by user {}", commentPublicId, userId);
-        return toCommentResponse(comment, userId);
+        return toCommentResponse(comment, locale, userId);
     }
 
     /**
@@ -371,18 +372,18 @@ public class CommentService {
         return commentLikeRepository.findLikedCommentIdsByUserIdAndCommentIds(currentUserId, allCommentIds);
     }
 
-    private CommentResponseDto toCommentResponse(Comment comment, Long currentUserId) {
+    private CommentResponseDto toCommentResponse(Comment comment, String locale, Long currentUserId) {
         boolean isLiked = currentUserId != null &&
             commentLikeRepository.existsByUserIdAndCommentId(currentUserId, comment.getId());
-        return toCommentResponseInternal(comment, currentUserId, currentUserId != null ? isLiked : null);
+        return toCommentResponseInternal(comment, locale, currentUserId, currentUserId != null ? isLiked : null);
     }
 
-    private CommentResponseDto toCommentResponse(Comment comment, Long currentUserId, Set<Long> likedCommentIds) {
+    private CommentResponseDto toCommentResponse(Comment comment, String locale, Long currentUserId, Set<Long> likedCommentIds) {
         Boolean isLiked = currentUserId != null ? likedCommentIds.contains(comment.getId()) : null;
-        return toCommentResponseInternal(comment, currentUserId, isLiked);
+        return toCommentResponseInternal(comment, locale, currentUserId, isLiked);
     }
 
-    private CommentResponseDto toCommentResponseInternal(Comment comment, Long currentUserId, Boolean isLiked) {
+    private CommentResponseDto toCommentResponseInternal(Comment comment, String locale, Long currentUserId, Boolean isLiked) {
         User creator = comment.getCreator();
 
         // For deleted comments, always hide content
@@ -394,7 +395,8 @@ public class CommentService {
         } else if (comment.isHidden() && !isCreator) {
             content = null;
         } else {
-            content = comment.getContent();
+            content = LocaleUtils.getLocalizedValue(
+                comment.getContentTranslations(), locale, comment.getContent());
         }
 
         return new CommentResponseDto(

@@ -80,8 +80,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         void createComment_Success() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("This is a test comment");
 
-            CommentResponseDto response = commentService.createComment(
-                    testLogPost.getPublicId(), dto, commenterPrincipal);
+            CommentResponseDto response = commentService.createComment(testLogPost.getPublicId(), "en", dto, commenterPrincipal);
 
             assertThat(response).isNotNull();
             assertThat(response.content()).isEqualTo("This is a test comment");
@@ -96,13 +95,13 @@ class CommentServiceTest extends BaseIntegrationTest {
         @DisplayName("Should increment comment count on log post")
         void createComment_IncrementsCommentCount() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Comment 1");
-            commentService.createComment(testLogPost.getPublicId(), dto, commenterPrincipal);
+            commentService.createComment(testLogPost.getPublicId(), "en", dto, commenterPrincipal);
 
             LogPost refreshed = logPostRepository.findById(testLogPost.getId()).orElseThrow();
             assertThat(refreshed.getCommentCount()).isEqualTo(1);
 
             dto = new CreateCommentRequestDto("Comment 2");
-            commentService.createComment(testLogPost.getPublicId(), dto, anotherUserPrincipal);
+            commentService.createComment(testLogPost.getPublicId(), "en", dto, anotherUserPrincipal);
 
             refreshed = logPostRepository.findById(testLogPost.getId()).orElseThrow();
             assertThat(refreshed.getCommentCount()).isEqualTo(2);
@@ -113,8 +112,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         void createComment_LogPostNotFound_ThrowsException() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Test comment");
 
-            assertThatThrownBy(() -> commentService.createComment(
-                    java.util.UUID.randomUUID(), dto, commenterPrincipal))
+            assertThatThrownBy(() -> commentService.createComment(java.util.UUID.randomUUID(), "en", dto, commenterPrincipal))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Log post not found");
         }
@@ -127,8 +125,7 @@ class CommentServiceTest extends BaseIntegrationTest {
 
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Test comment");
 
-            assertThatThrownBy(() -> commentService.createComment(
-                    testLogPost.getPublicId(), dto, commenterPrincipal))
+            assertThatThrownBy(() -> commentService.createComment(testLogPost.getPublicId(), "en", dto, commenterPrincipal))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Cannot comment on a deleted log post");
         }
@@ -137,7 +134,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         @DisplayName("Should send notification to log author")
         void createComment_SendsNotificationToLogAuthor() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Nice log!");
-            commentService.createComment(testLogPost.getPublicId(), dto, commenterPrincipal);
+            commentService.createComment(testLogPost.getPublicId(), "en", dto, commenterPrincipal);
 
             var notifications = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(
                     logAuthor.getId(), PageRequest.of(0, 10));
@@ -153,7 +150,7 @@ class CommentServiceTest extends BaseIntegrationTest {
             UserPrincipal authorPrincipal = new UserPrincipal(logAuthor);
 
             CreateCommentRequestDto dto = new CreateCommentRequestDto("My own comment");
-            commentService.createComment(testLogPost.getPublicId(), dto, authorPrincipal);
+            commentService.createComment(testLogPost.getPublicId(), "en", dto, authorPrincipal);
 
             var notifications = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(
                     logAuthor.getId(), PageRequest.of(0, 10));
@@ -183,8 +180,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         void createReply_Success() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("This is a reply");
 
-            CommentResponseDto response = commentService.createReply(
-                    parentComment.getPublicId(), dto, anotherUserPrincipal);
+            CommentResponseDto response = commentService.createReply(parentComment.getPublicId(), "en", dto, anotherUserPrincipal);
 
             assertThat(response).isNotNull();
             assertThat(response.content()).isEqualTo("This is a reply");
@@ -195,7 +191,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         @DisplayName("Should increment reply count on parent comment")
         void createReply_IncrementsReplyCount() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Reply 1");
-            commentService.createReply(parentComment.getPublicId(), dto, anotherUserPrincipal);
+            commentService.createReply(parentComment.getPublicId(), "en", dto, anotherUserPrincipal);
 
             Comment refreshedParent = commentRepository.findById(parentComment.getId()).orElseThrow();
             assertThat(refreshedParent.getReplyCount()).isEqualTo(1);
@@ -207,7 +203,7 @@ class CommentServiceTest extends BaseIntegrationTest {
             int initialCount = testLogPost.getCommentCount() != null ? testLogPost.getCommentCount() : 0;
 
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Reply");
-            commentService.createReply(parentComment.getPublicId(), dto, anotherUserPrincipal);
+            commentService.createReply(parentComment.getPublicId(), "en", dto, anotherUserPrincipal);
 
             LogPost refreshed = logPostRepository.findById(testLogPost.getId()).orElseThrow();
             assertThat(refreshed.getCommentCount()).isEqualTo(initialCount + 1);
@@ -218,8 +214,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         void createReply_ParentNotFound_ThrowsException() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Reply");
 
-            assertThatThrownBy(() -> commentService.createReply(
-                    java.util.UUID.randomUUID(), dto, anotherUserPrincipal))
+            assertThatThrownBy(() -> commentService.createReply(java.util.UUID.randomUUID(), "en", dto, anotherUserPrincipal))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Parent comment not found");
         }
@@ -239,8 +234,7 @@ class CommentServiceTest extends BaseIntegrationTest {
             // Try to reply to the reply
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Reply to reply");
 
-            assertThatThrownBy(() -> commentService.createReply(
-                    reply.getPublicId(), dto, commenterPrincipal))
+            assertThatThrownBy(() -> commentService.createReply(reply.getPublicId(), "en", dto, commenterPrincipal))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Cannot reply to a reply");
         }
@@ -249,7 +243,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         @DisplayName("Should send notification to parent comment author")
         void createReply_SendsNotification() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Nice comment!");
-            commentService.createReply(parentComment.getPublicId(), dto, anotherUserPrincipal);
+            commentService.createReply(parentComment.getPublicId(), "en", dto, anotherUserPrincipal);
 
             var notifications = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(
                     commenter.getId(), PageRequest.of(0, 10));
@@ -262,7 +256,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         @DisplayName("Should not send notification when replying to own comment")
         void createReply_OwnComment_NoNotification() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Self reply");
-            commentService.createReply(parentComment.getPublicId(), dto, commenterPrincipal);
+            commentService.createReply(parentComment.getPublicId(), "en", dto, commenterPrincipal);
 
             var notifications = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(
                     commenter.getId(), PageRequest.of(0, 10));
@@ -296,8 +290,7 @@ class CommentServiceTest extends BaseIntegrationTest {
             comment1.incrementReplyCount();
             commentRepository.saveAndFlush(comment1);
 
-            Page<CommentWithRepliesDto> result = commentService.getComments(
-                    testLogPost.getPublicId(), PageRequest.of(0, 10), commenter.getId());
+            Page<CommentWithRepliesDto> result = commentService.getComments(testLogPost.getPublicId(), "en", PageRequest.of(0, 10), commenter.getId());
 
             assertThat(result.getContent()).hasSize(1);
             CommentWithRepliesDto commentWithReplies = result.getContent().get(0);
@@ -309,8 +302,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Should return empty page when no comments")
         void getComments_NoComments_ReturnsEmpty() {
-            Page<CommentWithRepliesDto> result = commentService.getComments(
-                    testLogPost.getPublicId(), PageRequest.of(0, 10), null);
+            Page<CommentWithRepliesDto> result = commentService.getComments(testLogPost.getPublicId(), "en", PageRequest.of(0, 10), null);
 
             assertThat(result.getContent()).isEmpty();
         }
@@ -327,8 +319,7 @@ class CommentServiceTest extends BaseIntegrationTest {
 
             commentService.likeComment(comment.getPublicId(), commenter.getId());
 
-            Page<CommentWithRepliesDto> result = commentService.getComments(
-                    testLogPost.getPublicId(), PageRequest.of(0, 10), commenter.getId());
+            Page<CommentWithRepliesDto> result = commentService.getComments(testLogPost.getPublicId(), "en", PageRequest.of(0, 10), commenter.getId());
 
             assertThat(result.getContent().get(0).comment().isLikedByCurrentUser()).isTrue();
         }
@@ -358,8 +349,7 @@ class CommentServiceTest extends BaseIntegrationTest {
                 commentRepository.saveAndFlush(reply);
             }
 
-            Page<CommentResponseDto> result = commentService.getReplies(
-                    parentComment.getPublicId(), PageRequest.of(0, 3), null);
+            Page<CommentResponseDto> result = commentService.getReplies(parentComment.getPublicId(), "en", PageRequest.of(0, 3), null);
 
             assertThat(result.getContent()).hasSize(3);
             assertThat(result.getTotalElements()).isEqualTo(5);
@@ -387,8 +377,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         void editComment_Success() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Updated content");
 
-            CommentResponseDto response = commentService.editComment(
-                    existingComment.getPublicId(), dto, commenter.getId());
+            CommentResponseDto response = commentService.editComment(existingComment.getPublicId(), "en", dto, commenter.getId());
 
             assertThat(response.content()).isEqualTo("Updated content");
             assertThat(response.isEdited()).isTrue();
@@ -399,8 +388,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         void editComment_NotFound_ThrowsException() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Updated");
 
-            assertThatThrownBy(() -> commentService.editComment(
-                    java.util.UUID.randomUUID(), dto, commenter.getId()))
+            assertThatThrownBy(() -> commentService.editComment(java.util.UUID.randomUUID(), "en", dto, commenter.getId()))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Comment not found");
         }
@@ -410,8 +398,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         void editComment_NotOwner_ThrowsException() {
             CreateCommentRequestDto dto = new CreateCommentRequestDto("Hacked content");
 
-            assertThatThrownBy(() -> commentService.editComment(
-                    existingComment.getPublicId(), dto, anotherUser.getId()))
+            assertThatThrownBy(() -> commentService.editComment(existingComment.getPublicId(), "en", dto, anotherUser.getId()))
                     .isInstanceOf(AccessDeniedException.class)
                     .hasMessageContaining("only edit your own");
         }
@@ -553,8 +540,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Hidden comment should show content to creator")
         void hiddenComment_ShowsContentToCreator() {
-            Page<CommentWithRepliesDto> result = commentService.getComments(
-                    testLogPost.getPublicId(), PageRequest.of(0, 10), commenter.getId());
+            Page<CommentWithRepliesDto> result = commentService.getComments(testLogPost.getPublicId(), "en", PageRequest.of(0, 10), commenter.getId());
 
             assertThat(result.getContent()).hasSize(1);
             CommentResponseDto dto = result.getContent().get(0).comment();
@@ -565,8 +551,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Hidden comment should hide content from others")
         void hiddenComment_HidesContentFromOthers() {
-            Page<CommentWithRepliesDto> result = commentService.getComments(
-                    testLogPost.getPublicId(), PageRequest.of(0, 10), anotherUser.getId());
+            Page<CommentWithRepliesDto> result = commentService.getComments(testLogPost.getPublicId(), "en", PageRequest.of(0, 10), anotherUser.getId());
 
             assertThat(result.getContent()).hasSize(1);
             CommentResponseDto dto = result.getContent().get(0).comment();
@@ -577,8 +562,7 @@ class CommentServiceTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Hidden comment should hide content from anonymous users")
         void hiddenComment_HidesContentFromAnonymous() {
-            Page<CommentWithRepliesDto> result = commentService.getComments(
-                    testLogPost.getPublicId(), PageRequest.of(0, 10), null);
+            Page<CommentWithRepliesDto> result = commentService.getComments(testLogPost.getPublicId(), "en", PageRequest.of(0, 10), null);
 
             assertThat(result.getContent()).hasSize(1);
             CommentResponseDto dto = result.getContent().get(0).comment();
@@ -597,8 +581,7 @@ class CommentServiceTest extends BaseIntegrationTest {
                     .build();
             commentRepository.saveAndFlush(normalComment);
 
-            Page<CommentWithRepliesDto> result = commentService.getComments(
-                    testLogPost.getPublicId(), PageRequest.of(0, 10), anotherUser.getId());
+            Page<CommentWithRepliesDto> result = commentService.getComments(testLogPost.getPublicId(), "en", PageRequest.of(0, 10), anotherUser.getId());
 
             assertThat(result.getContent()).hasSize(2);
 
