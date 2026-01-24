@@ -96,6 +96,26 @@ export async function getHashtaggedFeed(
 }
 
 /**
+ * Get unified content (recipes and logs) for a specific hashtag
+ */
+export async function getContentByHashtag(
+  name: string,
+  params: PaginationParams = {},
+): Promise<UnifiedPageResponse<HashtaggedContentItem>> {
+  const queryString = buildQueryString({
+    page: params.page ?? 0,
+    size: params.size ?? 20,
+  });
+
+  return apiFetch<UnifiedPageResponse<HashtaggedContentItem>>(
+    `/hashtags/${encodeURIComponent(name)}/content${queryString}`,
+    {
+      next: { revalidate: 60 },
+    },
+  );
+}
+
+/**
  * Get popular hashtags with their counts
  */
 export async function getPopularHashtags(limit: number = 10): Promise<(HashtagDto & { totalCount: number })[]> {

@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "सभी",
     "recipesTab": "रेसिपी",
     "logsTab": "कुकिंग लॉग",
     "postsWithTag": "इस हैशटैग के साथ {count} पोस्ट",
     "noRecipes": "इस हैशटैग के साथ अभी तक कोई रेसिपी नहीं",
     "noLogs": "इस हैशटैग के साथ अभी तक कोई कुकिंग लॉग नहीं",
+    "noContent": "इस हैशटैग के साथ अभी तक कोई कंटेंट नहीं",
     "topContributors": "टॉप योगदानकर्ता:"
   },
   "hashtagsPage": {

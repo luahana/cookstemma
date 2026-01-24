@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "Tất cả",
     "recipesTab": "Công thức",
     "logsTab": "Nhật ký nấu ăn",
     "postsWithTag": "{count} bài đăng với hashtag này",
     "noRecipes": "Chưa có công thức với hashtag này",
     "noLogs": "Chưa có nhật ký nấu ăn với hashtag này",
+    "noContent": "Chưa có nội dung với hashtag này",
     "topContributors": "Người đóng góp hàng đầu:"
   },
   "hashtagsPage": {

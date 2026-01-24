@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "Tutto",
     "recipesTab": "Ricette",
     "logsTab": "Diari di cucina",
     "postsWithTag": "{count} post con questo hashtag",
     "noRecipes": "Ancora nessuna ricetta con questo hashtag",
     "noLogs": "Ancora nessun diario di cucina con questo hashtag",
+    "noContent": "Ancora nessun contenuto con questo hashtag",
     "topContributors": "Top contributori:"
   },
   "hashtagsPage": {

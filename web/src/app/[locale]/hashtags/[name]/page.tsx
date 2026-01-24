@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
 import { getTranslations } from 'next-intl/server';
-import { getHashtagCounts, getRecipesByHashtag, getLogsByHashtag } from '@/lib/api/hashtags';
+import { getHashtagCounts, getRecipesByHashtag, getLogsByHashtag, getContentByHashtag } from '@/lib/api/hashtags';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { LogGrid } from '@/components/log/LogGrid';
+import { HashtaggedFeed } from '@/components/hashtag/HashtaggedFeed';
 import { Pagination } from '@/components/common/Pagination';
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd';
 import { siteConfig } from '@/config/site';
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function HashtagPage({ params, searchParams }: Props) {
   const { name, locale } = await params;
-  const { tab = 'recipes', page: pageParam = '0' } = await searchParams;
+  const { tab = 'all', page: pageParam = '0' } = await searchParams;
   const page = parseInt(pageParam, 10);
   const decodedName = decodeURIComponent(name);
   const t = await getTranslations('hashtags');
@@ -46,12 +47,17 @@ export default async function HashtagPage({ params, searchParams }: Props) {
     counts = { exists: false, normalizedName: decodedName, recipeCount: 0, logPostCount: 0 };
   }
 
+  const totalCount = counts.recipeCount + counts.logPostCount;
   const tabs = [
+    { id: 'all', label: t('allTab'), count: totalCount },
     { id: 'recipes', label: t('recipesTab'), count: counts.recipeCount },
     { id: 'logs', label: t('logsTab'), count: counts.logPostCount },
   ];
 
   // Fetch content based on active tab
+  const allContent = tab === 'all'
+    ? await getContentByHashtag(decodedName, { page, size: 12 })
+    : null;
   const recipes = tab === 'recipes'
     ? await getRecipesByHashtag(decodedName, { page, size: 12 })
     : null;
@@ -100,6 +106,22 @@ export default async function HashtagPage({ params, searchParams }: Props) {
         </div>
 
         {/* Content */}
+        {tab === 'all' && allContent && (
+          <>
+            <HashtaggedFeed
+              items={allContent.content}
+              emptyMessage={t('noContent')}
+            />
+            {allContent.totalPages !== null && allContent.totalPages > 1 && (
+              <Pagination
+                currentPage={allContent.currentPage || 0}
+                totalPages={allContent.totalPages}
+                baseUrl={`/hashtags/${encodeURIComponent(decodedName)}?tab=all`}
+              />
+            )}
+          </>
+        )}
+
         {tab === 'recipes' && recipes && (
           <>
             <RecipeGrid

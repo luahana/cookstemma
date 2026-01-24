@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "Tümü",
     "recipesTab": "Tarifler",
     "logsTab": "Yemek Günlükleri",
     "postsWithTag": "Bu hashtag ile {count} gönderi",
     "noRecipes": "Bu hashtag ile henüz tarif yok",
     "noLogs": "Bu hashtag ile henüz yemek günlüğü yok",
+    "noContent": "Bu hashtag ile henüz içerik yok",
     "topContributors": "En çok katkıda bulunanlar:"
   },
   "hashtagsPage": {

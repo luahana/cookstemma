@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "Все",
     "recipesTab": "Рецепты",
     "logsTab": "Записи о готовке",
     "postsWithTag": "{count} публикаций с этим хэштегом",
     "noRecipes": "Пока нет рецептов с этим хэштегом",
     "noLogs": "Пока нет записей о готовке с этим хэштегом",
+    "noContent": "Пока нет контента с этим хэштегом",
     "topContributors": "Топ авторов:"
   },
   "hashtagsPage": {

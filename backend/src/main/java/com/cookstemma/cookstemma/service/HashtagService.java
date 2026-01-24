@@ -266,6 +266,147 @@ public class HashtagService {
         return getHashtaggedFeedCursor(cursor, size, normalizedLocale, langCodePattern);
     }
 
+
+    /**
+     * Get unified content (recipes and logs) for a specific hashtag.
+     * Content is sorted by createdAt descending and paginated.
+     */
+    public UnifiedPageResponse<HashtaggedContentDto> getContentByHashtag(
+            String hashtagName, String cursor, Integer page, int size, String locale) {
+
+        String normalizedName = normalizeHashtagName(hashtagName);
+        if (normalizedName.isBlank()) {
+            return UnifiedPageResponse.emptyCursor(size);
+        }
+
+        // Check if hashtag exists
+        if (hashtagRepository.findByName(normalizedName).isEmpty()) {
+            return UnifiedPageResponse.emptyCursor(size);
+        }
+
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+        String langCodePattern = LocaleUtils.toLanguageKey(normalizedLocale) + "%";
+
+        // For offset-based pagination (web)
+        if (page != null) {
+            return getContentByHashtagOffset(normalizedName, page, size, normalizedLocale, langCodePattern);
+        }
+
+        // Cursor-based pagination (mobile)
+        return getContentByHashtagCursor(normalizedName, cursor, size, normalizedLocale, langCodePattern);
+    }
+
+    /**
+     * Get content by hashtag using offset-based pagination.
+     */
+    private UnifiedPageResponse<HashtaggedContentDto> getContentByHashtagOffset(
+            String hashtagName, int page, int size, String locale, String langCodePattern) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Fetch recipes and logs for this hashtag
+        org.springframework.data.domain.Page<Recipe> recipesPage = 
+                recipeRepository.findByHashtagPage(hashtagName, langCodePattern, pageable);
+        org.springframework.data.domain.Page<LogPost> logsPage = 
+                logPostRepository.findByHashtagPage(hashtagName, langCodePattern, pageable);
+
+        // Convert to DTOs with createdAt for sorting
+        record ContentWithTime(HashtaggedContentDto dto, java.time.Instant createdAt) {}
+
+        List<ContentWithTime> recipes = recipesPage.getContent().stream()
+                .map(r -> new ContentWithTime(convertRecipeToHashtaggedContent(r, locale), r.getCreatedAt()))
+                .toList();
+
+        List<ContentWithTime> logs = logsPage.getContent().stream()
+                .map(l -> new ContentWithTime(convertLogPostToHashtaggedContent(l, locale), l.getCreatedAt()))
+                .toList();
+
+        // Merge and sort by createdAt descending
+        List<ContentWithTime> merged = new ArrayList<>();
+        merged.addAll(recipes);
+        merged.addAll(logs);
+        merged.sort(Comparator.comparing(ContentWithTime::createdAt).reversed());
+
+        // Take only 'size' items
+        List<HashtaggedContentDto> content = merged.stream()
+                .limit(size)
+                .map(ContentWithTime::dto)
+                .toList();
+
+        long totalElements = recipesPage.getTotalElements() + logsPage.getTotalElements();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        return new UnifiedPageResponse<>(
+                content,
+                totalElements,
+                totalPages,
+                page,
+                null,
+                page < totalPages - 1,
+                size
+        );
+    }
+
+    /**
+     * Get content by hashtag using cursor-based pagination.
+     */
+    private UnifiedPageResponse<HashtaggedContentDto> getContentByHashtagCursor(
+            String hashtagName, String cursor, int size, String locale, String langCodePattern) {
+
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        // Fetch recipes for this hashtag
+        Slice<Recipe> recipes;
+        if (cursorData == null) {
+            recipes = recipeRepository.findByHashtagWithCursorInitial(hashtagName, langCodePattern, pageable);
+        } else {
+            recipes = recipeRepository.findByHashtagWithCursor(
+                    hashtagName, langCodePattern, cursorData.createdAt(), cursorData.id(), pageable);
+        }
+
+        // Fetch logs for this hashtag
+        Slice<LogPost> logs;
+        if (cursorData == null) {
+            logs = logPostRepository.findByHashtagWithCursorInitial(hashtagName, langCodePattern, pageable);
+        } else {
+            logs = logPostRepository.findByHashtagWithCursor(
+                    hashtagName, langCodePattern, cursorData.createdAt(), cursorData.id(), pageable);
+        }
+
+        // Convert to DTOs with createdAt for sorting
+        record ContentWithTime(HashtaggedContentDto dto, java.time.Instant createdAt, Long id) {}
+
+        List<ContentWithTime> recipeDtos = recipes.getContent().stream()
+                .map(r -> new ContentWithTime(convertRecipeToHashtaggedContent(r, locale), r.getCreatedAt(), r.getId()))
+                .toList();
+
+        List<ContentWithTime> logDtos = logs.getContent().stream()
+                .map(l -> new ContentWithTime(convertLogPostToHashtaggedContent(l, locale), l.getCreatedAt(), l.getId()))
+                .toList();
+
+        // Merge and sort by createdAt descending
+        List<ContentWithTime> merged = new ArrayList<>();
+        merged.addAll(recipeDtos);
+        merged.addAll(logDtos);
+        merged.sort(Comparator.comparing(ContentWithTime::createdAt).reversed()
+                .thenComparing(Comparator.comparing(ContentWithTime::id).reversed()));
+
+        // Take only 'size' items
+        List<ContentWithTime> limited = merged.stream().limit(size).toList();
+        List<HashtaggedContentDto> content = limited.stream().map(ContentWithTime::dto).toList();
+
+        // Determine next cursor
+        String nextCursor = null;
+        boolean hasNext = recipes.hasNext() || logs.hasNext();
+        if (hasNext && !limited.isEmpty()) {
+            ContentWithTime lastItem = limited.get(limited.size() - 1);
+            nextCursor = CursorUtil.encode(lastItem.createdAt(), lastItem.id());
+        }
+
+        return UnifiedPageResponse.fromCursor(content, nextCursor, size);
+    }
+
     /**
      * Get hashtagged feed using offset-based pagination.
      * Fetches recipes and logs separately, merges, and applies pagination.

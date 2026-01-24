@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "Alles",
     "recipesTab": "Recepten",
     "logsTab": "Kooklogboeken",
     "postsWithTag": "{count} posts met deze hashtag",
     "noRecipes": "Nog geen recepten met deze hashtag",
     "noLogs": "Nog geen kooklogboeken met deze hashtag",
+    "noContent": "Nog geen inhoud met deze hashtag",
     "topContributors": "Top bijdragers:"
   },
   "hashtagsPage": {

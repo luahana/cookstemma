@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "همه",
     "recipesTab": "دستورها",
     "logsTab": "یادداشت‌های آشپزی",
     "postsWithTag": "{count} پست با این هشتگ",
     "noRecipes": "هنوز دستوری با این هشتگ نیست",
     "noLogs": "هنوز یادداشت آشپزی با این هشتگ نیست",
+    "noContent": "هنوز محتوایی با این هشتگ نیست",
     "topContributors": "مشارکت‌کنندگان برتر:"
   },
   "hashtagsPage": {

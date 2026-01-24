@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "Alla",
     "recipesTab": "Recept",
     "logsTab": "Dagboksposter",
     "postsWithTag": "{count} inlägg med denna hashtag",
     "noRecipes": "Inga recept med denna hashtag ännu",
     "noLogs": "Inga dagboksposter med denna hashtag ännu",
+    "noContent": "Inget innehåll med denna hashtag ännu",
     "topContributors": "Toppbidragsgivare:"
   },
   "hashtagsPage": {

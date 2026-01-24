@@ -622,11 +622,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "All",
     "recipesTab": "Recipes",
     "logsTab": "Cooking Logs",
     "postsWithTag": "{count} posts with this hashtag",
     "noRecipes": "No recipes with this hashtag yet",
     "noLogs": "No cooking logs with this hashtag yet",
+    "noContent": "No content with this hashtag yet",
     "topContributors": "Top contributors:"
   },
   "hashtagsPage": {
