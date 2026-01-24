@@ -192,6 +192,30 @@ jobs:
             --function-name $LAMBDA_NAME \
             --region ${{ env.AWS_REGION }}
 
+      # Deploy Keyword Generator Lambda
+      - name: Build and push Lambda Keyword Generator image
+        working-directory: ./backend/lambda/keyword-generator
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          LAMBDA_ECR_REPO: cookstemma-keyword-generator
+        run: |
+          docker build -t $ECR_REGISTRY/$LAMBDA_ECR_REPO:latest .
+          docker push $ECR_REGISTRY/$LAMBDA_ECR_REPO:latest
+
+      - name: Update Lambda Keyword Generator function
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          LAMBDA_ECR_REPO: cookstemma-keyword-generator
+          LAMBDA_NAME: cookstemma-dev-keyword-generator
+        run: |
+          aws lambda update-function-code \
+            --function-name $LAMBDA_NAME \
+            --image-uri $ECR_REGISTRY/$LAMBDA_ECR_REPO:latest \
+            --region ${{ env.AWS_REGION }}
+          aws lambda wait function-updated \
+            --function-name $LAMBDA_NAME \
+            --region ${{ env.AWS_REGION }}
+
       - name: Deployment Summary
         working-directory: .
         run: |
@@ -204,3 +228,4 @@ jobs:
           echo "- **Lambda Image Processor:** Updated" >> $GITHUB_STEP_SUMMARY
           echo "- **Lambda Image Orchestrator:** Updated" >> $GITHUB_STEP_SUMMARY
           echo "- **Lambda Suggestion Verifier:** Updated" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lambda Keyword Generator:** Updated" >> $GITHUB_STEP_SUMMARY
