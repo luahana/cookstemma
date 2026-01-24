@@ -14,7 +14,7 @@ from tenacity import (
 
 from ...config import get_settings
 from ...personas import BotPersona
-from .prompts import LogPrompts, RecipePrompts
+from .prompts import CULTURAL_PREFERENCES, VARIATION_TYPE_HASHTAGS, LogPrompts, RecipePrompts
 
 logger = structlog.get_logger()
 
@@ -144,8 +144,19 @@ class TextGenerator:
         persona: BotPersona,
         parent_recipe: Dict[str, Any],
         variation_type: str = "creative",
+        cultural_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Generate a recipe variant."""
+        """Generate a recipe variant.
+
+        Args:
+            persona: Bot persona to use for generation
+            parent_recipe: Parent recipe data dict
+            variation_type: Type of variation to create
+            cultural_context: Optional cultural adaptation context for cross-cultural variants
+
+        Returns:
+            Generated variant recipe data dict
+        """
 
         # Format parent recipe info with quantity and unit
         def format_ingredient(i: Dict[str, Any]) -> str:
@@ -166,6 +177,9 @@ class TextGenerator:
             f"{s['order']}. {s['description']}" for s in parent_recipe.get("steps", [])
         )
 
+        # Get the canonical hashtag for this variation type
+        variation_hashtag = VARIATION_TYPE_HASHTAGS.get(variation_type, variation_type)
+
         system_prompt = persona.build_system_prompt()
         user_prompt = RecipePrompts.generate_variant_recipe(
             parent_title=parent_recipe["title"],
@@ -174,6 +188,8 @@ class TextGenerator:
             parent_steps=parent_steps,
             locale=persona.locale,
             variation_type=variation_type,
+            cultural_context=cultural_context,
+            variation_hashtag=variation_hashtag,
         )
 
         response = await self._chat_completion(system_prompt, user_prompt)
@@ -183,12 +199,18 @@ class TextGenerator:
         if isinstance(variant_data, list) and len(variant_data) == 1:
             variant_data = variant_data[0]
 
+        log_extra = {}
+        if cultural_context:
+            log_extra["source_culture"] = cultural_context.get("source_culture")
+            log_extra["target_culture"] = cultural_context.get("target_culture")
+
         logger.info(
             "variant_generated",
             persona=persona.name,
             parent=parent_recipe.get("title"),
             new_title=variant_data.get("title"),
             variation_type=variation_type,
+            **log_extra,
         )
         return variant_data
 

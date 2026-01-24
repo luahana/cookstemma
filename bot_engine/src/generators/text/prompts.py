@@ -1,8 +1,31 @@
 """Prompt templates for content generation."""
+"""Prompt templates for content generation."""
 
 from typing import Any, Dict, List, Optional
 
 from ...personas.models import LOCALE_TO_LANGUAGE
+
+
+# Variation type to hashtag mapping
+VARIATION_TYPE_HASHTAGS: Dict[str, str] = {
+    "healthier": "healthy",
+    "budget": "budgetfriendly",
+    "quick": "quickmeal",
+    "vegetarian": "vegetarian",
+    "spicier": "spicy",
+    "kid_friendly": "kidfriendly",
+    "gourmet": "gourmet",
+    "vegan": "vegan",
+    "high_protein": "highprotein",
+    "low_carb": "lowcarb",
+    "cultural_adaptation": "",  # Use dietary focus hashtag instead
+    "gluten_free": "glutenfree",
+    "halal": "halal",
+    "kosher": "kosher",
+    "pescatarian": "pescatarian",
+    "dairy_free": "dairyfree",
+    "low_sodium": "lowsodium",
+}
 
 
 # Cultural preferences mapping for cross-cultural recipe adaptation
@@ -479,6 +502,7 @@ Return ONLY valid JSON, no additional text."""
         locale: str,
         variation_type: str,
         cultural_context: Optional[Dict[str, Any]] = None,
+        variation_hashtag: str = "",
     ) -> str:
         """Generate prompt for creating a recipe variant.
 
@@ -495,6 +519,7 @@ Return ONLY valid JSON, no additional text."""
                 - avoid_ingredients: List of ingredients to avoid
                 - prefer_ingredients: List of preferred ingredients
                 - cooking_notes: Notes about the target culture's cooking style
+            variation_hashtag: The canonical hashtag for this variation type (e.g., "vegan", "keto")
         """
         lang = _get_language_from_locale(locale)
 
@@ -581,7 +606,6 @@ TASK: {instruction}
 Generate a variant recipe in JSON format:
 {{
     "title": "Title - max 100 characters - with variation type + dish name (e.g., 'Quick 15-Minute Garlic Butter Shrimp' or 'Healthy Low-Carb Chicken Stir-Fry')",
-    "description": "2-3 sentences, max 1000 characters, that include: what changed, the dish name, key ingredients, and cooking method. Write naturally but include searchable terms.",
     "servings": number,
     "cookingTimeRange": "UNDER_15_MIN" | "MIN_15_TO_30" | "MIN_30_TO_60" | "HOUR_1_TO_2" | "OVER_2_HOURS",
     "ingredients": [
@@ -598,9 +622,9 @@ Generate a variant recipe in JSON format:
             "description": "Detailed step - max 1000 characters - with specific cooking terms (e.g., 'sauté', 'simmer', 'fold'), temperatures, and timing"
         }}
     ],
-    "hashtags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+    "hashtags": ["{variation_hashtag}", "tag2", "tag3", "tag4", "tag5"],
     "changeDiff": "Clear description of what changed from the original",
-    "changeReason": "Why you made these changes - max 1000 characters (1-2 sentences)",
+    "changeReason": "Explain WHY you adapted '{parent_title}' this way. Reference what the original dish offered and why these specific changes make it suitable for {variation_type}. Max 1000 characters (1-2 sentences).",
     "changeCategories": ["INGREDIENT_SUBSTITUTION", "QUANTITY_ADJUSTMENT", "COOKING_METHOD", "SEASONING_CHANGE", "DIETARY_ADAPTATION", "TIME_OPTIMIZATION", "EQUIPMENT_CHANGE", "PRESENTATION"]
 }}
 
@@ -608,15 +632,16 @@ Generate a variant recipe in JSON format:
 
 Requirements:
 - Write EVERYTHING in {lang}
-- IMPORTANT: Keep title under 100 characters, description under 1000 characters, each step under 1000 characters, changeReason under 1000 characters
+- IMPORTANT: Keep title under 100 characters, each step under 1000 characters, changeReason under 1000 characters
 - Make meaningful, noticeable changes (not just minor tweaks)
 - Keep the dish recognizable as a variant of the original
 - IMPORTANT: Ingredient names must be plain nouns only (e.g., "chicken breast", "onion", "garlic"). Do NOT include adjectives or preparation methods (NO "fresh", "diced", "minced", "boneless", "organic", etc.)
 - {unit_instruction}
 - IMPORTANT: Every ingredient MUST have both quantity (number) and unit filled
-- Clearly explain what changed and why
+- Clearly explain what changed and why in changeReason - reference the original recipe
+- CRITICAL: First hashtag MUST be '{variation_hashtag}' (the variation type hashtag)
 - Select 1-3 appropriate changeCategories
-- SEO: Include variation type and dish name in title, mention key ingredients and cooking methods in description
+- SEO: Include variation type and dish name in title
 - Steps should use specific culinary terms (sauté, blanch, fold, etc.) and include temperatures/times
 
 Return ONLY valid JSON, no additional text."""
