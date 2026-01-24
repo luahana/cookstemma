@@ -111,3 +111,22 @@ export interface UntranslatedLogFilter {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
+
+export interface FoodMasterAdmin {
+  publicId: string;
+  name: Record<string, string>;
+  categoryName: Record<string, string> | null;
+  description: Record<string, string>;
+  searchKeywords: string | null;
+  foodScore: number;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FoodMasterAdminFilter {
+  name?: string;
+  isVerified?: boolean;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}

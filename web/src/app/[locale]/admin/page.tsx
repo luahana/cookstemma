@@ -16,6 +16,7 @@ import {
   triggerRecipeRetranslation,
   getUntranslatedLogs,
   triggerLogRetranslation,
+  getFoodsMaster,
 } from '@/lib/api/admin';
 import type {
   UserSuggestedFood,
@@ -28,6 +29,7 @@ import type {
   UntranslatedRecipe,
   UntranslatedLog,
   TranslationStatus,
+  FoodMasterAdmin,
 } from '@/lib/types/admin';
 
 const STATUS_OPTIONS = [
@@ -63,7 +65,7 @@ const TRANSLATION_STATUS_OPTIONS = [
 
 // formatDate is now a hook-based function created inside the component
 
-type TabType = 'suggested-foods' | 'suggested-ingredients' | 'users' | 'untranslated-recipes' | 'untranslated-logs';
+type TabType = 'suggested-foods' | 'suggested-ingredients' | 'users' | 'untranslated-recipes' | 'untranslated-logs' | 'foods-master';
 
 export default function AdminPage() {
   const { user, isLoading: authLoading, isAdmin } = useAuth();
@@ -177,6 +179,16 @@ export default function AdminPage() {
             >
               Untranslated Logs
             </button>
+            <button
+              onClick={() => setActiveTab('foods-master')}
+              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'foods-master'
+                  ? 'border-[var(--primary)] text-[var(--primary)]'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              Foods Master
+            </button>
           </nav>
         </div>
 
@@ -186,6 +198,7 @@ export default function AdminPage() {
         {activeTab === 'users' && <UsersTab currentUserPublicId={user?.publicId} />}
         {activeTab === 'untranslated-recipes' && <UntranslatedRecipesTab />}
         {activeTab === 'untranslated-logs' && <UntranslatedLogsTab />}
+        {activeTab === 'foods-master' && <FoodsMasterTab />}
       </div>
     </div>
   );
@@ -1709,6 +1722,237 @@ function UntranslatedLogsTab() {
           onFilterChange={handleFilterChange}
           loading={loading}
           emptyMessage="No untranslated logs found"
+        />
+      </div>
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="px-4 py-2 text-[var(--text-secondary)]">
+            Page {page + 1} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+const VERIFIED_OPTIONS = [
+  { value: 'true', label: 'Verified' },
+  { value: 'false', label: 'Unverified' },
+];
+
+/**
+ * Format JSONB field as a readable string showing all locale translations.
+ */
+function formatJsonbField(field: Record<string, string> | null, maxLength = 50): string {
+  if (!field || Object.keys(field).length === 0) return '-';
+  return Object.entries(field)
+    .map(([locale, value]) => {
+      const truncatedValue = value.length > maxLength ? value.slice(0, maxLength) + '...' : value;
+      return `${locale}: ${truncatedValue}`;
+    })
+    .join(' | ');
+}
+
+function FoodsMasterTab() {
+  const format = useFormatter();
+  const formatDate = useCallback((dateString: string | null): string => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return format.dateTime(date, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    });
+  }, [format]);
+
+  const [data, setData] = useState<FoodMasterAdmin[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const pageSize = 20;
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response: PageResponse<FoodMasterAdmin> = await getFoodsMaster({
+        page,
+        size: pageSize,
+        name: filters.name || undefined,
+        isVerified: filters.isVerified ? filters.isVerified === 'true' : undefined,
+        sortBy,
+        sortOrder,
+      });
+      setData(response.content);
+      setTotalPages(response.totalPages);
+      setTotalElements(response.totalElements);
+    } catch (err) {
+      console.error('Error fetching foods master:', err);
+      setError('Failed to load data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filters, sortBy, sortOrder]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleSort = (key: string) => {
+    if (sortBy === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortOrder('desc');
+    }
+    setPage(0);
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(0);
+  };
+
+  const columns: Column<FoodMasterAdmin>[] = [
+    {
+      key: 'name',
+      header: 'Name',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      render: (item) => (
+        <span title={formatJsonbField(item.name, 200)}>
+          {formatJsonbField(item.name, 30)}
+        </span>
+      ),
+    },
+    {
+      key: 'categoryName',
+      header: 'Category',
+      sortable: false,
+      width: '150px',
+      render: (item) => (
+        <span title={formatJsonbField(item.categoryName, 200)}>
+          {formatJsonbField(item.categoryName, 20)}
+        </span>
+      ),
+    },
+    {
+      key: 'description',
+      header: 'Description',
+      sortable: false,
+      width: '200px',
+      render: (item) => (
+        <span title={formatJsonbField(item.description, 500)} className="text-sm">
+          {formatJsonbField(item.description, 30)}
+        </span>
+      ),
+    },
+    {
+      key: 'searchKeywords',
+      header: 'Keywords',
+      sortable: false,
+      width: '120px',
+      render: (item) => item.searchKeywords ? (
+        <span title={item.searchKeywords} className="text-sm">
+          {item.searchKeywords.length > 20 ? item.searchKeywords.slice(0, 20) + '...' : item.searchKeywords}
+        </span>
+      ) : '-',
+    },
+    {
+      key: 'foodScore',
+      header: 'Score',
+      sortable: true,
+      width: '80px',
+      render: (item) => item.foodScore?.toFixed(2) ?? '-',
+    },
+    {
+      key: 'isVerified',
+      header: 'Verified',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      filterOptions: VERIFIED_OPTIONS,
+      width: '100px',
+      render: (item) => (
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded ${
+            item.isVerified
+              ? 'bg-green-100 text-green-800'
+              : 'bg-yellow-100 text-yellow-800'
+          }`}
+        >
+          {item.isVerified ? 'Yes' : 'No'}
+        </span>
+      ),
+    },
+    {
+      key: 'createdAt',
+      header: 'Created',
+      sortable: true,
+      width: '160px',
+      render: (item) => formatDate(item.createdAt),
+    },
+  ];
+
+  return (
+    <>
+      <div className="mb-4 p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border)]">
+        <p className="text-sm text-[var(--text-secondary)]">
+          Total items: <span className="font-semibold text-[var(--text-primary)]">{totalElements}</span>
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
+
+      <div className="mb-4 flex items-center justify-end">
+        <button
+          onClick={fetchData}
+          disabled={loading}
+          className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"
+        >
+          {loading ? 'Loading...' : 'Refresh'}
+        </button>
+      </div>
+
+      <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg overflow-hidden">
+        <DataTable
+          data={data}
+          columns={columns}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          loading={loading}
+          emptyMessage="No foods master data found"
         />
       </div>
 

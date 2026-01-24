@@ -13,6 +13,8 @@ import type {
   UntranslatedRecipeFilter,
   UntranslatedLog,
   UntranslatedLogFilter,
+  FoodMasterAdmin,
+  FoodMasterAdminFilter,
 } from '@/lib/types/admin';
 
 /**
@@ -197,5 +199,25 @@ export async function triggerLogRetranslation(
       method: 'POST',
       body: JSON.stringify({ publicIds }),
     },
+  );
+}
+
+/**
+ * Get paginated list of foods master with filters
+ */
+export async function getFoodsMaster(
+  params: FoodMasterAdminFilter & { page?: number; size?: number } = {},
+): Promise<PageResponse<FoodMasterAdmin>> {
+  const queryString = buildQueryString({
+    page: params.page ?? 0,
+    size: params.size ?? 20,
+    name: params.name,
+    isVerified: params.isVerified,
+    sortBy: params.sortBy ?? 'createdAt',
+    sortOrder: params.sortOrder ?? 'desc',
+  });
+
+  return apiFetch<PageResponse<FoodMasterAdmin>>(
+    `/admin/foods-master${queryString}`,
   );
 }

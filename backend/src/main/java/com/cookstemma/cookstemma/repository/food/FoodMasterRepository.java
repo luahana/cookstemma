@@ -4,6 +4,7 @@ import com.cookstemma.cookstemma.domain.entity.food.FoodMaster;
 import com.cookstemma.cookstemma.dto.autocomplete.AutocompleteProjectionDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface FoodMasterRepository extends JpaRepository<FoodMaster, Long> {
+public interface FoodMasterRepository extends JpaRepository<FoodMaster, Long>, JpaSpecificationExecutor<FoodMaster> {
 
     // 여러 개의 Public ID(UUID)로 Food 리스트 조회
     List<FoodMaster> findByPublicIdIn(List<UUID> publicIds);
