@@ -6,6 +6,7 @@ jest.mock('@/config/site', () => ({
   siteConfig: {
     apiUrl: 'http://localhost:4000/api/v1',
   },
+  getApiUrl: () => 'http://localhost:4000/api/v1',
 }));
 
 // Mock the routing config to avoid next-intl ESM import issues in Jest
