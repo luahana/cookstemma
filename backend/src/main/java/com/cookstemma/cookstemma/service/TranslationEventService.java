@@ -229,7 +229,8 @@ public class TranslationEventService {
 
     @Transactional
     public void queueLogPostTranslation(LogPost logPost) {
-        String sourceLocale = normalizeLocale(logPost.getLocale());
+        // Use originalLanguage (actual content language) instead of locale (recipe's cooking style)
+        String sourceLocale = normalizeLocale(logPost.getOriginalLanguage());
         List<String> targetLocales = getTargetLocales(sourceLocale);
 
         if (targetLocales.isEmpty()) {
