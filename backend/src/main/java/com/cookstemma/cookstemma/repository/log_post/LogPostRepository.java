@@ -322,7 +322,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // Filters by translation availability using pattern matching (supports "ko" and "ko-KR")
     @Query(value = """
         SELECT lp.* FROM log_posts lp
-        JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
+        JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
         WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
@@ -337,7 +337,7 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // Filters by translation availability using pattern matching (supports "ko" and "ko-KR")
     @Query(value = """
         SELECT lp.* FROM log_posts lp
-        JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
+        JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
         WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
@@ -355,14 +355,14 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     // Filters by translation availability using pattern matching (supports "ko" and "ko-KR")
     @Query(value = """
         SELECT lp.* FROM log_posts lp
-        JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
+        JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
         WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
         """,
         countQuery = """
         SELECT COUNT(lp.id) FROM log_posts lp
-        JOIN log_post_hashtags lph ON lph.log_post_id = lp.id
+        JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
         WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
         AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
