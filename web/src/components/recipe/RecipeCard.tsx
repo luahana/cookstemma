@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type { RecipeSummary } from '@/lib/types';
 import { COOKING_TIME_TRANSLATION_KEYS } from '@/lib/types';
@@ -17,9 +18,16 @@ interface RecipeCardProps {
 
 export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false }: RecipeCardProps) {
   const t = useTranslations('recipes');
-  const tCommon = useTranslations('common');
   const tCard = useTranslations('card');
   const tFilters = useTranslations('filters');
+  const router = useRouter();
+
+  const handleHashtagClick = (e: React.MouseEvent, tag: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/hashtags/${encodeURIComponent(tag)}`);
+  };
+
   // title and description are pre-localized by the backend based on Accept-Language header
   const cookingTimeKey = COOKING_TIME_TRANSLATION_KEYS[recipe.cookingTimeRange];
   const cookingTime = cookingTimeKey ? tFilters(cookingTimeKey) : recipe.cookingTimeRange;
@@ -146,12 +154,13 @@ export function RecipeCard({ recipe, isSaved = false, showTypeLabel = false }: R
         {recipe.hashtags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {recipe.hashtags.slice(0, 3).map((tag) => (
-              <span
+              <button
                 key={tag}
+                onClick={(e) => handleHashtagClick(e, tag)}
                 className="text-xs hover:underline text-hashtag"
               >
                 #{tag}
-              </span>
+              </button>
             ))}
           </div>
         )}

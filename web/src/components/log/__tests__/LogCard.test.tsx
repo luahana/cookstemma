@@ -196,3 +196,78 @@ describe('LogCard - Comment Count', () => {
     expect(screen.getByLabelText('7 comments')).toBeInTheDocument();
   });
 });
+
+describe('LogCard - Clickable Hashtags', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useRouter as jest.Mock).mockReturnValue({
+      push: mockPush,
+    });
+  });
+
+  it('renders hashtags as clickable buttons', () => {
+    render(<LogCard log={mockLog} />);
+
+    const hashtagButton = screen.getByRole('button', { name: '#cooking' });
+    expect(hashtagButton).toBeInTheDocument();
+  });
+
+  it('navigates to hashtag page when clicked', () => {
+    render(<LogCard log={mockLog} />);
+
+    const hashtagButton = screen.getByRole('button', { name: '#cooking' });
+    fireEvent.click(hashtagButton);
+
+    expect(mockPush).toHaveBeenCalledWith('/hashtags/cooking');
+  });
+
+  it('encodes special characters in hashtag navigation', () => {
+    const logWithSpecialHashtag = {
+      ...mockLog,
+      hashtags: ['Korean BBQ', 'test'],
+    };
+    render(<LogCard log={logWithSpecialHashtag} />);
+
+    const hashtagButton = screen.getByRole('button', { name: '#Korean BBQ' });
+    fireEvent.click(hashtagButton);
+
+    expect(mockPush).toHaveBeenCalledWith('/hashtags/Korean%20BBQ');
+  });
+
+  it('stops propagation when hashtag is clicked', () => {
+    render(<LogCard log={mockLog} />);
+
+    const hashtagButton = screen.getByRole('button', { name: '#cooking' });
+    const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
+    const stopPropagationSpy = jest.spyOn(clickEvent, 'stopPropagation');
+
+    fireEvent(hashtagButton, clickEvent);
+
+    expect(stopPropagationSpy).toHaveBeenCalled();
+  });
+
+  it('displays only first 3 hashtags', () => {
+    const logWithManyHashtags = {
+      ...mockLog,
+      hashtags: ['one', 'two', 'three', 'four', 'five'],
+    };
+    render(<LogCard log={logWithManyHashtags} />);
+
+    expect(screen.getByRole('button', { name: '#one' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '#two' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '#three' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '#four' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '#five' })).not.toBeInTheDocument();
+  });
+
+  it('does not render hashtag section when hashtags array is empty', () => {
+    const logWithNoHashtags = {
+      ...mockLog,
+      hashtags: [],
+    };
+    render(<LogCard log={logWithNoHashtags} />);
+
+    // Only check that hashtag buttons are not present (exclude bookmark and comment buttons)
+    expect(screen.queryByRole('button', { name: /^#/ })).not.toBeInTheDocument();
+  });
+});

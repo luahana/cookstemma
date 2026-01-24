@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type { HashtaggedContentItem } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
@@ -41,8 +42,15 @@ interface HashtaggedContentCardProps {
 
 function HashtaggedContentCard({ item }: HashtaggedContentCardProps) {
   const t = useTranslations('card');
+  const router = useRouter();
   const isRecipe = item.type === 'recipe';
   const href = isRecipe ? `/recipes/${item.publicId}` : `/logs/${item.publicId}`;
+
+  const handleHashtagClick = (e: React.MouseEvent, tag: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/hashtags/${encodeURIComponent(tag)}`);
+  };
 
   return (
     <Link
@@ -141,12 +149,13 @@ function HashtaggedContentCard({ item }: HashtaggedContentCardProps) {
         {item.hashtags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {item.hashtags.slice(0, 3).map((tag) => (
-              <span
+              <button
                 key={tag}
+                onClick={(e) => handleHashtagClick(e, tag)}
                 className="text-xs hover:underline text-hashtag"
               >
                 #{tag}
-              </span>
+              </button>
             ))}
           </div>
         )}
