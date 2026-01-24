@@ -4,7 +4,8 @@ import json
 from typing import Any, Dict, List, Optional
 
 import structlog
-from openai import AsyncOpenAI
+from google import genai
+from google.genai import types
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -29,10 +30,9 @@ class TextGenerator:
     ) -> None:
         settings = get_settings()
 
-        # Initialize Gemini Client via OpenAI-compatible API
-        self.client = AsyncOpenAI(
-            api_key=gemini_api_key or settings.gemini_api_key,
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        # Initialize native Google GenAI Client
+        self.client = genai.Client(
+            api_key=gemini_api_key or settings.gemini_api_key
         )
 
         self.model = settings.gemini_text_model or "gemini-2.0-flash-lite"
@@ -60,23 +60,28 @@ class TextGenerator:
         if "json" not in system_prompt.lower() and "json" not in user_prompt.lower():
             system_prompt += "\nRespond ONLY with a valid JSON object."
 
+        # Combine system and user prompts for Gemini
+        combined_prompt = f"{system_prompt}\n\n{user_prompt}"
+
         logger.debug("attempting_gemini_completion", model=self.model)
-        response = await self.client.chat.completions.create(
+        response = await self.client.aio.models.generate_content(
             model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=temperature or self.temperature,
-            response_format={"type": "json_object"},
+            contents=[combined_prompt],
+            config=types.GenerateContentConfig(
+                temperature=temperature or self.temperature,
+                response_mime_type="application/json",
+            ),
         )
-        content = response.choices[0].message.content
+
+        # Extract text from response
+        content = response.text
         if not content:
             raise ValueError("Empty response from Gemini")
+
         logger.debug(
             "gemini_response",
             model=self.model,
-            tokens=response.usage.total_tokens if response.usage else None,
+            response_len=len(content),
         )
         return content
 

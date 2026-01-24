@@ -10,13 +10,20 @@ from src.generators.text.generator import TextGenerator
 from src.personas import BotPersona
 
 
+def create_mock_gemini_response(content: str) -> MagicMock:
+    """Create a mock Gemini response with the given content."""
+    mock_response = MagicMock()
+    mock_response.text = content
+    return mock_response
+
+
 class TestTextGenerator:
     """Tests for the TextGenerator class."""
 
     @pytest.fixture
     def text_generator(self) -> TextGenerator:
-        """Create a text generator with mocked OpenAI client."""
-        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
+        """Create a text generator with mocked Gemini client."""
+        with patch("src.generators.text.generator.genai") as mock_genai:
             generator = TextGenerator()
             return generator
 
@@ -27,21 +34,15 @@ class TestTextGenerator:
         recipe_generation_response: Dict,
     ) -> None:
         """Test that generate_recipe returns properly structured data."""
-        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
+        with patch("src.generators.text.generator.genai") as mock_genai:
             # Setup mock
             mock_client = MagicMock()
-            mock_openai.return_value = mock_client
+            mock_genai.Client.return_value = mock_client
 
-            mock_response = MagicMock()
-            mock_response.choices = [
-                MagicMock(
-                    message=MagicMock(
-                        content=json.dumps(recipe_generation_response)
-                    )
-                )
-            ]
-            mock_response.usage = MagicMock(total_tokens=100)
-            mock_client.chat.completions.create = AsyncMock(
+            mock_response = create_mock_gemini_response(
+                json.dumps(recipe_generation_response)
+            )
+            mock_client.aio.models.generate_content = AsyncMock(
                 return_value=mock_response
             )
 
@@ -59,26 +60,20 @@ class TestTextGenerator:
             assert isinstance(result["steps"], list)
 
     @pytest.mark.asyncio
-    async def test_generate_recipe_calls_openai_with_persona(
+    async def test_generate_recipe_calls_gemini_with_persona(
         self,
         korean_persona: BotPersona,
         recipe_generation_response: Dict,
     ) -> None:
         """Test that generate_recipe uses persona's system prompt."""
-        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
+        with patch("src.generators.text.generator.genai") as mock_genai:
             mock_client = MagicMock()
-            mock_openai.return_value = mock_client
+            mock_genai.Client.return_value = mock_client
 
-            mock_response = MagicMock()
-            mock_response.choices = [
-                MagicMock(
-                    message=MagicMock(
-                        content=json.dumps(recipe_generation_response)
-                    )
-                )
-            ]
-            mock_response.usage = MagicMock(total_tokens=100)
-            mock_client.chat.completions.create = AsyncMock(
+            mock_response = create_mock_gemini_response(
+                json.dumps(recipe_generation_response)
+            )
+            mock_client.aio.models.generate_content = AsyncMock(
                 return_value=mock_response
             )
 
@@ -88,17 +83,15 @@ class TestTextGenerator:
                 food_name="Test Dish",
             )
 
-            # Verify OpenAI was called
-            mock_client.chat.completions.create.assert_called_once()
+            # Verify Gemini was called
+            mock_client.aio.models.generate_content.assert_called_once()
 
-            # Check that system message contains persona prompt
-            call_kwargs = mock_client.chat.completions.create.call_args[1]
-            messages = call_kwargs["messages"]
-            system_message = messages[0]
-            assert system_message["role"] == "system"
-            # System prompt includes persona's specialties
+            # Check that the prompt contains persona's specialties
+            call_args = mock_client.aio.models.generate_content.call_args
+            contents = call_args[1]["contents"]
+            prompt = contents[0] if isinstance(contents, list) else contents
             for specialty in korean_persona.specialties:
-                assert specialty in system_message["content"]
+                assert specialty in prompt
 
     @pytest.mark.asyncio
     async def test_generate_log_returns_expected_structure(
@@ -107,20 +100,14 @@ class TestTextGenerator:
         log_generation_response: Dict,
     ) -> None:
         """Test that generate_log returns properly structured data."""
-        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
+        with patch("src.generators.text.generator.genai") as mock_genai:
             mock_client = MagicMock()
-            mock_openai.return_value = mock_client
+            mock_genai.Client.return_value = mock_client
 
-            mock_response = MagicMock()
-            mock_response.choices = [
-                MagicMock(
-                    message=MagicMock(
-                        content=json.dumps(log_generation_response)
-                    )
-                )
-            ]
-            mock_response.usage = MagicMock(total_tokens=100)
-            mock_client.chat.completions.create = AsyncMock(
+            mock_response = create_mock_gemini_response(
+                json.dumps(log_generation_response)
+            )
+            mock_client.aio.models.generate_content = AsyncMock(
                 return_value=mock_response
             )
 
@@ -141,21 +128,15 @@ class TestTextGenerator:
         korean_persona: BotPersona,
     ) -> None:
         """Test that suggest_food_names returns a list of names."""
-        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
+        with patch("src.generators.text.generator.genai") as mock_genai:
             mock_client = MagicMock()
-            mock_openai.return_value = mock_client
+            mock_genai.Client.return_value = mock_client
 
             food_names = ["Kimchi Jjigae", "Bibimbap", "Japchae"]
-            mock_response = MagicMock()
-            mock_response.choices = [
-                MagicMock(
-                    message=MagicMock(
-                        content=json.dumps({"dishes": food_names})
-                    )
-                )
-            ]
-            mock_response.usage = MagicMock(total_tokens=100)
-            mock_client.chat.completions.create = AsyncMock(
+            mock_response = create_mock_gemini_response(
+                json.dumps({"dishes": food_names})
+            )
+            mock_client.aio.models.generate_content = AsyncMock(
                 return_value=mock_response
             )
 
@@ -174,9 +155,9 @@ class TestTextGenerator:
         english_persona: BotPersona,
     ) -> None:
         """Test that variant generation includes parent recipe info."""
-        with patch("src.generators.text.generator.AsyncOpenAI") as mock_openai:
+        with patch("src.generators.text.generator.genai") as mock_genai:
             mock_client = MagicMock()
-            mock_openai.return_value = mock_client
+            mock_genai.Client.return_value = mock_client
 
             variant_response = {
                 "title": "Spicy Variant",
@@ -189,16 +170,10 @@ class TestTextGenerator:
                 "changeCategories": ["SPICE_LEVEL"],
             }
 
-            mock_response = MagicMock()
-            mock_response.choices = [
-                MagicMock(
-                    message=MagicMock(
-                        content=json.dumps(variant_response)
-                    )
-                )
-            ]
-            mock_response.usage = MagicMock(total_tokens=100)
-            mock_client.chat.completions.create = AsyncMock(
+            mock_response = create_mock_gemini_response(
+                json.dumps(variant_response)
+            )
+            mock_client.aio.models.generate_content = AsyncMock(
                 return_value=mock_response
             )
 
