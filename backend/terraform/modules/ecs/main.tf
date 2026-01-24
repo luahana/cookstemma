@@ -161,7 +161,7 @@ resource "aws_iam_role_policy" "ecs_task_s3" {
 
 # SQS access for translation event queue (hybrid push architecture)
 resource "aws_iam_role_policy" "ecs_task_sqs" {
-  count = var.sqs_translation_queue_arn != "" ? 1 : 0
+  count = var.sqs_enabled ? 1 : 0
 
   name = "${var.project_name}-${var.environment}-ecs-task-sqs"
   role = aws_iam_role.ecs_task.id
