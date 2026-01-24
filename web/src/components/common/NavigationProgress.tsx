@@ -34,11 +34,11 @@ export function NavigationProgress() {
       // Animate progress: fast at start, slow down as it approaches 90%
       const intervals = [
         { delay: 10, value: 30 },
-        { delay: 100, value: 50 },
-        { delay: 300, value: 70 },
-        { delay: 600, value: 80 },
-        { delay: 1000, value: 85 },
-        { delay: 2000, value: 90 },
+        { delay: 50, value: 50 },
+        { delay: 150, value: 70 },
+        { delay: 300, value: 80 },
+        { delay: 500, value: 85 },
+        { delay: 1000, value: 90 },
       ];
 
       intervals.forEach(({ delay, value }) => {

@@ -1,6 +1,7 @@
 'use client';
 
 import { forwardRef, useCallback, type MouseEvent, type ComponentProps } from 'react';
+import { usePathname } from 'next/navigation';
 import { createNavigation } from 'next-intl/navigation';
 import { routing } from '@/i18n/routing';
 import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
@@ -12,6 +13,7 @@ type LinkProps = ComponentProps<typeof I18nLink>;
 export const NavigationLink = forwardRef<HTMLAnchorElement, LinkProps>(
   function NavigationLink({ onClick, href, target, ...props }, ref) {
     const { startLoading } = useNavigationProgress();
+    const pathname = usePathname();
 
     const handleClick = useCallback(
       (e: MouseEvent<HTMLAnchorElement>) => {
@@ -34,9 +36,15 @@ export const NavigationLink = forwardRef<HTMLAnchorElement, LinkProps>(
           return;
         }
 
+        // Skip loading indicator if clicking same route (route won't change)
+        const targetPath = typeof href === 'string' ? href : href?.pathname;
+        if (targetPath && (pathname === targetPath || pathname.endsWith(targetPath))) {
+          return;
+        }
+
         startLoading();
       },
-      [onClick, startLoading, target, href]
+      [onClick, startLoading, target, href, pathname]
     );
 
     return (
