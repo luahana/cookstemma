@@ -13,7 +13,7 @@ public record FoodMasterAdminDto(
         Map<String, String> name,
         Map<String, String> categoryName,
         Map<String, String> description,
-        String searchKeywords,
+        Map<String, String> searchKeywords,
         Double foodScore,
         Boolean isVerified,
         Instant createdAt,

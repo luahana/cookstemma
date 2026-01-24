@@ -117,7 +117,7 @@ export interface FoodMasterAdmin {
   name: Record<string, string>;
   categoryName: Record<string, string> | null;
   description: Record<string, string>;
-  searchKeywords: string | null;
+  searchKeywords: Record<string, string> | null;
   foodScore: number;
   isVerified: boolean;
   createdAt: string;

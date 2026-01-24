@@ -79,7 +79,7 @@ class FoodMasterAdminControllerTest extends BaseIntegrationTest {
                 .category(testCategory)
                 .foodScore(5.0)
                 .isVerified(true)
-                .searchKeywords("test, food")
+                .searchKeywords(Map.of("en", "test, food"))
                 .build();
         foodMasterRepository.saveAndFlush(testFood);
     }
