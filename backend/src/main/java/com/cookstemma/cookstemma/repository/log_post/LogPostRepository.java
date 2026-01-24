@@ -107,7 +107,8 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         ORDER BY lp.created_at DESC, lp.id DESC
         """, nativeQuery = true)
     Slice<LogPost> findAllLogsWithCursorInitial(@Param("langCodePattern") String langCodePattern, Pageable pageable);
@@ -117,7 +118,8 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
         ORDER BY lp.created_at DESC, lp.id DESC
         """, nativeQuery = true)
@@ -129,7 +131,8 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         AND rl.rating BETWEEN :minRating AND :maxRating
         ORDER BY lp.created_at DESC, lp.id DESC
         """,
@@ -142,7 +145,8 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         AND rl.rating BETWEEN :minRating AND :maxRating
         AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
         ORDER BY lp.created_at DESC, lp.id DESC
@@ -192,13 +196,15 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         ORDER BY lp.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         """,
         nativeQuery = true)
     Page<LogPost> findAllLogsPage(@Param("langCodePattern") String langCodePattern, Pageable pageable);
@@ -209,13 +215,15 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         ORDER BY (COALESCE(lp.view_count, 0) + COALESCE(lp.saved_count, 0) * 5) DESC, lp.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         """,
         nativeQuery = true)
     Page<LogPost> findAllLogsOrderByPopular(@Param("langCodePattern") String langCodePattern, Pageable pageable);
@@ -226,14 +234,16 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
     @Query(value = """
         SELECT lp.* FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         ORDER BY ((COALESCE(lp.view_count, 0) + COALESCE(lp.saved_count, 0) * 5)::float / (1.0 + EXTRACT(EPOCH FROM (NOW() - lp.created_at)) / 604800.0)) DESC,
                  lp.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(*) FROM log_posts lp
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         """,
         nativeQuery = true)
     Page<LogPost> findAllLogsOrderByTrending(@Param("langCodePattern") String langCodePattern, Pageable pageable);
@@ -244,14 +254,16 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT lp.* FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         AND rl.rating BETWEEN :minRating AND :maxRating
         """,
         countQuery = """
         SELECT COUNT(lp.id) FROM log_posts lp
         JOIN recipe_logs rl ON rl.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         AND rl.rating BETWEEN :minRating AND :maxRating
         """,
         nativeQuery = true)
@@ -325,7 +337,8 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
         WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         ORDER BY lp.created_at DESC, lp.id DESC
         """, nativeQuery = true)
     Slice<LogPost> findByHashtagWithCursorInitial(
@@ -340,7 +353,8 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
         WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
         ORDER BY lp.created_at DESC, lp.id DESC
         """, nativeQuery = true)
@@ -358,14 +372,16 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
         WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         """,
         countQuery = """
         SELECT COUNT(lp.id) FROM log_posts lp
         JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         JOIN hashtags h ON h.id = lph.hashtag_id
         WHERE h.name = :hashtagName AND lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         """,
         nativeQuery = true)
     Page<LogPost> findByHashtagPage(
@@ -387,7 +403,8 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT DISTINCT lp.* FROM log_posts lp
         JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         ORDER BY lp.created_at DESC, lp.id DESC
         """, nativeQuery = true)
     Slice<LogPost> findWithAnyHashtagsWithCursorInitial(
@@ -399,7 +416,8 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT DISTINCT lp.* FROM log_posts lp
         JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
         ORDER BY lp.created_at DESC, lp.id DESC
         """, nativeQuery = true)
@@ -414,14 +432,16 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         SELECT DISTINCT lp.* FROM log_posts lp
         JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         ORDER BY lp.created_at DESC
         """,
         countQuery = """
         SELECT COUNT(DISTINCT lp.id) FROM log_posts lp
         JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
         WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
-        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
         """,
         nativeQuery = true)
     Page<LogPost> findWithAnyHashtagsPage(
