@@ -5,7 +5,6 @@ import com.cookstemma.cookstemma.domain.entity.log_post.LogPost;
 import com.cookstemma.cookstemma.domain.entity.recipe.Recipe;
 import com.cookstemma.cookstemma.dto.common.UnifiedPageResponse;
 import com.cookstemma.cookstemma.dto.hashtag.HashtagDto;
-import com.cookstemma.cookstemma.dto.hashtag.HashtagWithCountDto;
 import com.cookstemma.cookstemma.dto.hashtag.HashtaggedContentDto;
 import com.cookstemma.cookstemma.dto.log_post.LogPostSummaryDto;
 import com.cookstemma.cookstemma.dto.recipe.RecipeSummaryDto;
@@ -244,84 +243,6 @@ public class HashtagService {
             long recipeCount,
             long logPostCount
     ) {}
-
-
-    /**
-     * Get popular hashtags filtered by language with content counts.
-     * Only includes hashtags that have recipes or logs in the specified language.
-     *
-     * @param locale   Locale code (e.g., "ko-KR", "en-US")
-     * @param limit    Maximum number of hashtags to return
-     * @param minCount Minimum total count (recipe + log) to include
-     * @return List of popular hashtags with counts, sorted by total count descending
-     */
-    public List<HashtagWithCountDto> getPopularHashtagsByLocale(String locale, int limit, int minCount) {
-        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
-        String langPattern = LocaleUtils.toLanguageKey(normalizedLocale) + "%";
-
-        // Get hashtag IDs with recipe counts (fetch more to allow for merging with logs)
-        List<Object[]> recipeResults = hashtagRepository.findPopularHashtagsByRecipeLanguage(
-                langPattern, Math.max(1, minCount / 2), limit * 3);
-
-        // Build a set of hashtag IDs from recipe results
-        Set<Long> hashtagIds = new HashSet<>();
-        Map<Long, Long> recipeCountMap = new java.util.HashMap<>();
-
-        for (Object[] row : recipeResults) {
-            Long hashtagId = ((Number) row[0]).longValue();
-            Long count = ((Number) row[1]).longValue();
-            hashtagIds.add(hashtagId);
-            recipeCountMap.put(hashtagId, count);
-        }
-
-        // Get hashtags with log counts
-        List<Object[]> logResults = hashtagRepository.findPopularHashtagsByLogLanguage(langPattern);
-
-        Map<Long, Long> logCountMap = new java.util.HashMap<>();
-        for (Object[] row : logResults) {
-            Long hashtagId = ((Number) row[0]).longValue();
-            Long count = ((Number) row[1]).longValue();
-            hashtagIds.add(hashtagId);
-            logCountMap.put(hashtagId, count);
-        }
-
-        if (hashtagIds.isEmpty()) {
-            return List.of();
-        }
-
-        // Fetch hashtag entities
-        List<Hashtag> hashtags = hashtagRepository.findAllById(hashtagIds);
-        Map<Long, Hashtag> hashtagMap = hashtags.stream()
-                .collect(Collectors.toMap(Hashtag::getId, h -> h));
-
-        // Build result list with counts
-        List<HashtagWithCountDto> result = new ArrayList<>();
-        for (Long hashtagId : hashtagIds) {
-            Hashtag hashtag = hashtagMap.get(hashtagId);
-            if (hashtag == null) {
-                continue;
-            }
-
-            long recipeCount = recipeCountMap.getOrDefault(hashtagId, 0L);
-            long logCount = logCountMap.getOrDefault(hashtagId, 0L);
-            long totalCount = recipeCount + logCount;
-
-            if (totalCount >= minCount) {
-                result.add(HashtagWithCountDto.of(
-                        hashtag.getPublicId(),
-                        hashtag.getName(),
-                        recipeCount,
-                        logCount
-                ));
-            }
-        }
-
-        // Sort by total count descending and limit
-        return result.stream()
-                .sorted(Comparator.comparingLong(HashtagWithCountDto::totalCount).reversed())
-                .limit(limit)
-                .toList();
-    }
 
 
     /**

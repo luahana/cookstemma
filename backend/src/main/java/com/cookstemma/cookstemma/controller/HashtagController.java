@@ -2,7 +2,6 @@ package com.cookstemma.cookstemma.controller;
 
 import com.cookstemma.cookstemma.dto.common.UnifiedPageResponse;
 import com.cookstemma.cookstemma.dto.hashtag.HashtagDto;
-import com.cookstemma.cookstemma.dto.hashtag.HashtagWithCountDto;
 import com.cookstemma.cookstemma.dto.hashtag.HashtaggedContentDto;
 import com.cookstemma.cookstemma.dto.log_post.LogPostSummaryDto;
 import com.cookstemma.cookstemma.dto.recipe.RecipeSummaryDto;
@@ -27,20 +26,6 @@ public class HashtagController {
     @GetMapping
     public ResponseEntity<List<HashtagDto>> getAllHashtags() {
         return ResponseEntity.ok(hashtagService.getAllHashtags());
-    }
-
-
-    /**
-     * Get popular hashtags filtered by user's language.
-     * Returns hashtags with content available in the user's locale.
-     * GET /api/v1/hashtags/popular?limit=10&minCount=1
-     */
-    @GetMapping("/popular")
-    public ResponseEntity<List<HashtagWithCountDto>> getPopularHashtags(
-            @RequestParam(name = "limit", defaultValue = "10") int limit,
-            @RequestParam(name = "minCount", defaultValue = "1") int minCount) {
-        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
-        return ResponseEntity.ok(hashtagService.getPopularHashtagsByLocale(locale, limit, minCount));
     }
 
     /**

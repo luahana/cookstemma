@@ -38,17 +38,6 @@ export interface HashtagCounts {
 }
 
 /**
- * Popular hashtag with detailed counts (returned by /popular endpoint)
- */
-export interface HashtagWithCount {
-  publicId: string;
-  name: string;
-  recipeCount: number;
-  logPostCount: number;
-  totalCount: number;
-}
-
-/**
  * Content item with hashtags (unified feed of recipes and logs)
  */
 export interface HashtaggedContentItem {

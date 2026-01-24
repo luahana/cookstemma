@@ -87,7 +87,7 @@ export default async function Home({ params }: Props) {
       {/* Popular Hashtags */}
       <section className="py-12 bg-[var(--surface)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <PopularHashtags limit={10} locale={locale} />
+          <PopularHashtags limit={10} />
         </div>
       </section>
 

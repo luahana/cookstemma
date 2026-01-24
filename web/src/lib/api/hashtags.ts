@@ -2,7 +2,6 @@ import { apiFetch, buildQueryString } from './client';
 import type {
   HashtagDto,
   HashtagCounts,
-  HashtagWithCount,
   HashtaggedContentItem,
   RecipeSummary,
   LogPostSummary,
@@ -102,16 +101,31 @@ export async function getContentByHashtag(
 }
 
 /**
- * Get popular hashtags filtered by user's language.
- * Returns hashtags with content available in the user's locale.
+ * Get popular hashtags with their counts
  */
-export async function getPopularHashtags(
-  limit: number = 10,
-  locale?: string,
-): Promise<HashtagWithCount[]> {
-  const queryString = buildQueryString({ limit });
-  return apiFetch<HashtagWithCount[]>(`/hashtags/popular${queryString}`, {
-    next: { revalidate: 300 }, // Cache for 5 minutes
-    locale,
-  });
+export async function getPopularHashtags(limit: number = 10): Promise<(HashtagDto & { totalCount: number })[]> {
+  const hashtags = await getHashtags();
+
+  // Fetch counts for all hashtags in parallel
+  const hashtagsWithCounts = await Promise.all(
+    hashtags.slice(0, Math.min(hashtags.length, 20)).map(async (hashtag) => {
+      try {
+        const counts = await getHashtagCounts(hashtag.name);
+        return {
+          ...hashtag,
+          totalCount: counts.recipeCount + counts.logPostCount,
+        };
+      } catch {
+        return {
+          ...hashtag,
+          totalCount: 0,
+        };
+      }
+    }),
+  );
+
+  // Sort by total count and return top N
+  return hashtagsWithCounts
+    .sort((a, b) => b.totalCount - a.totalCount)
+    .slice(0, limit);
 }
