@@ -12,6 +12,7 @@ import {
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { revalidateProfile } from '@/app/actions/profile';
 import type { MeasurementPreference, UpdateProfileRequest } from '@/lib/types';
+import { MEASUREMENT_STORAGE_KEY } from '@/lib/utils/measurement';
 
 // Character limits (matching database constraints)
 const MAX_USERNAME_LENGTH = 50;
@@ -281,6 +282,11 @@ export default function ProfileEditPage() {
       }
 
       await updateUserProfile(updateData);
+
+      // Sync measurement preference to localStorage for instant effect on recipe pages
+      if (measurementPref !== initialValues.measurementPref) {
+        localStorage.setItem(MEASUREMENT_STORAGE_KEY, measurementPref);
+      }
 
       // Revalidate the user's public profile page to clear cache
       if (authUser?.publicId) {
