@@ -39,7 +39,8 @@ export default async function SearchPage({ params, searchParams }: Props) {
   const resolvedSearchParams = await searchParams;
   const query = resolvedSearchParams.q || '';
   const type = (resolvedSearchParams.type as SearchTypeFilter) || 'all';
-  const page = parseInt(resolvedSearchParams.page || '0', 10);
+  const urlPage = parseInt(resolvedSearchParams.page || '1', 10);
+  const page = Math.max(0, urlPage - 1);
 
   // Only fetch if there's a query
   const results = query

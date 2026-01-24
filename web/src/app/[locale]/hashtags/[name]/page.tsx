@@ -34,8 +34,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function HashtagPage({ params, searchParams }: Props) {
   const { name, locale } = await params;
-  const { tab = 'all', page: pageParam = '0' } = await searchParams;
-  const page = parseInt(pageParam, 10);
+  const { tab = 'all', page: pageParam = '1' } = await searchParams;
+  const page = Math.max(0, parseInt(pageParam, 10) - 1);
   const decodedName = decodeURIComponent(name);
   const t = await getTranslations('hashtags');
   const tNav = await getTranslations('nav');
