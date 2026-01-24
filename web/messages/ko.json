@@ -622,11 +622,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "전체",
     "recipesTab": "레시피",
     "logsTab": "요리 일지",
     "postsWithTag": "이 해시태그로 {count}개의 게시물",
     "noRecipes": "아직 이 해시태그의 레시피가 없습니다",
     "noLogs": "아직 이 해시태그의 요리 일지가 없습니다",
+    "noContent": "아직 이 해시태그의 콘텐츠가 없습니다",
     "topContributors": "상위 기여자:"
   },
   "hashtagsPage": {

@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "Wszystko",
     "recipesTab": "Przepisy",
     "logsTab": "Wpisy z dziennika",
     "postsWithTag": "{count} postów z tym hashtagiem",
     "noRecipes": "Brak przepisów z tym hashtagiem",
     "noLogs": "Brak wpisów z tym hashtagiem",
+    "noContent": "Brak treści z tym hashtagiem",
     "topContributors": "Top kontrybutorzy:"
   },
   "hashtagsPage": {

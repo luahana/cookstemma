@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "Semua",
     "recipesTab": "Resep",
     "logsTab": "Catatan Memasak",
     "postsWithTag": "{count} postingan dengan hashtag ini",
     "noRecipes": "Belum ada resep dengan hashtag ini",
     "noLogs": "Belum ada catatan memasak dengan hashtag ini",
+    "noContent": "Belum ada konten dengan hashtag ini",
     "topContributors": "Kontributor teratas:"
   },
   "hashtagsPage": {

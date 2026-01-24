@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "全部",
     "recipesTab": "食谱",
     "logsTab": "烹饪日志",
     "postsWithTag": "{count} 篇带此话题标签的内容",
     "noRecipes": "暂无使用此话题标签的食谱",
     "noLogs": "暂无使用此话题标签的烹饪日志",
+    "noContent": "暂无使用此话题标签的内容",
     "topContributors": "热门贡献者："
   },
   "hashtagsPage": {

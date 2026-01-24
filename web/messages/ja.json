@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "すべて",
     "recipesTab": "レシピ",
     "logsTab": "料理日記",
     "postsWithTag": "このハッシュタグの投稿{count}件",
     "noRecipes": "このハッシュタグのレシピはまだありません",
     "noLogs": "このハッシュタグの料理日記はまだありません",
+    "noContent": "このハッシュタグのコンテンツはまだありません",
     "topContributors": "トップ投稿者："
   },
   "hashtagsPage": {

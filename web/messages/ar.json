@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "الكل",
     "recipesTab": "الوصفات",
     "logsTab": "سجلات الطبخ",
     "postsWithTag": "{count} منشور بهذا الوسم",
     "noRecipes": "لا توجد وصفات بهذا الوسم بعد",
     "noLogs": "لا توجد سجلات طبخ بهذا الوسم بعد",
+    "noContent": "لا يوجد محتوى بهذا الوسم بعد",
     "topContributors": "أبرز المساهمين:"
   },
   "hashtagsPage": {

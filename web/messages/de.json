@@ -617,11 +617,13 @@
   },
   "hashtags": {
     "title": "#{name}",
+    "allTab": "Alle",
     "recipesTab": "Rezepte",
     "logsTab": "Kochprotokolle",
     "postsWithTag": "{count} Beiträge mit diesem Hashtag",
     "noRecipes": "Noch keine Rezepte mit diesem Hashtag",
     "noLogs": "Noch keine Kochprotokolle mit diesem Hashtag",
+    "noContent": "Noch keine Inhalte mit diesem Hashtag",
     "topContributors": "Top-Beitragende:"
   },
   "hashtagsPage": {
