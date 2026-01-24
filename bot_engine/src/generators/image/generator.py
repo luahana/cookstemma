@@ -1,5 +1,4 @@
 """Image generator using Gemini Nano Banana (native image generation)."""
-"""Image generator using Gemini Nano Banana (native image generation)."""
 
 import io
 import random
@@ -20,35 +19,6 @@ from ...config import get_settings
 from ...personas import BotPersona
 
 logger = structlog.get_logger()
-
-
-# Camera angle variations for cover images
-# First angle (index 0) is the "main" angle - overhead flat lay
-# Subsequent angles are slight variations
-COVER_CAMERA_ANGLES = [
-    # Main angle - overhead flat lay (current default, best for food photography)
-    {
-        "name": "overhead",
-        "angle_desc": "Shot directly from above",
-        "composition": "Bird's eye view, dish perfectly centered, plate on table",
-    },
-    # Slight angle variations
-    {
-        "name": "high_angle",
-        "angle_desc": "Shot from slightly above at 75-degree angle",
-        "composition": "High angle view, dish centered with slight depth perspective",
-    },
-    {
-        "name": "three_quarter",
-        "angle_desc": "Shot from 45-degree angle above",
-        "composition": "Three-quarter overhead view, showing dish depth and layers",
-    },
-    {
-        "name": "hero_angle",
-        "angle_desc": "Shot from 30-degree angle, classic food hero shot",
-        "composition": "Hero angle view, emphasizing food height and textures",
-    },
-]
 
 
 class ImageGenerator:
@@ -77,35 +47,19 @@ class ImageGenerator:
         dish_name: str,
         persona: BotPersona,
         style: str = "cover",
-        angle_index: int = 0,
     ) -> str:
-        """Build detailed prompts for food image generation.
+        """Build detailed prompts for food image generation."""
+        # Base: focus on food, centered, top-down, no people
+        base_prompt = f"Overhead flat lay food photography of {dish_name}. Shot directly from above. Food centered in frame. No people, no hands, no human body parts."
 
-        Args:
-            dish_name: Name of the dish to photograph
-            persona: Bot persona for kitchen style
-            style: Image style - "cover", "step", or "log"
-            angle_index: Index into COVER_CAMERA_ANGLES for cover images (0 = main overhead)
-
-        Returns:
-            Detailed prompt string for image generation
-        """
         if style == "cover":
-            # Get camera angle (default to main overhead if index out of range)
-            angle = COVER_CAMERA_ANGLES[angle_index % len(COVER_CAMERA_ANGLES)]
-
-            base_prompt = f"Professional food photography of {dish_name}. {angle['angle_desc']}. Food centered in frame. No people, no hands, no human body parts."
-
             return f"""{base_prompt}
 {persona.kitchen_style_prompt}
-Composition: {angle['composition']}.
+Composition: Bird's eye view, dish perfectly centered, plate on table.
 Lighting: Soft natural daylight, high-detail food textures.
 Style: Food magazine, appetizing, professional."""
 
-        # For step and log, keep the overhead angle (simpler, more consistent)
-        base_prompt = f"Overhead flat lay food photography of {dish_name}. Shot directly from above. Food centered in frame. No people, no hands, no human body parts."
-
-        if style == "step":
+        elif style == "step":
             return f"""{base_prompt}
 {persona.kitchen_style_prompt}
 Composition: Top-down view, ingredients arranged on cutting board.
@@ -247,46 +201,19 @@ Composition: Top-down, plate centered on table."""
         cover_count: int = 2,
         step_count: int = 0,
     ) -> dict:
-        """Generate full image set for a recipe.
-
-        Cover images use different camera angles:
-        - First image: Main overhead angle (bird's eye view)
-        - Subsequent images: Varied angles (high angle, three-quarter, hero)
-
-        Args:
-            dish_name: Name of the dish
-            persona: Bot persona for kitchen style
-            cover_count: Number of cover images to generate
-            step_count: Number of step images to generate
-
-        Returns:
-            Dict with "cover_images" and "step_images" lists of bytes
-        """
+        """Generate full image set for a recipe."""
         result = {"cover_images": [], "step_images": []}
 
-        # Generate cover images with different angles
-        # First image uses main overhead angle (index 0)
-        # Subsequent images use varied angles
+        # Generate main cover images
         for i in range(cover_count):
-            angle_index = i  # 0=overhead, 1=high_angle, 2=three_quarter, 3=hero
-            angle_name = COVER_CAMERA_ANGLES[angle_index % len(COVER_CAMERA_ANGLES)]["name"]
-
-            prompt = self._build_dish_prompt(
-                dish_name, persona, style="cover", angle_index=angle_index
-            )
+            prompt = self._build_dish_prompt(dish_name, persona, style="cover")
             try:
-                logger.info(
-                    "generating_cover_image",
-                    dish=dish_name,
-                    index=i,
-                    angle=angle_name,
-                )
                 image_bytes = await self.generate_image(prompt)
                 result["cover_images"].append(image_bytes)
             except Exception as e:
-                logger.error("cover_image_failed", index=i, angle=angle_name, error=str(e))
+                logger.error("cover_image_failed", error=str(e))
 
-        # Generate process step images (overhead angle for consistency)
+        # Generate process step images
         for i in range(step_count):
             prompt = self._build_dish_prompt(dish_name, persona, style="step")
             try:
