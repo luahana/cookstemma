@@ -17,6 +17,7 @@ import Cookies from 'js-cookie';
 import { auth, googleProvider, appleProvider, isFirebaseConfigured } from '@/lib/firebase/config';
 import type { SocialProvider } from '@/lib/firebase/providers';
 import { getApiUrl } from '@/config/site';
+import { MEASUREMENT_STORAGE_KEY } from '@/lib/utils/measurement';
 
 export type UserRole = 'USER' | 'ADMIN' | 'CREATOR' | 'BOT';
 
@@ -71,6 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const newUser = { publicId: userData.id, username: userData.username, role: userData.role || 'USER' };
         setUser(newUser);
         setSentryUser(newUser);
+
+        // Sync user's measurement preference to localStorage
+        if (userData.measurementPreference) {
+          localStorage.setItem(MEASUREMENT_STORAGE_KEY, userData.measurementPreference);
+        }
       } else {
         console.log('[Auth] Not authenticated, clearing stale cookies via logout endpoint');
         // Call logout endpoint to clear HttpOnly cookies
