@@ -219,4 +219,28 @@ public interface HashtagRepository extends JpaRepository<Hashtag, Long> {
         """, nativeQuery = true)
     List<Object[]> findHashtagLogCountsByLanguage(@Param("langPattern") String langPattern);
 
+
+    /**
+     * Find popular hashtags based on log post count, filtered by original_language.
+     * Returns Object[] with [hashtagId, logCount].
+     * Uses LIKE pattern matching (e.g., "ko%" matches "ko-KR", "ko").
+     */
+    @Query(value = """
+        SELECT h.id, COUNT(DISTINCT lp.id) as log_count
+        FROM hashtags h
+        JOIN log_post_hashtag_map lphm ON h.id = lphm.hashtag_id
+        JOIN log_posts lp ON lphm.log_post_id = lp.id
+        WHERE lp.deleted_at IS NULL
+        AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND COALESCE(lp.original_language, lp.locale) LIKE :langPattern
+        GROUP BY h.id
+        HAVING COUNT(DISTINCT lp.id) >= :minCount
+        ORDER BY COUNT(DISTINCT lp.id) DESC
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<Object[]> findPopularHashtagsByLogPostLanguage(
+            @Param("langPattern") String langPattern,
+            @Param("minCount") int minCount,
+            @Param("limit") int limit);
+
 }

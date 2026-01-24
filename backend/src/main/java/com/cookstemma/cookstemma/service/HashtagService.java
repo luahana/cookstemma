@@ -68,33 +68,40 @@ public class HashtagService {
         // Extract language code and create pattern (e.g., "ko%" matches "ko-KR", "ko")
         String langPattern = LocaleUtils.toLanguageKey(normalizedLocale) + "%";
 
-        // Get hashtags with recipe counts (limited by minCount)
+        // Get hashtags with recipe counts
         List<Object[]> recipeResults = hashtagRepository.findPopularHashtagsByRecipeLanguage(
                 langPattern, minCount, limit * 2);
 
-        if (recipeResults.isEmpty()) {
+        // Get hashtags with log post counts
+        List<Object[]> logPostResults = hashtagRepository.findPopularHashtagsByLogPostLanguage(
+                langPattern, minCount, limit * 2);
+
+        // If both are empty, return empty list
+        if (recipeResults.isEmpty() && logPostResults.isEmpty()) {
             return List.of();
         }
 
-        // Build a map of hashtagId -> recipeCount
+        // Build maps of hashtagId -> count
         Map<Long, Long> recipeCountMap = recipeResults.stream()
                 .collect(Collectors.toMap(
                         row -> ((Number) row[0]).longValue(),
                         row -> ((Number) row[1]).longValue()
                 ));
 
-        // Get log counts for the same hashtags
-        List<Object[]> logResults = hashtagRepository.findHashtagLogCountsByLanguage(langPattern);
-        Map<Long, Long> logCountMap = logResults.stream()
+        Map<Long, Long> logCountMap = logPostResults.stream()
                 .collect(Collectors.toMap(
                         row -> ((Number) row[0]).longValue(),
                         row -> ((Number) row[1]).longValue(),
                         (a, b) -> a  // In case of duplicates, keep first
                 ));
 
-        // Fetch hashtag entities for the IDs
-        List<Long> hashtagIds = new ArrayList<>(recipeCountMap.keySet());
-        List<Hashtag> hashtags = hashtagRepository.findAllById(hashtagIds);
+        // Combine hashtag IDs from both sources
+        Set<Long> allHashtagIds = new HashSet<>();
+        allHashtagIds.addAll(recipeCountMap.keySet());
+        allHashtagIds.addAll(logCountMap.keySet());
+
+        // Fetch hashtag entities for all IDs
+        List<Hashtag> hashtags = hashtagRepository.findAllById(allHashtagIds);
 
         // Build DTOs with combined counts
         List<com.cookstemma.cookstemma.dto.hashtag.HashtagWithCountDto> dtos = hashtags.stream()
@@ -109,6 +116,7 @@ public class HashtagService {
                             recipeCount + logCount
                     );
                 })
+                .filter(dto -> dto.totalCount() >= minCount)  // Filter by total count meeting minCount
                 .sorted((a, b) -> Long.compare(b.totalCount(), a.totalCount()))
                 .limit(limit)
                 .toList();
