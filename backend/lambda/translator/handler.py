@@ -398,7 +398,7 @@ def fetch_pending_events(conn, limit: int = 10) -> list[dict]:
     """
     with conn.cursor() as cur:
         cur.execute("""
-            SELECT id, entity_type, entity_id, source_locale, target_locales, completed_locales, status, started_at
+            SELECT id, entity_type::text, entity_id, source_locale, target_locales, completed_locales, status::text, started_at
             FROM translation_events
             WHERE status = 'PENDING'
                OR (status = 'FAILED' AND retry_count < 3)
@@ -1265,7 +1265,7 @@ def handler(event: dict, context) -> dict:
             for event_id in event_ids:
                 with conn.cursor() as cur:
                     cur.execute("""
-                        SELECT id, entity_type, entity_id, source_locale, target_locales, completed_locales, status
+                        SELECT id, entity_type::text, entity_id, source_locale, target_locales, completed_locales, status::text
                         FROM translation_events
                         WHERE id = %s
                         FOR UPDATE
