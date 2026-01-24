@@ -57,6 +57,65 @@ public class HashtagService {
                 .toList();
     }
 
+
+    /**
+     * Get popular hashtags filtered by original language.
+     * Combines recipe and log post counts, returns top N by total count.
+     */
+    public List<com.cookstemma.cookstemma.dto.hashtag.HashtagWithCountDto> getPopularHashtagsByLocale(
+            String locale, int limit, int minCount) {
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+        // Extract language code and create pattern (e.g., "ko%" matches "ko-KR", "ko")
+        String langPattern = LocaleUtils.toLanguageKey(normalizedLocale) + "%";
+
+        // Get hashtags with recipe counts (limited by minCount)
+        List<Object[]> recipeResults = hashtagRepository.findPopularHashtagsByRecipeLanguage(
+                langPattern, minCount, limit * 2);
+
+        if (recipeResults.isEmpty()) {
+            return List.of();
+        }
+
+        // Build a map of hashtagId -> recipeCount
+        Map<Long, Long> recipeCountMap = recipeResults.stream()
+                .collect(Collectors.toMap(
+                        row -> ((Number) row[0]).longValue(),
+                        row -> ((Number) row[1]).longValue()
+                ));
+
+        // Get log counts for the same hashtags
+        List<Object[]> logResults = hashtagRepository.findHashtagLogCountsByLanguage(langPattern);
+        Map<Long, Long> logCountMap = logResults.stream()
+                .collect(Collectors.toMap(
+                        row -> ((Number) row[0]).longValue(),
+                        row -> ((Number) row[1]).longValue(),
+                        (a, b) -> a  // In case of duplicates, keep first
+                ));
+
+        // Fetch hashtag entities for the IDs
+        List<Long> hashtagIds = new ArrayList<>(recipeCountMap.keySet());
+        List<Hashtag> hashtags = hashtagRepository.findAllById(hashtagIds);
+
+        // Build DTOs with combined counts
+        List<com.cookstemma.cookstemma.dto.hashtag.HashtagWithCountDto> dtos = hashtags.stream()
+                .map(hashtag -> {
+                    long recipeCount = recipeCountMap.getOrDefault(hashtag.getId(), 0L);
+                    long logCount = logCountMap.getOrDefault(hashtag.getId(), 0L);
+                    return new com.cookstemma.cookstemma.dto.hashtag.HashtagWithCountDto(
+                            hashtag.getPublicId(),
+                            hashtag.getName(),
+                            recipeCount,
+                            logCount,
+                            recipeCount + logCount
+                    );
+                })
+                .sorted((a, b) -> Long.compare(b.totalCount(), a.totalCount()))
+                .limit(limit)
+                .toList();
+
+        return dtos;
+    }
+
     /**
      * Search hashtags by name prefix (for autocomplete)
      */

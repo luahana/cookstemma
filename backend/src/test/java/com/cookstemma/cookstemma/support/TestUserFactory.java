@@ -21,10 +21,14 @@ public class TestUserFactory {
     }
 
     public User createTestUser(String username) {
+        return createTestUser(username, "ko-KR");
+    }
+
+    public User createTestUser(String username, String locale) {
         User user = User.builder()
                 .username(username)
                 .email(username + "@test.com")
-                .locale("ko-KR")
+                .locale(locale)
                 .role(Role.USER)
                 .status(AccountStatus.ACTIVE)
                 .build();
