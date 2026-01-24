@@ -44,7 +44,7 @@ export function SearchChips({ counts, selected, query }: SearchChipsProps) {
     params.delete('page'); // Reset to first page on filter change
     startLoading();
     startTransition(() => {
-      router.push(`/search?${params.toString()}`);
+      router.replace(`/search?${params.toString()}`);
     });
   };
 
