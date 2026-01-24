@@ -223,6 +223,9 @@ module "alb" {
   health_check_path = "/actuator/health"
   certificate_arn   = var.certificate_arn
 
+  # IP Whitelisting (restrict access in terraform.tfvars)
+  allowed_cidr_blocks = var.allowed_cidr_blocks
+
   # Enable web routing
   enable_web            = true
   web_port              = 3000

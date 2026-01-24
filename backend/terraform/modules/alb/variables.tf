@@ -67,3 +67,10 @@ variable "enable_alarms" {
   type        = bool
   default     = true
 }
+
+# IP Whitelisting
+variable "allowed_cidr_blocks" {
+  description = "List of CIDR blocks allowed to access the ALB. Use [\"0.0.0.0/0\"] for public access."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}

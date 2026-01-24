@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "ap-northeast-2"
+  default     = "us-east-2"  # Same region as dev for cost optimization
 }
 
 variable "project_name" {
@@ -105,5 +105,39 @@ variable "s3_bucket" {
 variable "s3_region" {
   description = "S3 region"
   type        = string
-  default     = "ap-northeast-2"
+  default     = "us-east-2"
+}
+
+# RDS
+variable "rds_snapshot_identifier" {
+  description = "RDS snapshot to restore from (for disaster recovery)"
+  type        = string
+  default     = null
+}
+
+# Gemini
+variable "gemini_api_key" {
+  description = "Gemini API key for translation"
+  type        = string
+  sensitive   = true
+}
+
+# DNS
+variable "domain_name" {
+  description = "Base domain name (e.g., cookstemma.com)"
+  type        = string
+  default     = "cookstemma.com"
+}
+
+variable "create_dns_record" {
+  description = "Whether to create Route53 DNS record"
+  type        = bool
+  default     = true
+}
+
+# CloudWatch Alarms
+variable "alarm_email" {
+  description = "Email address for CloudWatch alarm notifications"
+  type        = string
+  default     = "alex873jspark@gmail.com"
 }

@@ -142,3 +142,10 @@ variable "alarm_email" {
   type        = string
   default     = "alex873jspark@gmail.com"
 }
+
+# IP Whitelisting
+variable "allowed_cidr_blocks" {
+  description = "CIDR blocks allowed to access ALB. Use [\"0.0.0.0/0\"] for public access. Override in terraform.tfvars for IP restriction."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]  # Default to public, override in terraform.tfvars for restricted access
+}
