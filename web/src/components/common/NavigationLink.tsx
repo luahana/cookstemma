@@ -38,8 +38,14 @@ export const NavigationLink = forwardRef<HTMLAnchorElement, LinkProps>(
 
         // Skip loading indicator if clicking same route (route won't change)
         const targetPath = typeof href === 'string' ? href : href?.pathname;
-        if (targetPath && (pathname === targetPath || pathname.endsWith(targetPath))) {
-          return;
+        if (targetPath) {
+          // Handle root path: /en, /ko etc. should match href="/"
+          const isRootPath = targetPath === '/' && /^\/[a-z]{2}(\/)?$/.test(pathname);
+          // Handle other paths: /en/recipes should match href="/recipes"
+          const isSamePath = pathname === targetPath || pathname.endsWith(targetPath);
+          if (isRootPath || isSamePath) {
+            return;
+          }
         }
 
         startLoading();
