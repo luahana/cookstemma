@@ -13,7 +13,7 @@ on:
       - '.github/workflows/backend-deploy-prod.yml'
 
 env:
-  AWS_REGION: ap-northeast-2
+  AWS_REGION: us-east-2
   ECR_REPOSITORY: cookstemma
   ECS_CLUSTER: cookstemma-prod-cluster
   ECS_SERVICE: cookstemma-prod-service
