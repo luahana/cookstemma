@@ -28,8 +28,9 @@ resource "aws_ecs_cluster_capacity_providers" "web" {
   }
 }
 
-# Security Group for ECS Frontend Tasks
+# Security Group for ECS Frontend Tasks (only created if not using existing)
 resource "aws_security_group" "ecs_web" {
+  count       = var.use_existing_security_group ? 0 : 1
   name        = "${var.project_name}-${var.environment}-ecs-web-sg"
   description = "Security group for ECS web tasks"
   vpc_id      = var.vpc_id
@@ -54,6 +55,10 @@ resource "aws_security_group" "ecs_web" {
   tags = {
     Name = "${var.project_name}-${var.environment}-ecs-web-sg"
   }
+}
+
+locals {
+  ecs_web_security_group_id = var.use_existing_security_group ? var.existing_security_group_id : aws_security_group.ecs_web[0].id
 }
 
 # CloudWatch Log Group for Frontend
@@ -138,7 +143,7 @@ resource "aws_ecs_task_definition" "web" {
         }
       ]
 
-      environment = [
+      environment = concat([
         {
           name  = "NODE_ENV"
           value = "production"
@@ -147,7 +152,12 @@ resource "aws_ecs_task_definition" "web" {
           name  = "PORT"
           value = tostring(var.container_port)
         }
-      ]
+      ], var.internal_api_url != "" ? [
+        {
+          name  = "INTERNAL_API_URL"
+          value = var.internal_api_url
+        }
+      ] : [])
 
       logConfiguration = {
         logDriver = "awslogs"
@@ -185,7 +195,7 @@ resource "aws_ecs_service" "web" {
 
   network_configuration {
     subnets          = var.subnet_ids
-    security_groups  = [aws_security_group.ecs_web.id]
+    security_groups  = [local.ecs_web_security_group_id]
     assign_public_ip = var.assign_public_ip
   }
 

@@ -72,6 +72,19 @@ variable "target_group_arn" {
   default     = null
 }
 
+# Security Group
+variable "use_existing_security_group" {
+  description = "Whether to use an existing security group instead of creating a new one"
+  type        = bool
+  default     = false
+}
+
+variable "existing_security_group_id" {
+  description = "ID of existing security group to use (required if use_existing_security_group is true)"
+  type        = string
+  default     = ""
+}
+
 # CloudWatch Alarms
 variable "sns_alarm_topic_arn" {
   description = "ARN of the SNS topic for CloudWatch alarms. Required when enable_alarms is true."
@@ -83,4 +96,11 @@ variable "enable_alarms" {
   description = "Enable CloudWatch alarms for ECS web monitoring. Requires sns_alarm_topic_arn to be set."
   type        = bool
   default     = true
+}
+
+# Service Discovery
+variable "internal_api_url" {
+  description = "Internal API URL for SSR calls (bypasses ALB). Example: http://backend.cookstemma-dev.local:4000/api/v1"
+  type        = string
+  default     = ""
 }

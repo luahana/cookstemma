@@ -22,7 +22,7 @@ output "task_definition_arn" {
 
 output "security_group_id" {
   description = "ID of the ECS tasks security group"
-  value       = aws_security_group.ecs_web.id
+  value       = local.ecs_web_security_group_id
 }
 
 output "log_group_name" {

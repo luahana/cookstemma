@@ -16,7 +16,7 @@ import {
 import Cookies from 'js-cookie';
 import { auth, googleProvider, appleProvider, isFirebaseConfigured } from '@/lib/firebase/config';
 import type { SocialProvider } from '@/lib/firebase/providers';
-import { siteConfig } from '@/config/site';
+import { getApiUrl } from '@/config/site';
 
 export type UserRole = 'USER' | 'ADMIN' | 'CREATOR' | 'BOT';
 
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkAuthStatus = async () => {
     console.log('[Auth] Checking auth status...');
     try {
-      const response = await fetch(`${siteConfig.apiUrl}/users/me`, {
+      const response = await fetch(`${getApiUrl()}/users/me`, {
         credentials: 'include',
       });
 
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         console.log('[Auth] Not authenticated, clearing stale cookies via logout endpoint');
         // Call logout endpoint to clear HttpOnly cookies
-        await fetch(`${siteConfig.apiUrl}/auth/web/logout`, {
+        await fetch(`${getApiUrl()}/auth/web/logout`, {
           method: 'POST',
           credentials: 'include',
         }).catch(() => {}); // Ignore errors
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('[Auth] Error checking auth status:', error);
       // Call logout endpoint to clear HttpOnly cookies
-      await fetch(`${siteConfig.apiUrl}/auth/web/logout`, {
+      await fetch(`${getApiUrl()}/auth/web/logout`, {
         method: 'POST',
         credentials: 'include',
       }).catch(() => {}); // Ignore errors
@@ -109,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchCsrfToken = async () => {
-    await fetch(`${siteConfig.apiUrl}/auth/web/csrf-token`, {
+    await fetch(`${getApiUrl()}/auth/web/csrf-token`, {
       credentials: 'include',
     });
   };
@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('[Auth] Got CSRF token');
 
       // 5. Exchange Firebase token for app tokens (sets cookies)
-      const response = await fetch(`${siteConfig.apiUrl}/auth/web/social-login`, {
+      const response = await fetch(`${getApiUrl()}/auth/web/social-login`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -176,7 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     try {
       // Clear backend session
-      await fetch(`${siteConfig.apiUrl}/auth/web/logout`, {
+      await fetch(`${getApiUrl()}/auth/web/logout`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -201,7 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSession = useCallback(async (): Promise<boolean> => {
     try {
-      const response = await fetch(`${siteConfig.apiUrl}/auth/web/reissue`, {
+      const response = await fetch(`${getApiUrl()}/auth/web/reissue`, {
         method: 'POST',
         credentials: 'include',
         headers: {

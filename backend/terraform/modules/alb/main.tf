@@ -1,6 +1,11 @@
 # ALB Module
 # Creates Application Load Balancer for staging/prod environments
 
+locals {
+  # Combine allowed_cidr_blocks with vpc_cidr for internal service communication
+  all_allowed_cidrs = var.vpc_cidr != "" ? distinct(concat(var.allowed_cidr_blocks, [var.vpc_cidr])) : var.allowed_cidr_blocks
+}
+
 # Security Group for ALB
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-${var.environment}-alb-sg"
@@ -11,16 +16,16 @@ resource "aws_security_group" "alb" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = var.allowed_cidr_blocks
-    description = "HTTP"
+    cidr_blocks = local.all_allowed_cidrs
+    description = "HTTP from allowed CIDRs"
   }
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = var.allowed_cidr_blocks
-    description = "HTTPS"
+    cidr_blocks = local.all_allowed_cidrs
+    description = "HTTPS from allowed CIDRs"
   }
 
   egress {
@@ -33,6 +38,18 @@ resource "aws_security_group" "alb" {
   tags = {
     Name = "${var.project_name}-${var.environment}-alb-sg"
   }
+}
+
+# Additional ingress rules for security group-based access (internal services)
+resource "aws_security_group_rule" "alb_ingress_from_sg_https" {
+  count                    = length(var.allowed_security_group_ids)
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.alb.id
+  source_security_group_id = var.allowed_security_group_ids[count.index]
+  description              = "HTTPS from internal services"
 }
 
 # Application Load Balancer

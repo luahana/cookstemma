@@ -1,5 +1,5 @@
 import Cookies from 'js-cookie';
-import { siteConfig } from '@/config/site';
+import { getApiUrl } from '@/config/site';
 import type { ImageUploadResponse, ImageType } from '@/lib/types';
 
 /**
@@ -16,7 +16,7 @@ export async function uploadImage(
   formData.append('file', file);
   formData.append('type', type);
 
-  const response = await fetch(`${siteConfig.apiUrl}/images/upload`, {
+  const response = await fetch(`${getApiUrl()}/images/upload`, {
     method: 'POST',
     credentials: 'include',
     headers: {

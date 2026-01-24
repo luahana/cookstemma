@@ -138,6 +138,44 @@ resource "aws_security_group" "lambda_keyword_generator" {
   }
 }
 
+# =============================================================================
+# STANDALONE SECURITY GROUP FOR ECS WEB
+# Created first to break circular dependency with ALB
+# =============================================================================
+resource "aws_security_group" "ecs_web" {
+  name        = "${var.project_name}-${var.environment}-ecs-web-sg"
+  description = "Security group for ECS web tasks"
+  vpc_id      = module.vpc.vpc_id
+
+  # Ingress will be added by ALB module reference
+  # Egress: Allow all (needed for API calls to ALB, external services)
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-ecs-web-sg"
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
+# Ingress rule for ECS web - allow traffic from ALB on port 3000
+resource "aws_security_group_rule" "ecs_web_from_alb" {
+  type                     = "ingress"
+  from_port                = 3000
+  to_port                  = 3000
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.ecs_web.id
+  source_security_group_id = module.alb.security_group_id
+  description              = "Allow traffic from ALB"
+}
+
 # VPC Module - Keep private subnets for RDS, but no NAT Gateway (saves ~$35/month)
 module "vpc" {
   source = "../../modules/vpc"
@@ -148,6 +186,16 @@ module "vpc" {
   az_count               = 2
   create_private_subnets = true  # Keep private subnets for RDS (more secure)
   create_nat_gateway     = false # No NAT Gateway - Lambdas use public subnets instead
+}
+
+# Service Discovery Module - Cloud Map for internal service-to-service communication
+# Enables SSR (Next.js) to call backend API directly without going through ALB (bypasses IP restrictions)
+module "service_discovery" {
+  source = "../../modules/service-discovery"
+
+  project_name = var.project_name
+  environment  = var.environment
+  vpc_id       = module.vpc.vpc_id
 }
 
 # RDS Module - Minimal instance for dev
@@ -224,7 +272,12 @@ module "alb" {
   certificate_arn   = var.certificate_arn
 
   # IP Whitelisting (restrict access in terraform.tfvars)
+  # VPC CIDR is always allowed for internal service-to-service communication
   allowed_cidr_blocks = var.allowed_cidr_blocks
+  vpc_cidr            = var.vpc_cidr
+
+  # Allow ECS web security group to access ALB (for SSR API calls)
+  allowed_security_group_ids = [aws_security_group.ecs_web.id]
 
   # Enable web routing
   enable_web            = true
@@ -276,6 +329,9 @@ module "ecs" {
   sqs_translation_queue_arn = module.lambda_translation.sqs_queue_arn
   sqs_enabled               = true
 
+  # Service Discovery (Cloud Map) - enables internal service-to-service communication
+  service_discovery_service_arn = module.service_discovery.backend_service_arn
+
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
 }
@@ -299,6 +355,13 @@ module "ecs_web" {
   # ALB configuration
   alb_security_group_id = module.alb.security_group_id
   target_group_arn      = module.alb.web_target_group_arn
+
+  # Use pre-created security group to allow ALB to reference it
+  use_existing_security_group = true
+  existing_security_group_id  = aws_security_group.ecs_web.id
+
+  # Internal API URL for SSR (bypasses ALB IP restrictions)
+  internal_api_url = module.service_discovery.backend_api_url
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn

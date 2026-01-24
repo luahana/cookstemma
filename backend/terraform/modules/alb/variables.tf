@@ -74,3 +74,15 @@ variable "allowed_cidr_blocks" {
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
+
+variable "vpc_cidr" {
+  description = "VPC CIDR block. Always allowed for internal service-to-service communication."
+  type        = string
+  default     = ""
+}
+
+variable "allowed_security_group_ids" {
+  description = "List of security group IDs allowed to access the ALB (for internal service-to-service communication)."
+  type        = list(string)
+  default     = []
+}

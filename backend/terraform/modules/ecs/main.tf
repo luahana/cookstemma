@@ -327,6 +327,14 @@ resource "aws_ecs_service" "main" {
     }
   }
 
+  # Service Discovery registration (Cloud Map)
+  dynamic "service_registries" {
+    for_each = var.service_discovery_service_arn != "" ? [1] : []
+    content {
+      registry_arn = var.service_discovery_service_arn
+    }
+  }
+
   # For Blue/Green deployment with CodeDeploy
   dynamic "deployment_controller" {
     for_each = var.use_code_deploy ? [1] : []

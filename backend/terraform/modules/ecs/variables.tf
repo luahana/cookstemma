@@ -154,3 +154,10 @@ variable "enable_alarms" {
   type        = bool
   default     = true
 }
+
+# Service Discovery
+variable "service_discovery_service_arn" {
+  description = "ARN of the service discovery service for registration"
+  type        = string
+  default     = ""
+}

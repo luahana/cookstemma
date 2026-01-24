@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
 import Cookies from 'js-cookie';
-import { siteConfig } from '@/config/site';
+import { getApiUrl } from '@/config/site';
 import { routing } from '@/i18n/routing';
 
 // Use locales from routing config to ensure API client stays in sync
@@ -59,7 +59,7 @@ let refreshPromise: Promise<boolean> | null = null;
 
 async function refreshTokens(): Promise<boolean> {
   try {
-    const response = await fetch(`${siteConfig.apiUrl}/auth/web/reissue`, {
+    const response = await fetch(`${getApiUrl()}/auth/web/reissue`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -102,7 +102,7 @@ export async function apiFetch<T>(
   endpoint: string,
   options: FetchOptions = {},
 ): Promise<T> {
-  const url = `${siteConfig.apiUrl}${endpoint}`;
+  const url = `${getApiUrl()}${endpoint}`;
   const { skipAuth, locale, ...fetchOptions } = options;
 
   // Use explicit locale if provided, otherwise try to detect from URL
