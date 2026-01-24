@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ public class FoodMasterAdminController {
      * GET /api/v1/admin/foods-master?page=0&size=20&name=...&isVerified=true&...
      */
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<Page<FoodMasterAdminDto>> getFoodsMaster(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
