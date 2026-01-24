@@ -8,8 +8,8 @@ import {
   convertMeasurement,
   formatMeasurement,
   getMeasurementPreference,
-  MEASUREMENT_STORAGE_KEY,
 } from '@/lib/utils/measurement';
+import { MeasurementToggle } from '@/components/common/MeasurementToggle';
 
 // Languages where ingredient name comes BEFORE quantity (e.g., "쌀 400g" not "400g 쌀")
 // Based on natural language patterns in recipes
@@ -70,51 +70,16 @@ export function IngredientsSection({ ingredients, locale }: IngredientsSectionPr
   const tUnits = useTranslations('units');
   const [preference, setPreference] = useState<MeasurementPreference>('ORIGINAL');
 
-  // Debug: log ingredients structure on mount
+  // Initialize preference from user's saved setting (default for this page view only)
   useEffect(() => {
-    console.log('[IngredientsSection] Ingredients data:', ingredients.map(ing => ({
-      name: ing.name,
-      quantity: ing.quantity,
-      unit: ing.unit,
-    })));
-  }, [ingredients]);
-
-  useEffect(() => {
-    // Get initial preference - use queueMicrotask to avoid synchronous setState warning
     const initialPref = getMeasurementPreference();
-    console.log('[IngredientsSection] Initial preference:', initialPref);
     queueMicrotask(() => setPreference(initialPref));
-
-    // Listen for storage changes (when user changes preference in header from another tab)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === MEASUREMENT_STORAGE_KEY && e.newValue) {
-        if (e.newValue === 'METRIC' || e.newValue === 'US' || e.newValue === 'ORIGINAL') {
-          console.log('[IngredientsSection] Storage event - new preference:', e.newValue);
-          setPreference(e.newValue);
-        }
-      }
-    };
-
-    // Also listen for custom event (for same-tab updates)
-    const handleCustomEvent = (e: CustomEvent<{ preference: MeasurementPreference }>) => {
-      console.log('[IngredientsSection] Custom event - new preference:', e.detail.preference);
-      setPreference(e.detail.preference);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener(
-      'measurementPreferenceChange',
-      handleCustomEvent as EventListener
-    );
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener(
-        'measurementPreferenceChange',
-        handleCustomEvent as EventListener
-      );
-    };
   }, []);
+
+  // Handle toggle change - local state only (no persistence)
+  const handleToggleChange = (newPreference: MeasurementPreference) => {
+    setPreference(newPreference);
+  };
 
   // Group ingredients by type
   const ingredientsByType = ingredients.reduce(
@@ -143,14 +108,15 @@ export function IngredientsSection({ ingredients, locale }: IngredientsSectionPr
 
   return (
     <section className="mb-8">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-4">
         <h2 className="text-2xl font-bold text-[var(--text-primary)]">
           {t('ingredients')}
         </h2>
-        {hasStructuredData && preference !== 'ORIGINAL' && (
-          <span className="text-xs text-[var(--text-secondary)] bg-[var(--background)] px-2 py-1 rounded">
-            {tIngredients('showingIn', { unit: preference === 'METRIC' ? tIngredients('metric') : tIngredients('us') })}
-          </span>
+        {hasStructuredData && (
+          <MeasurementToggle
+            value={preference}
+            onChange={handleToggleChange}
+          />
         )}
       </div>
       <div className="space-y-4">

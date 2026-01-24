@@ -4,15 +4,12 @@ import { useState, useEffect, useRef, useTransition } from 'react';
 import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
-import { routing, type Locale } from '@/i18n/routing';
+import type { Locale } from '@/i18n/routing';
 import { siteConfig } from '@/config/site';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme, type Theme } from '@/contexts/ThemeContext';
 import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
-import { updateUserProfile } from '@/lib/api/users';
-import { dispatchMeasurementChange } from '@/lib/utils/measurement';
-import type { MeasurementPreference } from '@/lib/types';
 
 const THEME_OPTIONS: { value: Theme; labelKey: string }[] = [
   { value: 'light', labelKey: 'lightMode' },
@@ -43,15 +40,9 @@ const LOCALE_OPTIONS: { value: Locale; label: string; dir: 'ltr' | 'rtl' }[] = [
   { value: 'fa', label: 'فارسی', dir: 'rtl' },
 ];
 
-const MEASUREMENT_OPTIONS = [
-  { value: 'ORIGINAL', labelKey: 'original' },
-  { value: 'METRIC', labelKey: 'metric' },
-  { value: 'US', labelKey: 'us' },
-] as const;
 
 export function Header() {
   const t = useTranslations('nav');
-  const tMeasurement = useTranslations('measurement');
   const tCommon = useTranslations('common');
   const locale = useLocale() as Locale;
   const pathname = usePathname();
@@ -60,13 +51,10 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isLocaleMenuOpen, setIsLocaleMenuOpen] = useState(false);
-  const [isMeasurementMenuOpen, setIsMeasurementMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentMeasurement, setCurrentMeasurement] = useState<MeasurementPreference>('ORIGINAL');
   const { user, isAuthenticated, isLoading, isAdmin, signOut } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const localeMenuRef = useRef<HTMLDivElement>(null);
-  const measurementMenuRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
   const [isSearchPending, startSearchTransition] = useTransition();
   const { startLoading, stopLoading } = useNavigationProgress();
@@ -108,20 +96,9 @@ export function Header() {
       if (localeMenuRef.current && !localeMenuRef.current.contains(event.target as Node)) {
         setIsLocaleMenuOpen(false);
       }
-      if (measurementMenuRef.current && !measurementMenuRef.current.contains(event.target as Node)) {
-        setIsMeasurementMenuOpen(false);
-      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Load measurement preference from localStorage on mount
-  useEffect(() => {
-    const savedMeasurement = localStorage.getItem('userMeasurement');
-    queueMicrotask(() => {
-      if (savedMeasurement) setCurrentMeasurement(savedMeasurement as MeasurementPreference);
-    });
   }, []);
 
   // Handle locale change
@@ -133,25 +110,7 @@ export function Header() {
     });
   };
 
-  // Handle measurement change
-  const handleMeasurementChange = async (newMeasurement: MeasurementPreference) => {
-    setCurrentMeasurement(newMeasurement);
-    localStorage.setItem('userMeasurement', newMeasurement);
-    setIsMeasurementMenuOpen(false);
-
-    dispatchMeasurementChange(newMeasurement);
-
-    if (isAuthenticated) {
-      try {
-        await updateUserProfile({ measurementPreference: newMeasurement });
-      } catch (error) {
-        console.error('Failed to update measurement preference:', error);
-      }
-    }
-  };
-
   const currentLocaleOption = LOCALE_OPTIONS.find(opt => opt.value === locale) || LOCALE_OPTIONS[0];
-  const currentMeasurementOption = MEASUREMENT_OPTIONS.find(opt => opt.value === currentMeasurement) || MEASUREMENT_OPTIONS[0];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -230,50 +189,11 @@ export function Header() {
                 </svg>
               </Link>
 
-              {/* Measurement Selector */}
-              <div className="relative" ref={measurementMenuRef}>
-                <button
-                  onClick={() => {
-                    setIsMeasurementMenuOpen(!isMeasurementMenuOpen);
-                    setIsLocaleMenuOpen(false);
-                    setIsUserMenuOpen(false);
-                  }}
-                  className="flex items-center gap-1 px-2 py-1.5 text-sm rounded-lg hover:bg-[var(--background)] transition-colors text-[var(--text-secondary)]"
-                  title={t('measurementUnits')}
-                >
-                  <span className="text-xs">{tMeasurement(currentMeasurementOption.labelKey)}</span>
-                  <svg
-                    className={`w-3 h-3 transition-transform ${isMeasurementMenuOpen ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {isMeasurementMenuOpen && (
-                  <div className="absolute end-0 mt-2 w-28 bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-lg py-1 z-50">
-                    {MEASUREMENT_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => handleMeasurementChange(opt.value as MeasurementPreference)}
-                        className={`w-full text-start px-3 py-2 text-sm hover:bg-[var(--background)] ${
-                          opt.value === currentMeasurement ? 'bg-[var(--primary-light)] text-[var(--primary)]' : 'text-[var(--text-primary)]'
-                        }`}
-                      >
-                        {tMeasurement(opt.labelKey)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               {/* Language Selector */}
               <div className="relative" ref={localeMenuRef}>
                 <button
                   onClick={() => {
                     setIsLocaleMenuOpen(!isLocaleMenuOpen);
-                    setIsMeasurementMenuOpen(false);
                     setIsUserMenuOpen(false);
                   }}
                   disabled={isPending}
@@ -313,7 +233,6 @@ export function Header() {
                 onMenuToggle={(isOpen) => {
                   if (isOpen) {
                     setIsLocaleMenuOpen(false);
-                    setIsMeasurementMenuOpen(false);
                     setIsUserMenuOpen(false);
                   }
                 }}
@@ -565,24 +484,6 @@ export function Header() {
             <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
               {t('settings')}
             </p>
-
-            {/* Measurement Select */}
-            <div>
-              <label className="block text-sm text-[var(--text-primary)] mb-2">
-                {t('measurementUnits')}
-              </label>
-              <select
-                value={currentMeasurement}
-                onChange={(e) => handleMeasurementChange(e.target.value as MeasurementPreference)}
-                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)]"
-              >
-                {MEASUREMENT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {tMeasurement(opt.labelKey)}
-                  </option>
-                ))}
-              </select>
-            </div>
 
             {/* Language Select */}
             <div>
