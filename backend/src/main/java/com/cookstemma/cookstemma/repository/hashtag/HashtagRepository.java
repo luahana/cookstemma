@@ -219,20 +219,4 @@ public interface HashtagRepository extends JpaRepository<Hashtag, Long> {
         """, nativeQuery = true)
     List<Object[]> findHashtagLogCountsByLanguage(@Param("langPattern") String langPattern);
 
-
-    // ==================== DEBUG QUERIES ====================
-
-    /**
-     * Debug query: Count distinct languages in recipes that have hashtags.
-     */
-    @Query(value = """
-        SELECT COALESCE(r.original_language, r.cooking_style) as lang, COUNT(DISTINCT r.id) as count
-        FROM recipes r
-        JOIN recipe_hashtag_map rhm ON r.id = rhm.recipe_id
-        WHERE r.deleted_at IS NULL
-        AND (r.is_private IS NULL OR r.is_private = false)
-        GROUP BY COALESCE(r.original_language, r.cooking_style)
-        ORDER BY count DESC
-        """, nativeQuery = true)
-    List<Object[]> debugCountRecipesWithHashtagsByLanguage();
 }

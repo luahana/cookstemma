@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-@lombok.extern.slf4j.Slf4j
 public class HashtagService {
     private final HashtagRepository hashtagRepository;
     private final RecipeRepository recipeRepository;
@@ -69,20 +68,9 @@ public class HashtagService {
         // Extract language code and create pattern (e.g., "ko%" matches "ko-KR", "ko")
         String langPattern = LocaleUtils.toLanguageKey(normalizedLocale) + "%";
 
-        log.info("getPopularHashtagsByLocale: locale={}, normalizedLocale={}, langPattern={}, limit={}, minCount={}",
-                locale, normalizedLocale, langPattern, limit, minCount);
-
         // Get hashtags with recipe counts (limited by minCount)
         List<Object[]> recipeResults = hashtagRepository.findPopularHashtagsByRecipeLanguage(
                 langPattern, minCount, limit * 2);
-
-        log.info("getPopularHashtagsByLocale: found {} recipe results", recipeResults.size());
-        
-        // Log first few results for debugging
-        for (int i = 0; i < Math.min(3, recipeResults.size()); i++) {
-            Object[] row = recipeResults.get(i);
-            log.info("  Result {}: hashtagId={}, recipeCount={}", i, row[0], row[1]);
-        }
 
         if (recipeResults.isEmpty()) {
             return List.of();
@@ -128,24 +116,6 @@ public class HashtagService {
         return dtos;
     }
 
-
-    /**
-     * Debug method: Get language distribution of recipes with hashtags.
-     * Returns map of language -> count.
-     */
-    public Map<String, Long> debugGetLanguageDistribution() {
-        List<Object[]> results = hashtagRepository.debugCountRecipesWithHashtagsByLanguage();
-        log.info("debugGetLanguageDistribution: found {} language groups", results.size());
-        
-        Map<String, Long> distribution = new java.util.LinkedHashMap<>();
-        for (Object[] row : results) {
-            String lang = row[0] != null ? row[0].toString() : "NULL";
-            Long count = ((Number) row[1]).longValue();
-            distribution.put(lang, count);
-            log.info("  Language: {}, Count: {}", lang, count);
-        }
-        return distribution;
-    }
 
     /**
      * Search hashtags by name prefix (for autocomplete)

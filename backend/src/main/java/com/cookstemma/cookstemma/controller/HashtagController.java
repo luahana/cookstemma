@@ -47,16 +47,6 @@ public class HashtagController {
 
 
     /**
-     * DEBUG: Get language distribution of recipes with hashtags.
-     * This helps debug why certain locales may not show hashtags.
-     * GET /api/v1/hashtags/debug/languages
-     */
-    @GetMapping("/debug/languages")
-    public ResponseEntity<java.util.Map<String, Long>> debugGetLanguageDistribution() {
-        return ResponseEntity.ok(hashtagService.debugGetLanguageDistribution());
-    }
-
-    /**
      * Search hashtags by name prefix (for autocomplete)
      * GET /api/v1/hashtags/search?q=vege
      */
