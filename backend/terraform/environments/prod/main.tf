@@ -176,6 +176,17 @@ resource "aws_security_group_rule" "ecs_web_from_alb" {
   description              = "Allow traffic from ALB"
 }
 
+# Ingress rule for backend ECS - allow traffic from web container on port 4000 (for Cloud Map SSR calls)
+resource "aws_security_group_rule" "backend_from_web" {
+  type                     = "ingress"
+  from_port                = 4000
+  to_port                  = 4000
+  protocol                 = "tcp"
+  security_group_id        = module.ecs.security_group_id
+  source_security_group_id = aws_security_group.ecs_web.id
+  description              = "Allow SSR calls from web container via Cloud Map"
+}
+
 # VPC Module - Keep private subnets for RDS, no NAT Gateway (saves ~$35/month)
 module "vpc" {
   source = "../../modules/vpc"
