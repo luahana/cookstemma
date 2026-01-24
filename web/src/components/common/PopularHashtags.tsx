@@ -5,16 +5,18 @@ import { getPopularHashtags } from '@/lib/api/hashtags';
 interface PopularHashtagsProps {
   limit?: number;
   className?: string;
+  locale: string;
 }
 
 export async function PopularHashtags({
   limit = 8,
   className = '',
+  locale,
 }: PopularHashtagsProps) {
   const t = await getTranslations('popularHashtags');
   let hashtags;
   try {
-    hashtags = await getPopularHashtags(limit);
+    hashtags = await getPopularHashtags(limit, locale);
   } catch {
     return null;
   }
