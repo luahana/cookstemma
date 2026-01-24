@@ -1,8 +1,9 @@
 """Image generator using Gemini Nano Banana (native image generation)."""
+"""Image generator using Gemini Nano Banana (native image generation)."""
 
 import io
 import random
-from typing import Optional
+from typing import Dict, Optional
 
 import structlog
 from google import genai
@@ -19,6 +20,52 @@ from ...config import get_settings
 from ...personas import BotPersona
 
 logger = structlog.get_logger()
+
+
+# Camera angle options for cover images
+# Main angle (overhead) is used 50% of the time
+# Other angles are used 50% of the time (randomly selected)
+CAMERA_ANGLES: Dict[str, Dict[str, str]] = {
+    # Main angle - overhead flat lay (current default, best for food photography)
+    "overhead": {
+        "angle_desc": "Shot directly from above",
+        "composition": "Bird's eye view, dish perfectly centered, plate on table",
+    },
+    # Alternative angles
+    "high_angle": {
+        "angle_desc": "Shot from slightly above at 75-degree angle",
+        "composition": "High angle view, dish centered with slight depth perspective",
+    },
+    "three_quarter": {
+        "angle_desc": "Shot from 45-degree angle above",
+        "composition": "Three-quarter overhead view, showing dish depth and layers",
+    },
+    "hero_angle": {
+        "angle_desc": "Shot from 30-degree angle, classic food hero shot",
+        "composition": "Hero angle view, emphasizing food height and textures",
+    },
+}
+
+# Main angle name
+MAIN_ANGLE = "overhead"
+
+# Alternative angle names (excluding main)
+ALTERNATIVE_ANGLES = [k for k in CAMERA_ANGLES.keys() if k != MAIN_ANGLE]
+
+
+def select_random_angle(main_angle_probability: float = 0.5) -> str:
+    """Randomly select a camera angle for a recipe.
+
+    Args:
+        main_angle_probability: Probability of selecting the main overhead angle (default 50%)
+
+    Returns:
+        Selected angle name (e.g., "overhead", "high_angle", etc.)
+    """
+    if random.random() < main_angle_probability:
+        return MAIN_ANGLE
+    else:
+        return random.choice(ALTERNATIVE_ANGLES)
 
 
 class ImageGenerator:
@@ -47,19 +94,36 @@ class ImageGenerator:
         dish_name: str,
         persona: BotPersona,
         style: str = "cover",
+        angle: Optional[str] = None,
     ) -> str:
-        """Build detailed prompts for food image generation."""
-        # Base: focus on food, centered, top-down, no people
-        base_prompt = f"Overhead flat lay food photography of {dish_name}. Shot directly from above. Food centered in frame. No people, no hands, no human body parts."
+        """Build detailed prompts for food image generation.
 
+        Args:
+            dish_name: Name of the dish to photograph
+            persona: Bot persona for kitchen style
+            style: Image style - "cover", "step", or "log"
+            angle: Camera angle name for cover images (default: "overhead")
+
+        Returns:
+            Detailed prompt string for image generation
+        """
         if style == "cover":
+            # Get camera angle config (default to overhead if not specified or invalid)
+            angle_name = angle if angle in CAMERA_ANGLES else MAIN_ANGLE
+            angle_config = CAMERA_ANGLES[angle_name]
+
+            base_prompt = f"Professional food photography of {dish_name}. {angle_config['angle_desc']}. Food centered in frame. No people, no hands, no human body parts."
+
             return f"""{base_prompt}
 {persona.kitchen_style_prompt}
-Composition: Bird's eye view, dish perfectly centered, plate on table.
+Composition: {angle_config['composition']}.
 Lighting: Soft natural daylight, high-detail food textures.
 Style: Food magazine, appetizing, professional."""
 
-        elif style == "step":
+        # For step and log, always use overhead angle for consistency
+        base_prompt = f"Overhead flat lay food photography of {dish_name}. Shot directly from above. Food centered in frame. No people, no hands, no human body parts."
+
+        if style == "step":
             return f"""{base_prompt}
 {persona.kitchen_style_prompt}
 Composition: Top-down view, ingredients arranged on cutting board.
@@ -201,17 +265,43 @@ Composition: Top-down, plate centered on table."""
         cover_count: int = 2,
         step_count: int = 0,
     ) -> dict:
-        """Generate full image set for a recipe."""
+        """Generate full image set for a recipe.
+
+        Camera angle is randomly selected once per recipe:
+        - 50% chance of main overhead angle
+        - 50% chance of alternative angle (high_angle, three_quarter, hero_angle)
+
+        All cover images for the same recipe use the same angle.
+
+        Args:
+            dish_name: Name of the dish
+            persona: Bot persona for kitchen style
+            cover_count: Number of cover images to generate
+            step_count: Number of step images to generate
+
+        Returns:
+            Dict with "cover_images" and "step_images" lists of bytes
+        """
         result = {"cover_images": [], "step_images": []}
 
-        # Generate main cover images
+        # Select a random camera angle for this recipe (50% overhead, 50% alternative)
+        selected_angle = select_random_angle(main_angle_probability=0.5)
+        logger.info(
+            "selected_camera_angle",
+            dish=dish_name,
+            angle=selected_angle,
+        )
+
+        # Generate cover images (all use the same angle)
         for i in range(cover_count):
-            prompt = self._build_dish_prompt(dish_name, persona, style="cover")
+            prompt = self._build_dish_prompt(
+                dish_name, persona, style="cover", angle=selected_angle
+            )
             try:
                 image_bytes = await self.generate_image(prompt)
                 result["cover_images"].append(image_bytes)
             except Exception as e:
-                logger.error("cover_image_failed", error=str(e))
+                logger.error("cover_image_failed", index=i, angle=selected_angle, error=str(e))
 
         # Generate process step images
         for i in range(step_count):
