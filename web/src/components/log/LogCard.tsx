@@ -26,6 +26,12 @@ export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCard
     router.push(`/logs/${log.publicId}#comments`);
   };
 
+  const handleHashtagClick = (e: React.MouseEvent, tag: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/hashtags/${encodeURIComponent(tag)}`);
+  };
+
   return (
     <Link
       href={`/logs/${log.publicId}`}
@@ -141,12 +147,13 @@ export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCard
         {log.hashtags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {log.hashtags.slice(0, 3).map((tag) => (
-              <span
+              <button
                 key={tag}
+                onClick={(e) => handleHashtagClick(e, tag)}
                 className="text-xs hover:underline text-hashtag"
               >
                 #{tag}
-              </span>
+              </button>
             ))}
           </div>
         )}
