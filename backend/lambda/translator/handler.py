@@ -582,169 +582,197 @@ def save_full_recipe_translations(conn, recipe_id: int, full_recipe: dict,
     - FoodMaster name is propagated from food_name translation
     - AutocompleteItem names are propagated from ingredient translations (matched by name + type)
     - All translation keys use 2-letter language codes for consistency
+
+    IMPORTANT: All database operations are wrapped in a SAVEPOINT transaction.
+    If any step fails, all changes are rolled back to prevent partial translations
+    (e.g., recipe title translated but steps not).
     """
     # Convert locale to 2-letter language code for ALL translation keys
     target_lang = to_language_key(target_locale)
     source_lang = to_language_key(full_recipe.get('source_locale', 'ko'))
 
+    # ==========================================================================
+    # VALIDATION BEFORE TRANSACTION - fail fast before modifying any data
+    # ==========================================================================
+    if 'title' not in translated or not translated['title']:
+        raise ValueError(f"Translation missing required 'title' for locale {target_locale}")
+    if 'description' not in translated:
+        raise ValueError(f"Translation missing 'description' for locale {target_locale}")
+    if 'steps' not in translated:
+        raise ValueError(f"Translation missing required 'steps' for locale {target_locale}")
+    if 'ingredients' not in translated:
+        raise ValueError(f"Translation missing required 'ingredients' for locale {target_locale}")
+
+    translated_steps = translated['steps']
+    if len(translated_steps) != len(full_recipe['steps']):
+        raise ValueError(f"Step count mismatch: expected {len(full_recipe['steps'])}, got {len(translated_steps)}")
+
+    translated_ingredients = translated['ingredients']
+    if len(translated_ingredients) != len(full_recipe['ingredients']):
+        raise ValueError(f"Ingredient count mismatch: expected {len(full_recipe['ingredients'])}, got {len(translated_ingredients)}")
+
+    # ==========================================================================
+    # BEGIN SAVEPOINT TRANSACTION - all updates below are atomic per-locale
+    # Using SAVEPOINT allows rollback of just this locale's changes without
+    # affecting the outer transaction or other locales' successful translations.
+    # ==========================================================================
+    savepoint_name = f"translation_save_{recipe_id}_{target_lang}"
+
     with conn.cursor() as cur:
-        # 1. Update recipe title and description (use BCP47 keys)
-        # STRICT: No fallbacks - fail if translation missing
-        if 'title' not in translated or not translated['title']:
-            raise ValueError(f"Translation missing required 'title' for locale {target_locale}")
-        if 'description' not in translated:
-            raise ValueError(f"Translation missing 'description' for locale {target_locale}")
+        try:
+            # Create savepoint for atomic rollback on failure
+            cur.execute(f"SAVEPOINT {savepoint_name}")
 
-        # Build translation maps including BOTH source and target languages
-        # This ensures the original content is always preserved in the translations map
-        source_title = full_recipe['recipe'].get('title', '')
-        source_description = full_recipe['recipe'].get('description', '')
-        source_change_reason = full_recipe.get('change_reason', '')
+            # 1. Update recipe title and description
+            # Build translation maps including BOTH source and target languages
+            source_title = full_recipe['recipe'].get('title', '')
+            source_description = full_recipe['recipe'].get('description', '')
+            source_change_reason = full_recipe.get('change_reason', '')
 
-        title_updates = {source_lang: source_title, target_lang: translated['title']}
-        description_updates = {source_lang: source_description, target_lang: translated['description']}
+            title_updates = {source_lang: source_title, target_lang: translated['title']}
+            description_updates = {source_lang: source_description, target_lang: translated['description']}
 
-        # Build change_reason updates only if this is a variant recipe with change_reason
-        change_reason_updates = None
-        if source_change_reason and translated.get('change_reason'):
-            change_reason_updates = {source_lang: source_change_reason, target_lang: translated['change_reason']}
+            # Build change_reason updates only if this is a variant recipe with change_reason
+            change_reason_updates = None
+            if source_change_reason and translated.get('change_reason'):
+                change_reason_updates = {source_lang: source_change_reason, target_lang: translated['change_reason']}
 
-        # CRITICAL: Use atomic UPDATE with JSONB merge to avoid race conditions
-        # PostgreSQL || operator merges JSONB objects, appending new keys
-        if change_reason_updates:
-            # Variant recipe: update title, description, AND change_reason translations
-            cur.execute("""
-                UPDATE recipes
-                SET title_translations = COALESCE(title_translations, '{}'::jsonb) || %s::jsonb,
-                    description_translations = COALESCE(description_translations, '{}'::jsonb) || %s::jsonb,
-                    change_reason_translations = COALESCE(change_reason_translations, '{}'::jsonb) || %s::jsonb
-                WHERE id = %s
-                RETURNING id
-            """, (
-                json.dumps(title_updates),
-                json.dumps(description_updates),
-                json.dumps(change_reason_updates),
-                recipe_id
-            ))
-        else:
-            # Original recipe or no change_reason: update only title and description
-            cur.execute("""
-                UPDATE recipes
-                SET title_translations = COALESCE(title_translations, '{}'::jsonb) || %s::jsonb,
-                    description_translations = COALESCE(description_translations, '{}'::jsonb) || %s::jsonb
-                WHERE id = %s
-                RETURNING id
-            """, (
-                json.dumps(title_updates),
-                json.dumps(description_updates),
-                recipe_id
-            ))
-
-        if not cur.fetchone():
-            raise ValueError(f"Recipe {recipe_id} not found in database")
-
-        # 2. Propagate FoodMaster name translation
-        food_master = full_recipe.get('food_master', {})
-        translated_food_name = translated.get('food_name')
-        if translated_food_name and food_master.get('id'):
-            cur.execute("""
-                UPDATE foods_master
-                SET name = name || %s
-                WHERE id = %s
-            """, (
-                json.dumps({target_lang: translated_food_name}),
-                food_master['id']
-            ))
-            logger.info(f"Propagated food_name translation to FoodMaster {food_master['id']} ({target_lang})")
-
-        # 3. Update each step (use BCP47 keys)
-        # STRICT: Verify steps exist and match count
-        if 'steps' not in translated:
-            raise ValueError(f"Translation missing required 'steps' for locale {target_locale}")
-        translated_steps = translated['steps']
-        if len(translated_steps) != len(full_recipe['steps']):
-            raise ValueError(f"Step count mismatch: expected {len(full_recipe['steps'])}, got {len(translated_steps)}")
-
-        steps_updated = 0
-        for i, step in enumerate(full_recipe['steps']):
-            if not translated_steps[i]:
-                raise ValueError(f"Step {i} translation is empty for locale {target_locale}")
-
-            # Build step update with BOTH source and target languages
-            source_step_description = step.get('description', '')
-            step_updates = {source_lang: source_step_description, target_lang: translated_steps[i]}
-
-            # CRITICAL: Fetch CURRENT translations from database, not from stale full_recipe
-            # Use UPDATE with RETURNING to fetch and update in one atomic operation
-            cur.execute("""
-                UPDATE recipe_steps
-                SET description_translations = (
-                    COALESCE(description_translations, '{}'::jsonb) || %s::jsonb
-                )
-                WHERE id = %s
-                RETURNING description_translations
-            """, (json.dumps(step_updates), step['id']))
-
-            updated_row = cur.fetchone()
-            if updated_row:
-                steps_updated += 1
-            else:
-                raise ValueError(f"Step {step['id']} not found in database")
-
-        logger.info(f"Updated {steps_updated}/{len(full_recipe['steps'])} steps for recipe {recipe_id}")
-
-        # 4. Update each ingredient + propagate to autocomplete_items (use BCP47 keys)
-        # STRICT: Verify ingredients exist and match count
-        if 'ingredients' not in translated:
-            raise ValueError(f"Translation missing required 'ingredients' for locale {target_locale}")
-        translated_ingredients = translated['ingredients']
-        if len(translated_ingredients) != len(full_recipe['ingredients']):
-            raise ValueError(f"Ingredient count mismatch: expected {len(full_recipe['ingredients'])}, got {len(translated_ingredients)}")
-
-        ingredients_updated = 0
-        for i, ingredient in enumerate(full_recipe['ingredients']):
-            translated_name = translated_ingredients[i]
-            if not translated_name:
-                raise ValueError(f"Ingredient {i} translation is empty for locale {target_locale}")
-
-            # Build ingredient update with BOTH source and target languages
-            source_ingredient_name = ingredient.get('name', '')
-            ingredient_updates = {source_lang: source_ingredient_name, target_lang: translated_name}
-
-            # CRITICAL: Use atomic UPDATE with JSONB merge
-            cur.execute("""
-                UPDATE recipe_ingredients
-                SET name_translations = COALESCE(name_translations, '{}'::jsonb) || %s::jsonb
-                WHERE id = %s
-                RETURNING name_translations
-            """, (json.dumps(ingredient_updates), ingredient['id']))
-
-            updated_ing = cur.fetchone()
-            if updated_ing:
-                ingredients_updated += 1
-            else:
-                raise ValueError(f"Ingredient {ingredient['id']} not found in database")
-
-            # Propagate to autocomplete_items (match by exact name + type)
-            autocomplete_type = map_ingredient_to_autocomplete_type(ingredient.get('type'))
-            if autocomplete_type and ingredient.get('name'):
-                # Match ingredient by original name (case-insensitive) and type
+            # CRITICAL: Use atomic UPDATE with JSONB merge to avoid race conditions
+            # PostgreSQL || operator merges JSONB objects, appending new keys
+            if change_reason_updates:
+                # Variant recipe: update title, description, AND change_reason translations
                 cur.execute("""
-                    UPDATE autocomplete_items
-                    SET name = name || %s
-                    WHERE type::text = %s
-                      AND LOWER(name ->> %s) = LOWER(%s)
+                    UPDATE recipes
+                    SET title_translations = COALESCE(title_translations, '{}'::jsonb) || %s::jsonb,
+                        description_translations = COALESCE(description_translations, '{}'::jsonb) || %s::jsonb,
+                        change_reason_translations = COALESCE(change_reason_translations, '{}'::jsonb) || %s::jsonb
+                    WHERE id = %s
+                    RETURNING id
                 """, (
-                    json.dumps({target_lang: translated_name}),
-                    autocomplete_type,
-                    source_lang,
-                    ingredient['name']
+                    json.dumps(title_updates),
+                    json.dumps(description_updates),
+                    json.dumps(change_reason_updates),
+                    recipe_id
                 ))
-                if cur.rowcount > 0:
-                    logger.info(f"Propagated ingredient translation to AutocompleteItem: "
-                                f"'{ingredient['name']}' -> '{translated_name}' ({target_lang})")
+            else:
+                # Original recipe or no change_reason: update only title and description
+                cur.execute("""
+                    UPDATE recipes
+                    SET title_translations = COALESCE(title_translations, '{}'::jsonb) || %s::jsonb,
+                        description_translations = COALESCE(description_translations, '{}'::jsonb) || %s::jsonb
+                    WHERE id = %s
+                    RETURNING id
+                """, (
+                    json.dumps(title_updates),
+                    json.dumps(description_updates),
+                    recipe_id
+                ))
 
-        logger.info(f"Updated {ingredients_updated}/{len(full_recipe['ingredients'])} ingredients for recipe {recipe_id}")
+            if not cur.fetchone():
+                raise ValueError(f"Recipe {recipe_id} not found in database")
+
+            # 2. Propagate FoodMaster name translation
+            food_master = full_recipe.get('food_master', {})
+            translated_food_name = translated.get('food_name')
+            if translated_food_name and food_master.get('id'):
+                cur.execute("""
+                    UPDATE foods_master
+                    SET name = name || %s
+                    WHERE id = %s
+                """, (
+                    json.dumps({target_lang: translated_food_name}),
+                    food_master['id']
+                ))
+                logger.info(f"Propagated food_name translation to FoodMaster {food_master['id']} ({target_lang})")
+
+            # 3. Update each step
+            steps_updated = 0
+            for i, step in enumerate(full_recipe['steps']):
+                if not translated_steps[i]:
+                    raise ValueError(f"Step {i} translation is empty for locale {target_locale}")
+
+                # Build step update with BOTH source and target languages
+                source_step_description = step.get('description', '')
+                step_updates = {source_lang: source_step_description, target_lang: translated_steps[i]}
+
+                # Use UPDATE with RETURNING to fetch and update in one atomic operation
+                cur.execute("""
+                    UPDATE recipe_steps
+                    SET description_translations = (
+                        COALESCE(description_translations, '{}'::jsonb) || %s::jsonb
+                    )
+                    WHERE id = %s
+                    RETURNING description_translations
+                """, (json.dumps(step_updates), step['id']))
+
+                updated_row = cur.fetchone()
+                if updated_row:
+                    steps_updated += 1
+                else:
+                    raise ValueError(f"Step {step['id']} not found in database")
+
+            logger.info(f"Updated {steps_updated}/{len(full_recipe['steps'])} steps for recipe {recipe_id}")
+
+            # 4. Update each ingredient + propagate to autocomplete_items
+            ingredients_updated = 0
+            for i, ingredient in enumerate(full_recipe['ingredients']):
+                translated_name = translated_ingredients[i]
+                if not translated_name:
+                    raise ValueError(f"Ingredient {i} translation is empty for locale {target_locale}")
+
+                # Build ingredient update with BOTH source and target languages
+                source_ingredient_name = ingredient.get('name', '')
+                ingredient_updates = {source_lang: source_ingredient_name, target_lang: translated_name}
+
+                # Use atomic UPDATE with JSONB merge
+                cur.execute("""
+                    UPDATE recipe_ingredients
+                    SET name_translations = COALESCE(name_translations, '{}'::jsonb) || %s::jsonb
+                    WHERE id = %s
+                    RETURNING name_translations
+                """, (json.dumps(ingredient_updates), ingredient['id']))
+
+                updated_ing = cur.fetchone()
+                if updated_ing:
+                    ingredients_updated += 1
+                else:
+                    raise ValueError(f"Ingredient {ingredient['id']} not found in database")
+
+                # Propagate to autocomplete_items (match by exact name + type)
+                autocomplete_type = map_ingredient_to_autocomplete_type(ingredient.get('type'))
+                if autocomplete_type and ingredient.get('name'):
+                    # Match ingredient by original name (case-insensitive) and type
+                    cur.execute("""
+                        UPDATE autocomplete_items
+                        SET name = name || %s
+                        WHERE type::text = %s
+                          AND LOWER(name ->> %s) = LOWER(%s)
+                    """, (
+                        json.dumps({target_lang: translated_name}),
+                        autocomplete_type,
+                        source_lang,
+                        ingredient['name']
+                    ))
+                    if cur.rowcount > 0:
+                        logger.info(f"Propagated ingredient translation to AutocompleteItem: "
+                                    f"'{ingredient['name']}' -> '{translated_name}' ({target_lang})")
+
+            logger.info(f"Updated {ingredients_updated}/{len(full_recipe['ingredients'])} ingredients for recipe {recipe_id}")
+
+            # ==========================================================================
+            # RELEASE SAVEPOINT - all updates succeeded, make changes permanent
+            # ==========================================================================
+            cur.execute(f"RELEASE SAVEPOINT {savepoint_name}")
+            logger.info(f"Transaction committed for recipe {recipe_id}, locale {target_locale}")
+
+        except Exception as e:
+            # ==========================================================================
+            # ROLLBACK TO SAVEPOINT - undo all changes from this locale to prevent
+            # partial translations (e.g., recipe title saved but steps not)
+            # ==========================================================================
+            cur.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name}")
+            logger.error(f"Transaction rolled back for recipe {recipe_id}, locale {target_locale}: {e}")
+            raise  # Re-raise so the locale is marked as failed in the caller
 
 
 def save_translations(conn, entity_type: str, entity_id: int, translations: dict):
