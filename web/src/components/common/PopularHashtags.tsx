@@ -3,18 +3,20 @@ import { getTranslations } from 'next-intl/server';
 import { getPopularHashtags } from '@/lib/api/hashtags';
 
 interface PopularHashtagsProps {
+  locale: string;
   limit?: number;
   className?: string;
 }
 
 export async function PopularHashtags({
+  locale,
   limit = 8,
   className = '',
 }: PopularHashtagsProps) {
   const t = await getTranslations('popularHashtags');
   let hashtags;
   try {
-    hashtags = await getPopularHashtags(limit);
+    hashtags = await getPopularHashtags(limit, locale);
   } catch {
     return null;
   }

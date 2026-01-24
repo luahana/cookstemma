@@ -176,4 +176,46 @@ public interface HashtagRepository extends JpaRepository<Hashtag, Long> {
         """,
         nativeQuery = true)
     List<Object[]> findTopContributorsByHashtagIds(@Param("hashtagIds") List<Long> hashtagIds);
+
+
+    // ==================== LANGUAGE-AWARE POPULAR HASHTAGS ====================
+
+    /**
+     * Find popular hashtags based on recipe count, filtered by original_language.
+     * Returns Object[] with [hashtagId, recipeCount].
+     * Uses LIKE pattern matching (e.g., "ko%" matches "ko-KR", "ko").
+     */
+    @Query(value = """
+        SELECT h.id, COUNT(DISTINCT r.id) as recipe_count
+        FROM hashtags h
+        JOIN recipe_hashtag_map rhm ON h.id = rhm.hashtag_id
+        JOIN recipes r ON rhm.recipe_id = r.id
+        WHERE r.deleted_at IS NULL
+        AND (r.is_private IS NULL OR r.is_private = false)
+        AND COALESCE(r.original_language, r.cooking_style) LIKE :langPattern
+        GROUP BY h.id
+        HAVING COUNT(DISTINCT r.id) >= :minCount
+        ORDER BY COUNT(DISTINCT r.id) DESC
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<Object[]> findPopularHashtagsByRecipeLanguage(
+            @Param("langPattern") String langPattern,
+            @Param("minCount") int minCount,
+            @Param("limit") int limit);
+
+    /**
+     * Find hashtag log counts filtered by original_language.
+     * Returns Object[] with [hashtagId, logCount].
+     */
+    @Query(value = """
+        SELECT h.id, COUNT(DISTINCT lp.id) as log_count
+        FROM hashtags h
+        JOIN log_post_hashtag_map lphm ON h.id = lphm.hashtag_id
+        JOIN log_posts lp ON lphm.log_post_id = lp.id
+        WHERE lp.deleted_at IS NULL
+        AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND COALESCE(lp.original_language, lp.locale) LIKE :langPattern
+        GROUP BY h.id
+        """, nativeQuery = true)
+    List<Object[]> findHashtagLogCountsByLanguage(@Param("langPattern") String langPattern);
 }

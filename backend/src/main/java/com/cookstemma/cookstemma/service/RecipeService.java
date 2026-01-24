@@ -84,6 +84,12 @@ public class RecipeService {
     @Transactional
     public RecipeDetailResponseDto createRecipe(CreateRecipeRequestDto req, UserPrincipal principal) {
         Long creatorId = principal.getId();
+
+        // Fetch user to get their locale preference for originalLanguage
+        User creator = userRepository.findById(creatorId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        String userLocale = creator.getLocale();
+
         Recipe parent = null;
         Recipe root = null;
 
@@ -137,6 +143,7 @@ public class RecipeService {
                 .title(req.title())
                 .description(req.description())
                 .cookingStyle(finalLocale)
+                .originalLanguage(userLocale)
                 .foodMaster(foodMaster)
                 .creatorId(creatorId)
                 .parentRecipe(parent) // 바로 위 부모
@@ -167,9 +174,7 @@ public class RecipeService {
 
         // Notify parent recipe owner if this is a variation
         if (parent != null) {
-            User sender = userRepository.findById(creatorId)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
-            notificationService.notifyRecipeVariation(parent, recipe, sender);
+            notificationService.notifyRecipeVariation(parent, recipe, creator);
         }
 
         // Queue async translation for all languages

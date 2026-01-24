@@ -56,6 +56,11 @@ public class LogPostService {
     public LogPostDetailResponseDto createLog(CreateLogRequestDto req, UserPrincipal principal) {
         Long creatorId = principal.getId();
 
+        // Fetch user to get their locale preference for originalLanguage
+        User creator = userRepository.findById(creatorId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        String userLocale = creator.getLocale();
+
         // 2. 연결될 레시피를 찾습니다.
         Recipe recipe = recipeRepository.findByPublicId(req.recipePublicId())
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
@@ -63,8 +68,9 @@ public class LogPostService {
         LogPost logPost = LogPost.builder()
                 .title(req.title())
                 .content(req.content())
-                .creatorId(creatorId) // 유저 ID 조회 생략
+                .creatorId(creatorId)
                 .locale(recipe.getCookingStyle())
+                .originalLanguage(userLocale)
                 .isPrivate(req.isPrivate() != null ? req.isPrivate() : false)
                 .build();
 
@@ -88,9 +94,7 @@ public class LogPostService {
         }
 
         // Notify recipe owner that someone cooked their recipe
-        User sender = userRepository.findById(creatorId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        notificationService.notifyRecipeCooked(recipe, logPost, sender);
+        notificationService.notifyRecipeCooked(recipe, logPost, creator);
 
         // Queue async translation for all languages
         translationEventService.queueLogPostTranslation(logPost);

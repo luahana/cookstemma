@@ -101,31 +101,27 @@ export async function getContentByHashtag(
 }
 
 /**
- * Get popular hashtags with their counts
+ * Popular hashtag response type from backend
  */
-export async function getPopularHashtags(limit: number = 10): Promise<(HashtagDto & { totalCount: number })[]> {
-  const hashtags = await getHashtags();
+export interface HashtagWithCount {
+  publicId: string;
+  name: string;
+  recipeCount: number;
+  logPostCount: number;
+  totalCount: number;
+}
 
-  // Fetch counts for all hashtags in parallel
-  const hashtagsWithCounts = await Promise.all(
-    hashtags.slice(0, Math.min(hashtags.length, 20)).map(async (hashtag) => {
-      try {
-        const counts = await getHashtagCounts(hashtag.name);
-        return {
-          ...hashtag,
-          totalCount: counts.recipeCount + counts.logPostCount,
-        };
-      } catch {
-        return {
-          ...hashtag,
-          totalCount: 0,
-        };
-      }
-    }),
-  );
-
-  // Sort by total count and return top N
-  return hashtagsWithCounts
-    .sort((a, b) => b.totalCount - a.totalCount)
-    .slice(0, limit);
+/**
+ * Get popular hashtags filtered by locale (based on original_language).
+ * Returns hashtags that are used on content originally created in the user's language.
+ */
+export async function getPopularHashtags(
+  limit: number = 10,
+  locale?: string,
+): Promise<HashtagWithCount[]> {
+  const queryString = buildQueryString({ limit, locale });
+  return apiFetch<HashtagWithCount[]>(`/hashtags/popular${queryString}`, {
+    next: { revalidate: 300 },
+    locale,
+  });
 }

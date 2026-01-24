@@ -32,6 +32,9 @@ public class Recipe extends BaseEntity {
 
     @Column(name = "cooking_style", length = 15)
     private String cookingStyle;
+
+    @Column(name = "original_language", length = 15)
+    private String originalLanguage;
     @Column(length = 200)
     private String title;
     @Column(length = 2000)

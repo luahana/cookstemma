@@ -23,6 +23,9 @@ import java.util.*;
 public class LogPost extends BaseEntity {
     private String locale;
 
+    @Column(name = "original_language", length = 15)
+    private String originalLanguage;
+
     @Column(columnDefinition = "TEXT")
     private String title;
 
