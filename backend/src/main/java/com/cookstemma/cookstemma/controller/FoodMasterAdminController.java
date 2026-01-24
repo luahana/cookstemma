@@ -49,14 +49,27 @@ public class FoodMasterAdminController {
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<FoodMaster> spec = buildSpecification(name, isVerified);
-        Page<FoodMaster> foodsPage = foodMasterRepository.findAll(spec, pageable);
+        Page<FoodMaster> foodsPage;
+
+        // Use native queries for name search (JSONB text search)
+        // Use Specification for other filters
+        if (name != null && !name.isBlank()) {
+            if (isVerified != null) {
+                foodsPage = foodMasterRepository.searchByNameContainingAndIsVerified(name, isVerified, pageable);
+            } else {
+                foodsPage = foodMasterRepository.searchByNameContaining(name, pageable);
+            }
+        } else {
+            // No name filter - use Specification for isVerified filter
+            Specification<FoodMaster> spec = buildSpecification(isVerified);
+            foodsPage = foodMasterRepository.findAll(spec, pageable);
+        }
 
         Page<FoodMasterAdminDto> dtoPage = foodsPage.map(FoodMasterAdminDto::from);
         return ResponseEntity.ok(dtoPage);
     }
 
-    private Specification<FoodMaster> buildSpecification(String name, Boolean isVerified) {
+    private Specification<FoodMaster> buildSpecification(Boolean isVerified) {
         return (root, query, cb) -> {
             // Fetch category eagerly to avoid N+1 (only for actual entity queries, not count queries)
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
@@ -64,15 +77,6 @@ public class FoodMasterAdminController {
             }
 
             List<Predicate> predicates = new ArrayList<>();
-
-            if (name != null && !name.isBlank()) {
-                // Search in JSONB name field by casting to text
-                // PostgreSQL: name::text ILIKE '%search%'
-                String nameLower = "%" + name.toLowerCase() + "%";
-                // Use native SQL function to cast JSONB to text for searching
-                var nameAsText = cb.function("to_json", String.class, root.get("name")).as(String.class);
-                predicates.add(cb.like(cb.lower(nameAsText), nameLower));
-            }
 
             if (isVerified != null) {
                 predicates.add(cb.equal(root.get("isVerified"), isVerified));
