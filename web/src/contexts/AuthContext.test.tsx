@@ -27,6 +27,7 @@ jest.mock('@/config/site', () => ({
   siteConfig: {
     apiUrl: 'http://localhost:4000/api/v1',
   },
+  getApiUrl: () => 'http://localhost:4000/api/v1',
 }));
 
 const mockFetch = global.fetch as jest.Mock;
