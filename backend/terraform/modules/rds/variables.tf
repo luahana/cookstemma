@@ -95,3 +95,9 @@ variable "enable_alarms" {
   type        = bool
   default     = true
 }
+
+variable "publicly_accessible" {
+  description = "Whether the RDS instance should be publicly accessible"
+  type        = bool
+  default     = false
+}

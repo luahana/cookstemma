@@ -84,7 +84,7 @@ resource "aws_db_instance" "main" {
   # Network configuration
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
-  publicly_accessible    = false
+  publicly_accessible    = var.publicly_accessible
   multi_az               = var.multi_az
 
   # Parameter and option groups

@@ -138,7 +138,7 @@ resource "aws_security_group" "lambda_keyword_generator" {
   }
 }
 
-# VPC Module - With private subnets for RDS, NAT gateway for Lambda
+# VPC Module - Keep private subnets for RDS, but no NAT Gateway (saves ~$35/month)
 module "vpc" {
   source = "../../modules/vpc"
 
@@ -146,19 +146,21 @@ module "vpc" {
   environment            = var.environment
   vpc_cidr               = var.vpc_cidr
   az_count               = 2
-  create_private_subnets = true # Need private for RDS
-  create_nat_gateway     = true # Required for Lambda in private subnets to reach Gemini
+  create_private_subnets = true  # Keep private subnets for RDS (more secure)
+  create_nat_gateway     = false # No NAT Gateway - Lambdas use public subnets instead
 }
 
 # RDS Module - Minimal instance for dev
 # Note: Lambda SG is passed here so Lambda can connect to RDS
+# RDS stays in private subnet (more secure, no internet access needed)
 module "rds" {
   source = "../../modules/rds"
 
   project_name            = var.project_name
   environment             = var.environment
   vpc_id                  = module.vpc.vpc_id
-  subnet_ids              = module.vpc.private_subnet_ids
+  subnet_ids              = module.vpc.private_subnet_ids  # Private subnets (more secure)
+  publicly_accessible     = false                          # Not publicly accessible
   allowed_security_groups = [module.ecs.security_group_id, aws_security_group.lambda_translation.id, aws_security_group.lambda_suggestion_verifier.id, aws_security_group.lambda_keyword_generator.id]
 
   instance_class          = "db.t3.micro"
@@ -300,14 +302,14 @@ module "ecs_web" {
 }
 
 # Lambda Translation Module - Gemini-powered content translation
-# Uses private subnets with NAT gateway to reach both RDS and Gemini API
+# Uses public subnets with public IPs to reach both RDS and Gemini API
 module "lambda_translation" {
   source = "../../modules/lambda-translation"
 
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.vpc.vpc_id
-  subnet_ids   = module.vpc.private_subnet_ids # Private subnets (uses NAT for internet)
+  subnet_ids   = module.vpc.public_subnet_ids # Public subnets (no NAT needed)
 
   # ECR repository (created by shared terraform)
   ecr_repository_url = data.aws_ecr_repository.translator.repository_url
@@ -355,14 +357,14 @@ module "lambda_image_processing" {
 }
 
 # Lambda Suggestion Verifier Module - AI-powered validation of user suggestions
-# Uses private subnets with NAT gateway to reach both RDS and Gemini API
+# Uses public subnets with public IPs to reach both RDS and Gemini API
 module "lambda_suggestion_verifier" {
   source = "../../modules/lambda-suggestion-verifier"
 
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.vpc.vpc_id
-  subnet_ids   = module.vpc.private_subnet_ids # Private subnets (uses NAT for internet)
+  subnet_ids   = module.vpc.public_subnet_ids # Public subnets (no NAT needed)
 
   # ECR repository (created by shared terraform)
   ecr_repository_url = data.aws_ecr_repository.suggestion_verifier.repository_url
@@ -386,14 +388,14 @@ module "lambda_suggestion_verifier" {
 }
 
 # Lambda Keyword Generator Module - AI-powered multilingual keyword generation
-# Uses private subnets with NAT gateway to reach both RDS and Gemini API
+# Uses public subnets with public IPs to reach both RDS and Gemini API
 module "lambda_keyword_generator" {
   source = "../../modules/lambda-keyword-generator"
 
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.vpc.vpc_id
-  subnet_ids   = module.vpc.private_subnet_ids # Private subnets (uses NAT for internet)
+  subnet_ids   = module.vpc.public_subnet_ids # Public subnets (no NAT needed)
 
   # ECR repository (created by shared terraform)
   ecr_repository_url = data.aws_ecr_repository.keyword_generator.repository_url
