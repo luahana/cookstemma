@@ -624,6 +624,16 @@
     "noLogs": "ยังไม่มีบันทึกการทำอาหารที่มีแฮชแท็กนี้",
     "topContributors": "ผู้มีส่วนร่วมหลัก:"
   },
+  "hashtagsPage": {
+    "title": "แฮชแท็ก",
+    "subtitle": "สำรวจสูตรอาหารและบันทึกการทำอาหารตามแฮชแท็ก",
+    "metaTitle": "แฮชแท็ก | Cookstemma",
+    "metaDescription": "เรียกดูแฮชแท็กทั้งหมดบน Cookstemma",
+    "allTab": "ทั้งหมด",
+    "popularTab": "ยอดนิยม",
+    "noContent": "ยังไม่มีเนื้อหาที่มีแฮชแท็ก",
+    "noHashtags": "ยังไม่มีแฮชแท็กยอดนิยม"
+  },
   "admin": {
     "title": "แดชบอร์ดผู้ดูแล",
     "suggestedFoods": "อาหารที่แนะนำ",

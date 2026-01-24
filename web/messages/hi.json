@@ -624,6 +624,16 @@
     "noLogs": "इस हैशटैग के साथ अभी तक कोई कुकिंग लॉग नहीं",
     "topContributors": "टॉप योगदानकर्ता:"
   },
+  "hashtagsPage": {
+    "title": "हैशटैग",
+    "subtitle": "हैशटैग द्वारा रेसिपी और कुकिंग लॉग खोजें",
+    "metaTitle": "हैशटैग | Cookstemma",
+    "metaDescription": "Cookstemma पर सभी हैशटैग ब्राउज़ करें",
+    "allTab": "सभी",
+    "popularTab": "लोकप्रिय",
+    "noContent": "अभी तक हैशटैग वाली कोई सामग्री नहीं है",
+    "noHashtags": "अभी तक कोई लोकप्रिय हैशटैग नहीं है"
+  },
   "admin": {
     "title": "एडमिन डैशबोर्ड",
     "suggestedFoods": "सुझाए गए खाद्य पदार्थ",

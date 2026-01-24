@@ -624,6 +624,16 @@
     "noLogs": "このハッシュタグの料理日記はまだありません",
     "topContributors": "トップ投稿者："
   },
+  "hashtagsPage": {
+    "title": "ハッシュタグ",
+    "subtitle": "ハッシュタグでレシピと料理ログを探索",
+    "metaTitle": "ハッシュタグ | Cookstemma",
+    "metaDescription": "Cookstemmaの全てのハッシュタグを見る",
+    "allTab": "すべて",
+    "popularTab": "人気",
+    "noContent": "ハッシュタグ付きのコンテンツがまだありません",
+    "noHashtags": "人気のハッシュタグがまだありません"
+  },
   "admin": {
     "title": "管理画面",
     "suggestedFoods": "提案された料理",

@@ -623,6 +623,56 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
            "WHERE h.name = :hashtagName AND r.deletedAt IS NULL AND (r.isPrivate IS NULL OR r.isPrivate = false)")
     long countByHashtag(@Param("hashtagName") String hashtagName);
 
+
+    // ==================== HASHTAGGED FEED QUERIES ====================
+
+    // [Cursor] Recipes with any hashtags - initial page
+    // Returns recipes that have at least one hashtag, sorted by createdAt DESC
+    @Query(value = """
+        SELECT DISTINCT r.* FROM recipes r
+        JOIN recipe_hashtag_map rh ON rh.recipe_id = r.id
+        WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        ORDER BY r.created_at DESC, r.id DESC
+        """, nativeQuery = true)
+    Slice<Recipe> findWithAnyHashtagsWithCursorInitial(
+            @Param("langCodePattern") String langCodePattern,
+            Pageable pageable);
+
+    // [Cursor] Recipes with any hashtags - with cursor
+    @Query(value = """
+        SELECT DISTINCT r.* FROM recipes r
+        JOIN recipe_hashtag_map rh ON rh.recipe_id = r.id
+        WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (r.created_at < :cursorTime OR (r.created_at = :cursorTime AND r.id < :cursorId))
+        ORDER BY r.created_at DESC, r.id DESC
+        """, nativeQuery = true)
+    Slice<Recipe> findWithAnyHashtagsWithCursor(
+            @Param("langCodePattern") String langCodePattern,
+            @Param("cursorTime") Instant cursorTime,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable);
+
+    // [Offset] Recipes with any hashtags - page
+    @Query(value = """
+        SELECT DISTINCT r.* FROM recipes r
+        JOIN recipe_hashtag_map rh ON rh.recipe_id = r.id
+        WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        ORDER BY r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(DISTINCT r.id) FROM recipes r
+        JOIN recipe_hashtag_map rh ON rh.recipe_id = r.id
+        WHERE r.deleted_at IS NULL AND (r.is_private IS NULL OR r.is_private = false)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(r.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findWithAnyHashtagsPage(
+            @Param("langCodePattern") String langCodePattern,
+            Pageable pageable);
+
     // ==================== UNIFIED SEARCH COUNT ====================
 
     /**

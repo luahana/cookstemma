@@ -2,6 +2,7 @@ package com.cookstemma.cookstemma.controller;
 
 import com.cookstemma.cookstemma.dto.common.UnifiedPageResponse;
 import com.cookstemma.cookstemma.dto.hashtag.HashtagDto;
+import com.cookstemma.cookstemma.dto.hashtag.HashtaggedContentDto;
 import com.cookstemma.cookstemma.dto.log_post.LogPostSummaryDto;
 import com.cookstemma.cookstemma.dto.recipe.RecipeSummaryDto;
 import com.cookstemma.cookstemma.service.HashtagService;
@@ -35,6 +36,20 @@ public class HashtagController {
     public ResponseEntity<List<HashtagDto>> searchHashtags(
             @RequestParam("q") String query) {
         return ResponseEntity.ok(hashtagService.searchHashtags(query));
+    }
+
+
+    /**
+     * Get unified feed of all content (recipes and logs) with hashtags
+     * GET /api/v1/hashtags/feed?cursor=xxx&page=0&size=20
+     */
+    @GetMapping("/feed")
+    public ResponseEntity<UnifiedPageResponse<HashtaggedContentDto>> getHashtaggedFeed(
+            @RequestParam(name = "cursor", required = false) String cursor,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        return ResponseEntity.ok(hashtagService.getHashtaggedFeed(cursor, page, size, locale));
     }
 
     /**

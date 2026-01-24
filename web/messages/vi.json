@@ -624,6 +624,16 @@
     "noLogs": "Chưa có nhật ký nấu ăn với hashtag này",
     "topContributors": "Người đóng góp hàng đầu:"
   },
+  "hashtagsPage": {
+    "title": "Hashtag",
+    "subtitle": "Khám phá công thức và nhật ký nấu ăn theo hashtag",
+    "metaTitle": "Hashtag | Cookstemma",
+    "metaDescription": "Duyệt tất cả hashtag trên Cookstemma",
+    "allTab": "Tất cả",
+    "popularTab": "Phổ biến",
+    "noContent": "Chưa có nội dung với hashtag",
+    "noHashtags": "Chưa có hashtag phổ biến"
+  },
   "admin": {
     "title": "Bảng điều khiển quản trị",
     "suggestedFoods": "Món ăn đề xuất",

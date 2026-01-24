@@ -629,6 +629,16 @@
     "noLogs": "아직 이 해시태그의 요리 일지가 없습니다",
     "topContributors": "상위 기여자:"
   },
+  "hashtagsPage": {
+    "title": "해시태그",
+    "subtitle": "해시태그로 레시피와 요리 일지를 탐색해 보세요",
+    "metaTitle": "해시태그 | Cookstemma",
+    "metaDescription": "Cookstemma의 모든 해시태그를 둘러보세요",
+    "allTab": "전체",
+    "popularTab": "인기",
+    "noContent": "아직 해시태그가 있는 콘텐츠가 없습니다",
+    "noHashtags": "아직 인기 해시태그가 없습니다"
+  },
   "admin": {
     "title": "관리자 대시보드",
     "suggestedFoods": "제안된 음식",

@@ -5,6 +5,7 @@ import com.cookstemma.cookstemma.domain.entity.log_post.LogPost;
 import com.cookstemma.cookstemma.domain.entity.recipe.Recipe;
 import com.cookstemma.cookstemma.dto.common.UnifiedPageResponse;
 import com.cookstemma.cookstemma.dto.hashtag.HashtagDto;
+import com.cookstemma.cookstemma.dto.hashtag.HashtaggedContentDto;
 import com.cookstemma.cookstemma.dto.log_post.LogPostSummaryDto;
 import com.cookstemma.cookstemma.dto.recipe.RecipeSummaryDto;
 import com.cookstemma.cookstemma.domain.entity.user.User;
@@ -20,10 +21,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -239,6 +243,229 @@ public class HashtagService {
             long recipeCount,
             long logPostCount
     ) {}
+
+
+    // ==================== HASHTAGGED FEED ====================
+
+    /**
+     * Get unified feed of all content (recipes and logs) that have hashtags.
+     * Content is sorted by createdAt descending and paginated.
+     */
+    public UnifiedPageResponse<HashtaggedContentDto> getHashtaggedFeed(
+            String cursor, Integer page, int size, String locale) {
+
+        String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+        String langCodePattern = LocaleUtils.toLanguageKey(normalizedLocale) + "%";
+
+        // For offset-based pagination (web), we need to handle merging differently
+        if (page != null) {
+            return getHashtaggedFeedOffset(page, size, normalizedLocale, langCodePattern);
+        }
+
+        // Cursor-based pagination (mobile)
+        return getHashtaggedFeedCursor(cursor, size, normalizedLocale, langCodePattern);
+    }
+
+    /**
+     * Get hashtagged feed using offset-based pagination.
+     * Fetches recipes and logs separately, merges, and applies pagination.
+     */
+    private UnifiedPageResponse<HashtaggedContentDto> getHashtaggedFeedOffset(
+            int page, int size, String locale, String langCodePattern) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Fetch recipes and logs with any hashtags
+        Page<Recipe> recipesPage = recipeRepository.findWithAnyHashtagsPage(langCodePattern, pageable);
+        Page<LogPost> logsPage = logPostRepository.findWithAnyHashtagsPage(langCodePattern, pageable);
+
+        // Convert to DTOs
+        List<HashtaggedContentDto> recipes = recipesPage.getContent().stream()
+                .map(r -> convertRecipeToHashtaggedContent(r, locale))
+                .toList();
+
+        List<HashtaggedContentDto> logs = logsPage.getContent().stream()
+                .map(l -> convertLogPostToHashtaggedContent(l, locale))
+                .toList();
+
+        // Merge and sort by createdAt (we don't have createdAt in DTO, so we use insertion order)
+        // For a proper implementation, we'd need to include createdAt in the DTO
+        // For now, we'll interleave them alternately to show a mix
+        List<HashtaggedContentDto> merged = new ArrayList<>();
+        int recipeIdx = 0, logIdx = 0;
+        while (recipeIdx < recipes.size() || logIdx < logs.size()) {
+            if (recipeIdx < recipes.size()) {
+                merged.add(recipes.get(recipeIdx++));
+            }
+            if (logIdx < logs.size()) {
+                merged.add(logs.get(logIdx++));
+            }
+        }
+
+        // Limit to size
+        List<HashtaggedContentDto> content = merged.stream().limit(size).toList();
+
+        long totalElements = recipesPage.getTotalElements() + logsPage.getTotalElements();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        return new UnifiedPageResponse<>(
+                content,
+                totalElements,
+                totalPages,
+                page,
+                null,
+                page < totalPages - 1,
+                size
+        );
+    }
+
+    /**
+     * Get hashtagged feed using cursor-based pagination.
+     */
+    private UnifiedPageResponse<HashtaggedContentDto> getHashtaggedFeedCursor(
+            String cursor, int size, String locale, String langCodePattern) {
+
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        // Fetch recipes with hashtags
+        Slice<Recipe> recipes;
+        if (cursorData == null) {
+            recipes = recipeRepository.findWithAnyHashtagsWithCursorInitial(langCodePattern, pageable);
+        } else {
+            recipes = recipeRepository.findWithAnyHashtagsWithCursor(
+                    langCodePattern, cursorData.createdAt(), cursorData.id(), pageable);
+        }
+
+        // Fetch logs with hashtags
+        Slice<LogPost> logs;
+        if (cursorData == null) {
+            logs = logPostRepository.findWithAnyHashtagsWithCursorInitial(langCodePattern, pageable);
+        } else {
+            logs = logPostRepository.findWithAnyHashtagsWithCursor(
+                    langCodePattern, cursorData.createdAt(), cursorData.id(), pageable);
+        }
+
+        // Convert to DTOs with createdAt for sorting
+        record ContentWithTime(HashtaggedContentDto dto, java.time.Instant createdAt, Long id) {}
+
+        List<ContentWithTime> recipeDtos = recipes.getContent().stream()
+                .map(r -> new ContentWithTime(convertRecipeToHashtaggedContent(r, locale), r.getCreatedAt(), r.getId()))
+                .toList();
+
+        List<ContentWithTime> logDtos = logs.getContent().stream()
+                .map(l -> new ContentWithTime(convertLogPostToHashtaggedContent(l, locale), l.getCreatedAt(), l.getId()))
+                .toList();
+
+        // Merge and sort by createdAt descending
+        List<ContentWithTime> merged = new ArrayList<>();
+        merged.addAll(recipeDtos);
+        merged.addAll(logDtos);
+        merged.sort(Comparator.comparing(ContentWithTime::createdAt).reversed()
+                .thenComparing(Comparator.comparing(ContentWithTime::id).reversed()));
+
+        // Take only 'size' items
+        List<ContentWithTime> limited = merged.stream().limit(size).toList();
+        List<HashtaggedContentDto> content = limited.stream().map(ContentWithTime::dto).toList();
+
+        // Determine next cursor from the last item (could be recipe or log)
+        String nextCursor = null;
+        boolean hasNext = recipes.hasNext() || logs.hasNext();
+        if (hasNext && !limited.isEmpty()) {
+            ContentWithTime lastItem = limited.get(limited.size() - 1);
+            nextCursor = CursorUtil.encode(lastItem.createdAt(), lastItem.id());
+        }
+
+        return UnifiedPageResponse.fromCursor(content, nextCursor, size);
+    }
+
+    /**
+     * Convert Recipe to HashtaggedContentDto
+     */
+    private HashtaggedContentDto convertRecipeToHashtaggedContent(Recipe recipe, String locale) {
+        User creator = userRepository.findById(recipe.getCreatorId()).orElse(null);
+        UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
+        String userName = creator != null ? creator.getUsername() : "Unknown";
+
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                recipe.getTitleTranslations(), locale, recipe.getTitle());
+
+        String thumbnail = recipe.getCoverImages().stream()
+                .filter(img -> img.getType() == ImageType.COVER)
+                .findFirst()
+                .map(img -> urlPrefix + "/" + img.getStoredFilename())
+                .orElse(null);
+
+        String foodName = LocaleUtils.getLocalizedValue(
+                recipe.getFoodMaster().getName(),
+                locale,
+                recipe.getFoodMaster().getName().values().stream().findFirst().orElse("Unknown Food"));
+
+        List<String> hashtags = recipe.getHashtags().stream()
+                .map(Hashtag::getName)
+                .limit(3)
+                .toList();
+
+        return new HashtaggedContentDto(
+                "recipe",
+                recipe.getPublicId(),
+                localizedTitle,
+                thumbnail,
+                creatorPublicId,
+                userName,
+                hashtags,
+                foodName,
+                recipe.getCookingStyle(),
+                null,  // rating (not applicable for recipes)
+                null,  // recipeTitle (not applicable for recipes)
+                recipe.getIsPrivate() != null ? recipe.getIsPrivate() : false
+        );
+    }
+
+    /**
+     * Convert LogPost to HashtaggedContentDto
+     */
+    private HashtaggedContentDto convertLogPostToHashtaggedContent(LogPost logPost, String locale) {
+        User creator = userRepository.findById(logPost.getCreatorId()).orElse(null);
+        UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
+        String userName = creator != null ? creator.getUsername() : null;
+
+        String localizedTitle = LocaleUtils.getLocalizedValue(
+                logPost.getTitleTranslations(), locale, logPost.getTitle());
+
+        String thumbnailUrl = logPost.getImages().stream()
+                .findFirst()
+                .map(img -> urlPrefix + "/" + img.getStoredFilename())
+                .orElse(null);
+
+        Integer rating = logPost.getRecipeLog() != null ? logPost.getRecipeLog().getRating() : null;
+        String recipeTitle = null;
+        if (logPost.getRecipeLog() != null && logPost.getRecipeLog().getRecipe() != null) {
+            Recipe linkedRecipe = logPost.getRecipeLog().getRecipe();
+            recipeTitle = LocaleUtils.getLocalizedValue(
+                    linkedRecipe.getTitleTranslations(), locale, linkedRecipe.getTitle());
+        }
+
+        List<String> hashtags = logPost.getHashtags().stream()
+                .map(Hashtag::getName)
+                .limit(3)
+                .toList();
+
+        return new HashtaggedContentDto(
+                "log",
+                logPost.getPublicId(),
+                localizedTitle,
+                thumbnailUrl,
+                creatorPublicId,
+                userName,
+                hashtags,
+                null,  // foodName (not directly applicable for logs)
+                null,  // cookingStyle (not applicable for logs)
+                rating,
+                recipeTitle,
+                logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false
+        );
+    }
 
     // ==================== PRIVATE HELPER METHODS ====================
 

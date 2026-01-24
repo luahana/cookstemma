@@ -612,6 +612,16 @@
     "noLogs": "Aún no hay registros de cocina con este hashtag",
     "topContributors": "Principales contribuidores:"
   },
+  "hashtagsPage": {
+    "title": "Hashtags",
+    "subtitle": "Explora recetas y registros de cocina por hashtag",
+    "metaTitle": "Hashtags | Cookstemma",
+    "metaDescription": "Navega por todos los hashtags en Cookstemma",
+    "allTab": "Todo",
+    "popularTab": "Popular",
+    "noContent": "Aún no hay contenido con hashtags",
+    "noHashtags": "Aún no hay hashtags populares"
+  },
   "admin": {
     "title": "Panel de administración",
     "suggestedFoods": "Comidas sugeridas",

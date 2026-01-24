@@ -624,6 +624,16 @@
     "noLogs": "Noch keine Kochprotokolle mit diesem Hashtag",
     "topContributors": "Top-Beitragende:"
   },
+  "hashtagsPage": {
+    "title": "Hashtags",
+    "subtitle": "Erkunde Rezepte und Kochtagebücher nach Hashtag",
+    "metaTitle": "Hashtags | Cookstemma",
+    "metaDescription": "Alle Hashtags auf Cookstemma durchsuchen",
+    "allTab": "Alle",
+    "popularTab": "Beliebt",
+    "noContent": "Noch keine Inhalte mit Hashtags",
+    "noHashtags": "Noch keine beliebten Hashtags"
+  },
   "admin": {
     "title": "Admin-Dashboard",
     "suggestedFoods": "Vorgeschlagene Gerichte",

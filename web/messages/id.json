@@ -624,6 +624,16 @@
     "noLogs": "Belum ada catatan memasak dengan hashtag ini",
     "topContributors": "Kontributor teratas:"
   },
+  "hashtagsPage": {
+    "title": "Hashtag",
+    "subtitle": "Jelajahi resep dan catatan memasak berdasarkan hashtag",
+    "metaTitle": "Hashtag | Cookstemma",
+    "metaDescription": "Telusuri semua hashtag di Cookstemma",
+    "allTab": "Semua",
+    "popularTab": "Populer",
+    "noContent": "Belum ada konten dengan hashtag",
+    "noHashtags": "Belum ada hashtag populer"
+  },
   "admin": {
     "title": "Dasbor Admin",
     "suggestedFoods": "Makanan yang Disarankan",

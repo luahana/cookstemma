@@ -624,6 +624,16 @@
     "noLogs": "Ancora nessun diario di cucina con questo hashtag",
     "topContributors": "Top contributori:"
   },
+  "hashtagsPage": {
+    "title": "Hashtag",
+    "subtitle": "Esplora ricette e diari di cucina per hashtag",
+    "metaTitle": "Hashtag | Cookstemma",
+    "metaDescription": "Sfoglia tutti gli hashtag su Cookstemma",
+    "allTab": "Tutto",
+    "popularTab": "Popolari",
+    "noContent": "Nessun contenuto con hashtag ancora",
+    "noHashtags": "Nessun hashtag popolare ancora"
+  },
   "admin": {
     "title": "Pannello amministratore",
     "suggestedFoods": "Piatti suggeriti",

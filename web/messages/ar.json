@@ -624,6 +624,16 @@
     "noLogs": "لا توجد سجلات طبخ بهذا الوسم بعد",
     "topContributors": "أبرز المساهمين:"
   },
+  "hashtagsPage": {
+    "title": "الوسوم",
+    "subtitle": "استكشف الوصفات وسجلات الطبخ حسب الوسم",
+    "metaTitle": "الوسوم | Cookstemma",
+    "metaDescription": "تصفح جميع الوسوم على Cookstemma",
+    "allTab": "الكل",
+    "popularTab": "الأكثر شعبية",
+    "noContent": "لا يوجد محتوى بوسوم حتى الآن",
+    "noHashtags": "لا توجد وسوم شائعة حتى الآن"
+  },
   "admin": {
     "title": "لوحة الإدارة",
     "suggestedFoods": "الأطعمة المقترحة",

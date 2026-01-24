@@ -2,6 +2,7 @@ import { apiFetch, buildQueryString } from './client';
 import type {
   HashtagDto,
   HashtagCounts,
+  HashtaggedContentItem,
   RecipeSummary,
   LogPostSummary,
   UnifiedPageResponse,
@@ -69,6 +70,25 @@ export async function getLogsByHashtag(
 
   return apiFetch<UnifiedPageResponse<LogPostSummary>>(
     `/hashtags/${encodeURIComponent(name)}/log_posts${queryString}`,
+    {
+      next: { revalidate: 60 },
+    },
+  );
+}
+
+/**
+ * Get unified feed of all content (recipes and logs) with hashtags
+ */
+export async function getHashtaggedFeed(
+  params: PaginationParams = {},
+): Promise<UnifiedPageResponse<HashtaggedContentItem>> {
+  const queryString = buildQueryString({
+    page: params.page ?? 0,
+    size: params.size ?? 20,
+  });
+
+  return apiFetch<UnifiedPageResponse<HashtaggedContentItem>>(
+    `/hashtags/feed${queryString}`,
     {
       next: { revalidate: 60 },
     },

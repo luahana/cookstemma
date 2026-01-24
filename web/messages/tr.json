@@ -624,6 +624,16 @@
     "noLogs": "Bu hashtag ile henüz yemek günlüğü yok",
     "topContributors": "En çok katkıda bulunanlar:"
   },
+  "hashtagsPage": {
+    "title": "Hashtagler",
+    "subtitle": "Tarifleri ve yemek günlüklerini hashtag ile keşfedin",
+    "metaTitle": "Hashtagler | Cookstemma",
+    "metaDescription": "Cookstemma'daki tüm hashtaglere göz atın",
+    "allTab": "Tümü",
+    "popularTab": "Popüler",
+    "noContent": "Henüz hashtagli içerik yok",
+    "noHashtags": "Henüz popüler hashtag yok"
+  },
   "admin": {
     "title": "Yönetici Paneli",
     "suggestedFoods": "Önerilen Yemekler",

@@ -36,3 +36,21 @@ export interface HashtagCounts {
   recipeCount: number;
   logPostCount: number;
 }
+
+/**
+ * Content item with hashtags (unified feed of recipes and logs)
+ */
+export interface HashtaggedContentItem {
+  type: 'recipe' | 'log';
+  publicId: string;
+  title: string;
+  thumbnailUrl: string | null;
+  creatorPublicId: string | null;
+  userName: string | null;
+  hashtags: string[];
+  foodName?: string;        // For recipes
+  cookingStyle?: string;    // For recipes
+  rating?: number;          // For logs (1-5)
+  recipeTitle?: string;     // For logs (linked recipe title)
+  isPrivate: boolean;
+}

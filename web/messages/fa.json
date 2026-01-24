@@ -624,6 +624,16 @@
     "noLogs": "هنوز یادداشت آشپزی با این هشتگ نیست",
     "topContributors": "مشارکت‌کنندگان برتر:"
   },
+  "hashtagsPage": {
+    "title": "هشتگ‌ها",
+    "subtitle": "دستورها و گزارش‌های آشپزی را بر اساس هشتگ کاوش کنید",
+    "metaTitle": "هشتگ‌ها | Cookstemma",
+    "metaDescription": "همه هشتگ‌های Cookstemma را مرور کنید",
+    "allTab": "همه",
+    "popularTab": "محبوب",
+    "noContent": "هنوز محتوایی با هشتگ وجود ندارد",
+    "noHashtags": "هنوز هشتگ محبوبی وجود ندارد"
+  },
   "admin": {
     "title": "پنل مدیریت",
     "suggestedFoods": "غذاهای پیشنهادی",

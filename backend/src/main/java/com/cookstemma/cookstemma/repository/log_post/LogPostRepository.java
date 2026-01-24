@@ -378,6 +378,56 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
            "WHERE h.name = :hashtagName AND l.deletedAt IS NULL AND (l.isPrivate IS NULL OR l.isPrivate = false)")
     long countByHashtag(@Param("hashtagName") String hashtagName);
 
+
+    // ==================== HASHTAGGED FEED QUERIES ====================
+
+    // [Cursor] LogPosts with any hashtags - initial page
+    // Returns log posts that have at least one hashtag, sorted by createdAt DESC
+    @Query(value = """
+        SELECT DISTINCT lp.* FROM log_posts lp
+        JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        ORDER BY lp.created_at DESC, lp.id DESC
+        """, nativeQuery = true)
+    Slice<LogPost> findWithAnyHashtagsWithCursorInitial(
+            @Param("langCodePattern") String langCodePattern,
+            Pageable pageable);
+
+    // [Cursor] LogPosts with any hashtags - with cursor
+    @Query(value = """
+        SELECT DISTINCT lp.* FROM log_posts lp
+        JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
+        ORDER BY lp.created_at DESC, lp.id DESC
+        """, nativeQuery = true)
+    Slice<LogPost> findWithAnyHashtagsWithCursor(
+            @Param("langCodePattern") String langCodePattern,
+            @Param("cursorTime") Instant cursorTime,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable);
+
+    // [Offset] LogPosts with any hashtags - page
+    @Query(value = """
+        SELECT DISTINCT lp.* FROM log_posts lp
+        JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        ORDER BY lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(DISTINCT lp.id) FROM log_posts lp
+        JOIN log_post_hashtag_map lph ON lph.log_post_id = lp.id
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern)
+        """,
+        nativeQuery = true)
+    Page<LogPost> findWithAnyHashtagsPage(
+            @Param("langCodePattern") String langCodePattern,
+            Pageable pageable);
+
     // ==================== UNIFIED SEARCH COUNT ====================
 
     /**

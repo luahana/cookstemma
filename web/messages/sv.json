@@ -624,6 +624,16 @@
     "noLogs": "Inga dagboksposter med denna hashtag ännu",
     "topContributors": "Toppbidragsgivare:"
   },
+  "hashtagsPage": {
+    "title": "Hashtags",
+    "subtitle": "Utforska recept och matlagningsdagböcker efter hashtag",
+    "metaTitle": "Hashtags | Cookstemma",
+    "metaDescription": "Bläddra bland alla hashtags på Cookstemma",
+    "allTab": "Alla",
+    "popularTab": "Populära",
+    "noContent": "Inget innehåll med hashtags ännu",
+    "noHashtags": "Inga populära hashtags ännu"
+  },
   "admin": {
     "title": "Adminpanel",
     "suggestedFoods": "Föreslagna maträtter",

@@ -624,6 +624,16 @@
     "noLogs": "Nog geen kooklogboeken met deze hashtag",
     "topContributors": "Top bijdragers:"
   },
+  "hashtagsPage": {
+    "title": "Hashtags",
+    "subtitle": "Ontdek recepten en kookdagboeken op hashtag",
+    "metaTitle": "Hashtags | Cookstemma",
+    "metaDescription": "Bekijk alle hashtags op Cookstemma",
+    "allTab": "Alles",
+    "popularTab": "Populair",
+    "noContent": "Nog geen inhoud met hashtags",
+    "noHashtags": "Nog geen populaire hashtags"
+  },
   "admin": {
     "title": "Beheerderspaneel",
     "suggestedFoods": "Voorgestelde gerechten",

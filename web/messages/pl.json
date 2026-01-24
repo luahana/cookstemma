@@ -624,6 +624,16 @@
     "noLogs": "Brak wpisów z tym hashtagiem",
     "topContributors": "Top kontrybutorzy:"
   },
+  "hashtagsPage": {
+    "title": "Hashtagi",
+    "subtitle": "Przeglądaj przepisy i dzienniki kulinarne według hashtagów",
+    "metaTitle": "Hashtagi | Cookstemma",
+    "metaDescription": "Przeglądaj wszystkie hashtagi na Cookstemma",
+    "allTab": "Wszystko",
+    "popularTab": "Popularne",
+    "noContent": "Brak treści z hashtagami",
+    "noHashtags": "Brak popularnych hashtagów"
+  },
   "admin": {
     "title": "Panel admina",
     "suggestedFoods": "Sugerowane dania",

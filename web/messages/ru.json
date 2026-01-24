@@ -624,6 +624,16 @@
     "noLogs": "Пока нет записей о готовке с этим хэштегом",
     "topContributors": "Топ авторов:"
   },
+  "hashtagsPage": {
+    "title": "Хэштеги",
+    "subtitle": "Исследуйте рецепты и кулинарные журналы по хэштегам",
+    "metaTitle": "Хэштеги | Cookstemma",
+    "metaDescription": "Просмотрите все хэштеги на Cookstemma",
+    "allTab": "Все",
+    "popularTab": "Популярные",
+    "noContent": "Пока нет контента с хэштегами",
+    "noHashtags": "Пока нет популярных хэштегов"
+  },
   "admin": {
     "title": "Панель администратора",
     "suggestedFoods": "Предложенные блюда",

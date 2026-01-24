@@ -624,6 +624,16 @@
     "noLogs": "暂无使用此话题标签的烹饪日志",
     "topContributors": "热门贡献者："
   },
+  "hashtagsPage": {
+    "title": "标签",
+    "subtitle": "通过标签探索食谱和烹饪日志",
+    "metaTitle": "标签 | Cookstemma",
+    "metaDescription": "浏览Cookstemma上的所有标签",
+    "allTab": "全部",
+    "popularTab": "热门",
+    "noContent": "暂无带标签的内容",
+    "noHashtags": "暂无热门标签"
+  },
   "admin": {
     "title": "管理后台",
     "suggestedFoods": "推荐菜品",
