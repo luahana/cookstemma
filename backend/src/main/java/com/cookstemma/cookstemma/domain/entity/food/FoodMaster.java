@@ -36,8 +36,10 @@ public class FoodMaster extends BaseEntity {
     @Builder.Default
     private Double foodScore = 0.0;
 
-    @Column(name = "search_keywords", columnDefinition = "TEXT")
-    private String searchKeywords;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "search_keywords", columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, String> searchKeywords = new HashMap<>();
 
     @Column(name = "is_verified", nullable = false)
     @Builder.Default
@@ -94,5 +96,13 @@ public class FoodMaster extends BaseEntity {
             this.description = new HashMap<>();
         }
         this.description.put(locale, translatedDescription);
+    }
+
+
+    public void addSearchKeywords(String locale, String keywords) {
+        if (this.searchKeywords == null) {
+            this.searchKeywords = new HashMap<>();
+        }
+        this.searchKeywords.put(locale, keywords);
     }
 }
