@@ -30,9 +30,10 @@ export async function searchHashtags(query: string): Promise<HashtagDto[]> {
 /**
  * Get hashtag counts (recipes and logs count)
  */
-export async function getHashtagCounts(name: string): Promise<HashtagCounts> {
+export async function getHashtagCounts(name: string, locale?: string): Promise<HashtagCounts> {
   return apiFetch<HashtagCounts>(`/hashtags/${encodeURIComponent(name)}/counts`, {
     next: { revalidate: 300 },
+    locale,
   });
 }
 
@@ -41,7 +42,7 @@ export async function getHashtagCounts(name: string): Promise<HashtagCounts> {
  */
 export async function getRecipesByHashtag(
   name: string,
-  params: PaginationParams = {},
+  params: PaginationParams & { locale?: string } = {},
 ): Promise<UnifiedPageResponse<RecipeSummary>> {
   const queryString = buildQueryString({
     page: params.page ?? 0,
@@ -52,6 +53,7 @@ export async function getRecipesByHashtag(
     `/hashtags/${encodeURIComponent(name)}/recipes${queryString}`,
     {
       next: { revalidate: 60 },
+      locale: params.locale,
     },
   );
 }
@@ -61,7 +63,7 @@ export async function getRecipesByHashtag(
  */
 export async function getLogsByHashtag(
   name: string,
-  params: PaginationParams = {},
+  params: PaginationParams & { locale?: string } = {},
 ): Promise<UnifiedPageResponse<LogPostSummary>> {
   const queryString = buildQueryString({
     page: params.page ?? 0,
@@ -72,6 +74,7 @@ export async function getLogsByHashtag(
     `/hashtags/${encodeURIComponent(name)}/log_posts${queryString}`,
     {
       next: { revalidate: 60 },
+      locale: params.locale,
     },
   );
 }
@@ -81,7 +84,7 @@ export async function getLogsByHashtag(
  */
 export async function getContentByHashtag(
   name: string,
-  params: PaginationParams = {},
+  params: PaginationParams & { locale?: string } = {},
 ): Promise<UnifiedPageResponse<HashtaggedContentItem>> {
   const queryString = buildQueryString({
     page: params.page ?? 0,
@@ -92,6 +95,7 @@ export async function getContentByHashtag(
     `/hashtags/${encodeURIComponent(name)}/content${queryString}`,
     {
       next: { revalidate: 60 },
+      locale: params.locale,
     },
   );
 }

@@ -42,7 +42,7 @@ export default async function HashtagPage({ params, searchParams }: Props) {
 
   let counts;
   try {
-    counts = await getHashtagCounts(decodedName);
+    counts = await getHashtagCounts(decodedName, locale);
   } catch {
     counts = { exists: false, normalizedName: decodedName, recipeCount: 0, logPostCount: 0 };
   }
@@ -56,13 +56,13 @@ export default async function HashtagPage({ params, searchParams }: Props) {
 
   // Fetch content based on active tab
   const allContent = tab === 'all'
-    ? await getContentByHashtag(decodedName, { page, size: 12 })
+    ? await getContentByHashtag(decodedName, { page, size: 12, locale })
     : null;
   const recipes = tab === 'recipes'
-    ? await getRecipesByHashtag(decodedName, { page, size: 12 })
+    ? await getRecipesByHashtag(decodedName, { page, size: 12, locale })
     : null;
   const logs = tab === 'logs'
-    ? await getLogsByHashtag(decodedName, { page, size: 12 })
+    ? await getLogsByHashtag(decodedName, { page, size: 12, locale })
     : null;
 
   return (
