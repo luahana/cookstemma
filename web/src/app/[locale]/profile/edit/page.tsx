@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMyProfile, updateUserProfile, checkUsernameAvailability } from '@/lib/api/users';
 import {
@@ -15,7 +16,9 @@ import type { MeasurementPreference, UpdateProfileRequest } from '@/lib/types';
 import { MEASUREMENT_STORAGE_KEY } from '@/lib/utils/measurement';
 
 // Character limits (matching database constraints)
-const MAX_USERNAME_LENGTH = 50;
+const MIN_USERNAME_LENGTH = 5;
+const MAX_USERNAME_LENGTH = 30;
+const USERNAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9._-]{4,29}$/;
 const MAX_BIO_LENGTH = 150;
 const MAX_YOUTUBE_URL_LENGTH = 200;
 const MAX_INSTAGRAM_HANDLE_LENGTH = 30;
@@ -72,10 +75,15 @@ function validateInstagramHandle(value: string): string | null {
   return null;
 }
 
+function validateUsername(value: string): boolean {
+  return USERNAME_PATTERN.test(value);
+}
+
 export default function ProfileEditPage() {
   const router = useRouter();
   const { user: authUser, isLoading: authLoading } = useAuth();
   const cookingStyleOptions = useCookingStyleOptions();
+  const tUsernameValidation = useTranslations('usernameValidation');
 
   // Form state
   const [username, setUsername] = useState('');
@@ -114,6 +122,7 @@ export default function ProfileEditPage() {
   // Username availability check
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [usernameFormatError, setUsernameFormatError] = useState<string | null>(null);
 
   // Load profile data
   useEffect(() => {
@@ -186,10 +195,17 @@ export default function ProfileEditPage() {
     setInstagramError(validateInstagramHandle(value));
   };
 
-  // Handle username change - reset availability check
+  // Handle username change - reset availability check and validate format
   const handleUsernameChange = (value: string) => {
     setUsername(value);
     setUsernameAvailable(null);
+
+    // Clear format error when typing, will be validated on check/submit
+    if (value.trim() && !validateUsername(value)) {
+      setUsernameFormatError(tUsernameValidation('rules'));
+    } else {
+      setUsernameFormatError(null);
+    }
   };
 
   // Check username availability
@@ -198,14 +214,26 @@ export default function ProfileEditPage() {
       // Skip check if empty or same as initial
       if (username === initialValues.username) {
         setUsernameAvailable(true);
+        setUsernameFormatError(null);
       }
       return;
     }
 
+    // Validate format first
+    if (!validateUsername(username)) {
+      setUsernameFormatError(tUsernameValidation('rules'));
+      setUsernameAvailable(null);
+      return;
+    }
+
+    setUsernameFormatError(null);
     setIsCheckingUsername(true);
     try {
       const available = await checkUsernameAvailability(username);
       setUsernameAvailable(available);
+      if (!available) {
+        setUsernameFormatError(tUsernameValidation('taken'));
+      }
     } catch (err) {
       console.error('Failed to check username:', err);
       setUsernameAvailable(null);
@@ -238,8 +266,13 @@ export default function ProfileEditPage() {
       setError('Username is required');
       return;
     }
-    if (username.length > MAX_USERNAME_LENGTH) {
-      setError(`Username cannot exceed ${MAX_USERNAME_LENGTH} characters`);
+    if (username.length < MIN_USERNAME_LENGTH || username.length > MAX_USERNAME_LENGTH) {
+      setError(`Username must be ${MIN_USERNAME_LENGTH}-${MAX_USERNAME_LENGTH} characters`);
+      return;
+    }
+    if (!validateUsername(username)) {
+      setUsernameFormatError(tUsernameValidation('rules'));
+      setError(tUsernameValidation('rules'));
       return;
     }
 
@@ -397,7 +430,7 @@ export default function ProfileEditPage() {
             </button>
           </div>
           {/* Username availability feedback */}
-          {usernameAvailable !== null && (
+          {usernameAvailable !== null && !usernameFormatError && (
             <p className={`text-xs mt-2 flex items-center gap-1 ${usernameAvailable ? 'text-green-600' : 'text-red-500'}`}>
               {usernameAvailable ? (
                 <>
@@ -411,20 +444,34 @@ export default function ProfileEditPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  Username is already taken
+                  {tUsernameValidation('taken')}
                 </>
               )}
             </p>
           )}
-          <p
-            className={`text-xs mt-1 text-right ${
-              username.length >= MAX_USERNAME_LENGTH
-                ? 'text-red-500'
-                : 'text-[var(--text-secondary)]'
-            }`}
-          >
-            {username.length}/{MAX_USERNAME_LENGTH}
-          </p>
+          {/* Format error feedback */}
+          {usernameFormatError && (
+            <p className="text-xs mt-2 text-red-500 flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              {usernameFormatError}
+            </p>
+          )}
+          <div className="flex justify-between items-center mt-1">
+            <p className="text-xs text-[var(--text-secondary)]">
+              {tUsernameValidation('rules')}
+            </p>
+            <p
+              className={`text-xs ${
+                username.length > MAX_USERNAME_LENGTH || username.length < MIN_USERNAME_LENGTH
+                  ? 'text-red-500'
+                  : 'text-[var(--text-secondary)]'
+              }`}
+            >
+              {username.length}/{MAX_USERNAME_LENGTH}
+            </p>
+          </div>
         </div>
 
         {/* Birthday Section */}
@@ -619,7 +666,7 @@ export default function ProfileEditPage() {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={!hasChanges || isSubmitting || !!youtubeError || !!instagramError}
+          disabled={!hasChanges || isSubmitting || !!youtubeError || !!instagramError || !!usernameFormatError}
           className="w-full py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
         >
           {isSubmitting ? 'Saving...' : 'Save Changes'}

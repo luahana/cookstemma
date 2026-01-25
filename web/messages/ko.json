@@ -751,6 +751,10 @@
   "popularHashtags": {
     "title": "인기 해시태그"
   },
+  "usernameValidation": {
+    "rules": "5-30자, 문자로 시작. 허용: a-z, 0-9, _ . -",
+    "taken": "이미 사용 중인 이름입니다"
+  },
   "cookingStyles": {
     "allStyles": "모든 스타일",
     "international": "세계 요리",

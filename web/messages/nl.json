@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "Populaire hashtags"
   },
+  "usernameValidation": {
+    "rules": "5-30 tekens, begint met letter. Toegestaan: a-z, 0-9, _ . -",
+    "taken": "Gebruikersnaam al in gebruik"
+  },
   "cookingStyles": {
     "allStyles": "Alle stijlen",
     "international": "Internationaal",

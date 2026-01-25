@@ -21,6 +21,7 @@ import com.cookstemma.cookstemma.repository.recipe.SavedRecipeRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
 import com.cookstemma.cookstemma.security.UserPrincipal;
 import com.cookstemma.cookstemma.util.LocaleUtils;
+import com.cookstemma.cookstemma.util.UsernameUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -122,9 +123,16 @@ public class UserService {
         User user = userRepository.findById(principal.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 1. Username update with duplicate check
+        // 1. Username update with format validation and duplicate check
         if (request.username() != null && !request.username().isBlank()) {
             String newUsername = request.username().trim();
+
+            // Validate format
+            if (!UsernameUtils.isValid(newUsername)) {
+                throw new IllegalArgumentException(
+                        "Username must be 5-30 characters, start with a letter, and contain only letters, numbers, underscores, periods, or hyphens");
+            }
+
             if (!newUsername.equals(user.getUsername())) {
                 // Check if username is already taken by another user
                 if (userRepository.existsByUsernameIgnoreCase(newUsername)) {

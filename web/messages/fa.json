@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "هشتگ‌های محبوب"
   },
+  "usernameValidation": {
+    "rules": "5-30 کاراکتر، شروع با حرف. مجاز: a-z, 0-9, _ . -",
+    "taken": "نام کاربری استفاده شده"
+  },
   "cookingStyles": {
     "allStyles": "همه سبک‌ها",
     "international": "بین‌المللی",

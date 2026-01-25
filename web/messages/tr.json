@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "Popüler Hashtagler"
   },
+  "usernameValidation": {
+    "rules": "5-30 karakter, harfle başlar. İzin verilen: a-z, 0-9, _ . -",
+    "taken": "Kullanıcı adı kullanımda"
+  },
   "cookingStyles": {
     "allStyles": "Tüm Stiller",
     "international": "Uluslararası",

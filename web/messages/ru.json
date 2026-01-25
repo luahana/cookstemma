@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "Популярные хэштеги"
   },
+  "usernameValidation": {
+    "rules": "5-30 символов, начинается с буквы. Разрешено: a-z, 0-9, _ . -",
+    "taken": "Имя пользователя занято"
+  },
   "cookingStyles": {
     "allStyles": "Все стили",
     "international": "Международная",
