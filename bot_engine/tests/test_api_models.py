@@ -240,6 +240,7 @@ class TestCreateLogRequest:
         """Test creating a log request."""
         request = CreateLogRequest(
             recipe_public_id="recipe-123",
+            title="My amazing cooking experience",
             content="Today I tried this recipe and it turned out amazing!",
             rating=5,
             image_public_ids=["img-1", "img-2"],
@@ -247,6 +248,7 @@ class TestCreateLogRequest:
         )
 
         assert request.recipe_public_id == "recipe-123"
+        assert request.title == "My amazing cooking experience"
         assert request.rating == 5
         assert len(request.image_public_ids) == 2
 
@@ -254,12 +256,14 @@ class TestCreateLogRequest:
         """Test creating a private log request."""
         request = CreateLogRequest(
             recipe_public_id="recipe-123",
+            title="My private log",
             content="Private log content",
             rating=4,
             is_private=True,
         )
 
         assert request.is_private is True
+        assert request.title == "My private log"
         assert request.rating == 4
 
 

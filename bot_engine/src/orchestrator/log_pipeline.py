@@ -107,8 +107,16 @@ class LogPipeline:
         if len(content) > 1000:
             content = content[:997] + "..."
 
+        # Get title from AI-generated data, with fallback
+        title = log_data.get("title", "")
+        if not title:
+            title = f"Cooking {recipe.title}"  # Fallback
+        if len(title) > 200:
+            title = title[:197] + "..."
+
         request = CreateLogRequest(
             recipe_public_id=recipe.public_id,
+            title=title,
             content=content,
             rating=rating,
             image_public_ids=image_public_ids,

@@ -183,6 +183,7 @@ class CreateLogRequest(BaseModel):
     """Request to create a cooking log."""
 
     recipe_public_id: str = Field(description="Recipe that was cooked")
+    title: str = Field(max_length=200, description="Log post title")
     content: str = Field(max_length=1000, description="Cook's note/description")
     rating: int = Field(ge=1, le=5, description="Star rating 1-5")
     image_public_ids: List[str] = Field(

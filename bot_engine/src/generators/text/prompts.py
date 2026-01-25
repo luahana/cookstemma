@@ -695,6 +695,7 @@ Your background: {persona_background}
 
 Write a cooking log entry in JSON format:
 {{
+    "title": "Short, catchy title summarizing your experience (max 100 chars)",
     "content": "Max 1000 characters. 2-4 paragraphs describing your cooking experience. Include:
         - How the cooking process went
         - Any challenges or surprises
