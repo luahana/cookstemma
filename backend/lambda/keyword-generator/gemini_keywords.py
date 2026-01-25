@@ -6,7 +6,8 @@ import json
 import logging
 from typing import Any
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 logger = logging.getLogger()
 
@@ -72,16 +73,9 @@ pl (Polish), tr (Turkish), nl (Dutch), sv (Swedish), fa (Persian)
 class GeminiKeywordGenerator:
     """Generates multilingual search keywords using Google Gemini."""
 
-    def __init__(self, api_key: str, model: str = "gemini-2.0-flash-lite"):
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(
-            model_name=model,
-            generation_config={
-                "temperature": 0.4,
-                "max_output_tokens": 4000,
-                "response_mime_type": "application/json"
-            }
-        )
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite"):
+        self.client = genai.Client(api_key=api_key)
+        self.model = model
 
     def generate_keywords(
         self,
@@ -107,7 +101,15 @@ class GeminiKeywordGenerator:
         )
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    temperature=0.4,
+                    max_output_tokens=4000,
+                    response_mime_type="application/json"
+                )
+            )
             result_text = response.text.strip()
 
             # Handle potential markdown code blocks

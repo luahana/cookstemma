@@ -36,7 +36,7 @@ class Settings(BaseSettings):
         description="Gemini model for image generation (Nano Banana)",
     )
     gemini_text_model: str = Field(
-        default="gemini-2.0-flash-lite",
+        default="gemini-2.5-flash-lite",
         description="Gemini model for text generation (lightweight)",
     )
     temperature: float = Field(
