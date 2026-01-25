@@ -15,6 +15,7 @@ public record UserAdminDto(
         String email,
         Role role,
         AccountStatus status,
+        String locale,
         Instant createdAt,
         Instant lastLoginAt
 ) {
@@ -25,6 +26,7 @@ public record UserAdminDto(
                 .email(user.getEmail())
                 .role(user.getRole())
                 .status(user.getStatus())
+                .locale(user.getLocale())
                 .createdAt(user.getCreatedAt())
                 .lastLoginAt(user.getLastLoginAt())
                 .build();
