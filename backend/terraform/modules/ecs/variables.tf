@@ -111,3 +111,53 @@ variable "s3_secret_arn" {
   description = "ARN of the S3 secret"
   type        = string
 }
+
+variable "firebase_secret_arn" {
+  description = "ARN of the Firebase secret"
+  type        = string
+}
+
+variable "cdn_url_prefix" {
+  description = "CDN URL prefix for image URLs (CloudFront domain)"
+  type        = string
+  default     = ""
+}
+
+# SQS Configuration for Translation
+variable "sqs_translation_queue_url" {
+  description = "URL of the SQS queue for translation events"
+  type        = string
+  default     = ""
+}
+
+variable "sqs_translation_queue_arn" {
+  description = "ARN of the SQS queue for translation events"
+  type        = string
+  default     = ""
+}
+
+variable "sqs_enabled" {
+  description = "Enable SQS push for real-time translations"
+  type        = bool
+  default     = true
+}
+
+# CloudWatch Alarms
+variable "sns_alarm_topic_arn" {
+  description = "ARN of the SNS topic for CloudWatch alarms. Required when enable_alarms is true."
+  type        = string
+  default     = ""
+}
+
+variable "enable_alarms" {
+  description = "Enable CloudWatch alarms for ECS monitoring. Requires sns_alarm_topic_arn to be set."
+  type        = bool
+  default     = true
+}
+
+# Service Discovery
+variable "service_discovery_service_arn" {
+  description = "ARN of the service discovery service for registration"
+  type        = string
+  default     = ""
+}

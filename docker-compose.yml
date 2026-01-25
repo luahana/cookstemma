@@ -8,7 +8,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: pairing-planet-backend
+    container_name: cookstemma-backend
     restart: unless-stopped
     ports:
       - "4000:4000"
@@ -23,7 +23,7 @@ services:
       SPRING_CLOUD_AWS_S3_ENDPOINT: http://minio:9000
       SPRING_CLOUD_AWS_CREDENTIALS_ACCESS_KEY: minioadmin
       SPRING_CLOUD_AWS_CREDENTIALS_SECRET_KEY: minioadmin
-      FILE_UPLOAD_BUCKET: pairing-planet
+      FILE_UPLOAD_BUCKET: cookstemma
     depends_on:
       postgres:
         condition: service_healthy
@@ -45,7 +45,7 @@ services:
   # =============================================================================
   postgres:
     image: postgres:16-alpine
-    container_name: pairing-planet-postgres
+    container_name: cookstemma-postgres
     restart: always
     environment:
       POSTGRES_USER: myuser
@@ -68,7 +68,7 @@ services:
   # =============================================================================
   redis:
     image: redis:alpine
-    container_name: pairing-planet-redis
+    container_name: cookstemma-redis
     restart: always
     command: redis-server --appendonly yes --requirepass mypassword
     ports:
@@ -83,7 +83,7 @@ services:
   # =============================================================================
   minio:
     image: quay.io/minio/minio
-    container_name: pairing-planet-minio
+    container_name: cookstemma-minio
     restart: always
     command: server /data --console-address ":9001"
     environment:

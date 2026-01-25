@@ -14,11 +14,11 @@ terraform {
   # Backend configuration for state storage
   # Uncomment after creating the S3 bucket
   # backend "s3" {
-  #   bucket         = "pairing-planet-terraform-state"
+  #   bucket         = "cookstemma-terraform-state"
   #   key            = "staging/terraform.tfstate"
   #   region         = "ap-northeast-2"
   #   encrypt        = true
-  #   dynamodb_table = "pairing-planet-terraform-locks"
+  #   dynamodb_table = "cookstemma-terraform-locks"
   # }
 }
 
@@ -122,16 +122,16 @@ module "alb" {
 module "ecs" {
   source = "../../modules/ecs"
 
-  project_name    = var.project_name
-  environment     = var.environment
-  aws_region      = var.aws_region
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = module.vpc.private_subnet_ids # Private subnets
-  container_image = "${data.aws_ecr_repository.main.repository_url}:staging-latest"
-  container_port  = 4000
-  task_cpu        = 512
-  task_memory     = 1024
-  desired_count   = 1
+  project_name     = var.project_name
+  environment      = var.environment
+  aws_region       = var.aws_region
+  vpc_id           = module.vpc.vpc_id
+  subnet_ids       = module.vpc.private_subnet_ids # Private subnets
+  container_image  = "${data.aws_ecr_repository.main.repository_url}:staging-latest"
+  container_port   = 4000
+  task_cpu         = 512
+  task_memory      = 1024
+  desired_count    = 1
   assign_public_ip = false # No public IP, use ALB
 
   # ALB configuration
@@ -155,8 +155,8 @@ module "ecs" {
 module "codedeploy" {
   source = "../../modules/codedeploy"
 
-  project_name   = var.project_name
-  environment    = var.environment
+  project_name     = var.project_name
+  environment      = var.environment
   ecs_cluster_name = module.ecs.cluster_name
   ecs_service_name = module.ecs.service_name
 

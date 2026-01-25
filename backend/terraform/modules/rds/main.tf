@@ -63,25 +63,28 @@ resource "aws_db_parameter_group" "main" {
 resource "aws_db_instance" "main" {
   identifier = "${var.project_name}-${var.environment}-db"
 
-  # Engine configuration
-  engine               = "postgres"
-  engine_version       = var.engine_version
-  instance_class       = var.instance_class
-  allocated_storage    = var.allocated_storage
-  max_allocated_storage = var.max_allocated_storage
-  storage_type         = "gp3"
-  storage_encrypted    = true
+  # Restore from snapshot if provided
+  snapshot_identifier = var.snapshot_identifier
 
-  # Database configuration
-  db_name  = var.database_name
-  username = var.master_username
+  # Engine configuration (some ignored when restoring from snapshot)
+  engine                = "postgres"
+  engine_version        = var.engine_version
+  instance_class        = var.instance_class
+  allocated_storage     = var.snapshot_identifier == null ? var.allocated_storage : null
+  max_allocated_storage = var.max_allocated_storage
+  storage_type          = "gp3"
+  storage_encrypted     = true
+
+  # Database configuration (ignored when restoring from snapshot)
+  db_name  = var.snapshot_identifier == null ? var.database_name : null
+  username = var.snapshot_identifier == null ? var.master_username : null
   password = var.master_password
   port     = 5432
 
   # Network configuration
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
-  publicly_accessible    = false
+  publicly_accessible    = var.publicly_accessible
   multi_az               = var.multi_az
 
   # Parameter and option groups

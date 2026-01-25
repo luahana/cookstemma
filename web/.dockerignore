@@ -1,0 +1,39 @@
+# Dependencies
+node_modules
+
+# Next.js build output
+.next
+
+# Testing
+coverage
+
+# IDE
+.idea
+.vscode
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files (use build args instead)
+.env
+.env.local
+.env.development
+.env.production
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Tests
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__
+jest.config.ts
+jest.setup.ts

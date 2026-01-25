@@ -16,10 +16,13 @@ RUN ./gradlew clean build -x test --no-daemon
 
 FROM eclipse-temurin:21-jre-alpine AS runner
 
+# Install curl for health checks and libwebp for WebP image encoding
+RUN apk add --no-cache curl libwebp libwebp-tools
+
 WORKDIR /app
 
 COPY --from=builder ./app/build/libs/*.jar ./app.jar
 
 EXPOSE 4000
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xms256m", "-Xmx768m", "-XX:+UseG1GC", "-XX:MaxGCPauseMillis=100", "-jar", "app.jar"]

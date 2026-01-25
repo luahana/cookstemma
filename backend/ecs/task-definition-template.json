@@ -1,14 +1,14 @@
 {
-  "family": "pairing-planet-${ENVIRONMENT}",
+  "family": "cookstemma-${ENVIRONMENT}",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "${TASK_CPU}",
   "memory": "${TASK_MEMORY}",
-  "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/pairing-planet-${ENVIRONMENT}-ecs-execution",
-  "taskRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/pairing-planet-${ENVIRONMENT}-ecs-task",
+  "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/cookstemma-${ENVIRONMENT}-ecs-execution",
+  "taskRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/cookstemma-${ENVIRONMENT}-ecs-task",
   "containerDefinitions": [
     {
-      "name": "pairing-planet-${ENVIRONMENT}",
+      "name": "cookstemma-${ENVIRONMENT}",
       "image": "${ECR_REPOSITORY_URL}:${IMAGE_TAG}",
       "essential": true,
       "portMappings": [
@@ -31,49 +31,49 @@
       "secrets": [
         {
           "name": "DB_URL",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:pairing-planet/${ENVIRONMENT}/database:url::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:cookstemma/${ENVIRONMENT}/database:url::"
         },
         {
           "name": "DB_USERNAME",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:pairing-planet/${ENVIRONMENT}/database:username::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:cookstemma/${ENVIRONMENT}/database:username::"
         },
         {
           "name": "DB_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:pairing-planet/${ENVIRONMENT}/database:password::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:cookstemma/${ENVIRONMENT}/database:password::"
         },
         {
           "name": "JWT_SECRET_KEY",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:pairing-planet/${ENVIRONMENT}/jwt:secret_key::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:cookstemma/${ENVIRONMENT}/jwt:secret_key::"
         },
         {
           "name": "GOOGLE_CLIENT_ID",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:pairing-planet/${ENVIRONMENT}/oauth:google_client_id::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:cookstemma/${ENVIRONMENT}/oauth:google_client_id::"
         },
         {
           "name": "GOOGLE_CLIENT_SECRET",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:pairing-planet/${ENVIRONMENT}/oauth:google_client_secret::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:cookstemma/${ENVIRONMENT}/oauth:google_client_secret::"
         },
         {
           "name": "ENCRYPTION_KEY",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:pairing-planet/${ENVIRONMENT}/encryption:key::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:cookstemma/${ENVIRONMENT}/encryption:key::"
         },
         {
           "name": "S3_ACCESS_KEY",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:pairing-planet/${ENVIRONMENT}/s3:access_key::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:cookstemma/${ENVIRONMENT}/s3:access_key::"
         },
         {
           "name": "S3_SECRET_KEY",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:pairing-planet/${ENVIRONMENT}/s3:secret_key::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:cookstemma/${ENVIRONMENT}/s3:secret_key::"
         },
         {
           "name": "S3_BUCKET",
-          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:pairing-planet/${ENVIRONMENT}/s3:bucket::"
+          "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:cookstemma/${ENVIRONMENT}/s3:bucket::"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/pairing-planet-${ENVIRONMENT}",
+          "awslogs-group": "/ecs/cookstemma-${ENVIRONMENT}",
           "awslogs-region": "${AWS_REGION}",
           "awslogs-stream-prefix": "ecs"
         }

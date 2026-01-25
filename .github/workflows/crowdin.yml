@@ -1,0 +1,48 @@
+name: Crowdin Sync
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'frontend_web/messages/en.json'
+  workflow_dispatch:
+
+jobs:
+  sync-with-crowdin:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload sources to Crowdin
+        uses: crowdin/github-action@v2
+        with:
+          upload_sources: true
+          upload_translations: false
+          download_translations: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+      - name: Download translations from Crowdin
+        uses: crowdin/github-action@v2
+        continue-on-error: true  # Don't fail if no translations yet
+        with:
+          upload_sources: false
+          upload_translations: false
+          download_translations: true
+          localization_branch_name: l10n_crowdin_translations
+          create_pull_request: true
+          pull_request_title: 'chore(i18n): sync translations from Crowdin'
+          pull_request_body: |
+            New translations synced from [Crowdin](https://crowdin.com).
+
+            Please review and merge.
+          pull_request_base_branch_name: dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

@@ -24,8 +24,8 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
-        format_sql: false
-        show_sql: false
+        format_sql: true
+        show_sql: true
 
   # MinIO (S3) 설정
   cloud:
@@ -48,6 +48,9 @@ spring:
     enabled: true
     validate-on-migrate: false
     baseline-on-migrate: false
+    locations: 
+      - classpath:db/migration
+      - classpath:db/testdata
 
   sql:
     init:
@@ -56,7 +59,7 @@ spring:
 logging:
   level:
     root: INFO
-    com.pairingplanet: DEBUG
+    com.cookstemma: DEBUG
     # 추가: 어떤 URL이 어떤 Controller 메서드에 연결되어 있는지(Mapping) 보여줍니다.
     org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: DEBUG
     # 추가: HTTP 요청(Request)과 응답(Response)의 전체적인 흐름을 보여줍니다.
@@ -77,15 +80,25 @@ security:
 
 internal:
   api:
-    key: pairing-planet-bot-dev-key
+    key: cookstemma-bot-dev-key
 
 file:
   upload:
-    bucket: pairing-planet-local # MinIO에 생성될 버킷 이름
-    url-prefix: http://10.0.2.2:9000/${file.upload.bucket}
+    bucket: cookstemma-local # MinIO에 생성될 버킷 이름
+    url-prefix: http://localhost:9000/${file.upload.bucket}
 
 minio:
   endpoint: http://localhost:9000
   access-key: minioadmin
   secret-key: minioadmin
-  bucket-name: pairing-planet-local
+  bucket-name: cookstemma-local
+
+# Cookie settings for development (HTTP, not HTTPS)
+app:
+  cookie:
+    secure: false
+
+# Sentry disabled in local development
+sentry:
+  dsn: ""
+  enabled: false

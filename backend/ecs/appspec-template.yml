@@ -9,7 +9,7 @@ Resources:
       Properties:
         TaskDefinition: "<TASK_DEFINITION_ARN>"
         LoadBalancerInfo:
-          ContainerName: "pairing-planet-${ENVIRONMENT}"
+          ContainerName: "cookstemma-${ENVIRONMENT}"
           ContainerPort: 4000
         # Optional: Platform version (defaults to LATEST)
         # PlatformVersion: "1.4.0"

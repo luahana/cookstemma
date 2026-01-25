@@ -1,0 +1,213 @@
+package com.cookstemma.cookstemma.util;
+
+import java.util.Map;
+
+/**
+ * Utility class for locale-based content resolution.
+ */
+public final class LocaleUtils {
+
+    private LocaleUtils() {}
+
+    /**
+     * Default locale when none is specified.
+     */
+    public static final String DEFAULT_LOCALE = "en-US";
+
+    /**
+     * Mapping from short locale codes to BCP47 format.
+     * All 20 supported languages.
+     */
+    private static final Map<String, String> SHORT_TO_BCP47 = Map.ofEntries(
+            Map.entry("en", "en-US"),
+            Map.entry("zh", "zh-CN"),
+            Map.entry("es", "es-ES"),
+            Map.entry("ja", "ja-JP"),
+            Map.entry("de", "de-DE"),
+            Map.entry("fr", "fr-FR"),
+            Map.entry("pt", "pt-BR"),
+            Map.entry("ko", "ko-KR"),
+            Map.entry("it", "it-IT"),
+            Map.entry("ar", "ar-SA"),
+            Map.entry("ru", "ru-RU"),
+            Map.entry("id", "id-ID"),
+            Map.entry("vi", "vi-VN"),
+            Map.entry("hi", "hi-IN"),
+            Map.entry("th", "th-TH"),
+            Map.entry("pl", "pl-PL"),
+            Map.entry("tr", "tr-TR"),
+            Map.entry("nl", "nl-NL"),
+            Map.entry("sv", "sv-SE"),
+            Map.entry("fa", "fa-IR")
+    );
+
+    /**
+     * Convert a locale code to BCP47 format.
+     * If already BCP47, returns as-is. If short code, converts to BCP47.
+     *
+     * @param locale The locale code (e.g., "ko", "ko-KR", "en_US")
+     * @return BCP47 format locale (e.g., "ko-KR", "en-US")
+     */
+    public static String toBcp47(String locale) {
+        if (locale == null || locale.isBlank()) {
+            return DEFAULT_LOCALE;
+        }
+
+        String normalized = normalizeLocale(locale);
+
+        // If already BCP47 format (contains dash), return as-is
+        if (normalized.contains("-")) {
+            return normalized;
+        }
+
+        // Convert short code to BCP47
+        String lower = normalized.toLowerCase();
+        return SHORT_TO_BCP47.getOrDefault(lower, lower + "-" + lower.toUpperCase());
+    }
+
+    /**
+     * Get a localized value from a translations map.
+     * Fallback order: requested locale → language-only match → default locale (en-US) → English variants → fallback value → first available → null.
+     *
+     * @param translations Map of locale code to translated value
+     * @param locale       Requested locale (e.g., "ko-KR", "en-US")
+     * @param fallback     Fallback value if no translation found
+     * @return Localized value or fallback
+     */
+    public static String getLocalizedValue(Map<String, String> translations, String locale, String fallback) {
+        if (translations == null || translations.isEmpty()) {
+            return fallback;
+        }
+
+        // Normalize locale (e.g., "ko_KR" -> "ko-KR")
+        String normalizedLocale = normalizeLocale(locale);
+
+        // 1. Try exact locale match ONLY for BCP47 format locales (e.g., "ko-KR")
+        // For short codes (e.g., "ko"), skip to language fallback which prefers BCP47 keys
+        if (normalizedLocale != null && normalizedLocale.contains("-") && translations.containsKey(normalizedLocale)) {
+            return translations.get(normalizedLocale);
+        }
+
+        // 2. Try language-only match (e.g., "ko" matches "ko-KR", or "ko-KR" matches "ko")
+        // IMPORTANT: Prefer BCP47 keys (e.g., "ko-KR") over short keys (e.g., "ko") for consistency.
+        // This ensures that when both "ko-KR" and "ko" exist with different values,
+        // we always return the BCP47 value regardless of which locale was requested.
+        if (normalizedLocale != null) {
+            String languageOnly = normalizedLocale.contains("-")
+                    ? normalizedLocale.split("-")[0]
+                    : normalizedLocale;
+
+            String bcp47Match = null;
+            String shortMatch = null;
+
+            for (Map.Entry<String, String> entry : translations.entrySet()) {
+                String key = entry.getKey();
+                String keyLang = key.contains("-") ? key.split("-")[0] : key;
+
+                if (keyLang.equalsIgnoreCase(languageOnly)) {
+                    if (key.contains("-")) {
+                        // BCP47 format (e.g., "ko-KR") - prefer this
+                        bcp47Match = entry.getValue();
+                    } else if (shortMatch == null) {
+                        // Short format (e.g., "ko") - fallback only
+                        shortMatch = entry.getValue();
+                    }
+                }
+            }
+
+            // Return BCP47 match if available, otherwise short match
+            if (bcp47Match != null) {
+                return bcp47Match;
+            }
+            if (shortMatch != null) {
+                return shortMatch;
+            }
+        }
+
+        // 3. Try default locale (en-US)
+        if (translations.containsKey(DEFAULT_LOCALE)) {
+            return translations.get(DEFAULT_LOCALE);
+        }
+
+        // 4. Try English variants
+        for (Map.Entry<String, String> entry : translations.entrySet()) {
+            if (entry.getKey().startsWith("en")) {
+                return entry.getValue();
+            }
+        }
+
+        // 5. Return fallback if provided
+        if (fallback != null) {
+            return fallback;
+        }
+
+        // 6. Return first available translation
+        return translations.values().stream().findFirst().orElse(null);
+    }
+
+    /**
+     * Get a localized value from a translations map (without fallback).
+     * Fallback chain: requestedLocale → "en" → first available → null
+     *
+     * @param translations Map of locale codes to translated values
+     * @param locale       Requested locale code (e.g., "ko-KR", "ja", "en")
+     * @return Localized value or null if map is empty
+     */
+    public static String getLocalizedValue(Map<String, String> translations, String locale) {
+        return getLocalizedValue(translations, locale, null);
+    }
+
+    /**
+     * Normalize locale format (e.g., "ko_KR" → "ko-KR").
+     */
+    public static String normalizeLocale(String locale) {
+        if (locale == null || locale.isBlank()) {
+            return DEFAULT_LOCALE;
+        }
+        return locale.replace("_", "-");
+    }
+
+    /**
+     * Convert Spring Locale to locale code string.
+     */
+    public static String toLocaleCode(java.util.Locale locale) {
+        if (locale == null) {
+            return DEFAULT_LOCALE;
+        }
+        String language = locale.getLanguage();
+        String country = locale.getCountry();
+        if (country == null || country.isBlank()) {
+            return language;
+        }
+        return language + "-" + country;
+    }
+
+    /**
+     * Extract the language code from a full locale (e.g., "ko-KR" → "ko").
+     *
+     * @param locale Full locale string
+     * @return Language code only
+     */
+    public static String getLanguageCode(String locale) {
+        if (locale == null) {
+            return null;
+        }
+        int dashIndex = locale.indexOf('-');
+        return dashIndex > 0 ? locale.substring(0, dashIndex) : locale;
+    }
+
+    /**
+     * Convert any locale format to 2-letter language code for use as translation map keys.
+     * This ensures consistent key format across all translation maps.
+     *
+     * @param locale Locale in any format (e.g., "ko", "ko-KR", "ko_KR")
+     * @return 2-letter language code (e.g., "ko"), defaults to "en" if null/blank
+     */
+    public static String toLanguageKey(String locale) {
+        if (locale == null || locale.isBlank()) {
+            return "en";
+        }
+        String normalized = normalizeLocale(locale);
+        return getLanguageCode(normalized);
+    }
+}

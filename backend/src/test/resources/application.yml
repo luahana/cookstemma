@@ -47,9 +47,12 @@ file:
 logging:
   level:
     root: WARN
-    com.pairingplanet: DEBUG
+    com.cookstemma: DEBUG
     org.testcontainers: INFO
 
 internal:
   api:
     key: test-internal-api-key
+
+bot:
+  internal-secret: test-bot-internal-secret

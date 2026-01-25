@@ -1,6 +1,11 @@
 # ALB Module
 # Creates Application Load Balancer for staging/prod environments
 
+locals {
+  # Combine allowed_cidr_blocks with vpc_cidr for internal service communication
+  all_allowed_cidrs = var.vpc_cidr != "" ? distinct(concat(var.allowed_cidr_blocks, [var.vpc_cidr])) : var.allowed_cidr_blocks
+}
+
 # Security Group for ALB
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-${var.environment}-alb-sg"
@@ -11,16 +16,16 @@ resource "aws_security_group" "alb" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTP"
+    cidr_blocks = local.all_allowed_cidrs
+    description = "HTTP from allowed CIDRs"
   }
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS"
+    cidr_blocks = local.all_allowed_cidrs
+    description = "HTTPS from allowed CIDRs"
   }
 
   egress {
@@ -33,6 +38,18 @@ resource "aws_security_group" "alb" {
   tags = {
     Name = "${var.project_name}-${var.environment}-alb-sg"
   }
+}
+
+# Additional ingress rules for security group-based access (internal services)
+resource "aws_security_group_rule" "alb_ingress_from_sg_https" {
+  count                    = length(var.allowed_security_group_ids)
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.alb.id
+  source_security_group_id = var.allowed_security_group_ids[count.index]
+  description              = "HTTPS from internal services"
 }
 
 # Application Load Balancer
@@ -104,19 +121,108 @@ resource "aws_lb_target_group" "green" {
   }
 }
 
-# HTTP Listener (redirects to HTTPS)
+# Target Group for Frontend (Next.js)
+resource "aws_lb_target_group" "web" {
+  count = var.enable_web ? 1 : 0
+
+  name        = "${var.project_name}-${var.environment}-tg-web"
+  port        = var.web_port
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
+
+  health_check {
+    enabled             = true
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    timeout             = 5
+    interval            = 30
+    path                = var.web_health_check_path
+    matcher             = "200,307"  # 307 for Next.js i18n redirects
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-tg-web"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# HTTP Listener - forwards to target group if no cert, redirects to HTTPS if cert exists
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = 80
   protocol          = "HTTP"
 
-  default_action {
-    type = "redirect"
+  # When no certificate and web enabled, default to web
+  dynamic "default_action" {
+    for_each = var.certificate_arn == null && var.enable_web ? [1] : []
+    content {
+      type             = "forward"
+      target_group_arn = aws_lb_target_group.web[0].arn
+    }
+  }
 
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
+  # When no certificate and no web, forward to backend
+  dynamic "default_action" {
+    for_each = var.certificate_arn == null && !var.enable_web ? [1] : []
+    content {
+      type             = "forward"
+      target_group_arn = aws_lb_target_group.blue.arn
+    }
+  }
+
+  # When certificate exists, redirect HTTP to HTTPS
+  dynamic "default_action" {
+    for_each = var.certificate_arn != null ? [1] : []
+    content {
+      type = "redirect"
+
+      redirect {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+  }
+}
+
+# Listener Rule for API paths (when web is enabled, route /api/* to backend)
+resource "aws_lb_listener_rule" "api_rule" {
+  count = var.enable_web && var.certificate_arn == null ? 1 : 0
+
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.blue.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/api/*"]
+    }
+  }
+}
+
+# Listener Rule for Actuator paths (when web is enabled, route /actuator/* to backend)
+resource "aws_lb_listener_rule" "actuator_rule" {
+  count = var.enable_web && var.certificate_arn == null ? 1 : 0
+
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 101
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.blue.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/actuator/*"]
     }
   }
 }
@@ -131,13 +237,52 @@ resource "aws_lb_listener" "https" {
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
   certificate_arn   = var.certificate_arn
 
+  # When web is enabled, default to web; otherwise default to backend
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.blue.arn
+    target_group_arn = var.enable_web ? aws_lb_target_group.web[0].arn : aws_lb_target_group.blue.arn
   }
 
   lifecycle {
     ignore_changes = [default_action]
+  }
+}
+
+# HTTPS Listener Rule for API paths (route /api/* to backend)
+resource "aws_lb_listener_rule" "https_api_rule" {
+  count = var.certificate_arn != null && var.enable_web ? 1 : 0
+
+  listener_arn = aws_lb_listener.https[0].arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.blue.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/api/*"]
+    }
+  }
+}
+
+# HTTPS Listener Rule for Actuator paths (route /actuator/* to backend)
+resource "aws_lb_listener_rule" "https_actuator_rule" {
+  count = var.certificate_arn != null && var.enable_web ? 1 : 0
+
+  listener_arn = aws_lb_listener.https[0].arn
+  priority     = 101
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.blue.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/actuator/*"]
+    }
   }
 }
 
