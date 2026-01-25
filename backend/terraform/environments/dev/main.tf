@@ -233,8 +233,8 @@ module "rds" {
   project_name            = var.project_name
   environment             = var.environment
   vpc_id                  = module.vpc.vpc_id
-  subnet_ids              = module.vpc.private_subnet_ids  # Private subnets (more secure)
-  publicly_accessible     = false                          # Not publicly accessible
+  subnet_ids              = module.vpc.private_subnet_ids # Private subnets (more secure)
+  publicly_accessible     = false                         # Not publicly accessible
   allowed_security_groups = [module.ecs.security_group_id, aws_security_group.lambda_translation.id, aws_security_group.lambda_suggestion_verifier.id, aws_security_group.lambda_keyword_generator.id]
 
   instance_class          = "db.t3.micro"
@@ -249,6 +249,7 @@ module "rds" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+  enable_alarms       = false
 }
 
 # Secrets Module
@@ -312,6 +313,7 @@ module "alb" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+  enable_alarms       = false
 }
 
 # ECS Module - With ALB for stable DNS
@@ -328,7 +330,7 @@ module "ecs" {
   task_cpu         = 512
   task_memory      = 2048
   desired_count    = 1
-  assign_public_ip = true # Still need public IP since no NAT gateway
+  assign_public_ip = true    # Still need public IP since no NAT gateway
   cpu_architecture = "ARM64" # Graviton for 20% cost savings
 
   # ALB configuration
@@ -364,6 +366,7 @@ module "ecs" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+  enable_alarms       = false
 }
 
 # ECS Web Module - Next.js application
@@ -396,6 +399,7 @@ module "ecs_web" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+  enable_alarms       = false
 }
 
 # Lambda Translation Module - Gemini-powered content translation
@@ -423,13 +427,14 @@ module "lambda_translation" {
   schedule_expression            = "rate(5 minutes)"
   memory_size                    = 512
   timeout                        = 600 # 10 minutes to handle large recipe batches
-  reserved_concurrent_executions = -1 # No reserved concurrency (account quota limit)
+  reserved_concurrent_executions = -1  # No reserved concurrency (account quota limit)
 
   # CDN URL for content moderation (image validation)
   cdn_url_prefix = "https://drms7t3elqlu.cloudfront.net"
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+  enable_alarms       = false
 
   # x86_64 for faster CI builds (no QEMU emulation)
   architecture = "arm64"
@@ -454,6 +459,7 @@ module "lambda_image_processing" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+  enable_alarms       = false
 
   # x86_64 for faster CI builds (no QEMU emulation)
   architecture = "arm64"
@@ -488,6 +494,7 @@ module "lambda_suggestion_verifier" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+  enable_alarms       = false
 }
 
 # Lambda Keyword Generator Module - AI-powered multilingual keyword generation
@@ -519,6 +526,7 @@ module "lambda_keyword_generator" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+  enable_alarms       = false
 }
 
 # CloudFront CDN Module - Image delivery with WebP auto-selection
