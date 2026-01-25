@@ -44,6 +44,8 @@ export const NavigationLink = forwardRef<HTMLAnchorElement, LinkProps>(
           // Handle other paths: /en/recipes should match href="/recipes"
           const isSamePath = pathname === targetPath || pathname.endsWith(targetPath);
           if (isRootPath || isSamePath) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
           }
         }
