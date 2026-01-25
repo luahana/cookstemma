@@ -165,7 +165,7 @@ export default function ProfileEditPage() {
           username: profile.username || '',
           birthday: profile.birthDate || '',
           gender: profile.gender || '',
-          locale: bcp47ToShortCode(profile.locale) || '',  // Convert BCP47 to short code
+          locale: bcp47ToShortCode(profile.locale || '') || '',  // Convert BCP47 to short code
           foodStyle: profile.defaultCookingStyle || 'international',
           measurementPref: profile.measurementPreference || 'ORIGINAL',
           bio: profile.bio || '',
