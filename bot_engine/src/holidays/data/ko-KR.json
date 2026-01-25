@@ -1,0 +1,106 @@
+{
+  "locale": "ko-KR",
+  "holidays": [
+    {
+      "key": "lunar_new_year",
+      "name": {"ko": "설날", "en": "Lunar New Year"},
+      "date_rule": "lunar:01-01",
+      "relevance_days_before": 10,
+      "relevance_days_after": 3,
+      "priority": 100,
+      "foods": [
+        {"name": {"ko": "떡국", "en": "Tteokguk"}, "significance": "Rice cake soup symbolizing gaining a year"},
+        {"name": {"ko": "만두", "en": "Mandu"}, "significance": "Dumplings for prosperity"},
+        {"name": {"ko": "전", "en": "Jeon"}, "significance": "Pan-fried dishes for family gatherings"},
+        {"name": {"ko": "갈비찜", "en": "Galbi-jjim"}, "significance": "Braised short ribs for celebrations"},
+        {"name": {"ko": "잡채", "en": "Japchae"}, "significance": "Glass noodles for longevity"}
+      ]
+    },
+    {
+      "key": "chuseok",
+      "name": {"ko": "추석", "en": "Chuseok"},
+      "date_rule": "lunar:08-15",
+      "relevance_days_before": 10,
+      "relevance_days_after": 3,
+      "priority": 100,
+      "foods": [
+        {"name": {"ko": "송편", "en": "Songpyeon"}, "significance": "Half-moon rice cakes for harvest gratitude"},
+        {"name": {"ko": "토란탕", "en": "Toran-tang"}, "significance": "Taro soup for autumn harvest"},
+        {"name": {"ko": "잡채", "en": "Japchae"}, "significance": "Glass noodles for family gatherings"},
+        {"name": {"ko": "전", "en": "Jeon"}, "significance": "Pan-fried dishes for ancestral rites"}
+      ]
+    },
+    {
+      "key": "jeongwol_daeboreum",
+      "name": {"ko": "정월대보름", "en": "Jeongwol Daeboreum"},
+      "date_rule": "lunar:01-15",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"ko": "오곡밥", "en": "Ogokbap"}, "significance": "Five-grain rice for health"},
+        {"name": {"ko": "부럼", "en": "Bureom"}, "significance": "Nuts cracked for luck"},
+        {"name": {"ko": "나물", "en": "Namul"}, "significance": "Seasoned vegetables for wellness"}
+      ]
+    },
+    {
+      "key": "winter_solstice",
+      "name": {"ko": "동지", "en": "Winter Solstice"},
+      "date_rule": "solstice:winter",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 60,
+      "foods": [
+        {"name": {"ko": "팥죽", "en": "Patjuk"}, "significance": "Red bean porridge to ward off evil spirits"}
+      ]
+    },
+    {
+      "key": "sambok",
+      "name": {"ko": "삼복", "en": "Sambok"},
+      "date_rule": "sambok",
+      "relevance_days_before": 5,
+      "relevance_days_after": 20,
+      "priority": 60,
+      "foods": [
+        {"name": {"ko": "삼계탕", "en": "Samgyetang"}, "significance": "Ginseng chicken soup for summer stamina"},
+        {"name": {"ko": "추어탕", "en": "Chueotang"}, "significance": "Loach soup for energy"},
+        {"name": {"ko": "콩국수", "en": "Kongguksu"}, "significance": "Cold soy milk noodles for cooling"}
+      ]
+    },
+    {
+      "key": "christmas",
+      "name": {"ko": "크리스마스", "en": "Christmas"},
+      "date_rule": "fixed:12-25",
+      "relevance_days_before": 14,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"ko": "치킨", "en": "Fried Chicken"}, "significance": "Korean Christmas tradition"},
+        {"name": {"ko": "크리스마스 케이크", "en": "Christmas Cake"}, "significance": "Holiday celebration cake"}
+      ]
+    },
+    {
+      "key": "pepero_day",
+      "name": {"ko": "빼빼로데이", "en": "Pepero Day"},
+      "date_rule": "fixed:11-11",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 40,
+      "foods": [
+        {"name": {"ko": "빼빼로", "en": "Pepero"}, "significance": "Stick-shaped snacks for sharing love"}
+      ]
+    },
+    {
+      "key": "korean_thanksgiving",
+      "name": {"ko": "한가위", "en": "Hangawi"},
+      "date_rule": "lunar:08-15",
+      "relevance_days_before": 10,
+      "relevance_days_after": 3,
+      "priority": 90,
+      "foods": [
+        {"name": {"ko": "송편", "en": "Songpyeon"}, "significance": "Half-moon rice cakes"},
+        {"name": {"ko": "배", "en": "Bae"}, "significance": "Korean pear for autumn"}
+      ]
+    }
+  ]
+}

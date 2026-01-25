@@ -1,0 +1,94 @@
+{
+  "locale": "it-IT",
+  "holidays": [
+    {
+      "key": "new_year",
+      "name": {"it": "Capodanno", "en": "New Year's Day"},
+      "date_rule": "fixed:01-01",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"it": "Cotechino con Lenticchie", "en": "Cotechino with Lentils"}, "significance": "Lentils for prosperity"},
+        {"name": {"it": "Zampone", "en": "Stuffed Pig's Trotter"}, "significance": "Traditional New Year's main"}
+      ]
+    },
+    {
+      "key": "epiphany",
+      "name": {"it": "Epifania", "en": "Epiphany"},
+      "date_rule": "fixed:01-06",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"it": "Befana", "en": "Befana Sweets"}, "significance": "Sweets for the Befana"},
+        {"name": {"it": "Carbone Dolce", "en": "Sweet Coal"}, "significance": "Sugar coal candy"}
+      ]
+    },
+    {
+      "key": "carnival",
+      "name": {"it": "Carnevale", "en": "Carnival"},
+      "date_rule": "easter:-47",
+      "relevance_days_before": 14,
+      "relevance_days_after": 1,
+      "priority": 75,
+      "foods": [
+        {"name": {"it": "Frappe", "en": "Angel Wings"}, "significance": "Crispy fried pastry"},
+        {"name": {"it": "Castagnole", "en": "Castagnole"}, "significance": "Fried dough balls"},
+        {"name": {"it": "Chiacchiere", "en": "Chiacchiere"}, "significance": "Ribbon-shaped fritters"}
+      ]
+    },
+    {
+      "key": "easter",
+      "name": {"it": "Pasqua", "en": "Easter"},
+      "date_rule": "easter:0",
+      "relevance_days_before": 10,
+      "relevance_days_after": 2,
+      "priority": 100,
+      "foods": [
+        {"name": {"it": "Colomba Pasquale", "en": "Easter Dove Cake"}, "significance": "Dove-shaped sweet bread"},
+        {"name": {"it": "Agnello", "en": "Lamb"}, "significance": "Traditional Easter main"},
+        {"name": {"it": "Uova di Pasqua", "en": "Easter Eggs"}, "significance": "Chocolate eggs with surprises"},
+        {"name": {"it": "Pastiera Napoletana", "en": "Neapolitan Pastiera"}, "significance": "Ricotta wheat pie"}
+      ]
+    },
+    {
+      "key": "ferragosto",
+      "name": {"it": "Ferragosto", "en": "Assumption Day"},
+      "date_rule": "fixed:08-15",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"it": "Grigliata", "en": "Mixed Grill"}, "significance": "Summer barbecue tradition"},
+        {"name": {"it": "Insalata di Riso", "en": "Rice Salad"}, "significance": "Cold summer dish"}
+      ]
+    },
+    {
+      "key": "christmas",
+      "name": {"it": "Natale", "en": "Christmas"},
+      "date_rule": "fixed:12-25",
+      "relevance_days_before": 21,
+      "relevance_days_after": 1,
+      "priority": 100,
+      "foods": [
+        {"name": {"it": "Panettone", "en": "Panettone"}, "significance": "Milanese Christmas bread"},
+        {"name": {"it": "Pandoro", "en": "Pandoro"}, "significance": "Veronese star-shaped cake"},
+        {"name": {"it": "Capitone", "en": "Eel"}, "significance": "Christmas Eve fish tradition"},
+        {"name": {"it": "Tortellini in Brodo", "en": "Tortellini in Broth"}, "significance": "Christmas first course"}
+      ]
+    },
+    {
+      "key": "christmas_eve",
+      "name": {"it": "Vigilia di Natale", "en": "Christmas Eve"},
+      "date_rule": "fixed:12-24",
+      "relevance_days_before": 5,
+      "relevance_days_after": 0,
+      "priority": 90,
+      "foods": [
+        {"name": {"it": "Baccalà", "en": "Salt Cod"}, "significance": "Christmas Eve fish"},
+        {"name": {"it": "Insalata di Rinforzo", "en": "Reinforcement Salad"}, "significance": "Neapolitan cauliflower salad"}
+      ]
+    }
+  ]
+}

@@ -9,3 +9,5 @@ structlog>=23.0.0
 pillow>=10.0.0
 aiofiles>=23.0.0
 google-genai>=1.0.0
+korean-lunar-calendar>=0.3.1
+lunardate>=0.2.2

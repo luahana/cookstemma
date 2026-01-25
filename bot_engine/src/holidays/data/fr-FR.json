@@ -1,0 +1,90 @@
+{
+  "locale": "fr-FR",
+  "holidays": [
+    {
+      "key": "new_year",
+      "name": {"fr": "Jour de l'An", "en": "New Year's Day"},
+      "date_rule": "fixed:01-01",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"fr": "Foie Gras", "en": "Foie Gras"}, "significance": "Celebration delicacy"},
+        {"name": {"fr": "Huîtres", "en": "Oysters"}, "significance": "New Year's seafood"}
+      ]
+    },
+    {
+      "key": "epiphany",
+      "name": {"fr": "Épiphanie", "en": "Epiphany"},
+      "date_rule": "fixed:01-06",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 80,
+      "foods": [
+        {"name": {"fr": "Galette des Rois", "en": "King Cake"}, "significance": "Almond pastry with hidden charm"}
+      ]
+    },
+    {
+      "key": "candlemas",
+      "name": {"fr": "Chandeleur", "en": "Candlemas"},
+      "date_rule": "fixed:02-02",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 80,
+      "foods": [
+        {"name": {"fr": "Crêpes", "en": "Crêpes"}, "significance": "Traditional crêpe day"}
+      ]
+    },
+    {
+      "key": "easter",
+      "name": {"fr": "Pâques", "en": "Easter"},
+      "date_rule": "easter:0",
+      "relevance_days_before": 10,
+      "relevance_days_after": 2,
+      "priority": 90,
+      "foods": [
+        {"name": {"fr": "Gigot d'Agneau", "en": "Leg of Lamb"}, "significance": "Traditional Easter main"},
+        {"name": {"fr": "Chocolats de Pâques", "en": "Easter Chocolates"}, "significance": "Chocolate eggs and hens"}
+      ]
+    },
+    {
+      "key": "bastille_day",
+      "name": {"fr": "Fête Nationale", "en": "Bastille Day"},
+      "date_rule": "fixed:07-14",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 80,
+      "foods": [
+        {"name": {"fr": "Pique-nique", "en": "Picnic"}, "significance": "Outdoor celebration meals"},
+        {"name": {"fr": "Grillades", "en": "Grilled Meats"}, "significance": "Summer barbecue"}
+      ]
+    },
+    {
+      "key": "christmas",
+      "name": {"fr": "Noël", "en": "Christmas"},
+      "date_rule": "fixed:12-25",
+      "relevance_days_before": 21,
+      "relevance_days_after": 1,
+      "priority": 100,
+      "foods": [
+        {"name": {"fr": "Bûche de Noël", "en": "Yule Log"}, "significance": "Christmas log cake"},
+        {"name": {"fr": "Foie Gras", "en": "Foie Gras"}, "significance": "Christmas delicacy"},
+        {"name": {"fr": "Huîtres", "en": "Oysters"}, "significance": "Christmas Eve seafood"},
+        {"name": {"fr": "Dinde aux Marrons", "en": "Turkey with Chestnuts"}, "significance": "Christmas main dish"},
+        {"name": {"fr": "Champagne", "en": "Champagne"}, "significance": "Celebration drink"}
+      ]
+    },
+    {
+      "key": "christmas_eve",
+      "name": {"fr": "Réveillon de Noël", "en": "Christmas Eve"},
+      "date_rule": "fixed:12-24",
+      "relevance_days_before": 5,
+      "relevance_days_after": 0,
+      "priority": 90,
+      "foods": [
+        {"name": {"fr": "Saumon Fumé", "en": "Smoked Salmon"}, "significance": "Réveillon appetizer"},
+        {"name": {"fr": "Chapon", "en": "Capon"}, "significance": "Alternative to turkey"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "locale": "zh-CN",
+  "holidays": [
+    {
+      "key": "spring_festival",
+      "name": {"zh": "春节", "en": "Chinese New Year"},
+      "date_rule": "lunar:01-01",
+      "relevance_days_before": 14,
+      "relevance_days_after": 15,
+      "priority": 100,
+      "foods": [
+        {"name": {"zh": "饺子", "en": "Dumplings"}, "significance": "Shape resembles ancient gold ingots for wealth"},
+        {"name": {"zh": "鱼", "en": "Fish"}, "significance": "Homophone for surplus (余)"},
+        {"name": {"zh": "年糕", "en": "Nian Gao"}, "significance": "Rice cake for higher achievements each year"},
+        {"name": {"zh": "汤圆", "en": "Tangyuan"}, "significance": "Sweet rice balls for family reunion"},
+        {"name": {"zh": "春卷", "en": "Spring Rolls"}, "significance": "Golden color represents wealth"}
+      ]
+    },
+    {
+      "key": "lantern_festival",
+      "name": {"zh": "元宵节", "en": "Lantern Festival"},
+      "date_rule": "lunar:01-15",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"zh": "汤圆", "en": "Tangyuan"}, "significance": "Sweet rice balls for reunion"},
+        {"name": {"zh": "元宵", "en": "Yuanxiao"}, "significance": "Similar to tangyuan, rolled instead of wrapped"}
+      ]
+    },
+    {
+      "key": "qingming",
+      "name": {"zh": "清明节", "en": "Qingming Festival"},
+      "date_rule": "fixed:04-05",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 60,
+      "foods": [
+        {"name": {"zh": "青团", "en": "Qingtuan"}, "significance": "Green rice balls with sweet filling"},
+        {"name": {"zh": "润饼", "en": "Runbing"}, "significance": "Spring rolls for the season"}
+      ]
+    },
+    {
+      "key": "dragon_boat",
+      "name": {"zh": "端午节", "en": "Dragon Boat Festival"},
+      "date_rule": "lunar:05-05",
+      "relevance_days_before": 10,
+      "relevance_days_after": 1,
+      "priority": 90,
+      "foods": [
+        {"name": {"zh": "粽子", "en": "Zongzi"}, "significance": "Bamboo leaf wrapped sticky rice"},
+        {"name": {"zh": "咸蛋", "en": "Salted Duck Eggs"}, "significance": "Traditional accompaniment"}
+      ]
+    },
+    {
+      "key": "mid_autumn",
+      "name": {"zh": "中秋节", "en": "Mid-Autumn Festival"},
+      "date_rule": "lunar:08-15",
+      "relevance_days_before": 14,
+      "relevance_days_after": 1,
+      "priority": 100,
+      "foods": [
+        {"name": {"zh": "月饼", "en": "Mooncakes"}, "significance": "Round shape symbolizes reunion"},
+        {"name": {"zh": "柚子", "en": "Pomelo"}, "significance": "Homophone for blessing"},
+        {"name": {"zh": "芋头", "en": "Taro"}, "significance": "Harvest celebration"}
+      ]
+    },
+    {
+      "key": "winter_solstice",
+      "name": {"zh": "冬至", "en": "Winter Solstice"},
+      "date_rule": "solstice:winter",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"zh": "汤圆", "en": "Tangyuan"}, "significance": "Sweet rice balls for family warmth"},
+        {"name": {"zh": "饺子", "en": "Dumplings"}, "significance": "Northern tradition"}
+      ]
+    },
+    {
+      "key": "double_ninth",
+      "name": {"zh": "重阳节", "en": "Double Ninth Festival"},
+      "date_rule": "lunar:09-09",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 50,
+      "foods": [
+        {"name": {"zh": "重阳糕", "en": "Chongyang Cake"}, "significance": "Layered cake for climbing high"},
+        {"name": {"zh": "菊花茶", "en": "Chrysanthemum Tea"}, "significance": "Seasonal flower tea"}
+      ]
+    }
+  ]
+}

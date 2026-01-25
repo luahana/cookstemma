@@ -14,6 +14,7 @@ from tenacity import (
 )
 
 from ...config import get_settings
+from ...holidays import HolidayService
 from ...personas import BotPersona
 from .prompts import CULTURAL_PREFERENCES, VARIATION_TYPE_HASHTAGS, LogPrompts, RecipePrompts
 
@@ -276,8 +277,13 @@ class TextGenerator:
         exclude_str = ", ".join(exclude or [])
         lang = persona.get_language_name()
 
+        # Get holiday context for temporal awareness
+        holiday_service = HolidayService(persona.locale)
+        holiday_context = holiday_service.build_prompt_context()
+
         system_prompt = persona.build_system_prompt()
         user_prompt = f"""Suggest {count} dish names that you would love to cook and share recipes for.
+{holiday_context}
 
 Based on your specialties ({', '.join(persona.specialties)}), suggest dishes that:
 - Match your cooking style and skill level

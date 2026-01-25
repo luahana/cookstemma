@@ -1,0 +1,71 @@
+{
+  "locale": "vi-VN",
+  "holidays": [
+    {
+      "key": "tet",
+      "name": {"vi": "Tết Nguyên Đán", "en": "Vietnamese New Year"},
+      "date_rule": "lunar:01-01",
+      "relevance_days_before": 14,
+      "relevance_days_after": 7,
+      "priority": 100,
+      "foods": [
+        {"name": {"vi": "Bánh Chưng", "en": "Banh Chung"}, "significance": "Square rice cake symbolizing Earth"},
+        {"name": {"vi": "Bánh Tét", "en": "Banh Tet"}, "significance": "Cylindrical rice cake (Southern style)"},
+        {"name": {"vi": "Thịt Kho Hột Vịt", "en": "Braised Pork with Eggs"}, "significance": "Caramelized pork with duck eggs"},
+        {"name": {"vi": "Dưa Hành", "en": "Pickled Onions"}, "significance": "Fermented onions for digestion"},
+        {"name": {"vi": "Giò Lụa", "en": "Vietnamese Ham"}, "significance": "Pork sausage for celebrations"},
+        {"name": {"vi": "Mứt Tết", "en": "Candied Fruits"}, "significance": "Sweet treats for guests"}
+      ]
+    },
+    {
+      "key": "tet_doan_ngo",
+      "name": {"vi": "Tết Đoan Ngọ", "en": "Mid-Year Festival"},
+      "date_rule": "lunar:05-05",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"vi": "Bánh Tro", "en": "Alkaline Rice Cake"}, "significance": "Cool rice cake for summer"},
+        {"name": {"vi": "Rượu Nếp", "en": "Fermented Rice"}, "significance": "Sweet fermented rice"},
+        {"name": {"vi": "Trái Cây", "en": "Fresh Fruits"}, "significance": "Seasonal fruits offering"}
+      ]
+    },
+    {
+      "key": "tet_trung_thu",
+      "name": {"vi": "Tết Trung Thu", "en": "Mid-Autumn Festival"},
+      "date_rule": "lunar:08-15",
+      "relevance_days_before": 14,
+      "relevance_days_after": 1,
+      "priority": 90,
+      "foods": [
+        {"name": {"vi": "Bánh Trung Thu", "en": "Mooncakes"}, "significance": "Round cakes for children's festival"},
+        {"name": {"vi": "Bánh Dẻo", "en": "Sticky Rice Mooncake"}, "significance": "Soft, chewy mooncake"},
+        {"name": {"vi": "Bánh Nướng", "en": "Baked Mooncake"}, "significance": "Golden baked mooncake"}
+      ]
+    },
+    {
+      "key": "vu_lan",
+      "name": {"vi": "Lễ Vu Lan", "en": "Vu Lan Festival"},
+      "date_rule": "lunar:07-15",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 60,
+      "foods": [
+        {"name": {"vi": "Chè", "en": "Sweet Soup"}, "significance": "Offerings for ancestors"},
+        {"name": {"vi": "Xôi", "en": "Sticky Rice"}, "significance": "Traditional offering"}
+      ]
+    },
+    {
+      "key": "christmas",
+      "name": {"vi": "Giáng Sinh", "en": "Christmas"},
+      "date_rule": "fixed:12-25",
+      "relevance_days_before": 14,
+      "relevance_days_after": 1,
+      "priority": 50,
+      "foods": [
+        {"name": {"vi": "Gà Quay", "en": "Roast Chicken"}, "significance": "Vietnamese Christmas tradition"},
+        {"name": {"vi": "Bánh Bông Lan", "en": "Sponge Cake"}, "significance": "Light celebration cake"}
+      ]
+    }
+  ]
+}

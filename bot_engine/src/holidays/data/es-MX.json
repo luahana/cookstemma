@@ -1,0 +1,96 @@
+{
+  "locale": "es-MX",
+  "holidays": [
+    {
+      "key": "dia_de_reyes",
+      "name": {"es": "Día de Reyes", "en": "Three Kings Day"},
+      "date_rule": "fixed:01-06",
+      "relevance_days_before": 10,
+      "relevance_days_after": 1,
+      "priority": 80,
+      "foods": [
+        {"name": {"es": "Rosca de Reyes", "en": "King's Cake"}, "significance": "Oval bread with hidden baby Jesus figurine"},
+        {"name": {"es": "Chocolate Caliente", "en": "Hot Chocolate"}, "significance": "Traditional accompaniment"}
+      ]
+    },
+    {
+      "key": "dia_de_la_candelaria",
+      "name": {"es": "Día de la Candelaria", "en": "Candlemas"},
+      "date_rule": "fixed:02-02",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"es": "Tamales", "en": "Tamales"}, "significance": "Those who found the baby in Rosca provide tamales"},
+        {"name": {"es": "Atole", "en": "Atole"}, "significance": "Corn-based hot drink"}
+      ]
+    },
+    {
+      "key": "cinco_de_mayo",
+      "name": {"es": "Cinco de Mayo", "en": "Cinco de Mayo"},
+      "date_rule": "fixed:05-05",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 60,
+      "foods": [
+        {"name": {"es": "Mole Poblano", "en": "Mole Poblano"}, "significance": "Celebration of Puebla victory"},
+        {"name": {"es": "Chiles en Nogada", "en": "Chiles en Nogada"}, "significance": "Patriotic colors dish"}
+      ]
+    },
+    {
+      "key": "dia_de_independencia",
+      "name": {"es": "Día de la Independencia", "en": "Independence Day"},
+      "date_rule": "fixed:09-16",
+      "relevance_days_before": 10,
+      "relevance_days_after": 1,
+      "priority": 90,
+      "foods": [
+        {"name": {"es": "Chiles en Nogada", "en": "Chiles en Nogada"}, "significance": "Green, white, red like Mexican flag"},
+        {"name": {"es": "Pozole", "en": "Pozole"}, "significance": "Traditional celebration soup"},
+        {"name": {"es": "Tostadas", "en": "Tostadas"}, "significance": "Crispy tortilla with toppings"},
+        {"name": {"es": "Tamales", "en": "Tamales"}, "significance": "Festive wrapped corn dish"}
+      ]
+    },
+    {
+      "key": "dia_de_muertos",
+      "name": {"es": "Día de los Muertos", "en": "Day of the Dead"},
+      "date_rule": "fixed:11-02",
+      "relevance_days_before": 10,
+      "relevance_days_after": 1,
+      "priority": 100,
+      "foods": [
+        {"name": {"es": "Pan de Muerto", "en": "Bread of the Dead"}, "significance": "Sweet bread decorated with bone shapes"},
+        {"name": {"es": "Calaveras de Azúcar", "en": "Sugar Skulls"}, "significance": "Decorative sugar skulls"},
+        {"name": {"es": "Mole Negro", "en": "Black Mole"}, "significance": "Rich, complex sauce for the occasion"},
+        {"name": {"es": "Atole", "en": "Atole"}, "significance": "Warm corn drink for offerings"}
+      ]
+    },
+    {
+      "key": "christmas",
+      "name": {"es": "Navidad", "en": "Christmas"},
+      "date_rule": "fixed:12-25",
+      "relevance_days_before": 14,
+      "relevance_days_after": 1,
+      "priority": 90,
+      "foods": [
+        {"name": {"es": "Bacalao a la Vizcaína", "en": "Basque-style Cod"}, "significance": "Traditional Christmas Eve dish"},
+        {"name": {"es": "Romeritos", "en": "Romeritos"}, "significance": "Herb dish with mole and shrimp patties"},
+        {"name": {"es": "Ponche Navideño", "en": "Christmas Punch"}, "significance": "Warm fruit punch"},
+        {"name": {"es": "Buñuelos", "en": "Buñuelos"}, "significance": "Crispy fried dough with syrup"},
+        {"name": {"es": "Tamales", "en": "Tamales"}, "significance": "Christmas tradition"}
+      ]
+    },
+    {
+      "key": "nochebuena",
+      "name": {"es": "Nochebuena", "en": "Christmas Eve"},
+      "date_rule": "fixed:12-24",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 85,
+      "foods": [
+        {"name": {"es": "Pavo", "en": "Turkey"}, "significance": "Main dish for Nochebuena dinner"},
+        {"name": {"es": "Ensalada de Nochebuena", "en": "Christmas Eve Salad"}, "significance": "Beet and apple salad"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "locale": "en-US",
+  "holidays": [
+    {
+      "key": "new_year",
+      "name": {"en": "New Year's Day"},
+      "date_rule": "fixed:01-01",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"en": "Black-Eyed Peas"}, "significance": "Southern tradition for luck"},
+        {"name": {"en": "Collard Greens"}, "significance": "Symbolizes money and prosperity"},
+        {"name": {"en": "Cornbread"}, "significance": "Golden color represents gold"}
+      ]
+    },
+    {
+      "key": "super_bowl",
+      "name": {"en": "Super Bowl Sunday"},
+      "date_rule": "nth:2-SUN-FEB",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 80,
+      "foods": [
+        {"name": {"en": "Buffalo Wings"}, "significance": "Classic game day food"},
+        {"name": {"en": "Nachos"}, "significance": "Party snack favorite"},
+        {"name": {"en": "Chili"}, "significance": "Hearty crowd-pleaser"},
+        {"name": {"en": "Guacamole"}, "significance": "Super Bowl dip essential"}
+      ]
+    },
+    {
+      "key": "valentines_day",
+      "name": {"en": "Valentine's Day"},
+      "date_rule": "fixed:02-14",
+      "relevance_days_before": 10,
+      "relevance_days_after": 1,
+      "priority": 60,
+      "foods": [
+        {"name": {"en": "Chocolate Truffles"}, "significance": "Romantic sweet treats"},
+        {"name": {"en": "Chocolate Covered Strawberries"}, "significance": "Classic Valentine's dessert"}
+      ]
+    },
+    {
+      "key": "easter",
+      "name": {"en": "Easter"},
+      "date_rule": "easter:0",
+      "relevance_days_before": 10,
+      "relevance_days_after": 1,
+      "priority": 80,
+      "foods": [
+        {"name": {"en": "Ham"}, "significance": "Traditional Easter main dish"},
+        {"name": {"en": "Lamb"}, "significance": "Symbol of spring and sacrifice"},
+        {"name": {"en": "Deviled Eggs"}, "significance": "Easter egg tradition"},
+        {"name": {"en": "Hot Cross Buns"}, "significance": "Easter bread tradition"},
+        {"name": {"en": "Carrot Cake"}, "significance": "Spring celebration dessert"}
+      ]
+    },
+    {
+      "key": "mothers_day",
+      "name": {"en": "Mother's Day"},
+      "date_rule": "nth:2-SUN-MAY",
+      "relevance_days_before": 10,
+      "relevance_days_after": 1,
+      "priority": 60,
+      "foods": [
+        {"name": {"en": "Brunch Quiche"}, "significance": "Classic brunch dish"},
+        {"name": {"en": "Eggs Benedict"}, "significance": "Special occasion breakfast"}
+      ]
+    },
+    {
+      "key": "memorial_day",
+      "name": {"en": "Memorial Day"},
+      "date_rule": "last:MON-MAY",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 60,
+      "foods": [
+        {"name": {"en": "BBQ Ribs"}, "significance": "Summer kickoff grilling"},
+        {"name": {"en": "Hamburgers"}, "significance": "American cookout classic"},
+        {"name": {"en": "Coleslaw"}, "significance": "BBQ side dish"}
+      ]
+    },
+    {
+      "key": "july_4th",
+      "name": {"en": "Fourth of July"},
+      "date_rule": "fixed:07-04",
+      "relevance_days_before": 10,
+      "relevance_days_after": 1,
+      "priority": 90,
+      "foods": [
+        {"name": {"en": "BBQ Ribs"}, "significance": "Independence Day grilling"},
+        {"name": {"en": "Hot Dogs"}, "significance": "All-American classic"},
+        {"name": {"en": "Corn on the Cob"}, "significance": "Summer favorite"},
+        {"name": {"en": "Apple Pie"}, "significance": "As American as apple pie"},
+        {"name": {"en": "Watermelon"}, "significance": "Summer celebration fruit"}
+      ]
+    },
+    {
+      "key": "labor_day",
+      "name": {"en": "Labor Day"},
+      "date_rule": "nth:1-MON-SEP",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 60,
+      "foods": [
+        {"name": {"en": "BBQ Chicken"}, "significance": "End of summer cookout"},
+        {"name": {"en": "Potato Salad"}, "significance": "Picnic side dish"}
+      ]
+    },
+    {
+      "key": "halloween",
+      "name": {"en": "Halloween"},
+      "date_rule": "fixed:10-31",
+      "relevance_days_before": 14,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"en": "Pumpkin Pie"}, "significance": "Fall harvest dessert"},
+        {"name": {"en": "Caramel Apples"}, "significance": "Classic Halloween treat"},
+        {"name": {"en": "Pumpkin Soup"}, "significance": "Seasonal comfort food"}
+      ]
+    },
+    {
+      "key": "thanksgiving",
+      "name": {"en": "Thanksgiving"},
+      "date_rule": "nth:4-THU-NOV",
+      "relevance_days_before": 14,
+      "relevance_days_after": 3,
+      "priority": 100,
+      "foods": [
+        {"name": {"en": "Roast Turkey"}, "significance": "The centerpiece of Thanksgiving"},
+        {"name": {"en": "Stuffing"}, "significance": "Classic Thanksgiving side"},
+        {"name": {"en": "Mashed Potatoes"}, "significance": "Comfort food essential"},
+        {"name": {"en": "Gravy"}, "significance": "Turkey accompaniment"},
+        {"name": {"en": "Cranberry Sauce"}, "significance": "Traditional condiment"},
+        {"name": {"en": "Pumpkin Pie"}, "significance": "Thanksgiving dessert tradition"},
+        {"name": {"en": "Green Bean Casserole"}, "significance": "Classic side dish"}
+      ]
+    },
+    {
+      "key": "christmas",
+      "name": {"en": "Christmas"},
+      "date_rule": "fixed:12-25",
+      "relevance_days_before": 21,
+      "relevance_days_after": 1,
+      "priority": 100,
+      "foods": [
+        {"name": {"en": "Ham"}, "significance": "Christmas dinner tradition"},
+        {"name": {"en": "Prime Rib"}, "significance": "Holiday roast"},
+        {"name": {"en": "Christmas Cookies"}, "significance": "Holiday baking tradition"},
+        {"name": {"en": "Eggnog"}, "significance": "Festive holiday drink"},
+        {"name": {"en": "Gingerbread"}, "significance": "Christmas baking tradition"}
+      ]
+    }
+  ]
+}

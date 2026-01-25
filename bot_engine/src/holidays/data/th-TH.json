@@ -1,0 +1,80 @@
+{
+  "locale": "th-TH",
+  "holidays": [
+    {
+      "key": "songkran",
+      "name": {"th": "สงกรานต์", "en": "Songkran"},
+      "date_rule": "fixed:04-13",
+      "relevance_days_before": 10,
+      "relevance_days_after": 3,
+      "priority": 100,
+      "foods": [
+        {"name": {"th": "ข้าวแช่", "en": "Khao Chae"}, "significance": "Chilled jasmine rice in cool water"},
+        {"name": {"th": "แกงเขียวหวาน", "en": "Green Curry"}, "significance": "Celebratory curry dish"},
+        {"name": {"th": "ปลาทู", "en": "Steamed Mackerel"}, "significance": "Traditional festival fish"}
+      ]
+    },
+    {
+      "key": "loy_krathong",
+      "name": {"th": "ลอยกระทง", "en": "Loy Krathong"},
+      "date_rule": "lunar:12-15",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 90,
+      "foods": [
+        {"name": {"th": "ข้าวเหนียวมะม่วง", "en": "Mango Sticky Rice"}, "significance": "Sweet celebration dessert"},
+        {"name": {"th": "กระทง", "en": "Krathong Snacks"}, "significance": "Festival street foods"}
+      ]
+    },
+    {
+      "key": "chinese_new_year",
+      "name": {"th": "ตรุษจีน", "en": "Chinese New Year"},
+      "date_rule": "lunar:01-01",
+      "relevance_days_before": 10,
+      "relevance_days_after": 3,
+      "priority": 80,
+      "foods": [
+        {"name": {"th": "ขนมเข่ง", "en": "Khanom Kheng"}, "significance": "Sweet sticky rice cake"},
+        {"name": {"th": "เกี๊ยว", "en": "Dumplings"}, "significance": "Chinese-Thai tradition"},
+        {"name": {"th": "ส้ม", "en": "Oranges"}, "significance": "Good luck fruit"}
+      ]
+    },
+    {
+      "key": "vegetarian_festival",
+      "name": {"th": "เทศกาลกินเจ", "en": "Vegetarian Festival"},
+      "date_rule": "lunar:09-01",
+      "relevance_days_before": 5,
+      "relevance_days_after": 9,
+      "priority": 70,
+      "foods": [
+        {"name": {"th": "อาหารเจ", "en": "Jay Food"}, "significance": "Vegetarian dishes"},
+        {"name": {"th": "ผัดเจ", "en": "Stir-fried Vegetables"}, "significance": "Festival vegetable dish"},
+        {"name": {"th": "เต้าหู้ทอด", "en": "Fried Tofu"}, "significance": "Protein substitute"}
+      ]
+    },
+    {
+      "key": "new_year",
+      "name": {"th": "ปีใหม่", "en": "New Year"},
+      "date_rule": "fixed:01-01",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"th": "ขนมชั้น", "en": "Khanom Chan"}, "significance": "Layered dessert for prosperity"},
+        {"name": {"th": "ขนมต้ม", "en": "Khanom Tom"}, "significance": "Coconut balls for good luck"}
+      ]
+    },
+    {
+      "key": "queens_birthday",
+      "name": {"th": "วันแม่แห่งชาติ", "en": "Mother's Day"},
+      "date_rule": "fixed:08-12",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 60,
+      "foods": [
+        {"name": {"th": "ข้าวผัด", "en": "Fried Rice"}, "significance": "Home-cooked meal for mom"},
+        {"name": {"th": "ต้มยำกุ้ง", "en": "Tom Yum Goong"}, "significance": "Thai comfort food"}
+      ]
+    }
+  ]
+}

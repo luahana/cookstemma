@@ -1,0 +1,85 @@
+{
+  "locale": "de-DE",
+  "holidays": [
+    {
+      "key": "new_year",
+      "name": {"de": "Neujahr", "en": "New Year's Day"},
+      "date_rule": "fixed:01-01",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 70,
+      "foods": [
+        {"name": {"de": "Berliner", "en": "Berliner Doughnuts"}, "significance": "Traditional New Year's treat"},
+        {"name": {"de": "Sauerkraut", "en": "Sauerkraut"}, "significance": "Good luck food"}
+      ]
+    },
+    {
+      "key": "carnival",
+      "name": {"de": "Karneval", "en": "Carnival"},
+      "date_rule": "easter:-47",
+      "relevance_days_before": 7,
+      "relevance_days_after": 1,
+      "priority": 60,
+      "foods": [
+        {"name": {"de": "Krapfen", "en": "Krapfen"}, "significance": "Carnival doughnuts"},
+        {"name": {"de": "Mutzen", "en": "Mutzen"}, "significance": "Fried pastry"}
+      ]
+    },
+    {
+      "key": "easter",
+      "name": {"de": "Ostern", "en": "Easter"},
+      "date_rule": "easter:0",
+      "relevance_days_before": 10,
+      "relevance_days_after": 2,
+      "priority": 90,
+      "foods": [
+        {"name": {"de": "Osterbrot", "en": "Easter Bread"}, "significance": "Sweet braided bread"},
+        {"name": {"de": "Osterlamm", "en": "Easter Lamb"}, "significance": "Lamb-shaped cake"},
+        {"name": {"de": "Lammbraten", "en": "Roast Lamb"}, "significance": "Traditional Easter main dish"}
+      ]
+    },
+    {
+      "key": "oktoberfest",
+      "name": {"de": "Oktoberfest", "en": "Oktoberfest"},
+      "date_rule": "nth:3-SAT-SEP",
+      "relevance_days_before": 14,
+      "relevance_days_after": 16,
+      "priority": 90,
+      "foods": [
+        {"name": {"de": "Schweinshaxe", "en": "Pork Knuckle"}, "significance": "Bavarian specialty"},
+        {"name": {"de": "Weißwurst", "en": "White Sausage"}, "significance": "Munich tradition"},
+        {"name": {"de": "Brezel", "en": "Pretzel"}, "significance": "Beer hall essential"},
+        {"name": {"de": "Obatzda", "en": "Obatzda"}, "significance": "Bavarian cheese spread"},
+        {"name": {"de": "Hendl", "en": "Roast Chicken"}, "significance": "Festival favorite"}
+      ]
+    },
+    {
+      "key": "christmas",
+      "name": {"de": "Weihnachten", "en": "Christmas"},
+      "date_rule": "fixed:12-25",
+      "relevance_days_before": 21,
+      "relevance_days_after": 2,
+      "priority": 100,
+      "foods": [
+        {"name": {"de": "Stollen", "en": "Stollen"}, "significance": "Christmas fruit bread"},
+        {"name": {"de": "Lebkuchen", "en": "Gingerbread"}, "significance": "Spiced honey cakes"},
+        {"name": {"de": "Gänsebraten", "en": "Roast Goose"}, "significance": "Traditional Christmas main"},
+        {"name": {"de": "Kartoffelsalat", "en": "Potato Salad"}, "significance": "Christmas Eve side"},
+        {"name": {"de": "Würstchen", "en": "Sausages"}, "significance": "Christmas Eve tradition"}
+      ]
+    },
+    {
+      "key": "advent",
+      "name": {"de": "Advent", "en": "Advent Season"},
+      "date_rule": "fixed:12-01",
+      "relevance_days_before": 5,
+      "relevance_days_after": 24,
+      "priority": 70,
+      "foods": [
+        {"name": {"de": "Glühwein", "en": "Mulled Wine"}, "significance": "Christmas market drink"},
+        {"name": {"de": "Plätzchen", "en": "Christmas Cookies"}, "significance": "Holiday baking"},
+        {"name": {"de": "Spekulatius", "en": "Speculoos"}, "significance": "Spiced shortbread"}
+      ]
+    }
+  ]
+}
