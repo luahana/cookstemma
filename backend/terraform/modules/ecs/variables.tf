@@ -167,3 +167,9 @@ variable "cpu_architecture" {
   type        = string
   default     = "ARM64"
 }
+
+variable "additional_ingress_security_group_ids" {
+  description = "Additional security group IDs allowed to access the container port (e.g., web ECS tasks)"
+  type        = list(string)
+  default     = []
+}
