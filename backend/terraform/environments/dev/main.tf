@@ -315,6 +315,7 @@ module "ecs" {
   task_memory      = 2048
   desired_count    = 1
   assign_public_ip = true # Still need public IP since no NAT gateway
+  cpu_architecture = "ARM64" # Graviton for 20% cost savings
 
   # ALB configuration
   alb_security_group_id = module.alb.security_group_id
@@ -363,6 +364,7 @@ module "ecs_web" {
   task_memory      = 512
   desired_count    = 1
   assign_public_ip = true
+  cpu_architecture = "ARM64" # Graviton for 20% cost savings
 
   # ALB configuration
   alb_security_group_id = module.alb.security_group_id
@@ -411,6 +413,9 @@ module "lambda_translation" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+
+  # x86_64 for faster CI builds (no QEMU emulation)
+  architecture = "arm64"
 }
 
 # Lambda Image Processing Module - Parallel variant generation with Step Functions
@@ -432,6 +437,9 @@ module "lambda_image_processing" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+
+  # x86_64 for faster CI builds (no QEMU emulation)
+  architecture = "arm64"
 }
 
 # Lambda Suggestion Verifier Module - AI-powered validation of user suggestions

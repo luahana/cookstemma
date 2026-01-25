@@ -81,3 +81,9 @@ variable "enable_alarms" {
   type        = bool
   default     = true
 }
+
+variable "architecture" {
+  description = "Lambda architecture (arm64 or x86_64)"
+  type        = string
+  default     = "arm64"
+}

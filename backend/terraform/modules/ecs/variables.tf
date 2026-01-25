@@ -161,3 +161,9 @@ variable "service_discovery_service_arn" {
   type        = string
   default     = ""
 }
+
+variable "cpu_architecture" {
+  description = "CPU architecture for ECS tasks (X86_64 or ARM64)"
+  type        = string
+  default     = "ARM64"
+}
