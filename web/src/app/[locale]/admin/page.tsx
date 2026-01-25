@@ -1346,10 +1346,10 @@ function UntranslatedRecipesTab() {
       key: 'lastError',
       header: 'Error',
       sortable: false,
-      width: '150px',
+      width: '300px',
       render: (item) => item.lastError ? (
-        <span className="text-sm text-red-600" title={item.lastError}>
-          {item.lastError.length > 30 ? `${item.lastError.substring(0, 30)}...` : item.lastError}
+        <span className="text-sm text-red-600 whitespace-pre-wrap break-words">
+          {item.lastError}
         </span>
       ) : '-',
     },
@@ -1650,10 +1650,10 @@ function UntranslatedLogsTab() {
       key: 'lastError',
       header: 'Error',
       sortable: false,
-      width: '150px',
+      width: '300px',
       render: (item) => item.lastError ? (
-        <span className="text-sm text-red-600" title={item.lastError}>
-          {item.lastError.length > 30 ? `${item.lastError.substring(0, 30)}...` : item.lastError}
+        <span className="text-sm text-red-600 whitespace-pre-wrap break-words">
+          {item.lastError}
         </span>
       ) : '-',
     },
