@@ -131,3 +131,70 @@ export interface FoodMasterAdminFilter {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
+
+// ==================== ADMIN CONTENT MANAGEMENT ====================
+
+export interface AdminRecipe {
+  publicId: string;
+  title: string;
+  cookingStyle: string;
+  creatorUsername: string;
+  creatorPublicId: string | null;
+  variantCount: number;
+  logCount: number;
+  viewCount: number;
+  saveCount: number;
+  isPrivate: boolean;
+  createdAt: string;
+}
+
+export interface AdminRecipeFilter {
+  title?: string;
+  username?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface AdminLogPost {
+  publicId: string;
+  content: string;
+  creatorUsername: string;
+  creatorPublicId: string | null;
+  recipePublicId: string | null;
+  recipeTitle: string | null;
+  commentCount: number;
+  likeCount: number;
+  isPrivate: boolean;
+  createdAt: string;
+}
+
+export interface AdminLogPostFilter {
+  content?: string;
+  username?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface AdminComment {
+  publicId: string;
+  content: string;
+  creatorUsername: string;
+  creatorPublicId: string | null;
+  logPostPublicId: string | null;
+  isTopLevel: boolean;
+  replyCount: number;
+  likeCount: number;
+  createdAt: string;
+}
+
+export interface AdminCommentFilter {
+  content?: string;
+  username?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface DeleteResponse {
+  message: string;
+  deletedCount: number;
+}

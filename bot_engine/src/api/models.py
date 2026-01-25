@@ -1,7 +1,7 @@
 """API data models matching backend DTOs."""
 
 from enum import Enum
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -115,7 +115,7 @@ class CreateRecipeRequest(BaseModel):
     cooking_time_range: Optional[str] = Field(default=None, alias="cookingTimeRange")
     # Variant fields
     parent_public_id: Optional[str] = Field(default=None, alias="parentPublicId")
-    change_diff: Optional[str] = Field(default=None, alias="changeDiff")
+    change_diff: Optional[Dict[str, Any]] = Field(default=None, alias="changeDiff")
     change_reason: Optional[str] = Field(default=None, max_length=1000, alias="changeReason")
     change_categories: List[ChangeCategory] = Field(default_factory=list, alias="changeCategories")
 

@@ -216,18 +216,62 @@ export function CommentCard({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/users/${comment.creatorPublicId}`}
-              className="font-medium text-[var(--text-primary)] hover:underline"
-            >
-              {comment.creatorUsername}
-            </Link>
-            <span className="text-xs text-[var(--text-secondary)]">
-              {formatDate(comment.createdAt)}
-            </span>
-            {comment.isEdited && (
-              <span className="text-xs text-[var(--text-secondary)]">({t('edited')})</span>
+          <div className="flex items-center justify-between">
+            {/* Left side: username + timestamp */}
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/users/${comment.creatorPublicId}`}
+                className="font-medium text-[var(--text-primary)] hover:underline"
+              >
+                {comment.creatorUsername}
+              </Link>
+              <span className="text-xs text-[var(--text-secondary)]">
+                {formatDate(comment.createdAt)}
+              </span>
+              {comment.isEdited && (
+                <span className="text-xs text-[var(--text-secondary)]">({t('edited')})</span>
+              )}
+            </div>
+
+            {/* Right side: three dots menu */}
+            {isAuthenticated && !isEditing && (
+              <div className="relative" onMouseEnter={checkBlockStatus}>
+                <ActionMenu
+                  items={
+                    isOwner
+                      ? [
+                          {
+                            label: t('edit'),
+                            onClick: () => setIsEditing(true),
+                            icon: ActionMenuIcons.edit,
+                          },
+                          {
+                            label: t('delete'),
+                            onClick: handleDelete,
+                            icon: ActionMenuIcons.delete,
+                            isDestructive: true,
+                            disabled: isDeleting,
+                          },
+                        ]
+                      : [
+                          {
+                            label: t('reportComment'),
+                            onClick: () => setShowReportModal(true),
+                            icon: ActionMenuIcons.report,
+                            isDestructive: true,
+                          },
+                          {
+                            label: tModeration('blockUser'),
+                            onClick: () => setShowBlockDialog(true),
+                            icon: ActionMenuIcons.block,
+                            isDestructive: true,
+                            disabled: isBlocked === true,
+                            tooltip: isBlocked ? t('alreadyBlocked') : undefined,
+                          },
+                        ]
+                  }
+                />
+              </div>
             )}
           </div>
 
@@ -285,47 +329,6 @@ export function CommentCard({
                 >
                   {t('reply')}
                 </button>
-              )}
-
-              {/* More actions menu */}
-              {isAuthenticated && (
-                <div className="relative" onMouseEnter={checkBlockStatus}>
-                  <ActionMenu
-                    items={
-                      isOwner
-                        ? [
-                            {
-                              label: t('edit'),
-                              onClick: () => setIsEditing(true),
-                              icon: ActionMenuIcons.edit,
-                            },
-                            {
-                              label: t('delete'),
-                              onClick: handleDelete,
-                              icon: ActionMenuIcons.delete,
-                              isDestructive: true,
-                              disabled: isDeleting,
-                            },
-                          ]
-                        : [
-                            {
-                              label: t('reportComment'),
-                              onClick: () => setShowReportModal(true),
-                              icon: ActionMenuIcons.report,
-                              isDestructive: true,
-                            },
-                            {
-                              label: tModeration('blockUser'),
-                              onClick: () => setShowBlockDialog(true),
-                              icon: ActionMenuIcons.block,
-                              isDestructive: true,
-                              disabled: isBlocked === true,
-                              tooltip: isBlocked ? t('alreadyBlocked') : undefined,
-                            },
-                          ]
-                    }
-                  />
-                </div>
               )}
             </div>
           )}

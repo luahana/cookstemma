@@ -516,4 +516,84 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         """,
         nativeQuery = true)
     Page<LogPost> findUntranslatedLogPostsByContent(@Param("content") String content, Pageable pageable);
+
+    // ==================== ADMIN: ALL LOG POSTS ====================
+
+    /**
+     * Find all non-deleted log posts for admin management (sorted by createdAt DESC).
+     */
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL
+        ORDER BY lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        WHERE lp.deleted_at IS NULL
+        """,
+        nativeQuery = true)
+    Page<LogPost> findAllForAdmin(Pageable pageable);
+
+    /**
+     * Find all non-deleted log posts for admin management filtered by content.
+     */
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL
+        AND (lp.content ILIKE '%' || :content || '%' OR lp.title ILIKE '%' || :content || '%')
+        ORDER BY lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        WHERE lp.deleted_at IS NULL
+        AND (lp.content ILIKE '%' || :content || '%' OR lp.title ILIKE '%' || :content || '%')
+        """,
+        nativeQuery = true)
+    Page<LogPost> findAllForAdminByContent(@Param("content") String content, Pageable pageable);
+
+    /**
+     * Find all non-deleted log posts for admin management filtered by creator username.
+     */
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        JOIN users u ON u.id = lp.creator_id
+        WHERE lp.deleted_at IS NULL
+        AND u.username ILIKE '%' || :username || '%'
+        ORDER BY lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        JOIN users u ON u.id = lp.creator_id
+        WHERE lp.deleted_at IS NULL
+        AND u.username ILIKE '%' || :username || '%'
+        """,
+        nativeQuery = true)
+    Page<LogPost> findAllForAdminByUsername(@Param("username") String username, Pageable pageable);
+
+    /**
+     * Find all non-deleted log posts for admin management filtered by content and creator username.
+     */
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        JOIN users u ON u.id = lp.creator_id
+        WHERE lp.deleted_at IS NULL
+        AND (lp.content ILIKE '%' || :content || '%' OR lp.title ILIKE '%' || :content || '%')
+        AND u.username ILIKE '%' || :username || '%'
+        ORDER BY lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        JOIN users u ON u.id = lp.creator_id
+        WHERE lp.deleted_at IS NULL
+        AND (lp.content ILIKE '%' || :content || '%' OR lp.title ILIKE '%' || :content || '%')
+        AND u.username ILIKE '%' || :username || '%'
+        """,
+        nativeQuery = true)
+    Page<LogPost> findAllForAdminByContentAndUsername(@Param("content") String content, @Param("username") String username, Pageable pageable);
+
+    /**
+     * Find log posts by public IDs for admin deletion.
+     */
+    @Query("SELECT l FROM LogPost l WHERE l.publicId IN :publicIds AND l.deletedAt IS NULL")
+    List<LogPost> findByPublicIdIn(@Param("publicIds") List<UUID> publicIds);
 }

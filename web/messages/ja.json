@@ -71,10 +71,10 @@
     "package": "袋"
   },
   "home": {
-    "metaTitle": "Cookstemma - あなたの料理の旅",
-    "metaDescription": "あなただけの料理日記。食事を記録し、成長を追跡し、より良いホームクックになりましょう。レシピを発見し、料理の旅を共有しましょう。",
-    "heroTitle": "あなたのレシピが、<highlight>進化する</highlight>",
-    "heroSubtitle": "レシピを共有し、アレンジを作成し、料理の旅を記録しましょう。新しい味を発見するホームクックのコミュニティに参加しませんか。",
+    "metaTitle": "Cookstemma - あなたの料理日記",
+    "metaDescription": "あなたの料理日記。成功も失敗も記録して、料理するたびに上達しましょう。",
+    "heroTitle": "あなたの<highlight>料理日記</highlight>",
+    "heroSubtitle": "試したすべてのレシピを記録—うまくいったことも、いかなかったことも。料理するたびに上達しましょう。",
     "featuredRecipes": "おすすめレシピ",
     "recentCookingLogs": "最近の料理日記",
     "whyCookstemma": "Cookstemmaを選ぶ理由",
@@ -84,7 +84,7 @@
     "createVariationsDesc": "レシピに自分なりのアレンジを加え、コミュニティで料理がどう進化するか見てみましょう。",
     "trackCooking": "料理を記録",
     "trackCookingDesc": "料理セッションを記録し、うまくいったことをメモして、時間とともに上達しましょう。",
-    "startJourney": "料理の旅を始めよう",
+    "startJourney": "料理日記を始める",
     "startJourneyDesc": "アプリをダウンロードして、料理の冒険を共有する数千人のホームクックに参加しましょう。",
     "browseRecipes": "レシピを見る"
   },
@@ -213,7 +213,7 @@
     "signInDescription": "ログインしてレシピを作成、料理を記録、お気に入りを保存しましょう。",
     "redirecting": "リダイレクト中...",
     "welcomeBack": "おかえりなさい",
-    "signInSubtitle": "ログインしてレシピを共有し、料理の旅を記録しましょう",
+    "signInSubtitle": "ログインして料理日記を始めましょう",
     "continueWithGoogle": "Googleで続ける",
     "continueWithApple": "Appleで続ける",
     "signingIn": "ログイン中...",
@@ -284,7 +284,7 @@
     "photoRequired": "写真を1枚以上追加してください"
   },
   "metadata": {
-    "siteDescription": "レシピを共有し、アレンジを作成し、料理の旅を記録しましょう"
+    "siteDescription": "すべてのレシピを記録し、毎回学び、より良い料理人になりましょう"
   },
   "moderation": {
     "block": "ブロック",

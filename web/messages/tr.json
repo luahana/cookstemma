@@ -71,10 +71,10 @@
     "package": "paket"
   },
   "home": {
-    "metaTitle": "Cookstemma - Mutfak yolculuğunuz",
-    "metaDescription": "Kişisel yemek günlüğünüz. Yemeklerinizi kaydedin, ilerlemenizi takip edin ve ev aşçısı olarak gelişin. Tarifler keşfedin ve mutfak yolculuğunuzu paylaşın.",
-    "heroTitle": "Tarifleriniz, <highlight>gelişiyor</highlight>",
-    "heroSubtitle": "Tariflerinizi paylaşın, varyasyonlar oluşturun ve yemek yolculuğunuzu takip edin. Birlikte yeni tatlar keşfeden ev aşçıları topluluğuna katılın.",
+    "metaTitle": "Cookstemma - Kişisel yemek günlüğünüz",
+    "metaDescription": "Kişisel yemek günlüğünüz. Denediğiniz her tarifi kaydedin—başarılar ve başarısızlıklar—ve her yemekte gelişin.",
+    "heroTitle": "Kişisel <highlight>yemek günlüğünüz</highlight>",
+    "heroSubtitle": "Denediğiniz her tarifi kaydedin—ne işe yaradı, ne yaramadı—ve her yemekte daha iyi bir aşçı olun.",
     "featuredRecipes": "Öne Çıkan Tarifler",
     "recentCookingLogs": "Son Yemek Günlükleri",
     "whyCookstemma": "Neden Cookstemma?",
@@ -84,7 +84,7 @@
     "createVariationsDesc": "Tariflere kendi dokunuşunuzu ekleyin ve yemeklerin toplulukta nasıl geliştiğini görün.",
     "trackCooking": "Yemek Takibi",
     "trackCookingDesc": "Yemek seanslarınızı kaydedin, neyin işe yaradığını not alın ve zamanla gelişin.",
-    "startJourney": "Yemek Yolculuğunuza Başlayın",
+    "startJourney": "Yemek günlüğünüzü başlatın",
     "startJourneyDesc": "Uygulamayı indirin ve mutfak maceralarını paylaşan binlerce ev aşçısına katılın.",
     "browseRecipes": "Tariflere Göz At"
   },
@@ -213,7 +213,7 @@
     "signInDescription": "Tarif oluşturmak, yemek günlüğü tutmak ve favorilerinizi kaydetmek için giriş yapın.",
     "redirecting": "Yönlendiriliyor...",
     "welcomeBack": "Tekrar Hoş Geldiniz",
-    "signInSubtitle": "Tarifleri paylaşmak ve yemek yolculuğunuzu takip etmek için giriş yapın",
+    "signInSubtitle": "Kişisel yemek günlüğünüzü başlatmak için giriş yapın",
     "continueWithGoogle": "Google ile devam et",
     "continueWithApple": "Apple ile devam et",
     "signingIn": "Giriş yapılıyor...",
@@ -284,7 +284,7 @@
     "photoRequired": "Lütfen en az bir fotoğraf ekleyin"
   },
   "metadata": {
-    "siteDescription": "Tariflerinizi paylaşın, varyasyonlar oluşturun ve yemek yolculuğunuzu takip edin"
+    "siteDescription": "Denediğiniz her tarifi kaydedin, her denemeden öğrenin ve daha iyi bir aşçı olun"
   },
   "moderation": {
     "block": "Engelle",

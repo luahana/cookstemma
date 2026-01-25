@@ -532,6 +532,25 @@ module "cloudfront" {
 # WAF - Web Application Firewall for ALB protection
 # Basic protection against SQL injection, XSS (~$10/month)
 # =============================================================================
+
+# IP Set for whitelisted IPs (bot engine, trusted services)
+resource "aws_wafv2_ip_set" "whitelist" {
+  name               = "${var.project_name}-${var.environment}-ip-whitelist"
+  scope              = "REGIONAL"
+  ip_address_version = "IPV4"
+
+  addresses = [
+    "173.33.155.62/32",  # Bot engine server
+  ]
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-ip-whitelist"
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
 resource "aws_wafv2_web_acl" "main" {
   name        = "${var.project_name}-${var.environment}-waf"
   description = "WAF for ${var.project_name} ${var.environment} ALB"
@@ -541,10 +560,32 @@ resource "aws_wafv2_web_acl" "main" {
     allow {}
   }
 
+  # Allow whitelisted IPs - evaluated first, bypasses all other rules
+  rule {
+    name     = "AllowWhitelistedIPs"
+    priority = 0
+
+    action {
+      allow {}
+    }
+
+    statement {
+      ip_set_reference_statement {
+        arn = aws_wafv2_ip_set.whitelist.arn
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${var.project_name}-${var.environment}-whitelisted-ips"
+      sampled_requests_enabled   = true
+    }
+  }
+
   # AWS Managed Rules - Common Rule Set
   rule {
     name     = "AWSManagedRulesCommonRuleSet"
-    priority = 1
+    priority = 2
 
     override_action {
       none {}
@@ -575,7 +616,7 @@ resource "aws_wafv2_web_acl" "main" {
   # AWS Managed Rules - SQL Injection
   rule {
     name     = "AWSManagedRulesSQLiRuleSet"
-    priority = 2
+    priority = 3
 
     override_action {
       none {}
@@ -598,7 +639,7 @@ resource "aws_wafv2_web_acl" "main" {
   # AWS Managed Rules - Known Bad Inputs
   rule {
     name     = "AWSManagedRulesKnownBadInputsRuleSet"
-    priority = 3
+    priority = 4
 
     override_action {
       none {}

@@ -71,10 +71,10 @@
     "package": "包"
   },
   "home": {
-    "metaTitle": "Cookstemma - 你的烹饪之旅",
-    "metaDescription": "你的个人烹饪日记。记录餐食，追踪进步，成长为更好的家庭厨师。发现食谱，分享你的烹饪之旅。",
-    "heroTitle": "你的食谱，<highlight>进化升级</highlight>",
-    "heroSubtitle": "分享你的食谱，创建变体，记录你的烹饪之旅。加入家庭厨师社区，一起发现新美味。",
+    "metaTitle": "Cookstemma - 你的个人烹饪日志",
+    "metaDescription": "你的个人烹饪日志。记录每道尝试的菜谱——成功与失败——每次烹饪都有进步。",
+    "heroTitle": "你的个人<highlight>烹饪日志</highlight>",
+    "heroSubtitle": "记录你尝试的每道菜谱——成功的和失败的——每次烹饪都让你变得更好。",
     "featuredRecipes": "精选食谱",
     "recentCookingLogs": "最近烹饪日志",
     "whyCookstemma": "为什么选择 Cookstemma？",
@@ -84,7 +84,7 @@
     "createVariationsDesc": "在食谱上加入你的创意，看看美食如何在社区中演变。",
     "trackCooking": "记录烹饪",
     "trackCookingDesc": "记录烹饪过程，记下成功经验，不断提升厨艺。",
-    "startJourney": "开始你的烹饪之旅",
+    "startJourney": "开始你的烹饪日志",
     "startJourneyDesc": "下载应用，加入数千名分享美食冒险的家庭厨师。",
     "browseRecipes": "浏览食谱"
   },
@@ -213,7 +213,7 @@
     "signInDescription": "登录后可以创建食谱、记录烹饪和保存收藏。",
     "redirecting": "正在跳转...",
     "welcomeBack": "欢迎回来",
-    "signInSubtitle": "登录分享食谱，记录你的烹饪之旅",
+    "signInSubtitle": "登录开始你的个人烹饪日志",
     "continueWithGoogle": "使用 Google 继续",
     "continueWithApple": "使用 Apple 继续",
     "signingIn": "登录中...",
@@ -284,7 +284,7 @@
     "photoRequired": "请至少添加一张照片"
   },
   "metadata": {
-    "siteDescription": "分享你的食谱，创建变体，记录你的烹饪之旅"
+    "siteDescription": "记录你尝试的每道菜谱，从每次尝试中学习，成为更好的厨师"
   },
   "moderation": {
     "block": "屏蔽",

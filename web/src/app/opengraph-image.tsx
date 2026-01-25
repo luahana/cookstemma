@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
 
-export const alt = 'Cookstemma - Share recipes, create variations, and track your cooking journey';
+export const alt = 'Cookstemma - Your Personal Cooking Log';
 export const size = {
   width: 1200,
   height: 630,
@@ -69,7 +69,7 @@ export default async function Image() {
             maxWidth: '800px',
           }}
         >
-          Share recipes, create variations, and track your cooking journey
+          Log every recipe you try and become a better cook
         </div>
 
         {/* Bottom decoration */}

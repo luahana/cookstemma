@@ -91,4 +91,84 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     // Check if user has commented on a log post
     boolean existsByLogPostIdAndCreatorIdAndDeletedAtIsNull(Long logPostId, Long creatorId);
+
+    // ==================== ADMIN: ALL COMMENTS ====================
+
+    /**
+     * Find all non-deleted comments for admin management (sorted by createdAt DESC).
+     */
+    @Query(value = """
+        SELECT c.* FROM comments c
+        WHERE c.deleted_at IS NULL
+        ORDER BY c.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM comments c
+        WHERE c.deleted_at IS NULL
+        """,
+        nativeQuery = true)
+    Page<Comment> findAllForAdmin(Pageable pageable);
+
+    /**
+     * Find all non-deleted comments for admin management filtered by content.
+     */
+    @Query(value = """
+        SELECT c.* FROM comments c
+        WHERE c.deleted_at IS NULL
+        AND c.content ILIKE '%' || :content || '%'
+        ORDER BY c.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM comments c
+        WHERE c.deleted_at IS NULL
+        AND c.content ILIKE '%' || :content || '%'
+        """,
+        nativeQuery = true)
+    Page<Comment> findAllForAdminByContent(@Param("content") String content, Pageable pageable);
+
+    /**
+     * Find all non-deleted comments for admin management filtered by creator username.
+     */
+    @Query(value = """
+        SELECT c.* FROM comments c
+        JOIN users u ON u.id = c.creator_id
+        WHERE c.deleted_at IS NULL
+        AND u.username ILIKE '%' || :username || '%'
+        ORDER BY c.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM comments c
+        JOIN users u ON u.id = c.creator_id
+        WHERE c.deleted_at IS NULL
+        AND u.username ILIKE '%' || :username || '%'
+        """,
+        nativeQuery = true)
+    Page<Comment> findAllForAdminByUsername(@Param("username") String username, Pageable pageable);
+
+    /**
+     * Find all non-deleted comments for admin management filtered by content and creator username.
+     */
+    @Query(value = """
+        SELECT c.* FROM comments c
+        JOIN users u ON u.id = c.creator_id
+        WHERE c.deleted_at IS NULL
+        AND c.content ILIKE '%' || :content || '%'
+        AND u.username ILIKE '%' || :username || '%'
+        ORDER BY c.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM comments c
+        JOIN users u ON u.id = c.creator_id
+        WHERE c.deleted_at IS NULL
+        AND c.content ILIKE '%' || :content || '%'
+        AND u.username ILIKE '%' || :username || '%'
+        """,
+        nativeQuery = true)
+    Page<Comment> findAllForAdminByContentAndUsername(@Param("content") String content, @Param("username") String username, Pageable pageable);
+
+    /**
+     * Find comments by public IDs for admin deletion.
+     */
+    @Query("SELECT c FROM Comment c WHERE c.publicId IN :publicIds AND c.deletedAt IS NULL")
+    List<Comment> findByPublicIdIn(@Param("publicIds") List<UUID> publicIds);
 }
