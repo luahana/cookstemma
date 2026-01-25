@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Link } from '@/i18n/navigation';
+import { useRouter, usePathname, Link } from '@/i18n/navigation';
+import { type Locale } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMyProfile, updateUserProfile, checkUsernameAvailability } from '@/lib/api/users';
@@ -25,19 +25,35 @@ const MAX_INSTAGRAM_HANDLE_LENGTH = 30;
 
 // Gender options moved inside component for translations
 
+// Short code locale options (matching Header.tsx)
 const LOCALE_OPTIONS = [
-  { value: 'ko-KR', label: '한국어' },
-  { value: 'en-US', label: 'English' },
-  { value: 'ja-JP', label: '日本語' },
-  { value: 'zh-CN', label: '简体中文' },
-  { value: 'zh-TW', label: '繁體中文' },
-  { value: 'es-ES', label: 'Español' },
-  { value: 'fr-FR', label: 'Français' },
-  { value: 'de-DE', label: 'Deutsch' },
-  { value: 'it-IT', label: 'Italiano' },
-  { value: 'pt-BR', label: 'Português' },
-  { value: 'vi-VN', label: 'Tiếng Việt' },
+  { value: 'en', label: 'English' },
+  { value: 'zh', label: '中文' },
+  { value: 'es', label: 'Español' },
+  { value: 'ja', label: '日本語' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'fr', label: 'Français' },
+  { value: 'pt', label: 'Português' },
+  { value: 'ko', label: '한국어' },
+  { value: 'it', label: 'Italiano' },
+  { value: 'ar', label: 'العربية' },
+  { value: 'ru', label: 'Русский' },
+  { value: 'id', label: 'Bahasa Indonesia' },
+  { value: 'vi', label: 'Tiếng Việt' },
+  { value: 'hi', label: 'हिन्दी' },
+  { value: 'th', label: 'ไทย' },
+  { value: 'pl', label: 'Polski' },
+  { value: 'tr', label: 'Türkçe' },
+  { value: 'nl', label: 'Nederlands' },
+  { value: 'sv', label: 'Svenska' },
+  { value: 'fa', label: 'فارسی' },
 ];
+
+// Helper to convert BCP47 format to short code (e.g., 'ko-KR' -> 'ko')
+function bcp47ToShortCode(bcp47: string): string {
+  if (!bcp47) return '';
+  return bcp47.split('-')[0].toLowerCase();
+}
 
 // Measurement options moved inside component for translations
 
@@ -72,6 +88,7 @@ function validateUsername(value: string): boolean {
 
 export default function ProfileEditPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user: authUser, isLoading: authLoading } = useAuth();
   const cookingStyleOptions = useCookingStyleOptions();
   const tUsernameValidation = useTranslations('usernameValidation');
@@ -148,7 +165,7 @@ export default function ProfileEditPage() {
           username: profile.username || '',
           birthday: profile.birthDate || '',
           gender: profile.gender || '',
-          locale: profile.locale || '',
+          locale: bcp47ToShortCode(profile.locale) || '',  // Convert BCP47 to short code
           foodStyle: profile.defaultCookingStyle || 'international',
           measurementPref: profile.measurementPreference || 'ORIGINAL',
           bio: profile.bio || '',
@@ -345,12 +362,19 @@ export default function ProfileEditPage() {
         instagramHandle,
       });
 
-      setSuccessMessage(t('successUpdate'));
-
-      // If locale changed, suggest page refresh
-      if (locale !== initialValues.locale) {
-        setSuccessMessage(t('successLanguageChange'));
+      // Sync locale change with URL and localStorage (like navbar does)
+      if (locale !== initialValues.locale && locale) {
+        localStorage.setItem('userLocale', locale);
+        // Navigate with new locale - this will change the URL locale
+        if (authUser?.publicId) {
+          router.replace(`/users/${authUser.publicId}`, { locale: locale as Locale });
+        } else {
+          router.replace(pathname, { locale: locale as Locale });
+        }
+        return; // Let the locale change handle the navigation
       }
+
+      setSuccessMessage(t('successUpdate'));
 
       // Redirect after success
       setTimeout(() => {
