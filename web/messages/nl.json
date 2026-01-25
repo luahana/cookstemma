@@ -71,10 +71,10 @@
     "package": "pakje"
   },
   "home": {
-    "metaTitle": "Cookstemma - Jouw culinaire reis",
-    "metaDescription": "Je persoonlijke kookdagboek. Log maaltijden, volg je voortgang en groei als thuiskok. Ontdek recepten en deel je culinaire reis.",
-    "heroTitle": "Je recepten, <highlight>geëvolueerd</highlight>",
-    "heroSubtitle": "Deel je recepten, maak variaties en volg je kookreis. Word lid van een community van thuiskoks die samen nieuwe smaken ontdekken.",
+    "metaTitle": "Cookstemma - Je persoonlijke kooklogboek",
+    "metaDescription": "Je persoonlijke kooklogboek. Noteer elk recept dat je probeert—successen en mislukkingen—en word beter met elk gerecht.",
+    "heroTitle": "Je persoonlijke <highlight>kooklogboek</highlight>",
+    "heroSubtitle": "Noteer elk recept dat je probeert—wat werkte en wat niet—en word een betere kok met elk gerecht.",
     "featuredRecipes": "Uitgelichte recepten",
     "recentCookingLogs": "Recente kooklogboeken",
     "whyCookstemma": "Waarom Cookstemma?",
@@ -84,7 +84,7 @@
     "createVariationsDesc": "Geef je eigen draai aan recepten en zie hoe gerechten evolueren in de community.",
     "trackCooking": "Volg je koken",
     "trackCookingDesc": "Log je kooksessies, noteer wat werkte en verbeter je vaardigheden.",
-    "startJourney": "Begin je kookreis",
+    "startJourney": "Begin je kooklogboek",
     "startJourneyDesc": "Download de app en sluit je aan bij duizenden thuiskoks die hun culinaire avonturen delen.",
     "browseRecipes": "Recepten bekijken"
   },
@@ -213,7 +213,7 @@
     "signInDescription": "Log in om recepten te maken, je koken bij te houden en favorieten op te slaan.",
     "redirecting": "Doorverwijzen...",
     "welcomeBack": "Welkom terug",
-    "signInSubtitle": "Log in om recepten te delen en je kookreis bij te houden",
+    "signInSubtitle": "Log in om je persoonlijke kooklogboek te starten",
     "continueWithGoogle": "Doorgaan met Google",
     "continueWithApple": "Doorgaan met Apple",
     "signingIn": "Inloggen...",
@@ -284,7 +284,7 @@
     "photoRequired": "Voeg minimaal één foto toe"
   },
   "metadata": {
-    "siteDescription": "Deel je recepten, maak variaties en volg je kookreis"
+    "siteDescription": "Noteer elk recept dat je probeert, leer van elke poging en word een betere kok"
   },
   "moderation": {
     "block": "Blokkeren",

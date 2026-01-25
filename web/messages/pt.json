@@ -71,10 +71,10 @@
     "package": "pacote"
   },
   "home": {
-    "metaTitle": "Cookstemma - Sua jornada culinária",
-    "metaDescription": "Seu diário de cozinha pessoal. Registre refeições, acompanhe seu progresso e evolua como cozinheiro caseiro. Descubra receitas e compartilhe sua jornada culinária.",
-    "heroTitle": "Suas receitas, <highlight>evoluídas</highlight>",
-    "heroSubtitle": "Compartilhe suas receitas, crie variações e acompanhe sua jornada culinária. Junte-se a uma comunidade de cozinheiros caseiros descobrindo novos sabores juntos.",
+    "metaTitle": "Cookstemma - Seu diário de cozinha pessoal",
+    "metaDescription": "Seu diário de cozinha pessoal. Registre cada receita que experimentar—sucessos e fracassos—e melhore a cada prato.",
+    "heroTitle": "Seu <highlight>diário de cozinha</highlight> pessoal",
+    "heroSubtitle": "Registre cada receita que experimentar—o que funcionou e o que não funcionou—e torne-se um cozinheiro melhor a cada prato.",
     "featuredRecipes": "Receitas em destaque",
     "recentCookingLogs": "Diários de cozinha recentes",
     "whyCookstemma": "Por que Cookstemma?",
@@ -84,7 +84,7 @@
     "createVariationsDesc": "Dê seu toque pessoal às receitas e veja como os pratos evoluem na comunidade.",
     "trackCooking": "Acompanhe sua cozinha",
     "trackCookingDesc": "Registre suas sessões de cozinha, anote o que funcionou e melhore com o tempo.",
-    "startJourney": "Comece sua jornada culinária",
+    "startJourney": "Comece seu diário de cozinha",
     "startJourneyDesc": "Baixe o aplicativo e junte-se a milhares de cozinheiros caseiros compartilhando suas aventuras culinárias.",
     "browseRecipes": "Explorar receitas"
   },
@@ -213,7 +213,7 @@
     "signInDescription": "Entre para criar receitas, registrar sua cozinha e salvar seus favoritos.",
     "redirecting": "Redirecionando...",
     "welcomeBack": "Bem-vindo de volta",
-    "signInSubtitle": "Entre para compartilhar receitas e acompanhar sua jornada culinária",
+    "signInSubtitle": "Entre para começar seu diário de cozinha pessoal",
     "continueWithGoogle": "Continuar com Google",
     "continueWithApple": "Continuar com Apple",
     "signingIn": "Entrando...",
@@ -284,7 +284,7 @@
     "photoRequired": "Adicione pelo menos uma foto"
   },
   "metadata": {
-    "siteDescription": "Compartilhe suas receitas, crie variações e acompanhe sua jornada culinária"
+    "siteDescription": "Registre cada receita que experimentar, aprenda com cada tentativa e torne-se um cozinheiro melhor"
   },
   "moderation": {
     "block": "Bloquear",

@@ -70,10 +70,10 @@
     "package": "paquete"
   },
   "home": {
-    "metaTitle": "Cookstemma - Tu viaje culinario",
-    "metaDescription": "Tu diario de cocina personal. Registra tus comidas, sigue tu progreso y crece como cocinero casero. Descubre recetas y comparte tu viaje culinario.",
-    "heroTitle": "Tus recetas, <highlight>evolucionadas</highlight>",
-    "heroSubtitle": "Comparte tus recetas, crea variaciones y registra tu viaje culinario. Únete a una comunidad de cocineros caseros descubriendo nuevos sabores juntos.",
+    "metaTitle": "Cookstemma - Tu registro de cocina personal",
+    "metaDescription": "Tu registro de cocina personal. Registra cada receta que pruebes—éxitos y fracasos—y mejora con cada plato.",
+    "heroTitle": "Tu <highlight>registro de cocina</highlight> personal",
+    "heroSubtitle": "Registra cada receta que pruebes—lo que funcionó y lo que no—y mejora como cocinero con cada plato.",
     "featuredRecipes": "Recetas destacadas",
     "recentCookingLogs": "Registros de cocina recientes",
     "whyCookstemma": "¿Por qué Cookstemma?",
@@ -83,7 +83,7 @@
     "createVariationsDesc": "Dale tu toque personal a las recetas y observa cómo evolucionan los platos en la comunidad.",
     "trackCooking": "Registra tu cocina",
     "trackCookingDesc": "Registra tus sesiones de cocina, anota lo que funcionó y mejora con el tiempo.",
-    "startJourney": "Comienza tu viaje culinario",
+    "startJourney": "Comienza tu registro de cocina",
     "startJourneyDesc": "Descarga la app y únete a miles de cocineros caseros compartiendo sus aventuras culinarias.",
     "browseRecipes": "Explorar recetas"
   },
@@ -205,7 +205,7 @@
     "signInDescription": "Inicia sesión para crear recetas, registrar tu cocina y guardar tus favoritos.",
     "redirecting": "Redirigiendo...",
     "welcomeBack": "Bienvenido de nuevo",
-    "signInSubtitle": "Inicia sesión para compartir recetas y registrar tu viaje culinario",
+    "signInSubtitle": "Inicia sesión para comenzar tu registro de cocina personal",
     "continueWithGoogle": "Continuar con Google",
     "continueWithApple": "Continuar con Apple",
     "signingIn": "Iniciando sesión...",
@@ -276,7 +276,7 @@
     "photoRequired": "Por favor, añade al menos una foto"
   },
   "metadata": {
-    "siteDescription": "Comparte tus recetas, crea variaciones y registra tu viaje culinario"
+    "siteDescription": "Registra cada receta que pruebes, aprende de cada intento y conviértete en mejor cocinero"
   },
   "moderation": {
     "block": "Bloquear",

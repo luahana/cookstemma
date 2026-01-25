@@ -70,10 +70,10 @@
     "package": "paquet"
   },
   "home": {
-    "metaTitle": "Cookstemma - Votre parcours culinaire",
-    "metaDescription": "Votre journal de cuisine personnel. Enregistrez vos repas, suivez vos progrès et progressez en tant que cuisinier amateur. Découvrez des recettes et partagez votre parcours culinaire.",
-    "heroTitle": "Vos recettes, <highlight>évoluées</highlight>",
-    "heroSubtitle": "Partagez vos recettes, créez des variantes et suivez votre parcours culinaire. Rejoignez une communauté de cuisiniers amateurs découvrant de nouvelles saveurs ensemble.",
+    "metaTitle": "Cookstemma - Votre carnet de cuisine personnel",
+    "metaDescription": "Votre carnet de cuisine personnel. Enregistrez chaque recette essayée—réussites et échecs—et progressez à chaque plat.",
+    "heroTitle": "Votre <highlight>carnet de cuisine</highlight> personnel",
+    "heroSubtitle": "Notez chaque recette essayée—ce qui a marché et ce qui n'a pas marché—et devenez meilleur cuisinier à chaque plat.",
     "featuredRecipes": "Recettes en vedette",
     "recentCookingLogs": "Journaux de cuisine récents",
     "whyCookstemma": "Pourquoi Cookstemma ?",
@@ -83,7 +83,7 @@
     "createVariationsDesc": "Ajoutez votre touche personnelle aux recettes et voyez comment les plats évoluent dans la communauté.",
     "trackCooking": "Suivez vos cuisines",
     "trackCookingDesc": "Enregistrez vos sessions de cuisine, notez ce qui a fonctionné et progressez au fil du temps.",
-    "startJourney": "Commencez votre aventure culinaire",
+    "startJourney": "Commencez votre carnet de cuisine",
     "startJourneyDesc": "Téléchargez l'application et rejoignez des milliers de cuisiniers amateurs partageant leurs aventures culinaires.",
     "browseRecipes": "Parcourir les recettes"
   },
@@ -205,7 +205,7 @@
     "signInDescription": "Connectez-vous pour créer des recettes, enregistrer vos cuisines et sauvegarder vos favoris.",
     "redirecting": "Redirection...",
     "welcomeBack": "Bon retour",
-    "signInSubtitle": "Connectez-vous pour partager des recettes et suivre votre parcours culinaire",
+    "signInSubtitle": "Connectez-vous pour commencer votre carnet de cuisine personnel",
     "continueWithGoogle": "Continuer avec Google",
     "continueWithApple": "Continuer avec Apple",
     "signingIn": "Connexion en cours...",
@@ -276,7 +276,7 @@
     "photoRequired": "Veuillez ajouter au moins une photo"
   },
   "metadata": {
-    "siteDescription": "Partagez vos recettes, créez des variantes et suivez votre parcours culinaire"
+    "siteDescription": "Notez chaque recette essayée, apprenez de chaque tentative et devenez meilleur cuisinier"
   },
   "moderation": {
     "block": "Bloquer",

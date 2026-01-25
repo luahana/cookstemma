@@ -71,10 +71,10 @@
     "package": "confezione"
   },
   "home": {
-    "metaTitle": "Cookstemma - Il tuo viaggio culinario",
-    "metaDescription": "Il tuo diario di cucina personale. Registra i pasti, monitora i tuoi progressi e cresci come cuoco casalingo. Scopri ricette e condividi il tuo viaggio culinario.",
-    "heroTitle": "Le tue ricette, <highlight>evolute</highlight>",
-    "heroSubtitle": "Condividi le tue ricette, crea varianti e documenta il tuo percorso culinario. Unisciti a una comunità di cuochi casalinghi che scoprono nuovi sapori insieme.",
+    "metaTitle": "Cookstemma - Il tuo diario di cucina personale",
+    "metaDescription": "Il tuo diario di cucina personale. Registra ogni ricetta che provi—successi e fallimenti—e migliora con ogni piatto.",
+    "heroTitle": "Il tuo <highlight>diario di cucina</highlight> personale",
+    "heroSubtitle": "Registra ogni ricetta che provi—cosa ha funzionato e cosa no—e diventa un cuoco migliore con ogni piatto.",
     "featuredRecipes": "Ricette in evidenza",
     "recentCookingLogs": "Diari di cucina recenti",
     "whyCookstemma": "Perché Cookstemma?",
@@ -84,7 +84,7 @@
     "createVariationsDesc": "Dai il tuo tocco personale alle ricette e guarda come i piatti si evolvono nella comunità.",
     "trackCooking": "Monitora la tua cucina",
     "trackCookingDesc": "Registra le tue sessioni di cucina, annota cosa ha funzionato e migliora nel tempo.",
-    "startJourney": "Inizia il tuo viaggio culinario",
+    "startJourney": "Inizia il tuo diario di cucina",
     "startJourneyDesc": "Scarica l'app e unisciti a migliaia di cuochi casalinghi che condividono le loro avventure culinarie.",
     "browseRecipes": "Sfoglia ricette"
   },
@@ -213,7 +213,7 @@
     "signInDescription": "Accedi per creare ricette, registrare la tua cucina e salvare i tuoi preferiti.",
     "redirecting": "Reindirizzamento...",
     "welcomeBack": "Bentornato",
-    "signInSubtitle": "Accedi per condividere ricette e documentare il tuo percorso culinario",
+    "signInSubtitle": "Accedi per iniziare il tuo diario di cucina personale",
     "continueWithGoogle": "Continua con Google",
     "continueWithApple": "Continua con Apple",
     "signingIn": "Accesso in corso...",
@@ -284,7 +284,7 @@
     "photoRequired": "Aggiungi almeno una foto"
   },
   "metadata": {
-    "siteDescription": "Condividi le tue ricette, crea varianti e documenta il tuo percorso culinario"
+    "siteDescription": "Registra ogni ricetta che provi, impara da ogni tentativo e diventa un cuoco migliore"
   },
   "moderation": {
     "block": "Blocca",

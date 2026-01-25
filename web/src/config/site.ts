@@ -19,7 +19,7 @@ export function getApiUrl(): string {
 
 export const siteConfig = {
   name: 'Cookstemma',
-  description: 'Share recipes, create variations, and track your cooking journey',
+  description: 'Log every recipe you try, learn from each attempt, and become a better cook',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://cookstemma.com',
   /** @deprecated Use getApiUrl() for dynamic context-aware URL */
   apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1',
