@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Name of the project"
   type        = string
-  default     = "pairing-planet"
+  default     = "cookstemma"
 }
 
 variable "environment" {
@@ -25,14 +25,14 @@ variable "vpc_cidr" {
 variable "ecr_repository_name" {
   description = "Name of the ECR repository"
   type        = string
-  default     = "pairing-planet"
+  default     = "cookstemma"
 }
 
 # Database variables
 variable "db_name" {
   description = "Database name"
   type        = string
-  default     = "pairingplanet"
+  default     = "cookstemma"
 }
 
 variable "db_username" {
@@ -101,4 +101,51 @@ variable "s3_region" {
   description = "S3 region"
   type        = string
   default     = "us-east-2"
+}
+
+variable "rds_snapshot_identifier" {
+  description = "RDS snapshot to restore from (for disaster recovery)"
+  type        = string
+  default     = null
+}
+
+# Gemini
+variable "gemini_api_key" {
+  description = "Gemini API key for translation"
+  type        = string
+  sensitive   = true
+}
+
+# DNS
+variable "domain_name" {
+  description = "Base domain name (e.g., cookstemma.com)"
+  type        = string
+  default     = "cookstemma.com"
+}
+
+variable "create_dns_record" {
+  description = "Whether to create Route53 DNS record"
+  type        = bool
+  default     = true
+}
+
+# SSL/TLS
+variable "certificate_arn" {
+  description = "ACM certificate ARN for HTTPS"
+  type        = string
+  default     = "arn:aws:acm:us-east-2:819551471059:certificate/16192fe2-724c-460e-a4ea-d88270dc6618"
+}
+
+# CloudWatch Alarms
+variable "alarm_email" {
+  description = "Email address for CloudWatch alarm notifications"
+  type        = string
+  default     = "alex873jspark@gmail.com"
+}
+
+# IP Whitelisting
+variable "allowed_cidr_blocks" {
+  description = "CIDR blocks allowed to access ALB. Use [\"0.0.0.0/0\"] for public access. Override in terraform.tfvars for IP restriction."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]  # Default to public, override in terraform.tfvars for restricted access
 }

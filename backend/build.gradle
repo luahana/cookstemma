@@ -2,11 +2,12 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.8'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'io.sentry.jvm.gradle' version '5.12.2'
 }
 
-group = 'com.pairingplanet'
+group = 'com.cookstemma'
 version = '0.0.1-SNAPSHOT'
-description = 'pairing planet backend - monorepo'
+description = 'cookstemma backend - monorepo'
 
 java {
 	toolchain {
@@ -25,6 +26,7 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -65,14 +67,40 @@ dependencies {
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
     implementation 'io.minio:minio:8.5.7'
 
+    // AWS SQS SDK for translation queue push
+    implementation 'software.amazon.awssdk:sqs'
+
     implementation 'com.google.firebase:firebase-admin:9.2.0'
 
     // Image processing for variant generation
     implementation 'net.coobird:thumbnailator:0.4.20'
+
+    // WebP encoding support via ImageIO
+    implementation 'org.sejda.imageio:webp-imageio:0.1.6'
+
+    // Rate limiting with Bucket4j
+    implementation 'com.bucket4j:bucket4j_jdk17-core:8.14.0'
+    implementation 'com.bucket4j:bucket4j_jdk17-redis:8.14.0'
+
+    // Sentry error monitoring (production only - disabled when DSN not set)
+    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.29.0'
+    implementation 'io.sentry:sentry-logback:8.29.0'
 }
 
 tasks.named('test') {
     jvmArgs "-javaagent:${configurations.testRuntimeClasspath.files.find { it.name.contains('mockito-core') }}"
 	useJUnitPlatform()
+}
 
+// Sentry configuration - only active when SENTRY_AUTH_TOKEN is set (production builds)
+sentry {
+    // Generates a unique build ID to link errors to releases
+    includeSourceContext = true
+
+    // Only upload source context in CI/CD when auth token is available
+    autoUploadSourceContext = System.getenv("SENTRY_AUTH_TOKEN") != null
+
+    org = System.getenv("SENTRY_ORG") ?: ""
+    projectName = System.getenv("SENTRY_PROJECT") ?: ""
+    authToken = System.getenv("SENTRY_AUTH_TOKEN") ?: ""
 }

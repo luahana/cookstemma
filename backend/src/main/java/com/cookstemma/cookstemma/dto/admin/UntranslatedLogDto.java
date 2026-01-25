@@ -1,0 +1,20 @@
+package com.cookstemma.cookstemma.dto.admin;
+
+import com.cookstemma.cookstemma.domain.enums.TranslationStatus;
+import lombok.Builder;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Builder
+public record UntranslatedLogDto(
+        UUID publicId,
+        String content,
+        TranslationStatus translationStatus,
+        String lastError,
+        Integer translatedLocaleCount,
+        Integer totalLocaleCount,
+        String creatorUsername,
+        Instant createdAt
+) {
+}

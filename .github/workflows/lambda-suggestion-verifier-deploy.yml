@@ -1,0 +1,75 @@
+# Deploy Suggestion Verifier Lambda
+# Manual trigger via workflow_dispatch
+
+name: Lambda Suggestion Verifier Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+env:
+  AWS_REGION: us-east-2
+  PROJECT_NAME: cookstemma
+
+jobs:
+  deploy:
+    name: Deploy Lambda
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::819551471059:role/github-actions-cookstemma-${{ github.event.inputs.environment }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Lambda image
+        working-directory: ./backend/lambda/suggestion-verifier
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO: ${{ env.PROJECT_NAME }}-suggestion-verifier
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPO:latest .
+          docker push $ECR_REGISTRY/$ECR_REPO:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPO:latest" >> $GITHUB_OUTPUT
+
+      - name: Update Lambda function
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO: ${{ env.PROJECT_NAME }}-suggestion-verifier
+          LAMBDA_NAME: ${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment }}-suggestion-verifier
+        run: |
+          aws lambda update-function-code \
+            --function-name $LAMBDA_NAME \
+            --image-uri $ECR_REGISTRY/$ECR_REPO:latest \
+            --region ${{ env.AWS_REGION }}
+
+          aws lambda wait function-updated \
+            --function-name $LAMBDA_NAME \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Deployment Summary
+        run: |
+          echo "## Lambda Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lambda:** ${{ env.PROJECT_NAME }}-${{ github.event.inputs.environment }}-suggestion-verifier" >> $GITHUB_STEP_SUMMARY

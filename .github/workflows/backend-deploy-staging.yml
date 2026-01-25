@@ -14,13 +14,13 @@ on:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: pairing-planet
-  ECS_CLUSTER: pairing-planet-staging-cluster
-  ECS_SERVICE: pairing-planet-staging-service
-  CONTAINER_NAME: pairing-planet-staging
-  CODEDEPLOY_APP: pairing-planet-staging
-  CODEDEPLOY_GROUP: pairing-planet-staging-dg
-  TASK_DEFINITION_FAMILY: pairing-planet-staging
+  ECR_REPOSITORY: cookstemma
+  ECS_CLUSTER: cookstemma-staging-cluster
+  ECS_SERVICE: cookstemma-staging-service
+  CONTAINER_NAME: cookstemma-staging
+  CODEDEPLOY_APP: cookstemma-staging
+  CODEDEPLOY_GROUP: cookstemma-staging-dg
+  TASK_DEFINITION_FAMILY: cookstemma-staging
 
 jobs:
   deploy:
@@ -66,7 +66,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::819551471059:role/github-actions-pairing-planet-staging
+          role-to-assume: arn:aws:iam::819551471059:role/github-actions-cookstemma-staging
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR

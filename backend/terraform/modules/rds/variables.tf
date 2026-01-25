@@ -50,7 +50,7 @@ variable "max_allocated_storage" {
 variable "database_name" {
   description = "Name of the default database"
   type        = string
-  default     = "pairingplanet"
+  default     = "cookstemma"
 }
 
 variable "master_username" {
@@ -75,4 +75,29 @@ variable "backup_retention_period" {
   description = "Number of days to retain backups"
   type        = number
   default     = 7
+}
+
+variable "snapshot_identifier" {
+  description = "DB snapshot to restore from. If provided, restores from snapshot instead of creating new DB."
+  type        = string
+  default     = null
+}
+
+# CloudWatch Alarms
+variable "sns_alarm_topic_arn" {
+  description = "ARN of the SNS topic for CloudWatch alarms. Required when enable_alarms is true."
+  type        = string
+  default     = ""
+}
+
+variable "enable_alarms" {
+  description = "Enable CloudWatch alarms for RDS monitoring. Requires sns_alarm_topic_arn to be set."
+  type        = bool
+  default     = true
+}
+
+variable "publicly_accessible" {
+  description = "Whether the RDS instance should be publicly accessible"
+  type        = bool
+  default     = false
 }

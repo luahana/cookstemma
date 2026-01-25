@@ -1,10 +1,10 @@
-# Pairing Planet - Backend (Spring Boot)
+# Cookstemma - Backend (Spring Boot)
 
-REST API backend for the Pairing Planet recipe evolution platform.
+REST API backend for the Cookstemma recipe evolution platform.
 
 ## About
 
-Spring Boot backend providing authentication, recipe management, log posts, image storage, and analytics for the Pairing Planet mobile application.
+Spring Boot backend providing authentication, recipe management, log posts, image storage, and analytics for the Cookstemma mobile application.
 
 **Tech Stack**: Spring Boot 3.5.8 + PostgreSQL + Redis + JWT + S3/MinIO
 
@@ -21,7 +21,7 @@ docker-compose up -d
 ./gradlew test
 ```
 
-**API Base URL**: http://localhost:4001/api/v1
+**API Base URL**: http://localhost:4000/api/v1
 
 ## Documentation
 
@@ -66,7 +66,7 @@ minio:
   endpoint: http://localhost:9000
   access-key: minioadmin
   secret-key: minioadmin
-  bucket: pairing-planet-images
+  bucket: cookstemma-images
 
 jwt:
   secret: your-super-secret-jwt-key-change-this-in-production
@@ -83,7 +83,7 @@ firebase:
 ## Project Structure
 
 ```
-src/main/java/com/pairingplanet/pairing_planet/
+src/main/java/com/cookstemma/cookstemma/
 ├── controller/       # REST API endpoints
 ├── service/          # Business logic layer
 ├── repository/       # Data access layer (Spring Data JPA)
@@ -141,7 +141,7 @@ Integration tests use **TestContainers** to spin up real PostgreSQL instances.
 ./gradlew bootJar
 
 # Build Docker image
-docker build -t pairing-planet-backend:latest .
+docker build -t cookstemma-backend:latest .
 
 # Run with Docker Compose
 docker-compose -f docker-compose.prod.yaml up -d

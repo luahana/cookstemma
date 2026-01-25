@@ -1,6 +1,6 @@
 # AWS Deployment Guide
 
-This document describes how to deploy the Pairing Planet backend to AWS using Terraform and GitHub Actions.
+This document describes how to deploy the Cookstemma backend to AWS using Terraform and GitHub Actions.
 
 ## Architecture Overview
 
@@ -57,18 +57,18 @@ This document describes how to deploy the Pairing Planet backend to AWS using Te
 ```bash
 # Create S3 bucket for state
 aws s3api create-bucket \
-  --bucket pairing-planet-terraform-state \
+  --bucket cookstemma-terraform-state \
   --region ap-northeast-2 \
   --create-bucket-configuration LocationConstraint=ap-northeast-2
 
 # Enable versioning
 aws s3api put-bucket-versioning \
-  --bucket pairing-planet-terraform-state \
+  --bucket cookstemma-terraform-state \
   --versioning-configuration Status=Enabled
 
 # Create DynamoDB table for locking
 aws dynamodb create-table \
-  --table-name pairing-planet-terraform-locks \
+  --table-name cookstemma-terraform-locks \
   --attribute-definitions AttributeName=LockID,AttributeType=S \
   --key-schema AttributeName=LockID,KeyType=HASH \
   --billing-mode PAY_PER_REQUEST \
@@ -139,8 +139,8 @@ Push to staging/master → GitHub Actions → Build & Test → Push to ECR → C
 ```bash
 # Force new deployment
 aws ecs update-service \
-  --cluster pairing-planet-dev-cluster \
-  --service pairing-planet-dev-service \
+  --cluster cookstemma-dev-cluster \
+  --service cookstemma-dev-service \
   --force-new-deployment
 ```
 
@@ -151,8 +151,8 @@ aws ecs register-task-definition --cli-input-json file://task-definition.json
 
 # Create deployment
 aws deploy create-deployment \
-  --application-name pairing-planet-staging \
-  --deployment-group-name pairing-planet-staging-dg \
+  --application-name cookstemma-staging \
+  --deployment-group-name cookstemma-staging-dg \
   --revision revisionType=AppSpecContent,appSpecContent={content='...'}
 ```
 
@@ -161,14 +161,14 @@ aws deploy create-deployment \
 ### View ECS Logs
 ```bash
 # Tail logs
-aws logs tail /ecs/pairing-planet-dev --follow
+aws logs tail /ecs/cookstemma-dev --follow
 ```
 
 ### Check Service Status
 ```bash
 aws ecs describe-services \
-  --cluster pairing-planet-dev-cluster \
-  --services pairing-planet-dev-service
+  --cluster cookstemma-dev-cluster \
+  --services cookstemma-dev-service
 ```
 
 ### Check Deployment Status
@@ -182,9 +182,9 @@ aws deploy get-deployment --deployment-id <deployment-id>
 The previous task definition revision can be deployed:
 ```bash
 aws ecs update-service \
-  --cluster pairing-planet-dev-cluster \
-  --service pairing-planet-dev-service \
-  --task-definition pairing-planet-dev:<previous-revision>
+  --cluster cookstemma-dev-cluster \
+  --service cookstemma-dev-service \
+  --task-definition cookstemma-dev:<previous-revision>
 ```
 
 ### Staging/Prod (CodeDeploy)
@@ -196,7 +196,7 @@ aws deploy stop-deployment --deployment-id <deployment-id> --auto-rollback-enabl
 ## Troubleshooting
 
 ### ECS Task Won't Start
-1. Check CloudWatch logs: `/ecs/pairing-planet-{env}`
+1. Check CloudWatch logs: `/ecs/cookstemma-{env}`
 2. Verify security group allows outbound traffic
 3. Check Secrets Manager permissions
 4. Verify task definition CPU/memory settings

@@ -1,13 +1,12 @@
-# Pairing Planet Fullstack
+# Cookstemma Fullstack
 
-Monorepo containing all Pairing Planet applications - a recipe sharing and cooking community platform.
+Monorepo containing all Cookstemma applications - Your personal cooking journal. Log meals, track your progress, and grow as a home cook. Discover recipes and share your culinary journey platform.
 
 ## Project Structure
 
 ```
-pairing_planet_fullstack/
+cookstemma/
 ├── backend/              # Spring Boot API (Java 21)
-├── frontend_mobile/      # Flutter mobile app (iOS/Android)
 ├── frontend_web/         # Next.js web app (planned)
 ├── .github/workflows/    # CI/CD pipelines
 └── docker-compose.yml    # Local development stack
@@ -18,7 +17,6 @@ pairing_planet_fullstack/
 ### Prerequisites
 - Docker & Docker Compose
 - Java 21 (for backend development)
-- Flutter 3.24+ (for mobile development)
 - Node.js 18+ (for web development)
 
 ### Local Development with Docker
@@ -42,16 +40,9 @@ cd backend
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
 
-#### Frontend Mobile (Flutter)
+#### Web (Next.js) - Coming Soon
 ```bash
-cd frontend_mobile
-flutter pub get
-flutter run
-```
-
-#### Frontend Web (Next.js) - Coming Soon
-```bash
-cd frontend_web
+cd web
 npm install
 npm run dev
 ```
@@ -65,14 +56,7 @@ npm run dev
 - **Storage**: AWS S3 / MinIO (local dev)
 - **Auth**: Firebase Authentication + JWT
 
-### Frontend Mobile
-- **Framework**: Flutter 3.24+
-- **State**: Riverpod
-- **HTTP**: Dio
-- **Storage**: Hive, Isar
-- **Auth**: Firebase Auth, Google Sign-In, Sign in with Apple
-
-### Frontend Web (Planned)
+### Web
 - **Framework**: Next.js 14+
 - **Auth**: NextAuth.js
 - **Styling**: Tailwind CSS
@@ -81,17 +65,10 @@ npm run dev
 
 ### Backend
 - **Dev**: AWS ECS (us-east-2) - Rolling update
-- **Staging/Prod**: AWS ECS (ap-northeast-2) - Blue/Green via CodeDeploy
+- **Staging/Prod**: AWS ECS (us-east-2) - Rolling update
 
 See [backend/DEPLOYMENT.md](backend/DEPLOYMENT.md) for details.
 
-## Contributing
-
-1. Create a feature branch from `dev`
-2. Make your changes
-3. Submit a PR to `dev`
-4. After review, merge to `staging` for testing
-5. Finally merge to `main`/`master` for production
 
 ## License
 

@@ -1,5 +1,5 @@
 # =============================================================================
-# Pairing Planet Fullstack - Combined .gitignore
+# Cookstemma Fullstack - Combined .gitignore
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -60,6 +60,20 @@ yarn-debug.log*
 yarn-error.log*
 
 # -----------------------------------------------------------------------------
+# Python / Bot Engine
+# -----------------------------------------------------------------------------
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+bot_engine/env
+
+# -----------------------------------------------------------------------------
+# Serena (MCP Server)
+# -----------------------------------------------------------------------------
+.serena/
+
+# -----------------------------------------------------------------------------
 # IDE & Editors
 # -----------------------------------------------------------------------------
 # IntelliJ IDEA
@@ -103,6 +117,11 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
+# Terraform plan files - CRITICAL: these contain secret values!
+*.tfplan
+tfplan
+**/tfplan
+
 # -----------------------------------------------------------------------------
 # Secrets & Environment
 # -----------------------------------------------------------------------------
@@ -126,6 +145,7 @@ Thumbs.db
 # Claude Code
 # -----------------------------------------------------------------------------
 .claude/
+tmpclaude-*
 
 # -----------------------------------------------------------------------------
 # Misc
@@ -136,3 +156,19 @@ Thumbs.db
 .build/
 .buildlog/
 migrate_working_dir/
+
+# Temp files
+docker_check.txt
+build_log.txt
+build_output.txt
+new-task-def.json
+task-def.json
+
+# Bot engine test artifacts
+empty-payload.json
+process-result.json
+recipe-full.json
+recipe.json
+result-*.json
+test-payload.json
+test-result.json

@@ -159,6 +159,29 @@ resource "aws_iam_role_policy" "ecs_task_s3" {
   })
 }
 
+# SQS access for translation event queue (hybrid push architecture)
+resource "aws_iam_role_policy" "ecs_task_sqs" {
+  count = var.sqs_enabled ? 1 : 0
+
+  name = "${var.project_name}-${var.environment}-ecs-task-sqs"
+  role = aws_iam_role.ecs_task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage",
+          "sqs:GetQueueUrl",
+          "sqs:GetQueueAttributes"
+        ]
+        Resource = [var.sqs_translation_queue_arn]
+      }
+    ]
+  })
+}
+
 # ECS Task Definition
 resource "aws_ecs_task_definition" "main" {
   family                   = "${var.project_name}-${var.environment}"
@@ -168,6 +191,12 @@ resource "aws_ecs_task_definition" "main" {
   memory                   = var.task_memory
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
   task_role_arn            = aws_iam_role.ecs_task.arn
+
+  # Use Graviton (ARM64) for 20% cost savings
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "ARM64"
+  }
 
   container_definitions = jsonencode([
     {
@@ -185,11 +214,23 @@ resource "aws_ecs_task_definition" "main" {
       environment = [
         {
           name  = "SPRING_PROFILES_ACTIVE"
-          value = var.environment
+          value = "aws"
         },
         {
           name  = "SERVER_PORT"
           value = tostring(var.container_port)
+        },
+        {
+          name  = "CDN_URL_PREFIX"
+          value = var.cdn_url_prefix
+        },
+        {
+          name  = "SQS_TRANSLATION_QUEUE_URL"
+          value = var.sqs_translation_queue_url
+        },
+        {
+          name  = "SQS_ENABLED"
+          value = tostring(var.sqs_enabled)
         }
       ]
 
@@ -233,6 +274,10 @@ resource "aws_ecs_task_definition" "main" {
         {
           name      = "S3_BUCKET"
           valueFrom = "${var.s3_secret_arn}:bucket::"
+        },
+        {
+          name      = "FIREBASE_CREDENTIALS"
+          valueFrom = "${var.firebase_secret_arn}:credentials::"
         }
       ]
 
@@ -250,7 +295,7 @@ resource "aws_ecs_task_definition" "main" {
         interval    = 30
         timeout     = 5
         retries     = 3
-        startPeriod = 60
+        startPeriod = 120
       }
 
       essential = true
@@ -270,6 +315,9 @@ resource "aws_ecs_service" "main" {
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
 
+  # Allow time for Spring Boot to start (~90s) before ELB health checks fail the task
+  health_check_grace_period_seconds = var.target_group_arn != null ? 120 : null
+
   network_configuration {
     subnets          = var.subnet_ids
     security_groups  = [aws_security_group.ecs_tasks.id]
@@ -282,6 +330,14 @@ resource "aws_ecs_service" "main" {
       target_group_arn = var.target_group_arn
       container_name   = "${var.project_name}-${var.environment}"
       container_port   = var.container_port
+    }
+  }
+
+  # Service Discovery registration (Cloud Map)
+  dynamic "service_registries" {
+    for_each = var.service_discovery_service_arn != "" ? [1] : []
+    content {
+      registry_arn = var.service_discovery_service_arn
     }
   }
 

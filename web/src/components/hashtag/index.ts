@@ -1,0 +1,1 @@
+export { HashtaggedFeed } from './HashtaggedFeed';

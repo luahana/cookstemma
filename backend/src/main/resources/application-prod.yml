@@ -29,6 +29,8 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     clean-disabled: true # (핵심 ⭐) 실수로 flyway clean 명령어가 실행되어 DB가 싹 날아가는 것을 원천 봉쇄
+    locations: 
+      - classpath:db/migration
 
 internal:
   api:
@@ -37,7 +39,7 @@ internal:
 file:
   upload:
     # 운영 환경의 이미지 서버 주소 (CDN 또는 API 도메인)
-    url-prefix: ${FILE_UPLOAD_URL_PREFIX:https://api.pairingplanet.com/storage}
+    url-prefix: ${FILE_UPLOAD_URL_PREFIX:https://api.cookstemma.com/storage}
     
   # 로깅 설정 (운영은 에러 위주로)
   logging:
@@ -45,7 +47,7 @@ file:
       root: INFO
       org.hibernate.SQL: INFO # 쿼리 로그 끔
       org.hibernate.type.descriptor.sql: INFO # 파라미터 바인딩 로그 끔
-      com.pairingplanet: INFO # 내 프로젝트 로그 레벨
+      com.cookstemma: INFO # 내 프로젝트 로그 레벨
 
   server:
     error:
@@ -55,3 +57,17 @@ file:
   sql:
     init:
       mode: never # 데이터 초기화 방지
+
+# Sentry error monitoring - enabled in production
+sentry:
+  dsn: ${SENTRY_DSN}
+  environment: production
+  release: ${SENTRY_RELEASE:}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
+  # Tag to differentiate from Lambda (both share same Sentry project)
+  tags:
+    service: spring-boot
+  # Send first transaction of each user session
+  enable-automatic-breadcrumbs: true
+  # Capture user info for better debugging
+  send-default-pii: false
