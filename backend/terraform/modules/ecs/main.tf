@@ -40,7 +40,18 @@ resource "aws_security_group" "ecs_tasks" {
     protocol        = "tcp"
     security_groups = var.alb_security_group_id != null ? [var.alb_security_group_id] : []
     cidr_blocks     = var.alb_security_group_id == null ? ["0.0.0.0/0"] : []
-    description     = "Application port"
+    description     = "Application port from ALB"
+  }
+
+  dynamic "ingress" {
+    for_each = var.additional_ingress_security_group_ids
+    content {
+      from_port       = var.container_port
+      to_port         = var.container_port
+      protocol        = "tcp"
+      security_groups = [ingress.value]
+      description     = "Application port from additional services"
+    }
   }
 
   egress {
