@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "الوسوم الشائعة"
   },
+  "usernameValidation": {
+    "rules": "5-30 حرف، يبدأ بحرف. مسموح: a-z, 0-9, _ . -",
+    "taken": "اسم المستخدم مستخدم"
+  },
   "cookingStyles": {
     "allStyles": "جميع الأنماط",
     "international": "دولي",

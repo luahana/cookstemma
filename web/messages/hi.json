@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "लोकप्रिय हैशटैग"
   },
+  "usernameValidation": {
+    "rules": "5-30 अक्षर, अक्षर से शुरू। अनुमत: a-z, 0-9, _ . -",
+    "taken": "यह नाम पहले से उपयोग में है"
+  },
   "cookingStyles": {
     "allStyles": "सभी शैलियाँ",
     "international": "अंतर्राष्ट्रीय",

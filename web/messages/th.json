@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "แฮชแท็กยอดนิยม"
   },
+  "usernameValidation": {
+    "rules": "5-30 ตัวอักษร เริ่มด้วยตัวอักษร อนุญาต: a-z, 0-9, _ . -",
+    "taken": "ชื่อผู้ใช้ถูกใช้แล้ว"
+  },
   "cookingStyles": {
     "allStyles": "ทุกสไตล์",
     "international": "นานาชาติ",
