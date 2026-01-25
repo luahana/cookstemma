@@ -31,3 +31,15 @@ variable "create_nat_gateway" {
   type        = bool
   default     = false
 }
+
+variable "create_vpc_endpoints" {
+  description = "Whether to create VPC endpoints for AWS services (Secrets Manager, SQS, S3)"
+  type        = bool
+  default     = false
+}
+
+variable "lambda_security_group_ids" {
+  description = "Security group IDs for Lambda functions (needed for interface endpoints)"
+  type        = list(string)
+  default     = []
+}

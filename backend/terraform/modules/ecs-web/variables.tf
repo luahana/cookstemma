@@ -104,3 +104,9 @@ variable "internal_api_url" {
   type        = string
   default     = ""
 }
+
+variable "cpu_architecture" {
+  description = "CPU architecture for ECS tasks (X86_64 or ARM64)"
+  type        = string
+  default     = "ARM64"
+}

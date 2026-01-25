@@ -69,11 +69,12 @@ resource "aws_lb" "main" {
 
 # Target Group (Blue - Primary)
 resource "aws_lb_target_group" "blue" {
-  name        = "${var.project_name}-${var.environment}-tg-blue"
-  port        = var.container_port
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
-  target_type = "ip"
+  name                 = "${var.project_name}-${var.environment}-tg-blue"
+  port                 = var.container_port
+  protocol             = "HTTP"
+  vpc_id               = var.vpc_id
+  target_type          = "ip"
+  deregistration_delay = 30  # Faster deployments (default 300s)
 
   health_check {
     enabled             = true
@@ -96,11 +97,12 @@ resource "aws_lb_target_group" "blue" {
 
 # Target Group (Green - For Blue/Green deployment)
 resource "aws_lb_target_group" "green" {
-  name        = "${var.project_name}-${var.environment}-tg-green"
-  port        = var.container_port
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
-  target_type = "ip"
+  name                 = "${var.project_name}-${var.environment}-tg-green"
+  port                 = var.container_port
+  protocol             = "HTTP"
+  vpc_id               = var.vpc_id
+  target_type          = "ip"
+  deregistration_delay = 30  # Faster deployments (default 300s)
 
   health_check {
     enabled             = true
@@ -125,11 +127,12 @@ resource "aws_lb_target_group" "green" {
 resource "aws_lb_target_group" "web" {
   count = var.enable_web ? 1 : 0
 
-  name        = "${var.project_name}-${var.environment}-tg-web"
-  port        = var.web_port
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
-  target_type = "ip"
+  name                 = "${var.project_name}-${var.environment}-tg-web"
+  port                 = var.web_port
+  protocol             = "HTTP"
+  vpc_id               = var.vpc_id
+  target_type          = "ip"
+  deregistration_delay = 30  # Faster deployments (default 300s)
 
   health_check {
     enabled             = true
