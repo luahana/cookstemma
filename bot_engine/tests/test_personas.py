@@ -49,98 +49,78 @@ class TestBotPersona:
 
 
 class TestPersonaRegistry:
-    """Tests for the persona registry."""
+    """Tests for the persona registry.
+    
+    Note: These tests use a pre-initialized mock registry since the actual
+    registry fetches personas from the backend API dynamically.
+    """
 
-    def test_registry_has_ten_personas(self) -> None:
-        """Test that registry contains all 10 personas."""
-        registry = get_persona_registry()
-        all_personas = registry.get_all()
-        assert len(all_personas) == 10
+    @pytest.fixture
+    def initialized_registry(self, korean_persona: BotPersona, english_persona: BotPersona):
+        """Create a registry with mock personas for testing."""
+        from src.personas.registry import PersonaRegistry
+        
+        registry = PersonaRegistry()
+        # Manually inject test personas
+        registry._personas = {
+            korean_persona.name: korean_persona,
+            english_persona.name: english_persona,
+        }
+        registry._initialized = True
+        return registry
 
-    def test_registry_has_korean_personas(self) -> None:
-        """Test that registry has 5 Korean personas."""
-        registry = get_persona_registry()
-        korean = registry.get_korean_personas()
-        assert len(korean) == 5
+    def test_registry_requires_initialization(self) -> None:
+        """Test that registry raises error when not initialized."""
+        from src.personas.registry import PersonaRegistry
+        
+        registry = PersonaRegistry()
+        with pytest.raises(RuntimeError, match="not initialized"):
+            registry.get_all()
 
-    def test_registry_has_english_personas(self) -> None:
-        """Test that registry has 5 English personas."""
-        registry = get_persona_registry()
-        english = registry.get_english_personas()
-        assert len(english) == 5
-
-    def test_registry_get_by_name(self) -> None:
+    def test_registry_get_by_name(self, initialized_registry, korean_persona: BotPersona) -> None:
         """Test getting persona by name."""
-        registry = get_persona_registry()
+        persona = initialized_registry.get(korean_persona.name)
+        assert persona is not None
+        assert persona.name == korean_persona.name
 
-        chef = registry.get("chef_park_soojin")
-        assert chef is not None
-        assert chef.is_korean()
-
-        marcus = registry.get("chef_marcus_stone")
-        assert marcus is not None
-        assert marcus.is_english()
-
-    def test_registry_get_nonexistent_returns_none(self) -> None:
+    def test_registry_get_nonexistent_returns_none(self, initialized_registry) -> None:
         """Test that getting nonexistent persona returns None."""
-        registry = get_persona_registry()
-        persona = registry.get("nonexistent_persona")
+        persona = initialized_registry.get("nonexistent_persona")
         assert persona is None
 
-    def test_korean_personas_have_korean_locale(self) -> None:
-        """Test that all Korean personas have correct locale."""
-        registry = get_persona_registry()
-        korean_names = [
-            "chef_park_soojin",
-            "yoriking_minsu",
-            "healthymom_hana",
-            "bakingmom_jieun",
-            "worldfoodie_junhyuk",
-        ]
+    def test_registry_get_all_returns_all_personas(self, initialized_registry) -> None:
+        """Test that get_all returns all registered personas."""
+        all_personas = initialized_registry.get_all()
+        assert len(all_personas) == 2  # korean + english test personas
 
-        for name in korean_names:
-            persona = registry.get(name)
-            assert persona is not None
-            assert persona.is_korean()
-            assert persona.cooking_style == "KR"
+    def test_registry_get_korean_personas(self, initialized_registry, korean_persona: BotPersona) -> None:
+        """Test filtering Korean personas."""
+        korean = initialized_registry.get_korean_personas()
+        assert len(korean) == 1
+        assert korean[0].is_korean()
 
-    def test_english_personas_have_english_locale(self) -> None:
-        """Test that all English personas have correct locale."""
-        registry = get_persona_registry()
-        english_names = [
-            "chef_marcus_stone",
-            "broke_college_cook",
-            "fitfamilyfoods",
-            "sweettoothemma",
-            "globaleatsalex",
-        ]
+    def test_registry_get_english_personas(self, initialized_registry, english_persona: BotPersona) -> None:
+        """Test filtering English personas."""
+        english = initialized_registry.get_english_personas()
+        assert len(english) == 1
+        assert english[0].is_english()
 
-        for name in english_names:
-            persona = registry.get(name)
-            assert persona is not None
-            assert persona.is_english()
+    def test_registry_get_by_locale(self, initialized_registry, korean_persona: BotPersona) -> None:
+        """Test filtering by locale."""
+        ko_personas = initialized_registry.get_by_locale("ko-KR")
+        assert len(ko_personas) == 1
+        assert ko_personas[0].locale == "ko-KR"
 
-    def test_each_persona_has_unique_specialties(self) -> None:
-        """Test that personas have diverse specialties."""
-        registry = get_persona_registry()
-        all_personas = registry.get_all()
-
-        # Each persona should have at least one specialty
-        for persona in all_personas:
-            assert len(persona.specialties) >= 1
-
-    def test_persona_skill_levels_are_valid(self) -> None:
+    def test_persona_skill_levels_are_valid(self, initialized_registry) -> None:
         """Test that all personas have valid skill levels."""
-        registry = get_persona_registry()
         valid_levels = {SkillLevel.PROFESSIONAL, SkillLevel.INTERMEDIATE, SkillLevel.BEGINNER, SkillLevel.HOME_COOK}
 
-        for persona in registry.get_all():
+        for persona in initialized_registry.get_all():
             assert persona.skill_level in valid_levels
 
-    def test_persona_tones_are_valid(self) -> None:
+    def test_persona_tones_are_valid(self, initialized_registry) -> None:
         """Test that all personas have valid tones."""
-        registry = get_persona_registry()
         valid_tones = {Tone.CASUAL, Tone.PROFESSIONAL, Tone.ENTHUSIASTIC, Tone.WARM, Tone.EDUCATIONAL, Tone.MOTIVATIONAL}
 
-        for persona in registry.get_all():
+        for persona in initialized_registry.get_all():
             assert persona.tone in valid_tones
