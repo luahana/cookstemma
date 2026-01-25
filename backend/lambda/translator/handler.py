@@ -945,7 +945,9 @@ def process_full_recipe_event(conn, translator: GeminiTranslator, event: dict,
         description=content_to_translate['description'],
         steps=content_to_translate['steps'],
         ingredients=content_to_translate['ingredients'],
-        food_name=content_to_translate['food_name']
+        food_name=content_to_translate['food_name'],
+        is_variant=full_recipe.get('is_variant', False),
+        change_reason=content_to_translate.get('change_reason', '')
     )
     if not text_result:
         logger.warning(f"Recipe {entity_id} text content failed moderation: {text_result.reason}")

@@ -62,7 +62,9 @@ class GeminiTranslator:
         description: str,
         steps: list[str],
         ingredients: list[str],
-        food_name: str = ""
+        food_name: str = "",
+        is_variant: bool = False,
+        change_reason: str = ""
     ) -> ContentModerationResult:
         """
         Check if recipe text content is appropriate for a cooking recipe app.
@@ -74,7 +76,17 @@ class GeminiTranslator:
         - Harmful or dangerous content
         - Spam or promotional content
         """
-        all_text = f"""
+        if is_variant:
+            all_text = f"""
+Title: {title}
+Description (from parent recipe): {description}
+Change Reason (why this variant differs): {change_reason}
+Food Name: {food_name}
+Steps: {json.dumps(steps, ensure_ascii=False)}
+Ingredients: {json.dumps(ingredients, ensure_ascii=False)}
+"""
+        else:
+            all_text = f"""
 Title: {title}
 Description: {description}
 Food Name: {food_name}
@@ -100,7 +112,13 @@ IMPORTANT:
 - Normal cooking content with knives, fire, heat, alcohol (for cooking) is APPROPRIATE
 - Unusual but real foods/recipes should be allowed (exotic ingredients, cultural dishes)
 - Recipe names that sound unusual but are legitimate dishes are APPROPRIATE
-
+""" + ("""
+VARIANT RECIPE NOTE:
+- This is a VARIANT recipe - the description comes from the PARENT recipe
+- The variant's ingredients/steps may intentionally differ from the description (e.g., vegetarian version of a meat dish)
+- Focus on checking the variant's own content (title, change_reason, steps, ingredients) for appropriateness
+- Do NOT flag as inappropriate just because ingredients don't match the parent's description
+""" if is_variant else "") + """
 Return JSON: {"is_appropriate": true/false, "reason": "explanation if inappropriate, null if appropriate"}
 """
 
