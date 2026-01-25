@@ -3,7 +3,6 @@
 import argparse
 import asyncio
 import sys
-from typing import Dict
 
 import structlog
 
@@ -44,45 +43,20 @@ def setup_logging(level: str = "INFO") -> None:
     )
 
 
-def load_api_keys_from_env() -> Dict[str, str]:
-    """Load persona API keys from environment variables.
-
-    Expects format: BOT_API_KEY_<PERSONA_NAME>=pp_bot_xxx
-    e.g., BOT_API_KEY_CHEF_PARK_SOOJIN=pp_bot_xxx
-    """
-    import os
-
-    keys: Dict[str, str] = {}
-    prefix = "BOT_API_KEY_"
-
-    for key, value in os.environ.items():
-        if key.startswith(prefix) and value:
-            persona_name = key[len(prefix) :].lower()
-            keys[persona_name] = value
-
-    return keys
-
-
 async def run_seed(args: argparse.Namespace) -> None:
     """Run initial content seeding."""
     logger = structlog.get_logger()
 
-    api_keys = load_api_keys_from_env()
-    if not api_keys:
-        logger.error("no_api_keys", hint="Set BOT_API_KEY_<PERSONA_NAME> env vars")
-        sys.exit(1)
-
     logger.info(
         "seed_starting",
-        personas=list(api_keys.keys()),
         recipes=args.recipes,
         logs=args.logs,
         images=not args.no_images,
     )
 
     scheduler = ContentScheduler(
-        persona_api_keys=api_keys,
         generate_images=not args.no_images,
+        run_all=True,  # Seed uses all personas
     )
 
     await scheduler.run_initial_seed(
@@ -93,16 +67,8 @@ async def run_seed(args: argparse.Namespace) -> None:
 
 async def run_daily(args: argparse.Namespace) -> None:
     """Run daily content generation once."""
-    logger = structlog.get_logger()
-
-    api_keys = load_api_keys_from_env()
-    if not api_keys:
-        logger.error("no_api_keys")
-        sys.exit(1)
-
     run_all = getattr(args, "all", False)
     scheduler = ContentScheduler(
-        persona_api_keys=api_keys,
         generate_images=not args.no_images,
         run_all=run_all,
     )
@@ -114,14 +80,8 @@ async def run_scheduler(args: argparse.Namespace) -> None:
     """Run the content scheduler daemon."""
     logger = structlog.get_logger()
 
-    api_keys = load_api_keys_from_env()
-    if not api_keys:
-        logger.error("no_api_keys")
-        sys.exit(1)
-
     run_all = getattr(args, "all", False)
     scheduler = ContentScheduler(
-        persona_api_keys=api_keys,
         generate_images=not args.no_images,
         run_all=run_all,
     )

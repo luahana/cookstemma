@@ -26,19 +26,16 @@ class ContentScheduler:
 
     def __init__(
         self,
-        persona_api_keys: Dict[str, str],
         generate_images: bool = True,
         run_all: bool = False,
     ) -> None:
         """Initialize scheduler.
 
         Args:
-            persona_api_keys: Dict mapping persona name to API key
             generate_images: Whether to generate AI images
             run_all: If True, bypass schedule and run all bots
         """
         self._settings = get_settings()
-        self._persona_api_keys = persona_api_keys
         self._generate_images = generate_images
         self._run_all = run_all
         self._scheduler: Optional[AsyncIOScheduler] = None
@@ -61,27 +58,20 @@ class ContentScheduler:
                     persona_count=len(self._registry.get_all()),
                 )
 
-    async def _get_configured_personas(self) -> List[BotPersona]:
-        """Get personas that have API keys configured AND are scheduled for today.
+    async def _get_scheduled_personas(self) -> List[BotPersona]:
+        """Get all active personas, filtered by today's schedule.
 
         Ensures registry is initialized before accessing personas.
         Filters by schedule unless run_all is True.
         """
         await self._ensure_registry_initialized()
 
-        # Get all personas with API keys
-        all_personas = []
-        for name, api_key in self._persona_api_keys.items():
-            persona = self._registry.get(name)
-            if persona:
-                persona.api_key = api_key
-                all_personas.append(persona)
-            else:
-                logger.warning(
-                    "persona_not_found_in_registry",
-                    persona_name=name,
-                    hint="Check that persona exists in database and is active",
-                )
+        # Get all personas from registry
+        all_personas = self._registry.get_all()
+
+        if not all_personas:
+            logger.warning("no_personas_in_registry")
+            return []
 
         # Return all personas if run_all is True (bypass schedule)
         if self._run_all:
@@ -102,7 +92,7 @@ class ContentScheduler:
         logger.info(
             "personas_filtered_by_schedule",
             day=self._schedule_service.get_today_day(),
-            total_configured=len(all_personas),
+            total_available=len(all_personas),
             scheduled_count=len(scheduled_personas),
         )
 
@@ -112,9 +102,12 @@ class ContentScheduler:
         self,
         persona: BotPersona,
     ) -> tuple:
-        """Create authenticated clients for a persona."""
+        """Create authenticated clients for a persona.
+
+        Uses login_by_persona which authenticates via BOT_INTERNAL_SECRET.
+        """
         api_client = CookstemmaClient()
-        await api_client.login_persona(persona)
+        await api_client.login_by_persona(persona.name)
 
         text_gen = TextGenerator()
         image_gen = ImageGenerator()
@@ -123,7 +116,7 @@ class ContentScheduler:
 
     async def generate_daily_content(self) -> None:
         """Generate daily content (recipes only, no logs by default)."""
-        personas = await self._get_configured_personas()
+        personas = await self._get_scheduled_personas()
         if not personas:
             logger.warning("no_scheduled_personas_today")
             return
@@ -246,9 +239,9 @@ class ContentScheduler:
             total_recipes: Target number of recipes (50% originals, 50% variants)
             total_logs: Target number of cooking logs
         """
-        personas = await self._get_configured_personas()
+        personas = await self._get_scheduled_personas()
         if not personas:
-            raise RuntimeError("No personas configured with API keys")
+            raise RuntimeError("No personas found in registry")
 
         logger.info(
             "initial_seed_start",
