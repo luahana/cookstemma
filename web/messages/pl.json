@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "Popularne hashtagi"
   },
+  "usernameValidation": {
+    "rules": "5-30 znaków, zaczyna się od litery. Dozwolone: a-z, 0-9, _ . -",
+    "taken": "Nazwa użytkownika zajęta"
+  },
   "cookingStyles": {
     "allStyles": "Wszystkie style",
     "international": "Międzynarodowa",

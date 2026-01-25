@@ -366,8 +366,10 @@ async def main() -> None:
         else:
             personas = all_personas
 
-        # Authenticate personas
-        print(f"Authenticating {len(personas)} persona(s)...")
+        # Verify personas can authenticate and get their user IDs
+        # Note: We re-authenticate before each recipe creation because the client
+        # can only hold one access token at a time (last login wins)
+        print(f"Verifying {len(personas)} persona(s) can authenticate...")
         for p in personas:
             try:
                 auth = await api_client.login_by_persona(p.name)
@@ -410,7 +412,10 @@ async def main() -> None:
             recipe_num += 1
             persona = random.choice(personas)
 
-            print(f"[{recipe_num}/{total_count}] Original - {persona.name}")
+            print(f"[{recipe_num}/{total_count}] Original - {persona.name} (locale: {persona.locale})")
+
+            # Re-authenticate as the selected persona before creating recipe
+            await api_client.login_by_persona(persona.name)
 
             pipeline = RecipePipeline(api_client, text_gen, image_gen)
             result = await create_original_recipe(
@@ -449,7 +454,10 @@ async def main() -> None:
             recipe_num += 1
             persona = random.choice(personas)
 
-            print(f"[{recipe_num}/{total_count}] Variant - {persona.name}")
+            print(f"[{recipe_num}/{total_count}] Variant - {persona.name} (locale: {persona.locale})")
+
+            # Re-authenticate as the selected persona before creating recipe
+            await api_client.login_by_persona(persona.name)
 
             pipeline = RecipePipeline(api_client, text_gen, image_gen)
             result = await create_variant_recipe(

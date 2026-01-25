@@ -6,12 +6,15 @@ import com.cookstemma.cookstemma.domain.entity.recipe.Recipe;
 import com.cookstemma.cookstemma.domain.entity.recipe.RecipeLog;
 import com.cookstemma.cookstemma.domain.entity.user.User;
 import com.cookstemma.cookstemma.dto.common.UnifiedPageResponse;
+import com.cookstemma.cookstemma.dto.log_post.CreateLogRequestDto;
 import com.cookstemma.cookstemma.dto.log_post.LogPostDetailResponseDto;
 import com.cookstemma.cookstemma.dto.log_post.LogPostSummaryDto;
 import com.cookstemma.cookstemma.dto.log_post.UpdateLogRequestDto;
+import com.cookstemma.cookstemma.security.UserPrincipal;
 import com.cookstemma.cookstemma.repository.food.FoodMasterRepository;
 import com.cookstemma.cookstemma.repository.log_post.LogPostRepository;
 import com.cookstemma.cookstemma.repository.recipe.RecipeRepository;
+import com.cookstemma.cookstemma.repository.user.UserRepository;
 import com.cookstemma.cookstemma.support.BaseIntegrationTest;
 import com.cookstemma.cookstemma.support.TestUserFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +47,9 @@ class LogPostServiceTest extends BaseIntegrationTest {
 
     @Autowired
     private TestUserFactory testUserFactory;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private User testUser;
     private User otherUser;
@@ -531,6 +537,225 @@ class LogPostServiceTest extends BaseIntegrationTest {
             // Should not include the private log post
             assertThat(result.content()).noneMatch(log ->
                     log.publicId().equals(privateLog.getPublicId()));
+        }
+    }
+
+    @Nested
+    @DisplayName("Create Log Post - Translation Initialization")
+    class CreateLogTranslationTests {
+
+        @Test
+        @DisplayName("Should initialize title translations with source language when creating log")
+        void createLog_InitializesTitleTranslationsWithSourceLanguage() {
+            // Set user locale to Korean
+            testUser.setLocale("ko-KR");
+            userRepository.save(testUser);
+
+            CreateLogRequestDto request = new CreateLogRequestDto(
+                    testRecipe.getPublicId(),
+                    "한국어 제목",
+                    "한국어 내용",
+                    5,
+                    null,  // hashtags
+                    null,  // imagePublicIds
+                    false  // isPrivate
+            );
+
+            UserPrincipal principal = new UserPrincipal(testUser);
+            LogPostDetailResponseDto result = logPostService.createLog(request, principal);
+
+            // Verify log was created
+            LogPost created = logPostRepository.findByPublicId(result.publicId()).orElseThrow();
+
+            // Verify title translations contains Korean key with original content
+            assertThat(created.getTitleTranslations()).isNotNull();
+            assertThat(created.getTitleTranslations()).containsKey("ko");
+            assertThat(created.getTitleTranslations().get("ko")).isEqualTo("한국어 제목");
+        }
+
+        @Test
+        @DisplayName("Should initialize content translations with source language when creating log")
+        void createLog_InitializesContentTranslationsWithSourceLanguage() {
+            // Set user locale to Korean
+            testUser.setLocale("ko-KR");
+            userRepository.save(testUser);
+
+            CreateLogRequestDto request = new CreateLogRequestDto(
+                    testRecipe.getPublicId(),
+                    "한국어 제목",
+                    "한국어 내용",
+                    5,
+                    null,  // hashtags
+                    null,  // imagePublicIds
+                    false  // isPrivate
+            );
+
+            UserPrincipal principal = new UserPrincipal(testUser);
+            LogPostDetailResponseDto result = logPostService.createLog(request, principal);
+
+            // Verify log was created
+            LogPost created = logPostRepository.findByPublicId(result.publicId()).orElseThrow();
+
+            // Verify content translations contains Korean key with original content
+            assertThat(created.getContentTranslations()).isNotNull();
+            assertThat(created.getContentTranslations()).containsKey("ko");
+            assertThat(created.getContentTranslations().get("ko")).isEqualTo("한국어 내용");
+        }
+
+        @Test
+        @DisplayName("Should return original content when requesting with source locale")
+        void createLog_ReturnsOriginalContentForSourceLocale() {
+            // Set user locale to Korean
+            testUser.setLocale("ko-KR");
+            userRepository.save(testUser);
+
+            CreateLogRequestDto request = new CreateLogRequestDto(
+                    testRecipe.getPublicId(),
+                    "한국어 제목",
+                    "한국어 내용",
+                    5,
+                    null,  // hashtags
+                    null,  // imagePublicIds
+                    false  // isPrivate
+            );
+
+            UserPrincipal principal = new UserPrincipal(testUser);
+            LogPostDetailResponseDto result = logPostService.createLog(request, principal);
+
+            // Get log detail with Korean locale
+            LogPostDetailResponseDto detail = logPostService.getLogDetail(
+                    result.publicId(), testUser.getId(), "ko-KR");
+
+            // Should return Korean content (not fall back to English)
+            assertThat(detail.title()).isEqualTo("한국어 제목");
+            assertThat(detail.content()).isEqualTo("한국어 내용");
+        }
+
+        @Test
+        @DisplayName("Should handle null content gracefully")
+        void createLog_HandlesNullContent() {
+            // Set user locale to Korean
+            testUser.setLocale("ko-KR");
+            userRepository.save(testUser);
+
+            CreateLogRequestDto request = new CreateLogRequestDto(
+                    testRecipe.getPublicId(),
+                    "한국어 제목",
+                    null,  // null content
+                    5,
+                    null,
+                    null,
+                    false
+            );
+
+            UserPrincipal principal = new UserPrincipal(testUser);
+            LogPostDetailResponseDto result = logPostService.createLog(request, principal);
+
+            // Verify log was created
+            LogPost created = logPostRepository.findByPublicId(result.publicId()).orElseThrow();
+
+            // Title translations should be initialized
+            assertThat(created.getTitleTranslations()).isNotNull();
+            assertThat(created.getTitleTranslations()).containsKey("ko");
+
+            // Content translations should be empty (not contain null value)
+            assertThat(created.getContentTranslations()).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("Update Log Post - Translation Updates")
+    class UpdateLogTranslationTests {
+
+        @Test
+        @DisplayName("Should update title translations when updating log")
+        void updateLog_UpdatesTitleTranslations() {
+            // Set user locale to Korean
+            testUser.setLocale("ko-KR");
+            userRepository.save(testUser);
+
+            // Initialize test log with Korean translations
+            Map<String, String> initialTitleTranslations = new HashMap<>();
+            initialTitleTranslations.put("ko", "원래 제목");
+            testLogPost.setTitleTranslations(initialTitleTranslations);
+            testLogPost.setOriginalLanguage("ko-KR");
+            logPostRepository.save(testLogPost);
+
+            UpdateLogRequestDto request = new UpdateLogRequestDto(
+                    "수정된 제목",  // Updated Korean title
+                    "수정된 내용",
+                    5,
+                    null,
+                    null,
+                    null
+            );
+
+            logPostService.updateLog(testLogPost.getPublicId(), request, testUser.getId());
+
+            // Verify title translations was updated
+            LogPost updated = logPostRepository.findByPublicId(testLogPost.getPublicId()).orElseThrow();
+            assertThat(updated.getTitleTranslations().get("ko")).isEqualTo("수정된 제목");
+        }
+
+        @Test
+        @DisplayName("Should update content translations when updating log")
+        void updateLog_UpdatesContentTranslations() {
+            // Set user locale to Korean
+            testUser.setLocale("ko-KR");
+            userRepository.save(testUser);
+
+            // Initialize test log with Korean translations
+            Map<String, String> initialContentTranslations = new HashMap<>();
+            initialContentTranslations.put("ko", "원래 내용");
+            testLogPost.setContentTranslations(initialContentTranslations);
+            testLogPost.setOriginalLanguage("ko-KR");
+            logPostRepository.save(testLogPost);
+
+            UpdateLogRequestDto request = new UpdateLogRequestDto(
+                    null,
+                    "수정된 내용",  // Updated Korean content
+                    5,
+                    null,
+                    null,
+                    null
+            );
+
+            logPostService.updateLog(testLogPost.getPublicId(), request, testUser.getId());
+
+            // Verify content translations was updated
+            LogPost updated = logPostRepository.findByPublicId(testLogPost.getPublicId()).orElseThrow();
+            assertThat(updated.getContentTranslations().get("ko")).isEqualTo("수정된 내용");
+        }
+
+        @Test
+        @DisplayName("Should initialize translations map if null when updating")
+        void updateLog_InitializesTranslationsMapIfNull() {
+            // Set user locale to Korean
+            testUser.setLocale("ko-KR");
+            userRepository.save(testUser);
+
+            // Ensure translations are null
+            testLogPost.setTitleTranslations(null);
+            testLogPost.setContentTranslations(null);
+            logPostRepository.save(testLogPost);
+
+            UpdateLogRequestDto request = new UpdateLogRequestDto(
+                    "수정된 제목",
+                    "수정된 내용",
+                    5,
+                    null,
+                    null,
+                    null
+            );
+
+            logPostService.updateLog(testLogPost.getPublicId(), request, testUser.getId());
+
+            // Verify translations were initialized and populated
+            LogPost updated = logPostRepository.findByPublicId(testLogPost.getPublicId()).orElseThrow();
+            assertThat(updated.getTitleTranslations()).isNotNull();
+            assertThat(updated.getTitleTranslations().get("ko")).isEqualTo("수정된 제목");
+            assertThat(updated.getContentTranslations()).isNotNull();
+            assertThat(updated.getContentTranslations().get("ko")).isEqualTo("수정된 내용");
         }
     }
 }

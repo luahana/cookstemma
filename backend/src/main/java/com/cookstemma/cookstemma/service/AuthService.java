@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cookstemma.cookstemma.util.UsernameUtils;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -119,9 +121,9 @@ public class AuthService {
     }
 
     private User createNewUser(String email, String name, String picture, String locale) {
-        String username = name;
-        if (username == null || userRepository.existsByUsername(username)) {
-            username = "user_" + UUID.randomUUID().toString().substring(0, 8);
+        String username = UsernameUtils.generateRandom();
+        while (userRepository.existsByUsernameIgnoreCase(username)) {
+            username = UsernameUtils.generateRandom();
         }
 
         // Auto-admin for specific email

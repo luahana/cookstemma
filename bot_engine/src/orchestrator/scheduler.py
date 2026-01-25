@@ -43,14 +43,39 @@ class ContentScheduler:
         self._created_recipes: List[Recipe] = []
         self._used_food_names: Set[str] = set()
 
-    def _get_configured_personas(self) -> List[BotPersona]:
-        """Get personas that have API keys configured."""
+    async def _ensure_registry_initialized(self) -> None:
+        """Initialize the persona registry if not already initialized.
+        
+        This fetches all active personas from the backend API, including
+        their locales which are used for setting original_language on content.
+        """
+        if not self._registry.is_initialized:
+            async with CookstemmaClient() as client:
+                await self._registry.initialize(client)
+                logger.info(
+                    "persona_registry_initialized",
+                    persona_count=len(self._registry.get_all()),
+                )
+
+    async def _get_configured_personas(self) -> List[BotPersona]:
+        """Get personas that have API keys configured.
+        
+        Ensures registry is initialized before accessing personas.
+        """
+        await self._ensure_registry_initialized()
+        
         personas = []
         for name, api_key in self._persona_api_keys.items():
             persona = self._registry.get(name)
             if persona:
                 persona.api_key = api_key
                 personas.append(persona)
+            else:
+                logger.warning(
+                    "persona_not_found_in_registry",
+                    persona_name=name,
+                    hint="Check that persona exists in database and is active",
+                )
         return personas
 
     async def _create_clients(
@@ -68,7 +93,7 @@ class ContentScheduler:
 
     async def generate_daily_content(self) -> None:
         """Generate daily content quota (recipes and logs)."""
-        personas = self._get_configured_personas()
+        personas = await self._get_configured_personas()
         if not personas:
             logger.warning("no_configured_personas")
             return
@@ -190,7 +215,7 @@ class ContentScheduler:
             total_recipes: Target number of recipes (50% originals, 50% variants)
             total_logs: Target number of cooking logs
         """
-        personas = self._get_configured_personas()
+        personas = await self._get_configured_personas()
         if not personas:
             raise RuntimeError("No personas configured with API keys")
 
