@@ -35,7 +35,7 @@ class TextGenerator:
             api_key=gemini_api_key or settings.gemini_api_key
         )
 
-        self.model = settings.gemini_text_model or "gemini-2.0-flash-lite"
+        self.model = settings.gemini_text_model or "gemini-2.5-flash-lite"
         self.temperature = temperature or settings.temperature
 
     @retry(

@@ -196,7 +196,22 @@ module "vpc" {
   vpc_cidr               = var.vpc_cidr
   az_count               = 2
   create_private_subnets = true  # Keep private subnets for RDS (more secure)
-  create_nat_gateway     = false # No NAT Gateway - Lambdas use public subnets instead
+  create_nat_gateway     = false # Using NAT Instance instead (saves ~$30/mo)
+  create_vpc_endpoints   = true  # VPC endpoints for Secrets Manager, SQS, S3
+}
+
+# NAT Instance Module - Cost-effective alternative to NAT Gateway (~$4/mo vs ~$35/mo)
+# Provides internet access for Lambdas to reach Gemini API
+module "nat_instance" {
+  source = "../../modules/nat-instance"
+
+  project_name           = var.project_name
+  environment            = var.environment
+  vpc_id                 = module.vpc.vpc_id
+  vpc_cidr               = var.vpc_cidr
+  public_subnet_id       = module.vpc.public_subnet_ids[0]
+  private_route_table_id = module.vpc.private_route_table_id
+  instance_type          = "t3.nano"
 }
 
 # Service Discovery Module - Cloud Map for internal service-to-service communication
@@ -314,6 +329,7 @@ module "ecs" {
   task_memory      = 2048
   desired_count    = 1
   assign_public_ip = true # Still need public IP since no NAT gateway
+  cpu_architecture = "ARM64" # Graviton for 20% cost savings
 
   # ALB configuration
   alb_security_group_id = module.alb.security_group_id
@@ -362,6 +378,7 @@ module "ecs_web" {
   task_memory      = 512
   desired_count    = 1
   assign_public_ip = true
+  cpu_architecture = "ARM64" # Graviton for 20% cost savings
 
   # ALB configuration
   alb_security_group_id = module.alb.security_group_id
@@ -386,7 +403,7 @@ module "lambda_translation" {
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.vpc.vpc_id
-  subnet_ids   = module.vpc.public_subnet_ids # Public subnets (no NAT needed)
+  subnet_ids   = module.vpc.private_subnet_ids # Private subnets with NAT for Gemini API
 
   # ECR repository (created by shared terraform)
   ecr_repository_url = data.aws_ecr_repository.translator.repository_url
@@ -410,6 +427,9 @@ module "lambda_translation" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+
+  # x86_64 for faster CI builds (no QEMU emulation)
+  architecture = "arm64"
 }
 
 # Lambda Image Processing Module - Parallel variant generation with Step Functions
@@ -431,6 +451,9 @@ module "lambda_image_processing" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+
+  # x86_64 for faster CI builds (no QEMU emulation)
+  architecture = "arm64"
 }
 
 # Lambda Suggestion Verifier Module - AI-powered validation of user suggestions
@@ -441,7 +464,7 @@ module "lambda_suggestion_verifier" {
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.vpc.vpc_id
-  subnet_ids   = module.vpc.public_subnet_ids # Public subnets (no NAT needed)
+  subnet_ids   = module.vpc.private_subnet_ids # Private subnets with NAT for Gemini API
 
   # ECR repository (created by shared terraform)
   ecr_repository_url = data.aws_ecr_repository.suggestion_verifier.repository_url
@@ -472,7 +495,7 @@ module "lambda_keyword_generator" {
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.vpc.vpc_id
-  subnet_ids   = module.vpc.public_subnet_ids # Public subnets (no NAT needed)
+  subnet_ids   = module.vpc.private_subnet_ids # Private subnets with NAT for Gemini API
 
   # ECR repository (created by shared terraform)
   ecr_repository_url = data.aws_ecr_repository.keyword_generator.repository_url
@@ -486,7 +509,7 @@ module "lambda_keyword_generator" {
   existing_security_group_id  = aws_security_group.lambda_keyword_generator.id
 
   # Lambda configuration
-  schedule_expression            = "rate(6 hours)"
+  schedule_expression            = "rate(5 minutes)"
   memory_size                    = 512
   timeout                        = 600 # 10 minutes
   reserved_concurrent_executions = -1  # No reserved concurrency (account quota limit)

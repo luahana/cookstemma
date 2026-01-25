@@ -171,7 +171,7 @@ resource "aws_lambda_function" "processor" {
   role          = aws_iam_role.lambda_execution.arn
   package_type  = "Image"
   image_uri     = "${var.ecr_repository_url}:${var.environment}-latest"
-  architectures = ["arm64"]  # Graviton for 20% cost savings
+  architectures = [var.architecture]  # arm64 = Graviton, x86_64 = Intel
 
   memory_size = var.memory_size
   timeout     = var.timeout
@@ -217,7 +217,7 @@ resource "aws_lambda_function" "orchestrator" {
   role          = aws_iam_role.lambda_execution.arn
   package_type  = "Image"
   image_uri     = "${var.ecr_repository_url}:${var.environment}-latest"
-  architectures = ["arm64"]  # Graviton for 20% cost savings
+  architectures = [var.architecture]  # arm64 = Graviton, x86_64 = Intel
 
   # Override the handler for orchestrator
   image_config {
