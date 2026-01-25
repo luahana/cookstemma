@@ -71,10 +71,10 @@
     "package": "gói"
   },
   "home": {
-    "metaTitle": "Cookstemma - Hành trình ẩm thực của bạn",
-    "metaDescription": "Nhật ký nấu ăn cá nhân của bạn. Ghi lại bữa ăn, theo dõi tiến trình và phát triển thành đầu bếp gia đình giỏi hơn. Khám phá công thức và chia sẻ hành trình ẩm thực của bạn.",
-    "heroTitle": "Công thức của bạn, <highlight>tiến hóa</highlight>",
-    "heroSubtitle": "Chia sẻ công thức, tạo biến thể và theo dõi hành trình nấu ăn. Tham gia cộng đồng đầu bếp tại gia khám phá hương vị mới cùng nhau.",
+    "metaTitle": "Cookstemma - Nhật ký nấu ăn cá nhân",
+    "metaDescription": "Nhật ký nấu ăn cá nhân của bạn. Ghi lại mọi công thức bạn thử—thành công và thất bại—và tiến bộ qua mỗi món ăn.",
+    "heroTitle": "<highlight>Nhật ký nấu ăn</highlight> cá nhân của bạn",
+    "heroSubtitle": "Ghi lại mọi công thức bạn thử—điều gì hiệu quả và điều gì không—và trở thành đầu bếp giỏi hơn qua mỗi món ăn.",
     "featuredRecipes": "Công thức nổi bật",
     "recentCookingLogs": "Nhật ký nấu ăn gần đây",
     "whyCookstemma": "Tại sao Cookstemma?",
@@ -84,7 +84,7 @@
     "createVariationsDesc": "Thêm phong cách riêng vào công thức và xem món ăn phát triển trong cộng đồng.",
     "trackCooking": "Theo dõi nấu ăn",
     "trackCookingDesc": "Ghi lại các buổi nấu, ghi chú những gì hiệu quả và cải thiện theo thời gian.",
-    "startJourney": "Bắt đầu hành trình nấu ăn",
+    "startJourney": "Bắt đầu nhật ký nấu ăn",
     "startJourneyDesc": "Tải ứng dụng và tham gia cùng hàng nghìn đầu bếp tại gia chia sẻ những cuộc phiêu lưu ẩm thực.",
     "browseRecipes": "Xem công thức"
   },
@@ -213,7 +213,7 @@
     "signInDescription": "Đăng nhập để tạo công thức, ghi nhật ký và lưu mục yêu thích.",
     "redirecting": "Đang chuyển hướng...",
     "welcomeBack": "Chào mừng trở lại",
-    "signInSubtitle": "Đăng nhập để chia sẻ công thức và theo dõi hành trình nấu ăn của bạn",
+    "signInSubtitle": "Đăng nhập để bắt đầu nhật ký nấu ăn cá nhân",
     "continueWithGoogle": "Tiếp tục với Google",
     "continueWithApple": "Tiếp tục với Apple",
     "signingIn": "Đang đăng nhập...",
@@ -284,7 +284,7 @@
     "photoRequired": "Vui lòng thêm ít nhất một ảnh"
   },
   "metadata": {
-    "siteDescription": "Chia sẻ công thức, tạo biến thể và theo dõi hành trình nấu ăn"
+    "siteDescription": "Ghi lại mọi công thức bạn thử, học hỏi từ mỗi lần thử và trở thành đầu bếp giỏi hơn"
   },
   "moderation": {
     "block": "Chặn",

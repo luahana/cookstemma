@@ -71,10 +71,10 @@
     "package": "Packung"
   },
   "home": {
-    "metaTitle": "Cookstemma - Deine kulinarische Reise",
-    "metaDescription": "Dein persönliches Kochtagebuch. Protokolliere Mahlzeiten, verfolge deinen Fortschritt und werde ein besserer Hobbykoch. Entdecke Rezepte und teile deine kulinarische Reise.",
-    "heroTitle": "Deine Rezepte, <highlight>weiterentwickelt</highlight>",
-    "heroSubtitle": "Teile deine Rezepte, erstelle Variationen und dokumentiere deine Kochreise. Werde Teil einer Community von Hobbyköchen, die gemeinsam neue Geschmäcker entdecken.",
+    "metaTitle": "Cookstemma - Dein persönliches Kochtagebuch",
+    "metaDescription": "Dein persönliches Kochtagebuch. Notiere jedes Rezept das du ausprobierst—Erfolge und Misserfolge—und werde mit jedem Gericht besser.",
+    "heroTitle": "Dein persönliches <highlight>Kochtagebuch</highlight>",
+    "heroSubtitle": "Notiere jedes Rezept das du ausprobierst—was geklappt hat und was nicht—und werde mit jedem Gericht ein besserer Koch.",
     "featuredRecipes": "Empfohlene Rezepte",
     "recentCookingLogs": "Aktuelle Kochprotokolle",
     "whyCookstemma": "Warum Cookstemma?",
@@ -84,7 +84,7 @@
     "createVariationsDesc": "Gib Rezepten deine eigene Note und sieh, wie sich Gerichte in der Community entwickeln.",
     "trackCooking": "Kochfortschritt verfolgen",
     "trackCookingDesc": "Protokolliere deine Kochsessions, notiere was funktioniert hat und verbessere dich mit der Zeit.",
-    "startJourney": "Starte deine Kochreise",
+    "startJourney": "Starte dein Kochtagebuch",
     "startJourneyDesc": "Lade die App herunter und werde Teil von tausenden Hobbyköchen, die ihre kulinarischen Abenteuer teilen.",
     "browseRecipes": "Rezepte durchsuchen"
   },
@@ -213,7 +213,7 @@
     "signInDescription": "Melde dich an, um Rezepte zu erstellen, dein Kochen zu protokollieren und Favoriten zu speichern.",
     "redirecting": "Weiterleitung...",
     "welcomeBack": "Willkommen zurück",
-    "signInSubtitle": "Melde dich an, um Rezepte zu teilen und deine Kochreise zu verfolgen",
+    "signInSubtitle": "Melde dich an, um dein persönliches Kochtagebuch zu starten",
     "continueWithGoogle": "Mit Google fortfahren",
     "continueWithApple": "Mit Apple fortfahren",
     "signingIn": "Anmeldung...",
@@ -284,7 +284,7 @@
     "photoRequired": "Bitte füge mindestens ein Foto hinzu"
   },
   "metadata": {
-    "siteDescription": "Teile deine Rezepte, erstelle Variationen und dokumentiere deine Kochreise"
+    "siteDescription": "Notiere jedes Rezept, lerne aus jedem Versuch und werde ein besserer Koch"
   },
   "moderation": {
     "block": "Blockieren",

@@ -71,10 +71,10 @@
     "package": "bungkus"
   },
   "home": {
-    "metaTitle": "Cookstemma - Perjalanan kulinermu",
-    "metaDescription": "Jurnal memasak pribadimu. Catat makanan, lacak kemajuanmu, dan berkembang sebagai koki rumahan. Temukan resep dan bagikan perjalanan kulinermu.",
-    "heroTitle": "Resep Anda, <highlight>Berevolusi</highlight>",
-    "heroSubtitle": "Bagikan resep, buat variasi, dan lacak perjalanan memasak Anda. Bergabunglah dengan komunitas koki rumahan yang menemukan cita rasa baru bersama.",
+    "metaTitle": "Cookstemma - Catatan masak pribadimu",
+    "metaDescription": "Catatan masak pribadimu. Catat setiap resep yang kamu coba—sukses dan gagal—dan berkembang dengan setiap masakan.",
+    "heroTitle": "<highlight>Catatan masak</highlight> pribadimu",
+    "heroSubtitle": "Catat setiap resep yang kamu coba—apa yang berhasil dan tidak—dan jadi koki yang lebih baik dengan setiap masakan.",
     "featuredRecipes": "Resep Unggulan",
     "recentCookingLogs": "Catatan Memasak Terbaru",
     "whyCookstemma": "Mengapa Cookstemma?",
@@ -84,7 +84,7 @@
     "createVariationsDesc": "Tambahkan sentuhan pribadi pada resep dan lihat bagaimana hidangan berkembang di komunitas.",
     "trackCooking": "Lacak Memasak Anda",
     "trackCookingDesc": "Catat sesi memasak, catat apa yang berhasil, dan tingkatkan seiring waktu.",
-    "startJourney": "Mulai Perjalanan Memasak Anda",
+    "startJourney": "Mulai catatan masakmu",
     "startJourneyDesc": "Unduh aplikasi dan bergabunglah dengan ribuan koki rumahan yang berbagi petualangan kuliner.",
     "browseRecipes": "Jelajahi Resep"
   },
@@ -213,7 +213,7 @@
     "signInDescription": "Masuk untuk membuat resep, mencatat memasak, dan menyimpan favorit.",
     "redirecting": "Mengalihkan...",
     "welcomeBack": "Selamat Datang Kembali",
-    "signInSubtitle": "Masuk untuk berbagi resep dan melacak perjalanan memasak Anda",
+    "signInSubtitle": "Masuk untuk memulai catatan masak pribadimu",
     "continueWithGoogle": "Lanjutkan dengan Google",
     "continueWithApple": "Lanjutkan dengan Apple",
     "signingIn": "Sedang masuk...",
@@ -284,7 +284,7 @@
     "photoRequired": "Tambahkan setidaknya satu foto"
   },
   "metadata": {
-    "siteDescription": "Bagikan resep, buat variasi, dan lacak perjalanan memasak Anda"
+    "siteDescription": "Catat setiap resep yang kamu coba, belajar dari setiap percobaan, dan jadi koki yang lebih baik"
   },
   "moderation": {
     "block": "Blokir",

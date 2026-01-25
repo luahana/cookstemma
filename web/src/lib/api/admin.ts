@@ -15,6 +15,13 @@ import type {
   UntranslatedLogFilter,
   FoodMasterAdmin,
   FoodMasterAdminFilter,
+  AdminRecipe,
+  AdminRecipeFilter,
+  AdminLogPost,
+  AdminLogPostFilter,
+  AdminComment,
+  AdminCommentFilter,
+  DeleteResponse,
 } from '@/lib/types/admin';
 
 /**
@@ -220,4 +227,90 @@ export async function getFoodsMaster(
   return apiFetch<PageResponse<FoodMasterAdmin>>(
     `/admin/foods-master${queryString}`,
   );
+}
+
+// ==================== ADMIN CONTENT MANAGEMENT ====================
+
+/**
+ * Get paginated list of all recipes for admin management
+ */
+export async function getAdminRecipes(
+  params: AdminRecipeFilter & { page?: number; size?: number } = {},
+): Promise<PageResponse<AdminRecipe>> {
+  const queryString = buildQueryString({
+    page: params.page ?? 0,
+    size: params.size ?? 20,
+    title: params.title,
+    username: params.username,
+  });
+
+  return apiFetch<PageResponse<AdminRecipe>>(`/admin/recipes${queryString}`);
+}
+
+/**
+ * Delete recipes as admin (bypasses owner check)
+ */
+export async function adminDeleteRecipes(
+  publicIds: string[],
+): Promise<DeleteResponse> {
+  return apiFetch<DeleteResponse>('/admin/recipes/delete', {
+    method: 'POST',
+    body: JSON.stringify({ publicIds }),
+  });
+}
+
+/**
+ * Get paginated list of all log posts for admin management
+ */
+export async function getAdminLogs(
+  params: AdminLogPostFilter & { page?: number; size?: number } = {},
+): Promise<PageResponse<AdminLogPost>> {
+  const queryString = buildQueryString({
+    page: params.page ?? 0,
+    size: params.size ?? 20,
+    content: params.content,
+    username: params.username,
+  });
+
+  return apiFetch<PageResponse<AdminLogPost>>(`/admin/logs${queryString}`);
+}
+
+/**
+ * Delete log posts as admin (bypasses owner check)
+ */
+export async function adminDeleteLogs(
+  publicIds: string[],
+): Promise<DeleteResponse> {
+  return apiFetch<DeleteResponse>('/admin/logs/delete', {
+    method: 'POST',
+    body: JSON.stringify({ publicIds }),
+  });
+}
+
+/**
+ * Get paginated list of all comments for admin management
+ */
+export async function getAdminComments(
+  params: AdminCommentFilter & { page?: number; size?: number } = {},
+): Promise<PageResponse<AdminComment>> {
+  const queryString = buildQueryString({
+    page: params.page ?? 0,
+    size: params.size ?? 20,
+    content: params.content,
+    username: params.username,
+  });
+
+  return apiFetch<PageResponse<AdminComment>>(`/admin/comments${queryString}`);
+}
+
+/**
+ * Delete comments as admin (bypasses owner check)
+ */
+export async function adminDeleteComments(
+  publicIds: string[],
+): Promise<DeleteResponse> {
+  return apiFetch<DeleteResponse>('/admin/comments/delete', {
+    method: 'POST',
+    body: JSON.stringify({ publicIds }),
+  });
 }

@@ -754,4 +754,84 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, JpaSpecif
         """,
         nativeQuery = true)
     org.springframework.data.domain.Page<Recipe> findUntranslatedRecipesByTitle(@Param("title") String title, Pageable pageable);
+
+    // ==================== ADMIN: ALL RECIPES ====================
+
+    /**
+     * Find all non-deleted recipes for admin management (sorted by createdAt DESC).
+     */
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.deleted_at IS NULL
+        ORDER BY r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        WHERE r.deleted_at IS NULL
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findAllForAdmin(Pageable pageable);
+
+    /**
+     * Find all non-deleted recipes for admin management filtered by title.
+     */
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        WHERE r.deleted_at IS NULL
+        AND r.title ILIKE '%' || :title || '%'
+        ORDER BY r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        WHERE r.deleted_at IS NULL
+        AND r.title ILIKE '%' || :title || '%'
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findAllForAdminByTitle(@Param("title") String title, Pageable pageable);
+
+    /**
+     * Find all non-deleted recipes for admin management filtered by creator username.
+     */
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        JOIN users u ON u.id = r.creator_id
+        WHERE r.deleted_at IS NULL
+        AND u.username ILIKE '%' || :username || '%'
+        ORDER BY r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        JOIN users u ON u.id = r.creator_id
+        WHERE r.deleted_at IS NULL
+        AND u.username ILIKE '%' || :username || '%'
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findAllForAdminByUsername(@Param("username") String username, Pageable pageable);
+
+    /**
+     * Find all non-deleted recipes for admin management filtered by title and creator username.
+     */
+    @Query(value = """
+        SELECT r.* FROM recipes r
+        JOIN users u ON u.id = r.creator_id
+        WHERE r.deleted_at IS NULL
+        AND r.title ILIKE '%' || :title || '%'
+        AND u.username ILIKE '%' || :username || '%'
+        ORDER BY r.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM recipes r
+        JOIN users u ON u.id = r.creator_id
+        WHERE r.deleted_at IS NULL
+        AND r.title ILIKE '%' || :title || '%'
+        AND u.username ILIKE '%' || :username || '%'
+        """,
+        nativeQuery = true)
+    org.springframework.data.domain.Page<Recipe> findAllForAdminByTitleAndUsername(@Param("title") String title, @Param("username") String username, Pageable pageable);
+
+    /**
+     * Find recipes by public IDs for admin deletion.
+     */
+    @Query("SELECT r FROM Recipe r WHERE r.publicId IN :publicIds AND r.deletedAt IS NULL")
+    List<Recipe> findByPublicIdIn(@Param("publicIds") List<UUID> publicIds);
 }

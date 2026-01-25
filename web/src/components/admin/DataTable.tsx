@@ -8,6 +8,7 @@ export interface Column<T> {
   sortable?: boolean;
   filterable?: boolean;
   filterType?: 'text' | 'select';
+  filterKey?: string; // Use different key for filtering (e.g., 'username' instead of 'creatorUsername')
   filterOptions?: { value: string; label: string }[];
   render?: (item: T) => ReactNode;
   width?: string;
@@ -93,8 +94,8 @@ export function DataTable<T extends { publicId: string }>({
                   {column.filterable && column.filterType === 'select' ? (
                     <select
                       className="w-full px-2 py-1 text-sm border border-[var(--border)] rounded bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
-                      value={filters[column.key] || ''}
-                      onChange={(e) => handleFilterChange(column.key, e.target.value)}
+                      value={filters[column.filterKey || column.key] || ''}
+                      onChange={(e) => handleFilterChange(column.filterKey || column.key, e.target.value)}
                     >
                       <option value="">All</option>
                       {column.filterOptions?.map((opt) => (
@@ -108,8 +109,8 @@ export function DataTable<T extends { publicId: string }>({
                       type="text"
                       className="w-full px-2 py-1 text-sm border border-[var(--border)] rounded bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
                       placeholder={`Filter ${column.header.toLowerCase()}...`}
-                      value={filters[column.key] || ''}
-                      onChange={(e) => handleFilterChange(column.key, e.target.value)}
+                      value={filters[column.filterKey || column.key] || ''}
+                      onChange={(e) => handleFilterChange(column.filterKey || column.key, e.target.value)}
                     />
                   ) : null}
                 </th>

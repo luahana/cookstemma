@@ -17,6 +17,12 @@ import {
   getUntranslatedLogs,
   triggerLogRetranslation,
   getFoodsMaster,
+  getAdminRecipes,
+  adminDeleteRecipes,
+  getAdminLogs,
+  adminDeleteLogs,
+  getAdminComments,
+  adminDeleteComments,
 } from '@/lib/api/admin';
 import type {
   UserSuggestedFood,
@@ -30,6 +36,9 @@ import type {
   UntranslatedLog,
   TranslationStatus,
   FoodMasterAdmin,
+  AdminRecipe,
+  AdminLogPost,
+  AdminComment,
 } from '@/lib/types/admin';
 
 const STATUS_OPTIONS = [
@@ -65,7 +74,7 @@ const TRANSLATION_STATUS_OPTIONS = [
 
 // formatDate is now a hook-based function created inside the component
 
-type TabType = 'suggested-foods' | 'suggested-ingredients' | 'users' | 'untranslated-recipes' | 'untranslated-logs' | 'foods-master';
+type TabType = 'suggested-foods' | 'suggested-ingredients' | 'users' | 'untranslated-recipes' | 'untranslated-logs' | 'foods-master' | 'recipes' | 'logs' | 'comments';
 
 export default function AdminPage() {
   const { user, isLoading: authLoading, isAdmin } = useAuth();
@@ -189,6 +198,36 @@ export default function AdminPage() {
             >
               Foods Master
             </button>
+            <button
+              onClick={() => setActiveTab('recipes')}
+              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'recipes'
+                  ? 'border-[var(--primary)] text-[var(--primary)]'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              Recipes
+            </button>
+            <button
+              onClick={() => setActiveTab('logs')}
+              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'logs'
+                  ? 'border-[var(--primary)] text-[var(--primary)]'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              Logs
+            </button>
+            <button
+              onClick={() => setActiveTab('comments')}
+              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'comments'
+                  ? 'border-[var(--primary)] text-[var(--primary)]'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              Comments
+            </button>
           </nav>
         </div>
 
@@ -199,6 +238,9 @@ export default function AdminPage() {
         {activeTab === 'untranslated-recipes' && <UntranslatedRecipesTab />}
         {activeTab === 'untranslated-logs' && <UntranslatedLogsTab />}
         {activeTab === 'foods-master' && <FoodsMasterTab />}
+        {activeTab === 'recipes' && <RecipesTab />}
+        {activeTab === 'logs' && <LogsTab />}
+        {activeTab === 'comments' && <CommentsTab />}
       </div>
     </div>
   );
@@ -1346,10 +1388,10 @@ function UntranslatedRecipesTab() {
       key: 'lastError',
       header: 'Error',
       sortable: false,
-      width: '150px',
+      width: '300px',
       render: (item) => item.lastError ? (
-        <span className="text-sm text-red-600" title={item.lastError}>
-          {item.lastError.length > 30 ? `${item.lastError.substring(0, 30)}...` : item.lastError}
+        <span className="text-sm text-red-600 whitespace-pre-wrap break-words">
+          {item.lastError}
         </span>
       ) : '-',
     },
@@ -1650,10 +1692,10 @@ function UntranslatedLogsTab() {
       key: 'lastError',
       header: 'Error',
       sortable: false,
-      width: '150px',
+      width: '300px',
       render: (item) => item.lastError ? (
-        <span className="text-sm text-red-600" title={item.lastError}>
-          {item.lastError.length > 30 ? `${item.lastError.substring(0, 30)}...` : item.lastError}
+        <span className="text-sm text-red-600 whitespace-pre-wrap break-words">
+          {item.lastError}
         </span>
       ) : '-',
     },
@@ -1988,6 +2030,952 @@ function FoodsMasterTab() {
           </button>
         </div>
       )}
+    </>
+  );
+}
+
+// ==================== DELETE CONFIRM MODAL ====================
+
+interface DeleteConfirmModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+  itemCount: number;
+  isDeleting: boolean;
+}
+
+function DeleteConfirmModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  itemCount,
+  isDeleting,
+}: DeleteConfirmModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative bg-[var(--bg-primary)] rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+        <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{title}</h3>
+        <p className="text-[var(--text-secondary)] mb-4">{message}</p>
+        <p className="text-sm text-red-600 mb-6">
+          This action will permanently delete <span className="font-bold">{itemCount}</span> item{itemCount > 1 ? 's' : ''}.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            disabled={isDeleting}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+          >
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== RECIPES TAB ====================
+
+function RecipesTab() {
+  const formatDate = useCallback((dateString: string | null): string => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }, []);
+
+  const [data, setData] = useState<AdminRecipe[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const pageSize = 20;
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response: PageResponse<AdminRecipe> = await getAdminRecipes({
+        page,
+        size: pageSize,
+        title: filters.title || undefined,
+        username: filters.username || undefined,
+      });
+      setData(response.content);
+      setTotalPages(response.totalPages);
+      setTotalElements(response.totalElements);
+      setSelectedItems(new Set());
+    } catch (err) {
+      console.error('Error fetching recipes:', err);
+      setError('Failed to load data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filters]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleSort = (key: string) => {
+    if (sortBy === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortOrder('desc');
+    }
+    setPage(0);
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(0);
+  };
+
+  const handleSelectItem = (publicId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(publicId)) {
+        newSet.delete(publicId);
+      } else {
+        newSet.add(publicId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.size === data.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(data.map(item => item.publicId)));
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedItems.size === 0) return;
+
+    setDeleting(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const result = await adminDeleteRecipes(Array.from(selectedItems));
+      setSuccessMessage(`Successfully deleted ${result.deletedCount} recipe(s).`);
+      setTimeout(() => setSuccessMessage(null), 5000);
+      setSelectedItems(new Set());
+      setShowDeleteModal(false);
+      fetchData();
+    } catch (err) {
+      console.error('Error deleting recipes:', err);
+      setError('Failed to delete recipes. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const columns: Column<AdminRecipe>[] = [
+    {
+      key: 'select',
+      header: (
+        <input
+          type="checkbox"
+          checked={data.length > 0 && selectedItems.size === data.length}
+          onChange={handleSelectAll}
+          className="w-4 h-4"
+        />
+      ) as unknown as string,
+      sortable: false,
+      width: '50px',
+      render: (item) => (
+        <input
+          type="checkbox"
+          checked={selectedItems.has(item.publicId)}
+          onChange={() => handleSelectItem(item.publicId)}
+          className="w-4 h-4"
+        />
+      ),
+    },
+    {
+      key: 'title',
+      header: 'Title',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      render: (item) => (
+        <a
+          href={`/recipes/${item.publicId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-[var(--primary)] hover:underline"
+          title={item.title}
+        >
+          {item.title && item.title.length > 40 ? `${item.title.substring(0, 40)}...` : item.title || '-'}
+        </a>
+      ),
+    },
+    {
+      key: 'cookingStyle',
+      header: 'Style',
+      sortable: true,
+      width: '80px',
+    },
+    {
+      key: 'creatorUsername',
+      header: 'Creator',
+      sortable: false,
+      filterable: true,
+      filterType: 'text',
+      filterKey: 'username',
+      width: '120px',
+    },
+    {
+      key: 'stats',
+      header: 'Stats',
+      sortable: false,
+      width: '150px',
+      render: (item) => (
+        <span className="text-sm text-[var(--text-secondary)]">
+          V:{item.variantCount} L:{item.logCount} S:{item.saveCount}
+        </span>
+      ),
+    },
+    {
+      key: 'isPrivate',
+      header: 'Private',
+      sortable: false,
+      width: '80px',
+      render: (item) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded ${
+          item.isPrivate ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+        }`}>
+          {item.isPrivate ? 'Yes' : 'No'}
+        </span>
+      ),
+    },
+    {
+      key: 'createdAt',
+      header: 'Created',
+      sortable: true,
+      width: '160px',
+      render: (item) => formatDate(item.createdAt),
+    },
+  ];
+
+  return (
+    <>
+      <div className="mb-4 p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border)]">
+        <p className="text-sm text-[var(--text-secondary)]">
+          Total items: <span className="font-semibold text-[var(--text-primary)]">{totalElements}</span>
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+          {successMessage}
+        </div>
+      )}
+
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-sm text-[var(--text-secondary)]">
+          {selectedItems.size > 0 && (
+            <span className="text-[var(--primary)] font-medium">
+              {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"
+          >
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            disabled={selectedItems.size === 0}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              selectedItems.size > 0
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] cursor-not-allowed'
+            } disabled:opacity-50`}
+          >
+            Delete Selected
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg overflow-hidden">
+        <DataTable
+          data={data}
+          columns={columns}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          loading={loading}
+          emptyMessage="No recipes found"
+        />
+      </div>
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="px-4 py-2 text-[var(--text-secondary)]">
+            Page {page + 1} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Delete Recipes"
+        message="Are you sure you want to delete the selected recipes? This action cannot be undone."
+        itemCount={selectedItems.size}
+        isDeleting={deleting}
+      />
+    </>
+  );
+}
+
+// ==================== LOGS TAB ====================
+
+function LogsTab() {
+  const formatDate = useCallback((dateString: string | null): string => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }, []);
+
+  const [data, setData] = useState<AdminLogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const pageSize = 20;
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response: PageResponse<AdminLogPost> = await getAdminLogs({
+        page,
+        size: pageSize,
+        content: filters.content || undefined,
+        username: filters.username || undefined,
+      });
+      setData(response.content);
+      setTotalPages(response.totalPages);
+      setTotalElements(response.totalElements);
+      setSelectedItems(new Set());
+    } catch (err) {
+      console.error('Error fetching logs:', err);
+      setError('Failed to load data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filters]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleSort = (key: string) => {
+    if (sortBy === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortOrder('desc');
+    }
+    setPage(0);
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(0);
+  };
+
+  const handleSelectItem = (publicId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(publicId)) {
+        newSet.delete(publicId);
+      } else {
+        newSet.add(publicId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.size === data.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(data.map(item => item.publicId)));
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedItems.size === 0) return;
+
+    setDeleting(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const result = await adminDeleteLogs(Array.from(selectedItems));
+      setSuccessMessage(`Successfully deleted ${result.deletedCount} log post(s).`);
+      setTimeout(() => setSuccessMessage(null), 5000);
+      setSelectedItems(new Set());
+      setShowDeleteModal(false);
+      fetchData();
+    } catch (err) {
+      console.error('Error deleting logs:', err);
+      setError('Failed to delete logs. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const columns: Column<AdminLogPost>[] = [
+    {
+      key: 'select',
+      header: (
+        <input
+          type="checkbox"
+          checked={data.length > 0 && selectedItems.size === data.length}
+          onChange={handleSelectAll}
+          className="w-4 h-4"
+        />
+      ) as unknown as string,
+      sortable: false,
+      width: '50px',
+      render: (item) => (
+        <input
+          type="checkbox"
+          checked={selectedItems.has(item.publicId)}
+          onChange={() => handleSelectItem(item.publicId)}
+          className="w-4 h-4"
+        />
+      ),
+    },
+    {
+      key: 'content',
+      header: 'Content',
+      sortable: false,
+      filterable: true,
+      filterType: 'text',
+      render: (item) => (
+        <span className="text-sm" title={item.content}>
+          {item.content && item.content.length > 60 ? `${item.content.substring(0, 60)}...` : item.content || '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'creatorUsername',
+      header: 'Creator',
+      sortable: false,
+      filterable: true,
+      filterType: 'text',
+      filterKey: 'username',
+      width: '120px',
+    },
+    {
+      key: 'recipeTitle',
+      header: 'Recipe',
+      sortable: false,
+      width: '150px',
+      render: (item) => item.recipeTitle ? (
+        <a
+          href={`/recipes/${item.recipePublicId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-[var(--primary)] hover:underline"
+          title={item.recipeTitle}
+        >
+          {item.recipeTitle.length > 20 ? `${item.recipeTitle.substring(0, 20)}...` : item.recipeTitle}
+        </a>
+      ) : '-',
+    },
+    {
+      key: 'stats',
+      header: 'Stats',
+      sortable: false,
+      width: '100px',
+      render: (item) => (
+        <span className="text-sm text-[var(--text-secondary)]">
+          C:{item.commentCount} L:{item.likeCount}
+        </span>
+      ),
+    },
+    {
+      key: 'isPrivate',
+      header: 'Private',
+      sortable: false,
+      width: '80px',
+      render: (item) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded ${
+          item.isPrivate ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+        }`}>
+          {item.isPrivate ? 'Yes' : 'No'}
+        </span>
+      ),
+    },
+    {
+      key: 'createdAt',
+      header: 'Created',
+      sortable: true,
+      width: '160px',
+      render: (item) => formatDate(item.createdAt),
+    },
+  ];
+
+  return (
+    <>
+      <div className="mb-4 p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border)]">
+        <p className="text-sm text-[var(--text-secondary)]">
+          Total items: <span className="font-semibold text-[var(--text-primary)]">{totalElements}</span>
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+          {successMessage}
+        </div>
+      )}
+
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-sm text-[var(--text-secondary)]">
+          {selectedItems.size > 0 && (
+            <span className="text-[var(--primary)] font-medium">
+              {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"
+          >
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            disabled={selectedItems.size === 0}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              selectedItems.size > 0
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] cursor-not-allowed'
+            } disabled:opacity-50`}
+          >
+            Delete Selected
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg overflow-hidden">
+        <DataTable
+          data={data}
+          columns={columns}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          loading={loading}
+          emptyMessage="No log posts found"
+        />
+      </div>
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="px-4 py-2 text-[var(--text-secondary)]">
+            Page {page + 1} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Delete Log Posts"
+        message="Are you sure you want to delete the selected log posts? This action cannot be undone."
+        itemCount={selectedItems.size}
+        isDeleting={deleting}
+      />
+    </>
+  );
+}
+
+// ==================== COMMENTS TAB ====================
+
+function CommentsTab() {
+  const formatDate = useCallback((dateString: string | null): string => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }, []);
+
+  const [data, setData] = useState<AdminComment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const pageSize = 20;
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response: PageResponse<AdminComment> = await getAdminComments({
+        page,
+        size: pageSize,
+        content: filters.content || undefined,
+        username: filters.username || undefined,
+      });
+      setData(response.content);
+      setTotalPages(response.totalPages);
+      setTotalElements(response.totalElements);
+      setSelectedItems(new Set());
+    } catch (err) {
+      console.error('Error fetching comments:', err);
+      setError('Failed to load data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filters]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleSort = (key: string) => {
+    if (sortBy === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortOrder('desc');
+    }
+    setPage(0);
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(0);
+  };
+
+  const handleSelectItem = (publicId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(publicId)) {
+        newSet.delete(publicId);
+      } else {
+        newSet.add(publicId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.size === data.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(data.map(item => item.publicId)));
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedItems.size === 0) return;
+
+    setDeleting(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const result = await adminDeleteComments(Array.from(selectedItems));
+      setSuccessMessage(`Successfully deleted ${result.deletedCount} comment(s).`);
+      setTimeout(() => setSuccessMessage(null), 5000);
+      setSelectedItems(new Set());
+      setShowDeleteModal(false);
+      fetchData();
+    } catch (err) {
+      console.error('Error deleting comments:', err);
+      setError('Failed to delete comments. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const columns: Column<AdminComment>[] = [
+    {
+      key: 'select',
+      header: (
+        <input
+          type="checkbox"
+          checked={data.length > 0 && selectedItems.size === data.length}
+          onChange={handleSelectAll}
+          className="w-4 h-4"
+        />
+      ) as unknown as string,
+      sortable: false,
+      width: '50px',
+      render: (item) => (
+        <input
+          type="checkbox"
+          checked={selectedItems.has(item.publicId)}
+          onChange={() => handleSelectItem(item.publicId)}
+          className="w-4 h-4"
+        />
+      ),
+    },
+    {
+      key: 'content',
+      header: 'Content',
+      sortable: false,
+      filterable: true,
+      filterType: 'text',
+      render: (item) => (
+        <span className="text-sm" title={item.content}>
+          {item.content && item.content.length > 60 ? `${item.content.substring(0, 60)}...` : item.content || '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'creatorUsername',
+      header: 'Creator',
+      sortable: false,
+      filterable: true,
+      filterType: 'text',
+      filterKey: 'username',
+      width: '120px',
+    },
+    {
+      key: 'isTopLevel',
+      header: 'Type',
+      sortable: false,
+      width: '80px',
+      render: (item) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded ${
+          item.isTopLevel ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+        }`}>
+          {item.isTopLevel ? 'Comment' : 'Reply'}
+        </span>
+      ),
+    },
+    {
+      key: 'stats',
+      header: 'Stats',
+      sortable: false,
+      width: '100px',
+      render: (item) => (
+        <span className="text-sm text-[var(--text-secondary)]">
+          R:{item.replyCount} L:{item.likeCount}
+        </span>
+      ),
+    },
+    {
+      key: 'createdAt',
+      header: 'Created',
+      sortable: true,
+      width: '160px',
+      render: (item) => formatDate(item.createdAt),
+    },
+  ];
+
+  return (
+    <>
+      <div className="mb-4 p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border)]">
+        <p className="text-sm text-[var(--text-secondary)]">
+          Total items: <span className="font-semibold text-[var(--text-primary)]">{totalElements}</span>
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+          {successMessage}
+        </div>
+      )}
+
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-sm text-[var(--text-secondary)]">
+          {selectedItems.size > 0 && (
+            <span className="text-[var(--primary)] font-medium">
+              {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"
+          >
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            disabled={selectedItems.size === 0}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              selectedItems.size > 0
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] cursor-not-allowed'
+            } disabled:opacity-50`}
+          >
+            Delete Selected
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg overflow-hidden">
+        <DataTable
+          data={data}
+          columns={columns}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          loading={loading}
+          emptyMessage="No comments found"
+        />
+      </div>
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="px-4 py-2 text-[var(--text-secondary)]">
+            Page {page + 1} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="px-4 py-2 border border-[var(--border)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Delete Comments"
+        message="Are you sure you want to delete the selected comments? This action cannot be undone."
+        itemCount={selectedItems.size}
+        isDeleting={deleting}
+      />
     </>
   );
 }

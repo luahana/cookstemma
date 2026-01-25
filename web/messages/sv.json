@@ -71,10 +71,10 @@
     "package": "förpackning"
   },
   "home": {
-    "metaTitle": "Cookstemma - Din kulinariska resa",
-    "metaDescription": "Din personliga matdagbok. Logga måltider, följ din utveckling och väx som hemmakock. Upptäck recept och dela din kulinariska resa.",
-    "heroTitle": "Dina recept, <highlight>utvecklade</highlight>",
-    "heroSubtitle": "Dela dina recept, skapa variationer och följ din matresa. Gå med i en gemenskap av hemkockar som upptäcker nya smaker tillsammans.",
+    "metaTitle": "Cookstemma - Din personliga matdagbok",
+    "metaDescription": "Din personliga matdagbok. Dokumentera varje recept du provar—framgångar och misslyckanden—och bli bättre med varje rätt.",
+    "heroTitle": "Din personliga <highlight>matdagbok</highlight>",
+    "heroSubtitle": "Dokumentera varje recept du provar—vad som fungerade och vad som inte gjorde det—och bli en bättre kock med varje rätt.",
     "featuredRecipes": "Utvalda recept",
     "recentCookingLogs": "Senaste dagboksposter",
     "whyCookstemma": "Varför Cookstemma?",
@@ -84,7 +84,7 @@
     "createVariationsDesc": "Sätt din egen prägel på recept och se hur rätter utvecklas i gemenskapen.",
     "trackCooking": "Följ din matlagning",
     "trackCookingDesc": "Logga dina matlagningssessioner, notera vad som fungerade och förbättras över tid.",
-    "startJourney": "Börja din matresa",
+    "startJourney": "Starta din matdagbok",
     "startJourneyDesc": "Ladda ner appen och gå med i tusentals hemkockar som delar sina kulinariska äventyr.",
     "browseRecipes": "Bläddra recept"
   },
@@ -213,7 +213,7 @@
     "signInDescription": "Logga in för att skapa recept, föra dagbok och spara favoriter.",
     "redirecting": "Omdirigerar...",
     "welcomeBack": "Välkommen tillbaka",
-    "signInSubtitle": "Logga in för att dela recept och följa din matresa",
+    "signInSubtitle": "Logga in för att starta din personliga matdagbok",
     "continueWithGoogle": "Fortsätt med Google",
     "continueWithApple": "Fortsätt med Apple",
     "signingIn": "Loggar in...",
@@ -284,7 +284,7 @@
     "photoRequired": "Lägg till minst en bild"
   },
   "metadata": {
-    "siteDescription": "Dela dina recept, skapa variationer och följ din matresa"
+    "siteDescription": "Dokumentera varje recept du provar, lär dig av varje försök och bli en bättre kock"
   },
   "moderation": {
     "block": "Blockera",

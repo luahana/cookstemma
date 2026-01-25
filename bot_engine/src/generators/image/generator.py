@@ -112,7 +112,7 @@ class ImageGenerator:
             angle_name = angle if angle in CAMERA_ANGLES else MAIN_ANGLE
             angle_config = CAMERA_ANGLES[angle_name]
 
-            base_prompt = f"Professional food photography of {dish_name}. {angle_config['angle_desc']}. Food centered in frame. No people, no hands, no human body parts."
+            base_prompt = f"Professional food photography of {dish_name}. {angle_config['angle_desc']}. Food centered in frame. No people, no hands, no human body parts. No text, no words, no letters, no writing, no watermarks, no labels, no captions."
 
             return f"""{base_prompt}
 {persona.kitchen_style_prompt}
@@ -121,7 +121,7 @@ Lighting: Soft natural daylight, high-detail food textures.
 Style: Food magazine, appetizing, professional."""
 
         # For step and log, always use overhead angle for consistency
-        base_prompt = f"Overhead flat lay food photography of {dish_name}. Shot directly from above. Food centered in frame. No people, no hands, no human body parts."
+        base_prompt = f"Overhead flat lay food photography of {dish_name}. Shot directly from above. Food centered in frame. No people, no hands, no human body parts. No text, no words, no letters, no writing, no watermarks, no labels, no captions."
 
         if style == "step":
             return f"""{base_prompt}

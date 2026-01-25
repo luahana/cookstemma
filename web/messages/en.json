@@ -72,10 +72,10 @@
     "package": "package"
   },
   "home": {
-    "metaTitle": "Cookstemma - Your Cooking Journey",
-    "metaDescription": "Your personal cooking journal. Log meals, track your progress, and grow as a home cook. Discover recipes and share your culinary journey.",
-    "heroTitle": "Your Recipes, <highlight>Evolved</highlight>",
-    "heroSubtitle": "Share your recipes, create variations, and track your cooking journey. Join a community of home cooks discovering new flavors together.",
+    "metaTitle": "Cookstemma - Your Personal Cooking Log",
+    "metaDescription": "Your personal cooking log. Record every recipe you try—successes and failures—and improve with each dish.",
+    "heroTitle": "Your Personal <highlight>Cooking Log</highlight>",
+    "heroSubtitle": "Log every recipe you try—what worked and what didn't—and become a better cook with each dish.",
     "featuredRecipes": "Featured Recipes",
     "recentCookingLogs": "Recent Cooking Logs",
     "whyCookstemma": "Why Cookstemma?",
@@ -85,7 +85,7 @@
     "createVariationsDesc": "Put your own spin on recipes and see how dishes evolve across the community.",
     "trackCooking": "Track Your Cooking",
     "trackCookingDesc": "Log your cooking sessions, note what worked, and improve over time.",
-    "startJourney": "Start Your Cooking Journey",
+    "startJourney": "Start Your Cooking Log",
     "startJourneyDesc": "Download the app and join thousands of home cooks sharing their culinary adventures.",
     "browseRecipes": "Browse Recipes"
   },
@@ -214,7 +214,7 @@
     "signInDescription": "Sign in to create recipes, log your cooking, and save your favorites.",
     "redirecting": "Redirecting...",
     "welcomeBack": "Welcome Back",
-    "signInSubtitle": "Sign in to share recipes and track your cooking journey",
+    "signInSubtitle": "Sign in to start your personal cooking log",
     "continueWithGoogle": "Continue with Google",
     "continueWithApple": "Continue with Apple",
     "signingIn": "Signing in...",
@@ -285,7 +285,7 @@
     "photoRequired": "Please add at least one photo"
   },
   "metadata": {
-    "siteDescription": "Share your recipes, create variations, and track your cooking journey"
+    "siteDescription": "Log every recipe you try, learn from each attempt, and become a better cook"
   },
   "moderation": {
     "block": "Block",
