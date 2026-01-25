@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormatter } from 'next-intl';
+import * as Sentry from '@sentry/nextjs';
 import { useAuth } from '@/contexts/AuthContext';
 import { DataTable, Column } from '@/components/admin/DataTable';
 import {
@@ -139,7 +140,9 @@ export default function AdminPage() {
             {/* Sentry Test Button */}
             <button
               onClick={() => {
-                throw new Error("Sentry test error from admin dashboard");
+                const error = new Error("Sentry test error from admin dashboard");
+                Sentry.captureException(error);
+                alert("Sentry test error sent! Check Sentry dashboard.");
               }}
               className="px-3 py-1.5 text-xs bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 transition-colors"
             >
