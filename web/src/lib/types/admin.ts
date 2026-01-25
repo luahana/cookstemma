@@ -8,6 +8,7 @@ export interface AdminUser {
   email: string;
   role: UserRole;
   status: AccountStatus;
+  locale: string | null;
   createdAt: string;
   lastLoginAt: string | null;
 }
