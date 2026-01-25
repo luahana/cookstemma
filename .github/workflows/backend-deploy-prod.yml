@@ -137,10 +137,14 @@ jobs:
         id: deploy
         working-directory: .
         run: |
+          # Properly escape JSON for nested content
+          APPSPEC_CONTENT=$(cat appspec.json | jq -c . | jq -Rs .)
+          REVISION_JSON=$(jq -n --argjson content "$APPSPEC_CONTENT" '{"revisionType": "AppSpecContent", "appSpecContent": {"content": $content}}')
+
           DEPLOYMENT_ID=$(aws deploy create-deployment \
             --application-name ${{ env.CODEDEPLOY_APP }} \
             --deployment-group-name ${{ env.CODEDEPLOY_GROUP }} \
-            --revision '{"revisionType": "AppSpecContent", "appSpecContent": {"content": "'"$(cat appspec.json | jq -c .)"'"}}' \
+            --revision "$REVISION_JSON" \
             --query 'deploymentId' \
             --output text)
           echo "deployment-id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
