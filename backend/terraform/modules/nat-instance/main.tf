@@ -68,9 +68,10 @@ resource "aws_instance" "nat" {
   source_dest_check           = false # Required for NAT functionality
   vpc_security_group_ids      = [aws_security_group.nat.id]
   associate_public_ip_address = true
+  user_data_replace_on_change = true # Force instance recreation when user_data changes
 
   # NAT configuration via user data
-  # Using nftables which is the default on AL2023, with iptables compatibility
+  # Using systemd service for persistent NAT rules that survive reboots
   user_data = <<-EOF
     #!/bin/bash
     set -ex
@@ -92,21 +93,35 @@ resource "aws_instance" "nat" {
     # Install iptables (AL2023 uses nftables backend)
     dnf install -y iptables-nft
     
-    # Flush existing NAT rules and set up new ones
-    iptables -t nat -F POSTROUTING
+    # Create systemd service for NAT rules (runs on every boot)
+    # This ensures NAT rules persist across reboots
+    cat > /etc/systemd/system/nat-masquerade.service << 'SERVICE'
+    [Unit]
+    Description=NAT Masquerade for VPC
+    After=network-online.target
+    Wants=network-online.target
     
-    # Add MASQUERADE rule for VPC traffic going out primary interface
-    iptables -t nat -A POSTROUTING -o "$PRIMARY_IF" -j MASQUERADE
+    [Service]
+    Type=oneshot
+    RemainAfterExit=yes
+    ExecStart=/bin/bash -c 'PRIMARY_IF=$$(ip -o -4 route show to default | awk "{print \$$5}") && /usr/sbin/iptables -t nat -F POSTROUTING && /usr/sbin/iptables -t nat -A POSTROUTING -o "$$PRIMARY_IF" -j MASQUERADE'
+    ExecStop=/bin/bash -c 'PRIMARY_IF=$$(ip -o -4 route show to default | awk "{print \$$5}") && /usr/sbin/iptables -t nat -D POSTROUTING -o "$$PRIMARY_IF" -j MASQUERADE'
+    
+    [Install]
+    WantedBy=multi-user.target
+    SERVICE
+    
+    # Enable and start the NAT service
+    systemctl daemon-reload
+    systemctl enable nat-masquerade.service
+    systemctl start nat-masquerade.service
     
     # Verify the rule was added
     iptables -t nat -L -n -v
     
-    # Make iptables rules persistent using nftables
-    nft list ruleset > /etc/nftables.conf
-    systemctl enable nftables
-    
     echo "NAT instance configuration complete!"
     echo "IP forwarding: $(cat /proc/sys/net/ipv4/ip_forward)"
+    echo "NAT service status: $(systemctl is-active nat-masquerade.service)"
   EOF
 
   # Instance metadata options (IMDSv2 required for security)
