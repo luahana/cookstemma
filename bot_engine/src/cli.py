@@ -100,9 +100,11 @@ async def run_daily(args: argparse.Namespace) -> None:
         logger.error("no_api_keys")
         sys.exit(1)
 
+    run_all = getattr(args, "all", False)
     scheduler = ContentScheduler(
         persona_api_keys=api_keys,
         generate_images=not args.no_images,
+        run_all=run_all,
     )
 
     await scheduler.generate_daily_content()
@@ -117,9 +119,11 @@ async def run_scheduler(args: argparse.Namespace) -> None:
         logger.error("no_api_keys")
         sys.exit(1)
 
+    run_all = getattr(args, "all", False)
     scheduler = ContentScheduler(
         persona_api_keys=api_keys,
         generate_images=not args.no_images,
+        run_all=run_all,
     )
 
     scheduler.start_scheduler(
@@ -185,6 +189,11 @@ def main() -> None:
         action="store_true",
         help="Skip image generation",
     )
+    daily_parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Run all bots regardless of schedule",
+    )
 
     # Scheduler command
     scheduler_parser = subparsers.add_parser(
@@ -205,6 +214,11 @@ def main() -> None:
         "--no-images",
         action="store_true",
         help="Skip image generation",
+    )
+    scheduler_parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Run all bots regardless of schedule",
     )
 
     args = parser.parse_args()

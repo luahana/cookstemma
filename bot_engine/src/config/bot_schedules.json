@@ -1,0 +1,116 @@
+{
+  "schedules": {
+    "_comment": "Bot schedules: 2 days per week per bot. ~12 bots run each day.",
+    
+    "group_1_mon_thu": [
+      "chef_park_soojin",
+      "home_cook_kim_yuna",
+      "grandma_lee_soon",
+      "baker_jung_minho",
+      "fitness_chef_oh_subin",
+      "korean_dad_cook_jang"
+    ],
+    "group_2_tue_fri": [
+      "vegan_chef_song_hana",
+      "traditional_chef_choi",
+      "street_food_master_kim",
+      "quick_meal_queen_lee",
+      "dessert_artist_park",
+      "healthy_mom_cook_yang"
+    ],
+    "group_3_wed_sat": [
+      "fusion_chef_yoon",
+      "farm_to_table_shin",
+      "comfort_food_master",
+      "spicy_food_king_han",
+      "brunch_specialist_joo",
+      "fermentation_expert_bae"
+    ],
+    "group_4_sun_wed": [
+      "seafood_master_moon",
+      "rice_bowl_expert_cho",
+      "noodle_artist_ryu",
+      "soup_specialist_hwang",
+      "bbq_master_kang",
+      "salad_chef_na"
+    ],
+    "group_5_mon_fri": [
+      "pasta_lover_maria",
+      "curry_master_raj",
+      "sushi_chef_tanaka",
+      "thai_food_expert_mai",
+      "mexican_chef_carlos",
+      "french_home_cook_pierre"
+    ],
+    "group_6_tue_sat": [
+      "dim_sum_master_wong",
+      "mediterranean_chef_elena",
+      "american_diner_joe",
+      "indian_mom_cook_priya",
+      "vietnamese_chef_linh",
+      "brazilian_cook_ana"
+    ],
+    "group_7_thu_sun": [
+      "middle_eastern_chef_omar",
+      "greek_home_cook_nikos",
+      "spanish_tapas_chef_miguel",
+      "german_baker_hans",
+      "african_chef_amara",
+      "caribbean_cook_marcus"
+    ]
+  },
+  "persona_to_days": {
+    "chef_park_soojin": ["MON", "THU"],
+    "home_cook_kim_yuna": ["MON", "THU"],
+    "grandma_lee_soon": ["MON", "THU"],
+    "baker_jung_minho": ["MON", "THU"],
+    "fitness_chef_oh_subin": ["MON", "THU"],
+    "korean_dad_cook_jang": ["MON", "THU"],
+    
+    "vegan_chef_song_hana": ["TUE", "FRI"],
+    "traditional_chef_choi": ["TUE", "FRI"],
+    "street_food_master_kim": ["TUE", "FRI"],
+    "quick_meal_queen_lee": ["TUE", "FRI"],
+    "dessert_artist_park": ["TUE", "FRI"],
+    "healthy_mom_cook_yang": ["TUE", "FRI"],
+    
+    "fusion_chef_yoon": ["WED", "SAT"],
+    "farm_to_table_shin": ["WED", "SAT"],
+    "comfort_food_master": ["WED", "SAT"],
+    "spicy_food_king_han": ["WED", "SAT"],
+    "brunch_specialist_joo": ["WED", "SAT"],
+    "fermentation_expert_bae": ["WED", "SAT"],
+    
+    "seafood_master_moon": ["SUN", "WED"],
+    "rice_bowl_expert_cho": ["SUN", "WED"],
+    "noodle_artist_ryu": ["SUN", "WED"],
+    "soup_specialist_hwang": ["SUN", "WED"],
+    "bbq_master_kang": ["SUN", "WED"],
+    "salad_chef_na": ["SUN", "WED"],
+    
+    "pasta_lover_maria": ["MON", "FRI"],
+    "curry_master_raj": ["MON", "FRI"],
+    "sushi_chef_tanaka": ["MON", "FRI"],
+    "thai_food_expert_mai": ["MON", "FRI"],
+    "mexican_chef_carlos": ["MON", "FRI"],
+    "french_home_cook_pierre": ["MON", "FRI"],
+    
+    "dim_sum_master_wong": ["TUE", "SAT"],
+    "mediterranean_chef_elena": ["TUE", "SAT"],
+    "american_diner_joe": ["TUE", "SAT"],
+    "indian_mom_cook_priya": ["TUE", "SAT"],
+    "vietnamese_chef_linh": ["TUE", "SAT"],
+    "brazilian_cook_ana": ["TUE", "SAT"],
+    
+    "middle_eastern_chef_omar": ["THU", "SUN"],
+    "greek_home_cook_nikos": ["THU", "SUN"],
+    "spanish_tapas_chef_miguel": ["THU", "SUN"],
+    "german_baker_hans": ["THU", "SUN"],
+    "african_chef_amara": ["THU", "SUN"],
+    "caribbean_cook_marcus": ["THU", "SUN"]
+  },
+  "default_days": ["MON", "THU"],
+  "recipes_per_run": 2,
+  "variant_ratio": 0.2,
+  "generate_logs": false
+}
