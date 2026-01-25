@@ -24,6 +24,7 @@ export interface LogPostSummary {
   isVariant: boolean | null;
   isPrivate: boolean; // Whether this log is private (only visible to creator)
   commentCount: number; // Number of comments on this log
+  cookingStyle: string | null; // Cooking style (locale code) from linked recipe
 }
 
 /**

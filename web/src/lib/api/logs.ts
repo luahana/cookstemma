@@ -13,6 +13,7 @@ interface LogSearchParams extends PaginationParams {
   minRating?: number; // 1-5
   maxRating?: number; // 1-5
   sort?: 'recent' | 'popular' | 'trending';
+  locale?: string; // Cooking style filter (country code)
 }
 
 /**
@@ -29,6 +30,7 @@ export async function getLogs(
     minRating: params.minRating,
     maxRating: params.maxRating,
     sort: params.sort,
+    locale: params.locale,
   });
 
   return apiFetch<UnifiedPageResponse<LogPostSummary>>(`/log_posts${queryString}`, {

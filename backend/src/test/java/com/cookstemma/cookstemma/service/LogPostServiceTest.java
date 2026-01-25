@@ -408,7 +408,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
 
             // Get logs for Korean locale
             UnifiedPageResponse<LogPostSummaryDto> result = logPostService.getAllLogsUnified(
-                    null, null, "recent", null, null, 20, "ko-KR");
+                    null, null, null, "recent", null, null, 20, "ko-KR");
 
             // Should include the Korean log post
             assertThat(result.content()).anyMatch(log ->
@@ -427,7 +427,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
 
             // Get logs for Korean locale
             UnifiedPageResponse<LogPostSummaryDto> result = logPostService.getAllLogsUnified(
-                    null, null, "recent", null, null, 20, "ko-KR");
+                    null, null, null, "recent", null, null, 20, "ko-KR");
 
             // Should include the English log post because it has Korean translation
             assertThat(result.content()).anyMatch(log ->
@@ -450,7 +450,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
 
             // Get logs for Korean locale
             UnifiedPageResponse<LogPostSummaryDto> result = logPostService.getAllLogsUnified(
-                    null, null, "recent", null, null, 20, "ko-KR");
+                    null, null, null, "recent", null, null, 20, "ko-KR");
 
             // Should include both log posts
             assertThat(result.content()).anyMatch(log ->
@@ -468,7 +468,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
 
             // Get logs for Korean locale
             UnifiedPageResponse<LogPostSummaryDto> result = logPostService.getAllLogsUnified(
-                    null, null, "recent", null, null, 20, "ko-KR");
+                    null, null, null, "recent", null, null, 20, "ko-KR");
 
             // Should not include the Japanese log post
             assertThat(result.content()).noneMatch(log ->
@@ -484,7 +484,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
 
             // Get logs using short locale code "ko"
             UnifiedPageResponse<LogPostSummaryDto> result = logPostService.getAllLogsUnified(
-                    null, null, "recent", null, null, 20, "ko");
+                    null, null, null, "recent", null, null, 20, "ko");
 
             // Should include the Korean log post
             assertThat(result.content()).anyMatch(log ->
@@ -502,7 +502,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
 
             // Get logs for Korean locale
             UnifiedPageResponse<LogPostSummaryDto> result = logPostService.getAllLogsUnified(
-                    null, null, "recent", null, null, 20, "ko-KR");
+                    null, null, null, "recent", null, null, 20, "ko-KR");
 
             // Should not include the deleted log post
             assertThat(result.content()).noneMatch(log ->
@@ -532,7 +532,7 @@ class LogPostServiceTest extends BaseIntegrationTest {
 
             // Get logs for Korean locale
             UnifiedPageResponse<LogPostSummaryDto> result = logPostService.getAllLogsUnified(
-                    null, null, "recent", null, null, 20, "ko-KR");
+                    null, null, null, "recent", null, null, 20, "ko-KR");
 
             // Should not include the private log post
             assertThat(result.content()).noneMatch(log ->

@@ -524,7 +524,8 @@ public class UserService {
                 hashtags,
                 isVariant,
                 log.getIsPrivate() != null ? log.getIsPrivate() : false,
-                log.getCommentCount() != null ? log.getCommentCount() : 0
+                log.getCommentCount() != null ? log.getCommentCount() : 0,
+                log.getLocale()
         );
     }
 

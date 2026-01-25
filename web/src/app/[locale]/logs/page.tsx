@@ -13,6 +13,7 @@ interface Props {
     sort?: 'recent' | 'popular' | 'trending';
     minRating?: string;
     maxRating?: string;
+    style?: string;
   }>;
 }
 
@@ -22,7 +23,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const t = await getTranslations({ locale, namespace: 'logs' });
 
   // Check if there are any filters applied
-  const hasFilters = queryParams.sort || queryParams.page || queryParams.minRating || queryParams.maxRating;
+  const hasFilters = queryParams.sort || queryParams.page || queryParams.minRating || queryParams.maxRating || queryParams.style;
 
   return {
     title: t('title'),
@@ -43,6 +44,7 @@ export default async function LogsPage({ params, searchParams }: Props) {
   const sort = queryParams.sort || 'recent';
   const minRating = queryParams.minRating ? parseInt(queryParams.minRating, 10) : undefined;
   const maxRating = queryParams.maxRating ? parseInt(queryParams.maxRating, 10) : undefined;
+  const cookingStyle = queryParams.style;
 
   const logs = await getLogs({
     page,
@@ -50,6 +52,7 @@ export default async function LogsPage({ params, searchParams }: Props) {
     sort,
     minRating,
     maxRating,
+    locale: cookingStyle,
   }, locale);
 
   // Build base URL with current filters for pagination
@@ -57,6 +60,7 @@ export default async function LogsPage({ params, searchParams }: Props) {
   if (sort !== 'recent') filterParams.set('sort', sort);
   if (minRating) filterParams.set('minRating', String(minRating));
   if (maxRating) filterParams.set('maxRating', String(maxRating));
+  if (cookingStyle) filterParams.set('style', cookingStyle);
   const baseUrl = filterParams.toString()
     ? `/logs?${filterParams.toString()}`
     : '/logs';

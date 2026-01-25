@@ -271,7 +271,8 @@ public class RecipeService {
                             logHashtags,
                             isVariant,
                             logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false,
-                            logPost.getCommentCount() != null ? logPost.getCommentCount() : 0
+                            logPost.getCommentCount() != null ? logPost.getCommentCount() : 0,
+                            logPost.getLocale()
                     );
                 }).toList();
 

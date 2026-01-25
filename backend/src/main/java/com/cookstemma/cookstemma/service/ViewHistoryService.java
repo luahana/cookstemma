@@ -279,7 +279,8 @@ public class ViewHistoryService {
                 hashtags,
                 isVariant,
                 logPost.getIsPrivate() != null ? logPost.getIsPrivate() : false,
-                logPost.getCommentCount() != null ? logPost.getCommentCount() : 0
+                logPost.getCommentCount() != null ? logPost.getCommentCount() : 0,
+                logPost.getLocale()
         );
     }
 }

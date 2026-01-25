@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import type { LogPostSummary } from '@/lib/types';
 import { getImageUrl } from '@/lib/utils/image';
 import { BookmarkButton } from '@/components/common/BookmarkButton';
+import { CookingStyleBadge } from '@/components/common/CookingStyleBadge';
 import { StarRating } from './StarRating';
 
 interface LogCardProps {
@@ -140,6 +141,13 @@ export function LogCard({ log, isSaved = false, showTypeLabel = false }: LogCard
               </span>
             </div>
             <span className="text-sm text-[var(--text-secondary)]">{log.userName}</span>
+          </div>
+        )}
+
+        {/* Cooking Style */}
+        {log.cookingStyle && (
+          <div className="mt-2">
+            <CookingStyleBadge localeCode={log.cookingStyle} size="sm" />
           </div>
         )}
 

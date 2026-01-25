@@ -308,7 +308,8 @@ public class LogPostService {
                 hashtags,
                 isVariant,
                 log.getIsPrivate() != null ? log.getIsPrivate() : false,
-                log.getCommentCount() != null ? log.getCommentCount() : 0
+                log.getCommentCount() != null ? log.getCommentCount() : 0,
+                log.getLocale()
         );
     }
 
@@ -439,6 +440,46 @@ public class LogPostService {
             logs = logPostRepository.findByRatingWithCursorInitial(langCodePattern, minRating, maxRating, pageable);
         } else {
             logs = logPostRepository.findByRatingWithCursor(langCodePattern, minRating, maxRating, cursorData.createdAt(), cursorData.id(), pageable);
+        }
+
+        return buildCursorResponse(logs, size, locale);
+    }
+
+    /**
+     * 로그 목록 조회 with cooking style filter (Cursor-based pagination)
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponse<LogPostSummaryDto> getAllLogsByCookingStyleWithCursor(String cookingStyle, String cursor, int size, String locale) {
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        String langCodePattern = LocaleUtils.toLanguageKey(locale) + "%";
+
+        Slice<LogPost> logs;
+        if (cursorData == null) {
+            logs = logPostRepository.findByCookingStyleWithCursorInitial(langCodePattern, cookingStyle, pageable);
+        } else {
+            logs = logPostRepository.findByCookingStyleWithCursor(langCodePattern, cookingStyle, cursorData.createdAt(), cursorData.id(), pageable);
+        }
+
+        return buildCursorResponse(logs, size, locale);
+    }
+
+    /**
+     * 로그 목록 조회 with cooking style + rating filter (Cursor-based pagination)
+     */
+    @Transactional(readOnly = true)
+    public CursorPageResponse<LogPostSummaryDto> getAllLogsByCookingStyleAndRatingWithCursor(String cookingStyle, Integer minRating, Integer maxRating, String cursor, int size, String locale) {
+        Pageable pageable = PageRequest.of(0, size);
+        CursorUtil.CursorData cursorData = CursorUtil.decode(cursor);
+
+        String langCodePattern = LocaleUtils.toLanguageKey(locale) + "%";
+
+        Slice<LogPost> logs;
+        if (cursorData == null) {
+            logs = logPostRepository.findByCookingStyleAndRatingWithCursorInitial(langCodePattern, cookingStyle, minRating, maxRating, pageable);
+        } else {
+            logs = logPostRepository.findByCookingStyleAndRatingWithCursor(langCodePattern, cookingStyle, minRating, maxRating, cursorData.createdAt(), cursorData.id(), pageable);
         }
 
         return buildCursorResponse(logs, size, locale);
@@ -609,11 +650,12 @@ public class LogPostService {
      * - popular: order by popularity score (viewCount + savedCount * 5)
      * - trending: order by engagement with time decay
      *
+     * @param cookingStyle Cooking style filter (country code like "KR", "JP", etc.)
      * @param locale Content locale from Accept-Language header for translation
      */
     @Transactional(readOnly = true)
     public UnifiedPageResponse<LogPostSummaryDto> getAllLogsUnified(
-            Integer minRating, Integer maxRating, String sort, String cursor, Integer page, int size, String locale) {
+            Integer minRating, Integer maxRating, String cookingStyle, String sort, String cursor, Integer page, int size, String locale) {
 
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
 
@@ -622,15 +664,15 @@ public class LogPostService {
 
         if (isComplexSort) {
             int pageNum = (page != null) ? page : 0;
-            return getAllLogsWithOffsetSorted(minRating, maxRating, sort, pageNum, size, normalizedLocale);
+            return getAllLogsWithOffsetSorted(minRating, maxRating, cookingStyle, sort, pageNum, size, normalizedLocale);
         }
 
         if (cursor != null && !cursor.isEmpty()) {
-            return getAllLogsWithCursorUnified(minRating, maxRating, cursor, size, normalizedLocale);
+            return getAllLogsWithCursorUnified(minRating, maxRating, cookingStyle, cursor, size, normalizedLocale);
         } else if (page != null) {
-            return getAllLogsWithOffset(minRating, maxRating, page, size, normalizedLocale);
+            return getAllLogsWithOffset(minRating, maxRating, cookingStyle, page, size, normalizedLocale);
         } else {
-            return getAllLogsWithCursorUnified(minRating, maxRating, null, size, normalizedLocale);
+            return getAllLogsWithCursorUnified(minRating, maxRating, cookingStyle, null, size, normalizedLocale);
         }
     }
 
@@ -639,7 +681,7 @@ public class LogPostService {
      * Filters by translation availability based on locale
      */
     private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithOffset(
-            Integer minRating, Integer maxRating, int page, int size, String locale) {
+            Integer minRating, Integer maxRating, String cookingStyle, int page, int size, String locale) {
 
         Pageable pageable = PageRequest.of(page, size);
 
@@ -647,7 +689,14 @@ public class LogPostService {
         String langCodePattern = LocaleUtils.toLanguageKey(locale) + "%";
 
         Page<LogPost> logs;
-        if (minRating != null && maxRating != null) {
+        boolean hasCookingStyle = cookingStyle != null && !cookingStyle.isEmpty();
+        boolean hasRating = minRating != null && maxRating != null;
+
+        if (hasCookingStyle && hasRating) {
+            logs = logPostRepository.findByCookingStyleAndRatingPage(langCodePattern, cookingStyle, minRating, maxRating, pageable);
+        } else if (hasCookingStyle) {
+            logs = logPostRepository.findByCookingStylePage(langCodePattern, cookingStyle, pageable);
+        } else if (hasRating) {
             logs = logPostRepository.findByRatingPage(langCodePattern, minRating, maxRating, pageable);
         } else {
             logs = logPostRepository.findAllLogsPage(langCodePattern, pageable);
@@ -663,7 +712,7 @@ public class LogPostService {
      * Filters by translation availability based on locale
      */
     private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithOffsetSorted(
-            Integer minRating, Integer maxRating, String sort, int page, int size, String locale) {
+            Integer minRating, Integer maxRating, String cookingStyle, String sort, int page, int size, String locale) {
 
         Pageable pageable = PageRequest.of(page, size);
 
@@ -671,14 +720,27 @@ public class LogPostService {
         String langCodePattern = LocaleUtils.toLanguageKey(locale) + "%";
 
         Page<LogPost> logs;
+        boolean hasCookingStyle = cookingStyle != null && !cookingStyle.isEmpty();
 
         if ("popular".equalsIgnoreCase(sort)) {
-            logs = logPostRepository.findAllLogsOrderByPopular(langCodePattern, pageable);
+            if (hasCookingStyle) {
+                logs = logPostRepository.findByCookingStyleOrderByPopular(langCodePattern, cookingStyle, pageable);
+            } else {
+                logs = logPostRepository.findAllLogsOrderByPopular(langCodePattern, pageable);
+            }
         } else if ("trending".equalsIgnoreCase(sort)) {
-            logs = logPostRepository.findAllLogsOrderByTrending(langCodePattern, pageable);
+            if (hasCookingStyle) {
+                logs = logPostRepository.findByCookingStyleOrderByTrending(langCodePattern, cookingStyle, pageable);
+            } else {
+                logs = logPostRepository.findAllLogsOrderByTrending(langCodePattern, pageable);
+            }
         } else {
             // Fallback to recent
-            logs = logPostRepository.findAllLogsPage(langCodePattern, pageable);
+            if (hasCookingStyle) {
+                logs = logPostRepository.findByCookingStylePage(langCodePattern, cookingStyle, pageable);
+            } else {
+                logs = logPostRepository.findAllLogsPage(langCodePattern, pageable);
+            }
         }
 
         Page<LogPostSummaryDto> mappedPage = logs.map(log -> convertToLogSummary(log, locale));
@@ -689,10 +751,17 @@ public class LogPostService {
      * Cursor-based log list wrapped in UnifiedPageResponse.
      */
     private UnifiedPageResponse<LogPostSummaryDto> getAllLogsWithCursorUnified(
-            Integer minRating, Integer maxRating, String cursor, int size, String locale) {
+            Integer minRating, Integer maxRating, String cookingStyle, String cursor, int size, String locale) {
 
         CursorPageResponse<LogPostSummaryDto> cursorResponse;
-        if (minRating != null && maxRating != null) {
+        boolean hasCookingStyle = cookingStyle != null && !cookingStyle.isEmpty();
+        boolean hasRating = minRating != null && maxRating != null;
+
+        if (hasCookingStyle && hasRating) {
+            cursorResponse = getAllLogsByCookingStyleAndRatingWithCursor(cookingStyle, minRating, maxRating, cursor, size, locale);
+        } else if (hasCookingStyle) {
+            cursorResponse = getAllLogsByCookingStyleWithCursor(cookingStyle, cursor, size, locale);
+        } else if (hasRating) {
             cursorResponse = getAllLogsByRatingWithCursor(minRating, maxRating, cursor, size, locale);
         } else {
             cursorResponse = getAllLogsWithCursor(cursor, size, locale);

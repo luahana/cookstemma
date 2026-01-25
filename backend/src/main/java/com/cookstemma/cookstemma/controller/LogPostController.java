@@ -42,23 +42,25 @@ public class LogPostController {
      * GET /api/v1/log_posts?q=검색어 : 제목/내용/레시피명 검색
      * GET /api/v1/log_posts?minRating=1&maxRating=5 : rating 범위 필터링
      * GET /api/v1/log_posts?sort=recent|popular|trending : 정렬 옵션
+     * GET /api/v1/log_posts?locale=KR : cooking style 필터링
      */
     @GetMapping
     public ResponseEntity<UnifiedPageResponse<LogPostSummaryDto>> getAllLogs(
             @RequestParam(name = "q", required = false) String searchKeyword,
             @RequestParam(name = "minRating", required = false) Integer minRating,
             @RequestParam(name = "maxRating", required = false) Integer maxRating,
+            @RequestParam(name = "locale", required = false) String cookingStyle,
             @RequestParam(name = "sort", required = false) String sort,
             @RequestParam(name = "cursor", required = false) String cursor,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
         // Get content locale from Accept-Language header for translation
-        String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
+        String contentLocale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
         // 검색어가 있으면 검색 모드
         if (searchKeyword != null && !searchKeyword.isBlank()) {
-            return ResponseEntity.ok(logPostService.searchLogPostsUnified(searchKeyword, cursor, page, size, locale));
+            return ResponseEntity.ok(logPostService.searchLogPostsUnified(searchKeyword, cursor, page, size, contentLocale));
         }
-        return ResponseEntity.ok(logPostService.getAllLogsUnified(minRating, maxRating, sort, cursor, page, size, locale));
+        return ResponseEntity.ok(logPostService.getAllLogsUnified(minRating, maxRating, cookingStyle, sort, cursor, page, size, contentLocale));
     }
 
     /**

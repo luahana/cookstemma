@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useTransition, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useNavigationProgress } from '@/contexts/NavigationProgressContext';
+import { CookingStyleSelect, useCookingStyleFilterOptions } from './CookingStyleSelect';
 
 interface LogFiltersProps {
   baseUrl: string;
@@ -13,11 +14,13 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
   const t = useTranslations('filters');
   const router = useRouter();
   const searchParams = useSearchParams();
+  const cookingStyleOptions = useCookingStyleFilterOptions();
   const [isPending, startTransition] = useTransition();
   const { startLoading, stopLoading } = useNavigationProgress();
 
   const currentSort = searchParams.get('sort') || 'recent';
   const currentRating = searchParams.get('rating') || 'all';
+  const currentCookingStyle = searchParams.get('style') || 'any';
 
   // Stop loading when transition completes
   useEffect(() => {
@@ -30,7 +33,7 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
     (key: string, value: string) => {
       const params = new URLSearchParams(searchParams.toString());
 
-      if (value === 'all' || value === 'recent') {
+      if (value === 'all' || value === 'recent' || value === 'any') {
         params.delete(key);
         // Clear rating range params when 'all' is selected
         if (key === 'rating') {
@@ -69,7 +72,7 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
     return 'all';
   };
 
-  const hasActiveFilters = currentSort !== 'recent' || getRatingSelection() !== 'all';
+  const hasActiveFilters = currentSort !== 'recent' || getRatingSelection() !== 'all' || currentCookingStyle !== 'any';
 
   return (
     <div className="flex flex-wrap items-center gap-4 mb-6">
@@ -107,6 +110,19 @@ export function LogFilters({ baseUrl }: LogFiltersProps) {
           <option value="3-5">{t('rating3PlusStars')}</option>
           <option value="1-2">{t('rating1to2Stars')}</option>
         </select>
+      </div>
+
+      {/* Cooking Style filter */}
+      <div className="flex items-center gap-2">
+        <label className="text-sm text-[var(--text-secondary)]">
+          {t('cookingStyle')}
+        </label>
+        <CookingStyleSelect
+          value={currentCookingStyle}
+          onChange={(value) => updateFilters('style', value)}
+          options={cookingStyleOptions}
+          className="w-44"
+        />
       </div>
 
       {/* Active filters indicator */}

@@ -16,5 +16,6 @@ public record LogPostSummaryDto(
         List<String> hashtags,  // Hashtag names
         Boolean isVariant,     // Whether the linked recipe is a variant
         Boolean isPrivate,     // Whether this log is private
-        Integer commentCount   // Number of comments on this log
+        Integer commentCount,   // Number of comments on this log
+        String cookingStyle    // Cooking style (locale code) from linked recipe
 ) {}

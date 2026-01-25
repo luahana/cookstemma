@@ -154,6 +154,58 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         nativeQuery = true)
     Slice<LogPost> findByRatingWithCursor(@Param("langCodePattern") String langCodePattern, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
 
+    // ==================== COOKING STYLE FILTER QUERIES ====================
+
+    // [Cursor] Logs by cooking style - initial page
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        ORDER BY lp.created_at DESC, lp.id DESC
+        """, nativeQuery = true)
+    Slice<LogPost> findByCookingStyleWithCursorInitial(@Param("langCodePattern") String langCodePattern, @Param("cookingStyle") String cookingStyle, Pageable pageable);
+
+    // [Cursor] Logs by cooking style - with cursor
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
+        ORDER BY lp.created_at DESC, lp.id DESC
+        """, nativeQuery = true)
+    Slice<LogPost> findByCookingStyleWithCursor(@Param("langCodePattern") String langCodePattern, @Param("cookingStyle") String cookingStyle, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+
+    // [Cursor] Logs by cooking style + rating - initial page
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        JOIN recipe_logs rl ON rl.log_post_id = lp.id
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        AND rl.rating BETWEEN :minRating AND :maxRating
+        ORDER BY lp.created_at DESC, lp.id DESC
+        """, nativeQuery = true)
+    Slice<LogPost> findByCookingStyleAndRatingWithCursorInitial(@Param("langCodePattern") String langCodePattern, @Param("cookingStyle") String cookingStyle, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
+
+    // [Cursor] Logs by cooking style + rating - with cursor
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        JOIN recipe_logs rl ON rl.log_post_id = lp.id
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        AND rl.rating BETWEEN :minRating AND :maxRating
+        AND (lp.created_at < :cursorTime OR (lp.created_at = :cursorTime AND lp.id < :cursorId))
+        ORDER BY lp.created_at DESC, lp.id DESC
+        """, nativeQuery = true)
+    Slice<LogPost> findByCookingStyleAndRatingWithCursor(@Param("langCodePattern") String langCodePattern, @Param("cookingStyle") String cookingStyle, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, @Param("cursorTime") Instant cursorTime, @Param("cursorId") Long cursorId, Pageable pageable);
+
     // [Cursor] My logs - initial page
     @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.deletedAt IS NULL ORDER BY l.createdAt DESC, l.id DESC")
     Slice<LogPost> findMyLogsWithCursorInitial(@Param("creatorId") Long creatorId, Pageable pageable);
@@ -248,6 +300,45 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         nativeQuery = true)
     Page<LogPost> findAllLogsOrderByTrending(@Param("langCodePattern") String langCodePattern, Pageable pageable);
 
+    // [Offset] Logs by cooking style ordered by popularity
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        ORDER BY (COALESCE(lp.view_count, 0) + COALESCE(lp.saved_count, 0) * 5) DESC, lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        """,
+        nativeQuery = true)
+    Page<LogPost> findByCookingStyleOrderByPopular(@Param("langCodePattern") String langCodePattern, @Param("cookingStyle") String cookingStyle, Pageable pageable);
+
+    // [Offset] Logs by cooking style ordered by trending
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        ORDER BY ((COALESCE(lp.view_count, 0) + COALESCE(lp.saved_count, 0) * 5)::float / (1.0 + EXTRACT(EPOCH FROM (NOW() - lp.created_at)) / 604800.0)) DESC,
+                 lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        """,
+        nativeQuery = true)
+    Page<LogPost> findByCookingStyleOrderByTrending(@Param("langCodePattern") String langCodePattern, @Param("cookingStyle") String cookingStyle, Pageable pageable);
+
     // [Offset] Logs by rating range - page (native query for JOIN)
     // Filters by translation availability using pattern matching (supports "ko" and "ko-KR")
     @Query(value = """
@@ -268,6 +359,48 @@ public interface LogPostRepository extends JpaRepository<LogPost, Long> {
         """,
         nativeQuery = true)
     Page<LogPost> findByRatingPage(@Param("langCodePattern") String langCodePattern, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
+
+    // [Offset] Logs by cooking style - page
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        ORDER BY lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM log_posts lp
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        """,
+        nativeQuery = true)
+    Page<LogPost> findByCookingStylePage(@Param("langCodePattern") String langCodePattern, @Param("cookingStyle") String cookingStyle, Pageable pageable);
+
+    // [Offset] Logs by cooking style + rating - page
+    @Query(value = """
+        SELECT lp.* FROM log_posts lp
+        JOIN recipe_logs rl ON rl.log_post_id = lp.id
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        AND rl.rating BETWEEN :minRating AND :maxRating
+        ORDER BY lp.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(lp.id) FROM log_posts lp
+        JOIN recipe_logs rl ON rl.log_post_id = lp.id
+        WHERE lp.deleted_at IS NULL AND (lp.is_private IS NULL OR lp.is_private = false)
+        AND (lp.original_language LIKE :langCodePattern
+             OR EXISTS (SELECT 1 FROM jsonb_object_keys(COALESCE(lp.title_translations, '{}'::jsonb)) k WHERE k LIKE :langCodePattern))
+        AND lp.locale = :cookingStyle
+        AND rl.rating BETWEEN :minRating AND :maxRating
+        """,
+        nativeQuery = true)
+    Page<LogPost> findByCookingStyleAndRatingPage(@Param("langCodePattern") String langCodePattern, @Param("cookingStyle") String cookingStyle, @Param("minRating") Integer minRating, @Param("maxRating") Integer maxRating, Pageable pageable);
 
     // [Offset] My logs - page
     @Query("SELECT l FROM LogPost l WHERE l.creatorId = :creatorId AND l.deletedAt IS NULL")
