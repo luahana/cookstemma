@@ -140,9 +140,21 @@ export default function AdminPage() {
             {/* Sentry Test Button */}
             <button
               onClick={() => {
-                const error = new Error("Sentry test error from admin dashboard");
-                Sentry.captureException(error);
-                alert("Sentry test error sent! Check Sentry dashboard.");
+                const client = Sentry.getClient();
+                const dsn = client?.getDsn();
+                console.log('[Sentry Debug]', {
+                  client: !!client,
+                  dsn: dsn?.toString(),
+                  env: process.env.NEXT_PUBLIC_SENTRY_DSN,
+                });
+
+                if (!client || !dsn) {
+                  alert(`Sentry not initialized!\nDSN env: ${process.env.NEXT_PUBLIC_SENTRY_DSN || 'not set'}`);
+                  return;
+                }
+
+                const eventId = Sentry.captureException(new Error("Sentry test error from admin dashboard"));
+                alert(`Sentry error sent!\nEvent ID: ${eventId}`);
               }}
               className="px-3 py-1.5 text-xs bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 transition-colors"
             >
