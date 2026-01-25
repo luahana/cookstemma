@@ -141,3 +141,16 @@ variable "alarm_email" {
   type        = string
   default     = "alex873jspark@gmail.com"
 }
+
+# Sentry
+variable "sentry_dsn_backend" {
+  description = "Sentry DSN for backend"
+  type        = string
+  default     = ""
+}
+
+variable "sentry_dsn_web" {
+  description = "Sentry DSN for web frontend"
+  type        = string
+  default     = ""
+}

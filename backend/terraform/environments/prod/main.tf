@@ -362,6 +362,10 @@ module "ecs" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+
+  # Sentry
+  sentry_dsn         = var.sentry_dsn_backend
+  sentry_environment = "production"
 }
 
 # ECS Web Module - Next.js application, 2 tasks for HA
@@ -393,6 +397,11 @@ module "ecs_web" {
 
   # CloudWatch Alarms
   sns_alarm_topic_arn = aws_sns_topic.alerts.arn
+
+  # Sentry
+  sentry_dsn                = var.sentry_dsn_web
+  sentry_environment        = "production"
+  sentry_traces_sample_rate = "0.1"
 }
 
 # Lambda Translation Module - Gemini-powered content translation

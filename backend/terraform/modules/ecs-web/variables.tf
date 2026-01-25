@@ -110,3 +110,22 @@ variable "cpu_architecture" {
   type        = string
   default     = "ARM64"
 }
+
+# Sentry
+variable "sentry_dsn" {
+  description = "Sentry DSN for error tracking (NEXT_PUBLIC_SENTRY_DSN)"
+  type        = string
+  default     = ""
+}
+
+variable "sentry_environment" {
+  description = "Sentry environment tag"
+  type        = string
+  default     = ""
+}
+
+variable "sentry_traces_sample_rate" {
+  description = "Sentry performance monitoring sample rate (0.0-1.0)"
+  type        = string
+  default     = "0.1"
+}

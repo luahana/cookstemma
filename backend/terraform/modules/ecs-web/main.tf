@@ -157,6 +157,18 @@ resource "aws_ecs_task_definition" "web" {
         {
           name  = "PORT"
           value = tostring(var.container_port)
+        },
+        {
+          name  = "NEXT_PUBLIC_SENTRY_DSN"
+          value = var.sentry_dsn
+        },
+        {
+          name  = "NEXT_PUBLIC_SENTRY_ENVIRONMENT"
+          value = var.sentry_environment != "" ? var.sentry_environment : "production"
+        },
+        {
+          name  = "NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE"
+          value = var.sentry_traces_sample_rate
         }
       ], var.internal_api_url != "" ? [
         {

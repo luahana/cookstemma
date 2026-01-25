@@ -173,3 +173,16 @@ variable "additional_ingress_security_group_ids" {
   type        = list(string)
   default     = []
 }
+
+# Sentry
+variable "sentry_dsn" {
+  description = "Sentry DSN for error tracking"
+  type        = string
+  default     = ""
+}
+
+variable "sentry_environment" {
+  description = "Sentry environment tag"
+  type        = string
+  default     = ""
+}

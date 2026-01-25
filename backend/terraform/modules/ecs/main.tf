@@ -242,6 +242,14 @@ resource "aws_ecs_task_definition" "main" {
         {
           name  = "SQS_ENABLED"
           value = tostring(var.sqs_enabled)
+        },
+        {
+          name  = "SENTRY_DSN"
+          value = var.sentry_dsn
+        },
+        {
+          name  = "SENTRY_ENVIRONMENT"
+          value = var.sentry_environment != "" ? var.sentry_environment : var.environment
         }
       ]
 
