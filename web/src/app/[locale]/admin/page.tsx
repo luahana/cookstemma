@@ -723,6 +723,17 @@ function UsersTab({ currentUserPublicId }: { currentUserPublicId?: string }) {
       ),
     },
     {
+      key: 'locale',
+      header: 'Locale',
+      sortable: true,
+      width: '100px',
+      render: (item) => (
+        <span className="text-sm text-[var(--text-secondary)]">
+          {item.locale || '-'}
+        </span>
+      ),
+    },
+    {
       key: 'createdAt',
       header: 'Created',
       sortable: true,

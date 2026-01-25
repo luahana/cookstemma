@@ -334,6 +334,9 @@ module "ecs" {
   target_group_arn      = module.alb.target_group_blue_arn
   use_code_deploy       = false  # Disable blue-green for now, can enable later
 
+  # Allow web ECS tasks to access backend via service discovery
+  additional_ingress_security_group_ids = [aws_security_group.ecs_web.id]
+
   # S3 bucket for application
   s3_bucket = var.s3_bucket
 
