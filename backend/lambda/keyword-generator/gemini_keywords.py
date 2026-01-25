@@ -72,7 +72,7 @@ pl (Polish), tr (Turkish), nl (Dutch), sv (Swedish), fa (Persian)
 class GeminiKeywordGenerator:
     """Generates multilingual search keywords using Google Gemini."""
 
-    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite"):
+    def __init__(self, api_key: str, model: str = "gemini-2.0-flash-lite"):
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(
             model_name=model,

@@ -87,7 +87,7 @@ Respond ONLY with a JSON object mapping locale codes to translated names (no mar
 class AIVerifier:
     """Verifies and translates food/ingredient names using Google Gemini."""
 
-    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite"):
+    def __init__(self, api_key: str, model: str = "gemini-2.0-flash-lite"):
         genai.configure(api_key=api_key)
         self.verify_model = genai.GenerativeModel(
             model_name=model,
@@ -251,7 +251,7 @@ English (respond with just the translated name, no explanation):"""
         try:
             # Use a simple model config for single-word translation
             simple_model = genai.GenerativeModel(
-                model_name="gemini-2.5-flash-lite",
+                model_name="gemini-2.0-flash-lite",
                 generation_config={
                     "temperature": 0.1,
                     "max_output_tokens": 100
