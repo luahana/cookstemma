@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "热门话题"
   },
+  "usernameValidation": {
+    "rules": "5-30字符，字母开头。允许：a-z, 0-9, _ . -",
+    "taken": "用户名已被使用"
+  },
   "cookingStyles": {
     "allStyles": "所有风格",
     "international": "国际",

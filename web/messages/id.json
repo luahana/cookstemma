@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "Hashtag Populer"
   },
+  "usernameValidation": {
+    "rules": "5-30 karakter, dimulai dengan huruf. Diizinkan: a-z, 0-9, _ . -",
+    "taken": "Nama pengguna sudah digunakan"
+  },
   "cookingStyles": {
     "allStyles": "Semua Gaya",
     "international": "Internasional",

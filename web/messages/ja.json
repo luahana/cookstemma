@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "人気のハッシュタグ"
   },
+  "usernameValidation": {
+    "rules": "5-30文字、英字で開始。使用可能：a-z, 0-9, _ . -",
+    "taken": "このユーザー名は使用中です"
+  },
   "cookingStyles": {
     "allStyles": "すべてのスタイル",
     "international": "インターナショナル",

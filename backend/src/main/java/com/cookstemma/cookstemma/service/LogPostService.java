@@ -32,7 +32,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -65,6 +67,15 @@ public class LogPostService {
         Recipe recipe = recipeRepository.findByPublicId(req.recipePublicId())
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
 
+        // Initialize translations with source language to preserve original content
+        String sourceLangCode = LocaleUtils.toLanguageKey(userLocale);
+        Map<String, String> titleTranslations = new HashMap<>();
+        titleTranslations.put(sourceLangCode, req.title());
+        Map<String, String> contentTranslations = new HashMap<>();
+        if (req.content() != null) {
+            contentTranslations.put(sourceLangCode, req.content());
+        }
+
         LogPost logPost = LogPost.builder()
                 .title(req.title())
                 .content(req.content())
@@ -72,6 +83,8 @@ public class LogPostService {
                 .locale(recipe.getCookingStyle())
                 .originalLanguage(userLocale)
                 .isPrivate(req.isPrivate() != null ? req.isPrivate() : false)
+                .titleTranslations(titleTranslations)
+                .contentTranslations(contentTranslations)
                 .build();
 
         // 레시피-로그 연결 정보 생성
@@ -507,11 +520,32 @@ public class LogPostService {
             throw new org.springframework.security.access.AccessDeniedException("You are not the owner of this log");
         }
 
-        // Update fields
+        // Get user's locale for translation key
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        String sourceLangCode = LocaleUtils.toLanguageKey(user.getLocale());
+
+        // Update fields and translations
         if (request.title() != null) {
             logPost.setTitle(request.title());
+            // Update translation map with new original content
+            Map<String, String> titleTranslations = logPost.getTitleTranslations();
+            if (titleTranslations == null) {
+                titleTranslations = new HashMap<>();
+            }
+            titleTranslations.put(sourceLangCode, request.title());
+            logPost.setTitleTranslations(titleTranslations);
         }
         logPost.setContent(request.content());
+        // Update content translation map
+        Map<String, String> contentTranslations = logPost.getContentTranslations();
+        if (contentTranslations == null) {
+            contentTranslations = new HashMap<>();
+        }
+        if (request.content() != null) {
+            contentTranslations.put(sourceLangCode, request.content());
+        }
+        logPost.setContentTranslations(contentTranslations);
 
         // Update rating via RecipeLog
         RecipeLog recipeLog = logPost.getRecipeLog();

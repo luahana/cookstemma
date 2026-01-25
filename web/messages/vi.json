@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "Hashtag phổ biến"
   },
+  "usernameValidation": {
+    "rules": "5-30 ký tự, bắt đầu bằng chữ. Cho phép: a-z, 0-9, _ . -",
+    "taken": "Tên đã được sử dụng"
+  },
   "cookingStyles": {
     "allStyles": "Tất cả phong cách",
     "international": "Quốc tế",

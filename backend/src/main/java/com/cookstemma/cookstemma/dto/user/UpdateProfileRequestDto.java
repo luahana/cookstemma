@@ -9,7 +9,9 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record UpdateProfileRequestDto(
-        @Size(max = 50, message = "Username cannot exceed 50 characters")
+        @Size(min = 5, max = 30, message = "Username must be 5-30 characters")
+        @Pattern(regexp = "^[a-zA-Z][a-zA-Z0-9._-]{4,29}$",
+                message = "Username must start with a letter and contain only letters, numbers, underscores, periods, or hyphens")
         String username,
         UUID profileImagePublicId, // [수정] String profileImageUrl -> UUID profileImagePublicId
         Gender gender,

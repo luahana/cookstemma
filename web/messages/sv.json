@@ -746,6 +746,10 @@
   "popularHashtags": {
     "title": "Populära hashtags"
   },
+  "usernameValidation": {
+    "rules": "5-30 tecken, börjar med bokstav. Tillåtet: a-z, 0-9, _ . -",
+    "taken": "Användarnamnet är taget"
+  },
   "cookingStyles": {
     "allStyles": "Alla stilar",
     "international": "Internationell",
