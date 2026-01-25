@@ -6,7 +6,8 @@ import json
 import logging
 from typing import Any
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 logger = logging.getLogger()
 
@@ -87,24 +88,9 @@ Respond ONLY with a JSON object mapping locale codes to translated names (no mar
 class AIVerifier:
     """Verifies and translates food/ingredient names using Google Gemini."""
 
-    def __init__(self, api_key: str, model: str = "gemini-2.0-flash-lite"):
-        genai.configure(api_key=api_key)
-        self.verify_model = genai.GenerativeModel(
-            model_name=model,
-            generation_config={
-                "temperature": 0.1,
-                "max_output_tokens": 500,
-                "response_mime_type": "application/json"
-            }
-        )
-        self.translate_model = genai.GenerativeModel(
-            model_name=model,
-            generation_config={
-                "temperature": 0.3,
-                "max_output_tokens": 2000,
-                "response_mime_type": "application/json"
-            }
-        )
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite"):
+        self.client = genai.Client(api_key=api_key)
+        self.model = model
 
     def verify_name(
         self,
@@ -140,7 +126,15 @@ class AIVerifier:
         )
 
         try:
-            response = self.verify_model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    temperature=0.1,
+                    max_output_tokens=500,
+                    response_mime_type="application/json"
+                )
+            )
             result_text = response.text.strip()
 
             # Parse JSON response, handle markdown code blocks
@@ -207,7 +201,15 @@ class AIVerifier:
         )
 
         try:
-            response = self.translate_model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    temperature=0.3,
+                    max_output_tokens=2000,
+                    response_mime_type="application/json"
+                )
+            )
             result_text = response.text.strip()
 
             # Parse JSON response
@@ -249,15 +251,14 @@ Provide just the simple, commonly used English name.
 English (respond with just the translated name, no explanation):"""
 
         try:
-            # Use a simple model config for single-word translation
-            simple_model = genai.GenerativeModel(
-                model_name="gemini-2.0-flash-lite",
-                generation_config={
-                    "temperature": 0.1,
-                    "max_output_tokens": 100
-                }
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    temperature=0.1,
+                    max_output_tokens=100
+                )
             )
-            response = simple_model.generate_content(prompt)
             return response.text.strip()
 
         except Exception as e:

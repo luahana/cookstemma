@@ -6,7 +6,8 @@ import json
 import logging
 from typing import Any
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 logger = logging.getLogger()
 
@@ -50,35 +51,10 @@ class ContentModerationResult:
 class GeminiTranslator:
     """Translates cooking content using Google Gemini."""
 
-    def __init__(self, api_key: str, model: str = "gemini-2.0-flash-lite"):
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(
-            model_name=model,
-            generation_config={
-                "temperature": 0.3,
-                "max_output_tokens": 8000,  # Increased from 2000 to handle large recipes
-                "response_mime_type": "application/json"
-            }
-        )
-        # Text moderation model (lower temperature for consistent results)
-        self.moderation_model = genai.GenerativeModel(
-            model_name=model,
-            generation_config={
-                "temperature": 0.1,
-                "max_output_tokens": 500,
-                "response_mime_type": "application/json"
-            }
-        )
-        # Image moderation model - must be multimodal capable (not lite)
-        # Using gemini-2.0-flash which supports vision/image input
-        self.image_moderation_model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
-            generation_config={
-                "temperature": 0.1,
-                "max_output_tokens": 500,
-                "response_mime_type": "application/json"
-            }
-        )
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite"):
+        self.client = genai.Client(api_key=api_key)
+        self.model = model
+        self.image_model = "gemini-2.5-flash"  # For multimodal tasks
 
     def moderate_recipe_content(
         self,
@@ -129,7 +105,15 @@ Return JSON: {"is_appropriate": true/false, "reason": "explanation if inappropri
 """
 
         try:
-            response = self.moderation_model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    temperature=0.1,
+                    max_output_tokens=500,
+                    response_mime_type="application/json"
+                )
+            )
             result_text = response.text.strip()
 
             # Handle potential markdown code blocks
@@ -166,6 +150,7 @@ Return JSON: {"is_appropriate": true/false, "reason": "explanation if inappropri
             ContentModerationResult with is_appropriate=True if image is OK
         """
         import urllib.request
+        import base64
 
         prompt = """You are a content moderator for a family-friendly cooking recipe app.
 Analyze this image and determine if it is appropriate for a cooking/food recipe.
@@ -194,13 +179,24 @@ Return JSON: {"is_appropriate": true/false, "reason": "explanation if inappropri
             with urllib.request.urlopen(req, timeout=10) as response:
                 image_data = response.read()
 
-            # Create image part for Gemini
-            image_part = {
-                "mime_type": "image/jpeg",  # Gemini handles format detection
-                "data": image_data
-            }
+            # Create image part for Gemini (base64 encoded)
+            image_base64 = base64.b64encode(image_data).decode('utf-8')
 
-            response = self.image_moderation_model.generate_content([prompt, image_part])
+            response = self.client.models.generate_content(
+                model=self.image_model,
+                contents=[
+                    prompt,
+                    types.Part.from_bytes(
+                        data=image_data,
+                        mime_type="image/jpeg"
+                    )
+                ],
+                config=types.GenerateContentConfig(
+                    temperature=0.1,
+                    max_output_tokens=500,
+                    response_mime_type="application/json"
+                )
+            )
             result_text = response.text.strip()
 
             # Handle potential markdown code blocks
@@ -277,7 +273,15 @@ Return JSON: {{"is_appropriate": true/false, "reason": "explanation if inappropr
 """
 
         try:
-            response = self.moderation_model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    temperature=0.1,
+                    max_output_tokens=500,
+                    response_mime_type="application/json"
+                )
+            )
             result_text = response.text.strip()
 
             # Handle potential markdown code blocks
@@ -363,7 +367,15 @@ Input JSON to translate to {target_lang}:
 Return ONLY the JSON object with translated values, no explanation."""
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    temperature=0.3,
+                    max_output_tokens=8000,
+                    response_mime_type="application/json"
+                )
+            )
             result_text = response.text.strip()
 
             # Parse JSON response
@@ -526,7 +538,15 @@ RULES:
 Return ONLY the JSON object, no explanation or markdown formatting."""
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=[prompt],
+                config=types.GenerateContentConfig(
+                    temperature=0.3,
+                    max_output_tokens=8000,
+                    response_mime_type="application/json"
+                )
+            )
             result_text = response.text.strip()
 
             # Log response length for debugging token limit issues

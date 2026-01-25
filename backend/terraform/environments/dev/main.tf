@@ -486,7 +486,7 @@ module "lambda_keyword_generator" {
   existing_security_group_id  = aws_security_group.lambda_keyword_generator.id
 
   # Lambda configuration
-  schedule_expression            = "rate(6 hours)"
+  schedule_expression            = "rate(5 minutes)"
   memory_size                    = 512
   timeout                        = 600 # 10 minutes
   reserved_concurrent_executions = -1  # No reserved concurrency (account quota limit)
