@@ -195,9 +195,23 @@ module "vpc" {
   environment            = var.environment
   vpc_cidr               = var.vpc_cidr
   az_count               = 2
-  create_private_subnets = true  # Keep private subnets for RDS (more secure)
-  create_nat_gateway     = false # No NAT Gateway - Lambdas use VPC endpoints instead
+  create_private_subnets = true  # Private subnets for RDS and Lambdas
+  create_nat_gateway     = false # Using NAT Instance instead (saves ~$30/mo)
   create_vpc_endpoints   = true  # VPC endpoints for Secrets Manager, SQS, S3
+}
+
+# NAT Instance Module - Cost-effective alternative to NAT Gateway (~$4/mo vs ~$35/mo)
+# Provides internet access for Lambdas to reach Gemini API
+module "nat_instance" {
+  source = "../../modules/nat-instance"
+
+  project_name           = var.project_name
+  environment            = var.environment
+  vpc_id                 = module.vpc.vpc_id
+  vpc_cidr               = var.vpc_cidr
+  public_subnet_id       = module.vpc.public_subnet_ids[0]
+  private_route_table_id = module.vpc.private_route_table_id
+  instance_type          = "t3.nano"
 }
 
 # Service Discovery Module - Cloud Map for internal service-to-service communication
@@ -386,7 +400,7 @@ module "lambda_translation" {
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.vpc.vpc_id
-  subnet_ids   = module.vpc.public_subnet_ids  # Public subnets (no NAT needed)
+  subnet_ids   = module.vpc.private_subnet_ids # Private subnets with NAT for Gemini API
 
   # ECR repository (created by shared terraform)
   ecr_repository_url = data.aws_ecr_repository.translator.repository_url
@@ -441,7 +455,7 @@ module "lambda_suggestion_verifier" {
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.vpc.vpc_id
-  subnet_ids   = module.vpc.public_subnet_ids  # Public subnets (no NAT needed)
+  subnet_ids   = module.vpc.private_subnet_ids # Private subnets with NAT for Gemini API
 
   # ECR repository (created by shared terraform)
   ecr_repository_url = data.aws_ecr_repository.suggestion_verifier.repository_url
@@ -472,7 +486,7 @@ module "lambda_keyword_generator" {
   project_name = var.project_name
   environment  = var.environment
   vpc_id       = module.vpc.vpc_id
-  subnet_ids   = module.vpc.public_subnet_ids  # Public subnets (no NAT needed)
+  subnet_ids   = module.vpc.private_subnet_ids # Private subnets with NAT for Gemini API
 
   # ECR repository (created by shared terraform)
   ecr_repository_url = data.aws_ecr_repository.keyword_generator.repository_url
