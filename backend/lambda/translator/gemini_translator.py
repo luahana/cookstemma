@@ -50,7 +50,7 @@ class ContentModerationResult:
 class GeminiTranslator:
     """Translates cooking content using Google Gemini."""
 
-    def __init__(self, api_key: str, model: str = "gemini-2.5-flash-lite"):
+    def __init__(self, api_key: str, model: str = "gemini-2.0-flash-lite"):
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(
             model_name=model,
@@ -70,9 +70,9 @@ class GeminiTranslator:
             }
         )
         # Image moderation model - must be multimodal capable (not lite)
-        # Using gemini-2.5-flash which supports vision/image input
+        # Using gemini-2.0-flash which supports vision/image input
         self.image_moderation_model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
+            model_name="gemini-2.0-flash",
             generation_config={
                 "temperature": 0.1,
                 "max_output_tokens": 500,

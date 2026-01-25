@@ -1,6 +1,6 @@
 # Deploy Backend to Production Environment
 # Triggers on push to master branch
-# Blue/Green deployment with CodeDeploy
+# Rolling update deployment
 
 name: Backend Deploy to Production
 
@@ -19,8 +19,6 @@ env:
   ECS_CLUSTER: cookstemma-prod-cluster
   ECS_SERVICE: cookstemma-prod-service
   CONTAINER_NAME: cookstemma-prod
-  CODEDEPLOY_APP: cookstemma-prod
-  CODEDEPLOY_GROUP: cookstemma-prod-dg
   TASK_DEFINITION_FAMILY: cookstemma-prod
 
 jobs:
@@ -101,63 +99,14 @@ jobs:
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
-      - name: Register new task definition
-        id: register-task
-        working-directory: .
-        run: |
-          TASK_DEF_ARN=$(aws ecs register-task-definition \
-            --cli-input-json file://${{ steps.task-def.outputs.task-definition }} \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)
-          echo "task-definition-arn=$TASK_DEF_ARN" >> $GITHUB_OUTPUT
-
-      - name: Create AppSpec file
-        working-directory: .
-        run: |
-          cat > appspec.json << EOF
-          {
-            "version": 0.0,
-            "Resources": [
-              {
-                "TargetService": {
-                  "Type": "AWS::ECS::Service",
-                  "Properties": {
-                    "TaskDefinition": "${{ steps.register-task.outputs.task-definition-arn }}",
-                    "LoadBalancerInfo": {
-                      "ContainerName": "${{ env.CONTAINER_NAME }}",
-                      "ContainerPort": 4000
-                    }
-                  }
-                }
-              }
-            ]
-          }
-          EOF
-
-      - name: Create CodeDeploy deployment
-        id: deploy
-        working-directory: .
-        run: |
-          # Properly escape JSON for nested content
-          APPSPEC_CONTENT=$(cat appspec.json | jq -c . | jq -Rs .)
-          REVISION_JSON=$(jq -n --argjson content "$APPSPEC_CONTENT" '{"revisionType": "AppSpecContent", "appSpecContent": {"content": $content}}')
-
-          DEPLOYMENT_ID=$(aws deploy create-deployment \
-            --application-name ${{ env.CODEDEPLOY_APP }} \
-            --deployment-group-name ${{ env.CODEDEPLOY_GROUP }} \
-            --revision "$REVISION_JSON" \
-            --query 'deploymentId' \
-            --output text)
-          echo "deployment-id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
-          echo "Deployment ID: $DEPLOYMENT_ID"
-
-      - name: Wait for deployment to complete
-        working-directory: .
-        run: |
-          echo "Waiting for deployment ${{ steps.deploy.outputs.deployment-id }} to complete..."
-          aws deploy wait deployment-successful \
-            --deployment-id ${{ steps.deploy.outputs.deployment-id }}
-          echo "Deployment completed successfully!"
+      - name: Deploy to ECS (Rolling Update)
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+          wait-for-minutes: 20
 
       - name: Get latest version tag
         working-directory: .
@@ -209,5 +158,4 @@ jobs:
           echo "- **Environment:** Production" >> $GITHUB_STEP_SUMMARY
           echo "- **Version:** ${{ steps.get-version.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Image:** ${{ steps.build-image.outputs.image }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Deployment ID:** ${{ steps.deploy.outputs.deployment-id }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Deployment Type:** Blue/Green (CodeDeploy - Linear 10% every minute)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployment Type:** Rolling Update" >> $GITHUB_STEP_SUMMARY
