@@ -23,12 +23,7 @@ const MAX_BIO_LENGTH = 150;
 const MAX_YOUTUBE_URL_LENGTH = 200;
 const MAX_INSTAGRAM_HANDLE_LENGTH = 30;
 
-const GENDER_OPTIONS = [
-  { value: '', label: 'Select gender' },
-  { value: 'MALE', label: 'Male' },
-  { value: 'FEMALE', label: 'Female' },
-  { value: 'OTHER', label: 'Other' },
-];
+// Gender options moved inside component for translations
 
 const LOCALE_OPTIONS = [
   { value: 'ko-KR', label: '한국어' },
@@ -44,11 +39,7 @@ const LOCALE_OPTIONS = [
   { value: 'vi-VN', label: 'Tiếng Việt' },
 ];
 
-const MEASUREMENT_OPTIONS = [
-  { value: 'ORIGINAL', label: 'Original (as entered)' },
-  { value: 'METRIC', label: 'Metric (g, ml)' },
-  { value: 'US', label: 'US (cups, oz)' },
-];
+// Measurement options moved inside component for translations
 
 function getMaxBirthDate(): string {
   const today = new Date();
@@ -60,7 +51,7 @@ function validateYoutubeUrl(value: string): string | null {
   if (!value) return null;
   const regex =
     /^(https?:\/\/)?(www\.)?(youtube\.com\/(channel\/|c\/|user\/|@)[\w-]+|youtu\.be\/[\w-]+)\/?$/;
-  if (!regex.test(value)) return 'Invalid YouTube URL format';
+  if (!regex.test(value)) return 'errorYoutube';
   return null;
 }
 
@@ -70,7 +61,7 @@ function validateInstagramHandle(value: string): string | null {
   const urlRegex =
     /^(https?:\/\/)?(www\.)?instagram\.com\/[a-zA-Z0-9._]{1,30}\/?$/;
   if (!handleRegex.test(value) && !urlRegex.test(value)) {
-    return 'Invalid Instagram handle format';
+    return 'errorInstagram';
   }
   return null;
 }
@@ -84,6 +75,21 @@ export default function ProfileEditPage() {
   const { user: authUser, isLoading: authLoading } = useAuth();
   const cookingStyleOptions = useCookingStyleOptions();
   const tUsernameValidation = useTranslations('usernameValidation');
+  const t = useTranslations('profileEdit');
+
+  // Options with translations
+  const genderOptions = [
+    { value: '', label: t('genderSelect') },
+    { value: 'MALE', label: t('genderMale') },
+    { value: 'FEMALE', label: t('genderFemale') },
+    { value: 'OTHER', label: t('genderOther') },
+  ];
+
+  const measurementOptions = [
+    { value: 'ORIGINAL', label: t('measurementOriginal') },
+    { value: 'METRIC', label: t('measurementMetric') },
+    { value: 'US', label: t('measurementUS') },
+  ];
 
   // Form state
   const [username, setUsername] = useState('');
@@ -162,14 +168,14 @@ export default function ProfileEditPage() {
         setInitialValues(values);
       } catch (err) {
         console.error('Failed to load profile:', err);
-        setError('Failed to load profile data');
+        setError(t('errorLoad'));
       } finally {
         setIsLoading(false);
       }
     }
 
     loadProfile();
-  }, [authUser, authLoading, router]);
+  }, [authUser, authLoading, router, t]);
 
   // Check for changes
   const hasChanges =
@@ -257,17 +263,17 @@ export default function ProfileEditPage() {
     }
 
     if (bio.length > MAX_BIO_LENGTH) {
-      setError(`Bio cannot exceed ${MAX_BIO_LENGTH} characters`);
+      setError(t('errorBio', { max: MAX_BIO_LENGTH }));
       return;
     }
 
     // Validate username
     if (!username.trim()) {
-      setError('Username is required');
+      setError(t('errorUsername'));
       return;
     }
     if (username.length < MIN_USERNAME_LENGTH || username.length > MAX_USERNAME_LENGTH) {
-      setError(`Username must be ${MIN_USERNAME_LENGTH}-${MAX_USERNAME_LENGTH} characters`);
+      setError(t('errorUsernameTooLong', { max: MAX_USERNAME_LENGTH }));
       return;
     }
     if (!validateUsername(username)) {
@@ -339,13 +345,11 @@ export default function ProfileEditPage() {
         instagramHandle,
       });
 
-      setSuccessMessage('Profile updated successfully!');
+      setSuccessMessage(t('successUpdate'));
 
       // If locale changed, suggest page refresh
       if (locale !== initialValues.locale) {
-        setSuccessMessage(
-          'Profile updated! Language change will take effect after refreshing the page.',
-        );
+        setSuccessMessage(t('successLanguageChange'));
       }
 
       // Redirect after success
@@ -356,7 +360,7 @@ export default function ProfileEditPage() {
       }, 1500);
     } catch (err) {
       console.error('Failed to update profile:', err);
-      setError('Failed to update profile. Please try again.');
+      setError(t('errorSave'));
     } finally {
       setIsSubmitting(false);
     }
@@ -389,7 +393,7 @@ export default function ProfileEditPage() {
           </svg>
         </Link>
         <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          Edit Profile
+          {t('title')}
         </h1>
       </div>
 
@@ -409,14 +413,14 @@ export default function ProfileEditPage() {
         {/* Username Section */}
         <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6">
           <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-            Username
+            {t('username')}
           </label>
           <div className="flex gap-2">
             <input
               type="text"
               value={username}
               onChange={(e) => handleUsernameChange(e.target.value)}
-              placeholder="Enter your username"
+              placeholder={t('usernamePlaceholder')}
               maxLength={MAX_USERNAME_LENGTH}
               className="flex-1 px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
             />
@@ -426,7 +430,7 @@ export default function ProfileEditPage() {
               disabled={isCheckingUsername || !username.trim() || username === initialValues.username}
               className="px-4 py-3 bg-[var(--highlight-bg)] text-[var(--text-primary)] rounded-xl font-medium hover:bg-[var(--border)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
             >
-              {isCheckingUsername ? 'Checking...' : 'Check'}
+              {isCheckingUsername ? t('checkingUsername') : t('checkUsername')}
             </button>
           </div>
           {/* Username availability feedback */}
@@ -437,7 +441,7 @@ export default function ProfileEditPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Username is available
+                  {t('usernameAvailable')}
                 </>
               ) : (
                 <>
@@ -477,7 +481,7 @@ export default function ProfileEditPage() {
         {/* Birthday Section */}
         <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6">
           <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-            Birthday
+            {t('birthday')}
           </label>
           <input
             type="date"
@@ -487,21 +491,21 @@ export default function ProfileEditPage() {
             className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
           />
           <p className="text-xs text-[var(--text-secondary)] mt-1">
-            You must be at least 13 years old
+            {t('birthdayHelp')}
           </p>
         </div>
 
         {/* Gender Section */}
         <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6">
           <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-            Gender
+            {t('gender')}
           </label>
           <select
             value={gender}
             onChange={(e) => setGender(e.target.value)}
             className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
           >
-            {GENDER_OPTIONS.map((opt) => (
+            {genderOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -512,14 +516,14 @@ export default function ProfileEditPage() {
         {/* Language Section */}
         <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6">
           <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-            Language
+            {t('language')}
           </label>
           <select
             value={locale}
             onChange={(e) => setLocale(e.target.value)}
             className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
           >
-            <option value="">Select language</option>
+            <option value="">{t('languageSelect')}</option>
             {LOCALE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
@@ -527,56 +531,56 @@ export default function ProfileEditPage() {
             ))}
           </select>
           <p className="text-xs text-[var(--text-secondary)] mt-1">
-            Language changes may require a page refresh
+            {t('languageHelp')}
           </p>
         </div>
 
         {/* Default Food Style Section */}
         <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6">
           <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-            Default Food Style
+            {t('defaultFoodStyle')}
           </label>
           <CookingStyleSelect
             value={foodStyle}
             onChange={setFoodStyle}
             options={cookingStyleOptions}
-            placeholder="Select food style"
+            placeholder={t('foodStylePlaceholder')}
           />
           <p className="text-xs text-[var(--text-secondary)] mt-1">
-            Your preferred cuisine style for recipes
+            {t('foodStyleHelp')}
           </p>
         </div>
 
         {/* Measurement Units Section */}
         <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6">
           <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-            Measurement Units
+            {t('measurementUnits')}
           </label>
           <select
             value={measurementPref}
             onChange={(e) => setMeasurementPref(e.target.value)}
             className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)]"
           >
-            {MEASUREMENT_OPTIONS.map((opt) => (
+            {measurementOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
             ))}
           </select>
           <p className="text-xs text-[var(--text-secondary)] mt-1">
-            How measurements are displayed in recipes
+            {t('measurementHelp')}
           </p>
         </div>
 
         {/* Bio Section */}
         <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6">
           <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-            Bio
+            {t('bio')}
           </label>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value.slice(0, MAX_BIO_LENGTH))}
-            placeholder="Tell others about yourself..."
+            placeholder={t('bioPlaceholder')}
             rows={3}
             maxLength={MAX_BIO_LENGTH}
             className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--primary)] resize-none"
@@ -595,19 +599,19 @@ export default function ProfileEditPage() {
         {/* Social Links Section */}
         <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6 space-y-4">
           <h3 className="text-sm font-medium text-[var(--text-primary)]">
-            Social Links
+            {t('socialLinks')}
           </h3>
 
           {/* YouTube URL */}
           <div>
             <label className="block text-xs text-[var(--text-secondary)] mb-1">
-              YouTube Channel URL
+              {t('youtubeUrl')}
             </label>
             <input
               type="text"
               value={youtubeUrl}
               onChange={(e) => handleYoutubeChange(e.target.value)}
-              placeholder="https://youtube.com/@yourchannel"
+              placeholder={t('youtubePlaceholder')}
               maxLength={MAX_YOUTUBE_URL_LENGTH}
               className={`w-full px-4 py-3 bg-[var(--background)] border rounded-xl focus:outline-none ${
                 youtubeError
@@ -616,7 +620,7 @@ export default function ProfileEditPage() {
               }`}
             />
             {youtubeError ? (
-              <p className="text-xs text-red-500 mt-1">{youtubeError}</p>
+              <p className="text-xs text-red-500 mt-1">{youtubeError && t(youtubeError as 'errorYoutube')}</p>
             ) : (
               <p
                 className={`text-xs mt-1 text-right ${
@@ -633,13 +637,13 @@ export default function ProfileEditPage() {
           {/* Instagram Handle */}
           <div>
             <label className="block text-xs text-[var(--text-secondary)] mb-1">
-              Instagram Handle
+              {t('instagramHandle')}
             </label>
             <input
               type="text"
               value={instagramHandle}
               onChange={(e) => handleInstagramChange(e.target.value)}
-              placeholder="@yourusername"
+              placeholder={t('instagramPlaceholder')}
               maxLength={MAX_INSTAGRAM_HANDLE_LENGTH}
               className={`w-full px-4 py-3 bg-[var(--background)] border rounded-xl focus:outline-none ${
                 instagramError
@@ -648,7 +652,7 @@ export default function ProfileEditPage() {
               }`}
             />
             {instagramError ? (
-              <p className="text-xs text-red-500 mt-1">{instagramError}</p>
+              <p className="text-xs text-red-500 mt-1">{instagramError && t(instagramError as 'errorInstagram')}</p>
             ) : (
               <p
                 className={`text-xs mt-1 text-right ${
@@ -669,7 +673,7 @@ export default function ProfileEditPage() {
           disabled={!hasChanges || isSubmitting || !!youtubeError || !!instagramError || !!usernameFormatError}
           className="w-full py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
         >
-          {isSubmitting ? 'Saving...' : 'Save Changes'}
+          {isSubmitting ? t('saving') : t('saveChanges')}
         </button>
       </form>
     </div>
