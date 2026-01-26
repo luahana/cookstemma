@@ -82,8 +82,37 @@ public record RecipeDetailResponseDto(
         // Get localized title and description for main recipe
         String localizedTitle = com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
                 recipe.getTitleTranslations(), locale, recipe.getTitle());
-        String localizedDescription = com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
-                recipe.getDescriptionTranslations(), locale, recipe.getDescription());
+
+        // Check if child has a translation for the requested locale's language
+        String localizedDescription = null;
+        if (locale != null && recipe.getDescriptionTranslations() != null 
+                && !recipe.getDescriptionTranslations().isEmpty()) {
+            String requestedLanguage = locale.contains("-") ? locale.split("-")[0] : locale;
+            
+            boolean childHasRequestedLocale = recipe.getDescriptionTranslations().keySet().stream()
+                    .anyMatch(key -> {
+                        String keyLang = key.contains("-") ? key.split("-")[0] : key;
+                        return keyLang.equalsIgnoreCase(requestedLanguage);
+                    });
+            
+            if (childHasRequestedLocale) {
+                // Child has translation for this language - use it
+                localizedDescription = com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                        recipe.getDescriptionTranslations(), locale, recipe.getDescription());
+            }
+        }
+
+        // If child has no translation for this locale's language, try parent's translation
+        if (localizedDescription == null && parent != null) {
+            localizedDescription = com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                    parent.getDescriptionTranslations(), locale, parent.getDescription());
+        }
+
+        // Final fallback to child's base description (via full LocaleUtils fallback chain)
+        if (localizedDescription == null) {
+            localizedDescription = com.cookstemma.cookstemma.util.LocaleUtils.getLocalizedValue(
+                    recipe.getDescriptionTranslations(), locale, recipe.getDescription());
+        }
 
         // Build root recipe info with localized fields
         String rootThumbnail = (root != null) ? root.getCoverImages().stream()
