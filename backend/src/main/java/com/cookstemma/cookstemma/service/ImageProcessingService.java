@@ -16,14 +16,11 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import javax.imageio.IIOImage;
+import dev.matrixlab.webp4j.WebPCodec;
+
 import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -252,23 +249,7 @@ public class ImageProcessingService {
     }
 
     private byte[] encodeToWebP(BufferedImage image, int quality) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageWriter writer = ImageIO.getImageWritersByMIMEType("image/webp").next();
-        ImageWriteParam writeParam = writer.getDefaultWriteParam();
-
-        if (writeParam.canWriteCompressed()) {
-            writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-            writeParam.setCompressionQuality(quality / 100.0f);
-        }
-
-        try (ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
-            writer.setOutput(ios);
-            writer.write(null, new IIOImage(image, null, null), writeParam);
-        } finally {
-            writer.dispose();
-        }
-
-        return baos.toByteArray();
+        return WebPCodec.encodeImage(image, (float) quality);
     }
 
     private byte[] downloadFromS3(String key) throws IOException {

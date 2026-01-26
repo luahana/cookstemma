@@ -75,8 +75,8 @@ dependencies {
     // Image processing for variant generation
     implementation 'net.coobird:thumbnailator:0.4.20'
 
-    // WebP encoding support via ImageIO
-    implementation 'org.sejda.imageio:webp-imageio:0.1.6'
+    // WebP encoding support with ARM64 native library support
+    implementation 'dev.matrixlab:webp4j:1.4.0'
 
     // Rate limiting with Bucket4j
     implementation 'com.bucket4j:bucket4j_jdk17-core:8.14.0'
