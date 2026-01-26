@@ -87,3 +87,13 @@ output "keyword_generator_ecr_repository_name" {
   description = "Name of the keyword generator ECR repository"
   value       = aws_ecr_repository.keyword_generator.name
 }
+
+output "github_actions_dev_role_arn" {
+  description = "ARN of the GitHub Actions IAM role for dev"
+  value       = aws_iam_role.github_actions_dev.arn
+}
+
+output "github_actions_prod_role_arn" {
+  description = "ARN of the GitHub Actions IAM role for prod"
+  value       = aws_iam_role.github_actions_prod.arn
+}
