@@ -27,16 +27,15 @@ public class FoodScoreScheduler {
 
         // 1. 점수 계산 알고리즘 (SQL)
         // JPA로 하나씩 가져와서 계산하면 느리므로, DB 차원에서 집계하여 한 번에 Update 합니다.
-        // 알고리즘: (PairingMap 등장 횟수 * 10) + (추가 로직 가능)
+        // 알고리즘: (recipes 테이블에서 각 food가 사용된 횟수 * 10)
         String sql = """
-            UPDATE foods_master f 
+            UPDATE foods_master f
             SET food_score = COALESCE(stats.usage_count, 0) * 10.0
             FROM (
-                SELECT food_id, COUNT(*) as usage_count
-                FROM (
-                    SELECT food1_master_id as food_id FROM pairing_map
-                ) combined_foods
-                GROUP BY food_id
+                SELECT food_master_id as food_id, COUNT(*) as usage_count
+                FROM recipes
+                WHERE deleted_at IS NULL
+                GROUP BY food_master_id
             ) stats
             WHERE f.id = stats.food_id
         """;
