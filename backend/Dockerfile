@@ -16,8 +16,8 @@ RUN ./gradlew clean build -x test --no-daemon
 
 FROM eclipse-temurin:21-jre-alpine AS runner
 
-# Install curl for health checks and libwebp for WebP image encoding
-RUN apk add --no-cache curl libwebp libwebp-tools
+# Install curl for health checks (webp4j bundles native libraries)
+RUN apk add --no-cache curl
 
 WORKDIR /app
 
