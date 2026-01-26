@@ -1228,69 +1228,87 @@ function CreateRecipeContent() {
                       {activeIngredients.map((ing, index) => (
                         <div
                           key={ing.id}
-                          className={`flex gap-2 items-center ${
+                          className={`flex flex-col sm:flex-row gap-2 ${
                             ing.isOriginal ? 'pl-2 border-l-2 border-dashed border-[var(--primary-light)]' : ''
                           }`}
                         >
-                          <span className="text-xs text-[var(--text-secondary)] w-4">
-                            {index + 1}.
-                          </span>
-                          {ing.isOriginal && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-[var(--primary-light)]/20 text-[var(--primary)] rounded">
-                              {t('inherited')}
+                          {/* Row 1: number + inherited badge + name + delete (mobile only) */}
+                          <div className="flex gap-2 items-center flex-1">
+                            <span className="text-xs text-[var(--text-secondary)] w-4">
+                              {index + 1}.
                             </span>
-                          )}
-                          <input
-                            type="text"
-                            value={ing.name}
-                            onChange={(e) => !ing.isOriginal && updateIngredient(ing.id, 'name', e.target.value)}
-                            maxLength={50}
-                            readOnly={ing.isOriginal}
-                            className={`flex-1 px-3 py-2 border rounded-lg text-sm ${
-                              ing.isOriginal
-                                ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
-                                : 'bg-[var(--background)] border-[var(--border)] focus:outline-none focus:border-[var(--primary)]'
-                            }`}
-                            placeholder={t('ingredientName')}
-                          />
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            value={ing.quantity}
-                            onChange={(e) => !ing.isOriginal && updateIngredient(ing.id, 'quantity', e.target.value)}
-                            readOnly={ing.isOriginal}
-                            className={`w-16 px-2 py-2 border rounded-lg text-sm text-center ${
-                              ing.isOriginal
-                                ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
-                                : 'bg-[var(--background)] border-[var(--border)] focus:outline-none focus:border-[var(--primary)]'
-                            }`}
-                            placeholder={t('qty')}
-                          />
-                          <select
-                            value={ing.unit}
-                            onChange={(e) => !ing.isOriginal && updateIngredient(ing.id, 'unit', e.target.value)}
-                            disabled={ing.isOriginal}
-                            className={`w-24 px-2 py-2 border rounded-lg text-sm ${
-                              ing.isOriginal
-                                ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
-                                : 'bg-[var(--background)] border-[var(--border)] focus:outline-none focus:border-[var(--primary)]'
-                            }`}
-                          >
-                            {MEASUREMENT_UNIT_CONFIGS.map((unit) => (
-                              <option key={unit.value} value={unit.value}>
-                                {unit.labelKey ? tUnits(unit.labelKey) : t('unit')}
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            type="button"
-                            onClick={() => removeIngredient(ing.id)}
-                            className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--error)] transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
+                            {ing.isOriginal && (
+                              <span className="text-[10px] px-1.5 py-0.5 bg-[var(--primary-light)]/20 text-[var(--primary)] rounded">
+                                {t('inherited')}
+                              </span>
+                            )}
+                            <input
+                              type="text"
+                              value={ing.name}
+                              onChange={(e) => !ing.isOriginal && updateIngredient(ing.id, 'name', e.target.value)}
+                              maxLength={50}
+                              readOnly={ing.isOriginal}
+                              className={`flex-1 px-3 py-2 border rounded-lg text-sm ${
+                                ing.isOriginal
+                                  ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
+                                  : 'bg-[var(--background)] border-[var(--border)] focus:outline-none focus:border-[var(--primary)]'
+                              }`}
+                              placeholder={t('ingredientName')}
+                            />
+                            {/* Delete button - mobile only */}
+                            <button
+                              type="button"
+                              onClick={() => removeIngredient(ing.id)}
+                              className="sm:hidden p-1.5 text-[var(--text-secondary)] hover:text-[var(--error)] transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          {/* Row 2: quantity + unit + delete (desktop only) */}
+                          <div className="flex gap-2 items-center pl-6 sm:pl-0">
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              value={ing.quantity}
+                              onChange={(e) => !ing.isOriginal && updateIngredient(ing.id, 'quantity', e.target.value)}
+                              readOnly={ing.isOriginal}
+                              className={`w-20 px-2 py-2 border rounded-lg text-sm text-center ${
+                                ing.isOriginal
+                                  ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
+                                  : 'bg-[var(--background)] border-[var(--border)] focus:outline-none focus:border-[var(--primary)]'
+                              }`}
+                              placeholder={t('qty')}
+                            />
+                            <select
+                              value={ing.unit}
+                              onChange={(e) => !ing.isOriginal && updateIngredient(ing.id, 'unit', e.target.value)}
+                              disabled={ing.isOriginal}
+                              className={`flex-1 sm:w-28 sm:flex-none px-2 py-2 border rounded-lg text-sm ${
+                                ing.isOriginal
+                                  ? 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-secondary)] cursor-not-allowed'
+                                  : 'bg-[var(--background)] border-[var(--border)] focus:outline-none focus:border-[var(--primary)]'
+                              }`}
+                            >
+                              {MEASUREMENT_UNIT_CONFIGS.map((unit) => (
+                                <option key={unit.value} value={unit.value}>
+                                  {unit.labelKey ? tUnits(unit.labelKey) : t('unit')}
+                                </option>
+                              ))}
+                            </select>
+                            {/* Delete button - desktop only */}
+                            <button
+                              type="button"
+                              onClick={() => removeIngredient(ing.id)}
+                              className="hidden sm:block p-1.5 text-[var(--text-secondary)] hover:text-[var(--error)] transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
