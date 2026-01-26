@@ -426,7 +426,7 @@ module "lambda_translation" {
   existing_security_group_id  = aws_security_group.lambda_translation.id
 
   # Lambda configuration
-  schedule_expression            = "rate(5 minutes)"
+  schedule_expression            = "rate(1 day)"
   memory_size                    = 512
   timeout                        = 600  # 10 minutes to handle large recipe batches
   reserved_concurrent_executions = -1   # No reserved concurrency (account quota limit)
@@ -481,7 +481,7 @@ module "lambda_suggestion_verifier" {
   existing_security_group_id  = aws_security_group.lambda_suggestion_verifier.id
 
   # Lambda configuration
-  schedule_expression            = "rate(5 minutes)"
+  schedule_expression            = "rate(1 day)"
   memory_size                    = 512
   timeout                        = 300
   reserved_concurrent_executions = -1  # No reserved concurrency (account quota limit)
@@ -512,7 +512,7 @@ module "lambda_keyword_generator" {
   existing_security_group_id  = aws_security_group.lambda_keyword_generator.id
 
   # Lambda configuration
-  schedule_expression            = "rate(5 minutes)"
+  schedule_expression            = "rate(1 day)"
   memory_size                    = 512
   timeout                        = 600  # 10 minutes
   reserved_concurrent_executions = -1   # No reserved concurrency (account quota limit)

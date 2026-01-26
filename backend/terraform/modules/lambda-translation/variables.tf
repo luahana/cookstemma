@@ -32,7 +32,7 @@ variable "gemini_api_key" {
 variable "schedule_expression" {
   description = "CloudWatch Events schedule expression for batch processing"
   type        = string
-  default     = "rate(5 minutes)"
+  default     = "rate(1 day)"
 }
 
 variable "memory_size" {
