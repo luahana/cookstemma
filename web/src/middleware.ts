@@ -76,7 +76,8 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder files with extensions
      * - monitoring (Sentry tunnel route)
+     * - __/auth (Firebase auth handler)
      */
-    '/((?!api|_next|_vercel|monitoring|.*\\..*).*)',
+    '/((?!api|_next|_vercel|monitoring|__/auth|.*\\..*).*)',
   ],
 };
