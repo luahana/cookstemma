@@ -362,7 +362,7 @@ export function Header() {
 
       {/* Mobile Menu Panel */}
       <div
-        className={`fixed top-16 end-0 bottom-0 z-50 w-72 bg-[var(--surface)] border-s border-[var(--border)] transform transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed top-16 end-0 bottom-0 z-50 w-72 overflow-y-auto bg-[var(--surface)] border-s border-[var(--border)] transform transition-transform duration-300 ease-in-out md:hidden ${
           isMenuOpen ? 'translate-x-0' : 'ltr:translate-x-full rtl:-translate-x-full'
         }`}
       >
