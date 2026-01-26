@@ -5,6 +5,7 @@ import com.cookstemma.cookstemma.domain.enums.ImageStatus;
 import com.cookstemma.cookstemma.domain.enums.ImageType;
 import com.cookstemma.cookstemma.domain.enums.ImageVariant;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -29,6 +30,11 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
 
     // [수정] 가비지 컬렉션용 (TEMP 대신 PROCESSING 사용)
     List<Image> findByStatusAndCreatedAtBefore(ImageStatus status, Instant dateTime);
+
+    // Conditional delete for cleanup (prevents StaleObjectStateException)
+    @Modifying
+    @Query("DELETE FROM Image i WHERE i.id = :imageId AND i.status = :status")
+    int deleteByIdAndStatus(@Param("imageId") Long imageId, @Param("status") ImageStatus status);
 
     Optional<Image> findByPublicId(UUID publicId);
 

@@ -206,17 +206,36 @@ public class ImageService {
     @Transactional
     public void deleteUnusedImages() {
         Instant cutoffTime = Instant.now().minus(24, ChronoUnit.HOURS);
-        // [수정] SQL 상태에 맞춰 PROCESSING 조회
-        List<Image> unusedImages = imageRepository.findByStatusAndCreatedAtBefore(ImageStatus.PROCESSING, cutoffTime);
+        List<Image> unusedImages = imageRepository.findByStatusAndCreatedAtBefore(
+            ImageStatus.PROCESSING, cutoffTime);
 
         if (unusedImages.isEmpty()) return;
 
         for (Image image : unusedImages) {
+            String storedFilename = image.getStoredFilename();
+            Long imageId = image.getId();
+
             try {
-                s3Client.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(image.getStoredFilename()).build());
-                imageRepository.delete(image);
+                // Delete from DB first (atomic, status-conditional)
+                int deleted = imageRepository.deleteByIdAndStatus(imageId, ImageStatus.PROCESSING);
+
+                if (deleted == 0) {
+                    // Image was modified (activated) by another transaction - skip
+                    log.info("Image {} was already activated, skipping cleanup", storedFilename);
+                    continue;
+                }
+
+                // DB deletion succeeded, now clean up S3
+                try {
+                    s3Client.deleteObject(DeleteObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(storedFilename)
+                        .build());
+                } catch (Exception e) {
+                    log.warn("Failed to delete S3 object {}, may need manual cleanup", storedFilename, e);
+                }
             } catch (Exception e) {
-                log.error("Failed to delete image: {}", image.getStoredFilename(), e);
+                log.error("Failed to delete image: {}", storedFilename, e);
             }
         }
     }
