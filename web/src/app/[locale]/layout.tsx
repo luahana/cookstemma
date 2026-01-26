@@ -20,6 +20,7 @@ import { LocaleSync } from '@/components/common/LocaleSync';
 import { SiteJsonLd } from '@/components/seo/SiteJsonLd';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { SentryProvider } from '@/components/SentryProvider';
 import { NavigationProgressProvider } from '@/contexts/NavigationProgressContext';
 import { NavigationProgress } from '@/components/common/NavigationProgress';
 import { themeScript } from '@/lib/theme/script';
@@ -214,9 +215,10 @@ export default async function LocaleLayout({
       <body
         className={`${fontVariables} antialiased min-h-screen flex flex-col`}
       >
-        <ThemeProvider>
-          <NextIntlClientProvider messages={messages}>
-            <AuthProvider>
+        <SentryProvider>
+          <ThemeProvider>
+            <NextIntlClientProvider messages={messages}>
+              <AuthProvider>
               <NavigationProgressProvider>
                 <Suspense fallback={null}>
                   <NavigationProgress />
@@ -226,9 +228,10 @@ export default async function LocaleLayout({
                 <main className="flex-1">{children}</main>
                 <Footer />
               </NavigationProgressProvider>
-            </AuthProvider>
-          </NextIntlClientProvider>
-        </ThemeProvider>
+              </AuthProvider>
+            </NextIntlClientProvider>
+          </ThemeProvider>
+        </SentryProvider>
       </body>
     </html>
   );
