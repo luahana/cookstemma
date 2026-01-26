@@ -41,6 +41,11 @@ const nextConfig: NextConfig = {
         source: '/__/auth/:path*',
         destination: 'https://cookstemma-prod.firebaseapp.com/__/auth/:path*',
       },
+      {
+        // Handle locale-prefixed auth paths (e.g., /ko/__/auth/handler)
+        source: '/:locale/__/auth/:path*',
+        destination: 'https://cookstemma-prod.firebaseapp.com/__/auth/:path*',
+      },
     ];
   },
 
