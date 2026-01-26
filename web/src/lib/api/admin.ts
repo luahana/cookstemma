@@ -314,3 +314,12 @@ export async function adminDeleteComments(
     body: JSON.stringify({ publicIds }),
   });
 }
+
+/**
+ * Test Sentry backend integration
+ */
+export async function testSentryBackend(): Promise<{ message: string; eventId: string }> {
+  return apiFetch<{ message: string; eventId: string }>('/admin/sentry/test', {
+    method: 'POST',
+  });
+}
