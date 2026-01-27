@@ -339,6 +339,8 @@ struct CustomRefreshableScrollView<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     @Binding var headerScrollOffset: CGFloat
+    @Binding var scrollToTopTrigger: Int
+    @Binding var programmaticRefreshTrigger: Int
     @State private var isRefreshing = false
     @State private var pullDownAmount: CGFloat = 0
     @State private var hasTriggeredRefresh = false
@@ -348,11 +350,15 @@ struct CustomRefreshableScrollView<Content: View>: View {
     init(
         headerHeight: CGFloat = 56,
         headerScrollOffset: Binding<CGFloat>,
+        scrollToTopTrigger: Binding<Int> = .constant(0),
+        programmaticRefreshTrigger: Binding<Int> = .constant(0),
         onRefresh: @escaping () async -> Void,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.headerHeight = headerHeight
         self._headerScrollOffset = headerScrollOffset
+        self._scrollToTopTrigger = scrollToTopTrigger
+        self._programmaticRefreshTrigger = programmaticRefreshTrigger
         self.onRefresh = onRefresh
         self.content = content
     }
@@ -361,6 +367,8 @@ struct CustomRefreshableScrollView<Content: View>: View {
         ZStack(alignment: .top) {
             TrackableScrollView(
                 contentInset: headerHeight,
+                scrollToTopTrigger: $scrollToTopTrigger,
+                pullDownOffset: $pullDownAmount,
                 onScroll: { offset in
                     handleScrollOffsetChange(offset)
                 }
@@ -378,6 +386,9 @@ struct CustomRefreshableScrollView<Content: View>: View {
                 )
                 .offset(y: headerHeight)
             }
+        }
+        .onChange(of: programmaticRefreshTrigger) { _, _ in
+            triggerRefreshWithAnimation()
         }
     }
 
@@ -420,22 +431,51 @@ struct CustomRefreshableScrollView<Content: View>: View {
             }
         }
     }
+
+    private func triggerRefreshWithAnimation() {
+        guard !isRefreshing else { return }
+
+        isRefreshing = true
+
+        // Animate the pull-down indicator appearing and content moving down
+        withAnimation(.easeOut(duration: 0.3)) {
+            pullDownAmount = refreshThreshold
+        }
+
+        // Start refresh after pull-down animation
+        Task {
+            // Small delay to let pull-down animation complete
+            try? await Task.sleep(nanoseconds: 300_000_000)
+
+            await onRefresh()
+
+            await MainActor.run {
+                // Animate content back up
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isRefreshing = false
+                    pullDownAmount = 0
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Trackable Scroll View (UIKit-based)
 struct TrackableScrollView<Content: View>: UIViewRepresentable {
     let contentInset: CGFloat  // This is headerHeight (56pt)
+    @Binding var scrollToTopTrigger: Int
+    @Binding var pullDownOffset: CGFloat
     let onScroll: (CGFloat) -> Void
     @ViewBuilder let content: () -> Content
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onScroll: onScroll)
+        Coordinator(onScroll: onScroll, contentInset: contentInset)
     }
 
     func makeUIView(context: Context) -> UIScrollView {
         let scrollView = UIScrollView()
         scrollView.delegate = context.coordinator
-        scrollView.showsVerticalScrollIndicator = true
+        scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.alwaysBounceVertical = true
         scrollView.backgroundColor = .clear
@@ -463,6 +503,8 @@ struct TrackableScrollView<Content: View>: UIViewRepresentable {
 
         context.coordinator.hostingController = hostingController
         context.coordinator.contentBuilder = { [content] in AnyView(content()) }
+        context.coordinator.lastScrollToTopTrigger = scrollToTopTrigger
+        context.coordinator.lastPullDownOffset = pullDownOffset
         return scrollView
     }
 
@@ -470,21 +512,65 @@ struct TrackableScrollView<Content: View>: UIViewRepresentable {
         if let contentBuilder = context.coordinator.contentBuilder {
             context.coordinator.hostingController?.rootView = AnyView(contentBuilder())
         }
-        // Ensure contentInset is set correctly (may be reset by system)
+
         let totalInset = contentInset
-        if scrollView.contentInset.top != totalInset {
-            scrollView.contentInset = UIEdgeInsets(top: totalInset, left: 0, bottom: 0, right: 0)
-            scrollView.contentOffset = CGPoint(x: 0, y: -totalInset)
+
+        // Handle scroll to top trigger
+        if scrollToTopTrigger != context.coordinator.lastScrollToTopTrigger {
+            context.coordinator.lastScrollToTopTrigger = scrollToTopTrigger
+            let topOffset = CGPoint(x: 0, y: -totalInset)
+
+            // Animate scroll with display link for smooth updates
+            context.coordinator.animateScrollToTop(scrollView: scrollView, targetOffset: topOffset)
+        }
+
+        // Handle programmatic pull-down offset (for refresh animation)
+        if pullDownOffset != context.coordinator.lastPullDownOffset {
+            let oldOffset = context.coordinator.lastPullDownOffset
+            context.coordinator.lastPullDownOffset = pullDownOffset
+
+            // Only animate if this is a programmatic change (not from user scroll)
+            if !context.coordinator.isUserScrolling {
+                let targetY = -totalInset - pullDownOffset
+                UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseOut]) {
+                    scrollView.contentOffset = CGPoint(x: 0, y: targetY)
+                }
+            }
         }
     }
 
     class Coordinator: NSObject, UIScrollViewDelegate {
         let onScroll: (CGFloat) -> Void
+        let contentInset: CGFloat
         var hostingController: UIHostingController<AnyView>?
         var contentBuilder: (() -> AnyView)?
+        var lastScrollToTopTrigger: Int = 0
+        var lastPullDownOffset: CGFloat = 0
+        var isUserScrolling: Bool = false
+        private var displayLink: CADisplayLink?
+        private var animationStartTime: CFTimeInterval = 0
+        private var animationStartOffset: CGPoint = .zero
+        private var animationTargetOffset: CGPoint = .zero
+        private weak var animatingScrollView: UIScrollView?
+        private let animationDuration: CFTimeInterval = 0.4
 
-        init(onScroll: @escaping (CGFloat) -> Void) {
+        init(onScroll: @escaping (CGFloat) -> Void, contentInset: CGFloat) {
             self.onScroll = onScroll
+            self.contentInset = contentInset
+        }
+
+        func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+            isUserScrolling = true
+        }
+
+        func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+            if !decelerate {
+                isUserScrolling = false
+            }
+        }
+
+        func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+            isUserScrolling = false
         }
 
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -494,6 +580,45 @@ struct TrackableScrollView<Content: View>: UIViewRepresentable {
             let restPosition = -scrollView.contentInset.top
             let offset = restPosition - scrollView.contentOffset.y
             onScroll(offset)
+        }
+
+        func animateScrollToTop(scrollView: UIScrollView, targetOffset: CGPoint) {
+            // Stop any existing animation
+            displayLink?.invalidate()
+
+            animatingScrollView = scrollView
+            animationStartOffset = scrollView.contentOffset
+            animationTargetOffset = targetOffset
+            animationStartTime = CACurrentMediaTime()
+
+            displayLink = CADisplayLink(target: self, selector: #selector(updateScrollAnimation))
+            displayLink?.add(to: .main, forMode: .common)
+        }
+
+        @objc private func updateScrollAnimation() {
+            guard let scrollView = animatingScrollView else {
+                displayLink?.invalidate()
+                return
+            }
+
+            let elapsed = CACurrentMediaTime() - animationStartTime
+            let progress = min(elapsed / animationDuration, 1.0)
+
+            // Ease out curve
+            let easedProgress = 1 - pow(1 - progress, 3)
+
+            let newY = animationStartOffset.y + (animationTargetOffset.y - animationStartOffset.y) * easedProgress
+            scrollView.contentOffset = CGPoint(x: 0, y: newY)
+
+            // Report offset change
+            let restPosition = -scrollView.contentInset.top
+            let offset = restPosition - newY
+            onScroll(offset)
+
+            if progress >= 1.0 {
+                displayLink?.invalidate()
+                displayLink = nil
+            }
         }
     }
 }

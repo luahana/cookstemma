@@ -92,6 +92,17 @@ struct MainTabView: View {
                 selectedTab = tab
             }
         } else {
+            // If tapping the same tab, trigger scroll to top and refresh
+            if tab == selectedTab {
+                switch tab {
+                case .home:
+                    appState.triggerHomeScrollToTop()
+                case .recipes:
+                    appState.triggerRecipesScrollToTop()
+                default:
+                    break
+                }
+            }
             previousTab = selectedTab
             selectedTab = tab
         }
