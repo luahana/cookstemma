@@ -40,7 +40,7 @@ class RecipePipeline:
         persona: BotPersona,
         food_name: str,
         generate_images: bool = True,
-        cover_image_count: int = 2,
+        cover_image_count: int = 1,
         generate_step_images: bool = False,
         skip_dedup: bool = False,
     ) -> Recipe:
