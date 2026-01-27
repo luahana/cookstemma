@@ -15,6 +15,13 @@ struct CreateLogView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
+                    // Recipe Link Section (moved to top)
+                    recipeLinkSection
+                        .padding(.horizontal, DesignSystem.Spacing.md)
+                        .padding(.vertical, DesignSystem.Spacing.md)
+
+                    Divider()
+
                     // Photo Section
                     photoSection
                         .padding(.horizontal, DesignSystem.Spacing.md)
@@ -26,13 +33,6 @@ struct CreateLogView: View {
                     ratingSection
                         .padding(.horizontal, DesignSystem.Spacing.md)
                         .padding(.vertical, DesignSystem.Spacing.lg)
-
-                    Divider()
-
-                    // Recipe Link Section
-                    recipeLinkSection
-                        .padding(.horizontal, DesignSystem.Spacing.md)
-                        .padding(.vertical, DesignSystem.Spacing.md)
 
                     Divider()
 

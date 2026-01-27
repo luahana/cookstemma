@@ -5,17 +5,23 @@ import XCTest
 final class SearchViewModelTests: XCTestCase {
 
     var sut: SearchViewModel!
-    var mockRepository: MockSearchRepository!
+    var mockSearchRepository: SearchMockSearchRepository!
+    var mockLogRepository: SearchMockLogRepository!
 
     override func setUp() async throws {
         try await super.setUp()
-        mockRepository = MockSearchRepository()
-        sut = SearchViewModel(searchRepository: mockRepository)
+        mockSearchRepository = SearchMockSearchRepository()
+        mockLogRepository = SearchMockLogRepository()
+        sut = SearchViewModel(
+            searchRepository: mockSearchRepository,
+            logRepository: mockLogRepository
+        )
     }
 
     override func tearDown() async throws {
         sut = nil
-        mockRepository = nil
+        mockSearchRepository = nil
+        mockLogRepository = nil
         try await super.tearDown()
     }
 
@@ -41,7 +47,7 @@ final class SearchViewModelTests: XCTestCase {
     func testSearch_withValidQuery_performsSearch() async {
         // Given
         let response = createMockSearchResponse()
-        mockRepository.searchResult = .success(response)
+        mockSearchRepository.searchResult = .success(response)
         sut.query = "kimchi"
 
         // When
@@ -68,7 +74,7 @@ final class SearchViewModelTests: XCTestCase {
     func testSearch_setsTopResult() async {
         // Given
         let response = createMockSearchResponse()
-        mockRepository.searchResult = .success(response)
+        mockSearchRepository.searchResult = .success(response)
         sut.query = "recipe"
 
         // When
@@ -82,8 +88,8 @@ final class SearchViewModelTests: XCTestCase {
 
     func testSearch_setsSearchingFlag() async {
         // Given
-        mockRepository.delay = 0.1
-        mockRepository.searchResult = .success(createMockSearchResponse())
+        mockSearchRepository.delay = 0.1
+        mockSearchRepository.searchResult = .success(createMockSearchResponse())
         sut.query = "test"
 
         // When
@@ -96,7 +102,7 @@ final class SearchViewModelTests: XCTestCase {
 
     func testSearch_failure_clearsResults() async {
         // Given
-        mockRepository.searchResult = .failure(.networkError("Failed"))
+        mockSearchRepository.searchResult = .failure(.networkError("Failed"))
         sut.query = "test"
 
         // When
@@ -113,7 +119,7 @@ final class SearchViewModelTests: XCTestCase {
 
     func testSearch_debounces_rapidQueries() async {
         // Given
-        mockRepository.searchResult = .success(createMockSearchResponse())
+        mockSearchRepository.searchResult = .success(createMockSearchResponse())
 
         // When - rapidly change queries
         sut.query = "a"
@@ -141,7 +147,7 @@ final class SearchViewModelTests: XCTestCase {
 
     func testSearch_addsToRecentSearches() async {
         // Given
-        mockRepository.searchResult = .success(createMockSearchResponse())
+        mockSearchRepository.searchResult = .success(createMockSearchResponse())
         sut.query = "new search"
 
         // When
@@ -158,7 +164,7 @@ final class SearchViewModelTests: XCTestCase {
         sut.loadRecentSearches()
         // Manually add a search for testing
         sut.query = "test search"
-        mockRepository.searchResult = .success(createMockSearchResponse())
+        mockSearchRepository.searchResult = .success(createMockSearchResponse())
 
         // Add to recent searches by performing search
         Task {
@@ -187,7 +193,7 @@ final class SearchViewModelTests: XCTestCase {
 
     func testClearSearch_clearsQueryAndResults() async {
         // Given
-        mockRepository.searchResult = .success(createMockSearchResponse())
+        mockSearchRepository.searchResult = .success(createMockSearchResponse())
         sut.query = "test"
         sut.search()
         await Task.yield()
@@ -205,7 +211,7 @@ final class SearchViewModelTests: XCTestCase {
 
     func testLoadRecentSearches_loadsTrendingHashtags() {
         // Given
-        mockRepository.getTrendingHashtagsResult = .success([
+        mockSearchRepository.getTrendingHashtagsResult = .success([
             HashtagCount(tag: "trending", count: 100),
             HashtagCount(tag: "popular", count: 50)
         ])
@@ -221,6 +227,132 @@ final class SearchViewModelTests: XCTestCase {
             expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1.0)
+    }
+
+    // MARK: - Home Feed Tests
+
+    func testInitialState_hasEmptyTrendingRecipes() {
+        XCTAssertTrue(sut.trendingRecipes.isEmpty)
+    }
+
+    func testInitialState_hasEmptyRecentLogs() {
+        XCTAssertTrue(sut.recentLogs.isEmpty)
+    }
+
+    func testInitialState_isNotLoadingHomeFeed() {
+        XCTAssertFalse(sut.isLoadingHomeFeed)
+    }
+
+    func testInitialState_showAllRecipes_isFalse() {
+        XCTAssertFalse(sut.showAllRecipes)
+    }
+
+    func testInitialState_showAllLogs_isFalse() {
+        XCTAssertFalse(sut.showAllLogs)
+    }
+
+    func testLoadHomeFeed_success_populatesTrendingRecipes() async {
+        // Given
+        let mockRecipes = [createMockHomeRecipeItem()]
+        mockLogRepository.homeFeedResult = .success(
+            HomeFeedResponse(
+                recentActivity: [],
+                recentRecipes: mockRecipes,
+                trendingTrees: nil
+            )
+        )
+
+        // When
+        sut.loadHomeFeed()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        XCTAssertEqual(sut.trendingRecipes.count, 1)
+        XCTAssertEqual(sut.trendingRecipes.first?.id, "recipe-1")
+    }
+
+    func testLoadHomeFeed_success_populatesRecentLogs() async {
+        // Given
+        let mockLogs = [createMockRecentActivityItem()]
+        mockLogRepository.homeFeedResult = .success(
+            HomeFeedResponse(
+                recentActivity: mockLogs,
+                recentRecipes: [],
+                trendingTrees: nil
+            )
+        )
+
+        // When
+        sut.loadHomeFeed()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        XCTAssertEqual(sut.recentLogs.count, 1)
+        XCTAssertEqual(sut.recentLogs.first?.id, "log-1")
+    }
+
+    func testLoadHomeFeed_failure_keepsEmptyLists() async {
+        // Given
+        mockLogRepository.homeFeedResult = .failure(.networkError("Failed"))
+
+        // When
+        sut.loadHomeFeed()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        XCTAssertTrue(sut.trendingRecipes.isEmpty)
+        XCTAssertTrue(sut.recentLogs.isEmpty)
+    }
+
+    func testLoadHomeFeed_setsLoadingFlag() async {
+        // Given
+        mockLogRepository.delay = 0.1
+        mockLogRepository.homeFeedResult = .success(
+            HomeFeedResponse(recentActivity: [], recentRecipes: [], trendingTrees: nil)
+        )
+
+        // When
+        sut.loadHomeFeed()
+        try? await Task.sleep(nanoseconds: 10_000_000)
+
+        // Then - should be loading
+        XCTAssertTrue(sut.isLoadingHomeFeed)
+    }
+
+    func testLoadHomeFeed_clearsLoadingFlag_afterCompletion() async {
+        // Given
+        mockLogRepository.homeFeedResult = .success(
+            HomeFeedResponse(recentActivity: [], recentRecipes: [], trendingTrees: nil)
+        )
+
+        // When
+        sut.loadHomeFeed()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        XCTAssertFalse(sut.isLoadingHomeFeed)
+    }
+
+    func testResetSeeAllState_resetsShowAllRecipes() {
+        // Given
+        sut.showAllRecipes = true
+
+        // When
+        sut.resetSeeAllState()
+
+        // Then
+        XCTAssertFalse(sut.showAllRecipes)
+    }
+
+    func testResetSeeAllState_resetsShowAllLogs() {
+        // Given
+        sut.showAllLogs = true
+
+        // When
+        sut.resetSeeAllState()
+
+        // Then
+        XCTAssertFalse(sut.showAllLogs)
     }
 
     // MARK: - Helpers
@@ -239,15 +371,16 @@ final class SearchViewModelTests: XCTestCase {
             id: "recipe-1",
             title: "Test Recipe",
             description: nil,
-            coverImageUrl: nil,
-            cookingTimeRange: .under15,
+            foodName: "Test Food",
+            cookingStyle: "KR",
+            userName: "testuser",
+            thumbnail: nil,
+            variantCount: 0,
+            logCount: 50,
             servings: 2,
-            cookCount: 50,
-            averageRating: 4.0,
-            author: createMockUserSummary(),
-            isSaved: false,
-            category: nil,
-            createdAt: Date()
+            cookingTimeRange: "UNDER_15",
+            hashtags: [],
+            isPrivate: false
         )
     }
 
@@ -277,11 +410,43 @@ final class SearchViewModelTests: XCTestCase {
             isFollowing: nil
         )
     }
+
+    private func createMockHomeRecipeItem() -> HomeRecipeItem {
+        HomeRecipeItem(
+            id: "recipe-1",
+            foodName: "Kimchi",
+            title: "Homemade Kimchi",
+            description: "Traditional Korean fermented cabbage",
+            cookingStyle: "Korean",
+            userName: "testuser",
+            thumbnail: nil,
+            variantCount: 3,
+            logCount: 50,
+            servings: 4,
+            cookingTimeRange: "30-60min",
+            hashtags: ["korean", "fermented"]
+        )
+    }
+
+    private func createMockRecentActivityItem() -> RecentActivityItem {
+        RecentActivityItem(
+            id: "log-1",
+            rating: 4,
+            thumbnailUrl: nil,
+            userName: "testuser",
+            recipeTitle: "Homemade Kimchi",
+            recipeId: "recipe-1",
+            foodName: "Kimchi",
+            createdAt: Date(),
+            hashtags: ["korean"],
+            commentCount: 5
+        )
+    }
 }
 
-// MARK: - Mock Search Repository
+// MARK: - Search Mock Repositories (local to this file to avoid conflicts)
 
-class MockSearchRepository: SearchRepositoryProtocol {
+final class SearchMockSearchRepository: SearchRepositoryProtocol {
     var searchResult: RepositoryResult<SearchResponse> = .success(SearchResponse(recipes: [], logs: [], users: [], hashtags: []))
     var getTrendingHashtagsResult: RepositoryResult<[HashtagCount]> = .success([])
     var delay: TimeInterval = 0
@@ -291,7 +456,75 @@ class MockSearchRepository: SearchRepositoryProtocol {
         return searchResult
     }
 
+    func searchRecipes(query: String, filters: RecipeFilters?, cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeSummary>> {
+        .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
+    }
+
+    func searchLogs(query: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+        .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
+    }
+
+    func searchUsers(query: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<UserSummary>> {
+        .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
+    }
+
     func getTrendingHashtags() async -> RepositoryResult<[HashtagCount]> {
         getTrendingHashtagsResult
+    }
+
+    func getHashtagContent(hashtag: String, type: SearchType?, cursor: String?) async -> RepositoryResult<SearchResponse> {
+        searchResult
+    }
+}
+
+final class SearchMockLogRepository: CookingLogRepositoryProtocol {
+    var homeFeedResult: RepositoryResult<HomeFeedResponse> = .success(
+        HomeFeedResponse(recentActivity: [], recentRecipes: [], trendingTrees: nil)
+    )
+    var delay: TimeInterval = 0
+
+    func getHomeFeed() async -> RepositoryResult<HomeFeedResponse> {
+        if delay > 0 { try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000)) }
+        return homeFeedResult
+    }
+
+    func getFeed(cursor: String?, size: Int) async -> RepositoryResult<PaginatedResponse<FeedLogItem>> {
+        .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
+    }
+
+    func getLog(id: String) async -> RepositoryResult<CookingLogDetail> {
+        .failure(.notFound)
+    }
+
+    func getUserLogs(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+        .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
+    }
+
+    func createLog(_ request: CreateLogRequest) async -> RepositoryResult<CookingLogDetail> {
+        .failure(.unknown)
+    }
+
+    func updateLog(id: String, _ request: UpdateLogRequest) async -> RepositoryResult<CookingLogDetail> {
+        .failure(.notFound)
+    }
+
+    func deleteLog(id: String) async -> RepositoryResult<Void> {
+        .success(())
+    }
+
+    func likeLog(id: String) async -> RepositoryResult<Void> {
+        .success(())
+    }
+
+    func unlikeLog(id: String) async -> RepositoryResult<Void> {
+        .success(())
+    }
+
+    func saveLog(id: String) async -> RepositoryResult<Void> {
+        .success(())
+    }
+
+    func unsaveLog(id: String) async -> RepositoryResult<Void> {
+        .success(())
     }
 }

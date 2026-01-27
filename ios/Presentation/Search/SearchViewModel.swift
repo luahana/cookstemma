@@ -20,13 +20,27 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var trendingHashtags: [HashtagCount] = []
     @Published private(set) var popularHashtags: [HashtagCount] = []
 
+    // Home feed data for default view
+    @Published private(set) var trendingRecipes: [HomeRecipeItem] = []
+    @Published private(set) var recentLogs: [RecentActivityItem] = []
+    @Published private(set) var isLoadingHomeFeed = false
+
+    // "See All" view states
+    @Published var showAllRecipes = false
+    @Published var showAllLogs = false
+
     private let searchRepository: SearchRepositoryProtocol
+    private let logRepository: CookingLogRepositoryProtocol
     private var searchTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
     private let debounceInterval: TimeInterval = 0.3
 
-    init(searchRepository: SearchRepositoryProtocol = SearchRepository()) {
+    init(
+        searchRepository: SearchRepositoryProtocol = SearchRepository(),
+        logRepository: CookingLogRepositoryProtocol = CookingLogRepository()
+    ) {
         self.searchRepository = searchRepository
+        self.logRepository = logRepository
         setupDebounce()
     }
 
@@ -54,6 +68,26 @@ final class SearchViewModel: ObservableObject {
                 popularHashtags = Array(hashtags.prefix(10))
             }
         }
+    }
+
+    func loadHomeFeed() {
+        guard !isLoadingHomeFeed else { return }
+        isLoadingHomeFeed = true
+
+        Task {
+            defer { isLoadingHomeFeed = false }
+
+            let result = await logRepository.getHomeFeed()
+            if case .success(let feed) = result {
+                trendingRecipes = feed.recentRecipes
+                recentLogs = feed.recentActivity
+            }
+        }
+    }
+
+    func resetSeeAllState() {
+        showAllRecipes = false
+        showAllLogs = false
     }
 
     func search() {
