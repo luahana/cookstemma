@@ -36,9 +36,12 @@ struct SearchView: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             VStack(spacing: 0) {
-                searchBar
+                if !viewModel.showAllRecipes && !viewModel.showAllLogs {
+                    searchBar
+                }
                 contentView
             }
+            .frame(maxHeight: .infinity, alignment: .top)
             .navigationBarHidden(true)
             .navigationDestination(for: SearchNavDestination.self) { destination in
                 switch destination {
@@ -66,19 +69,19 @@ struct SearchView: View {
         // Pop to root if navigated
         if !navigationPath.isEmpty {
             navigationPath = NavigationPath()
-            return
         }
 
         // Reset "see all" views if active
         if viewModel.showAllRecipes || viewModel.showAllLogs {
             viewModel.resetSeeAllState()
-            return
         }
 
-        // Clear search and refresh home feed
+        // Clear search if active
         if !viewModel.query.isEmpty {
             viewModel.clearSearch()
         }
+
+        // Refresh home feed
         viewModel.loadHomeFeed()
     }
 
@@ -151,6 +154,9 @@ struct SearchView: View {
             }
             .padding(.vertical, DesignSystem.Spacing.md)
             .safeAreaPadding(.bottom)
+        }
+        .refreshable {
+            viewModel.loadHomeFeed()
         }
     }
 
@@ -248,7 +254,7 @@ struct SearchView: View {
             // Section header
             HStack {
                 HStack(spacing: DesignSystem.Spacing.xs) {
-                    LogoIconView(size: DesignSystem.IconSize.md)
+                    LogoIconView(size: DesignSystem.IconSize.lg)
                     Text("Recent Cooking Logs")
                         .font(DesignSystem.Typography.headline)
                         .foregroundColor(DesignSystem.Colors.text)
@@ -397,8 +403,8 @@ struct SearchView: View {
     // MARK: - See All Views
 
     private var seeAllRecipesView: some View {
-        VStack(spacing: 0) {
-            // Back header
+        List {
+            // Back header as first row
             HStack {
                 Button {
                     viewModel.showAllRecipes = false
@@ -417,23 +423,25 @@ struct SearchView: View {
                 // Spacer for balance
                 Color.clear.frame(width: 60)
             }
-            .padding(.horizontal, DesignSystem.Spacing.md)
-            .padding(.vertical, DesignSystem.Spacing.sm)
+            .listRowInsets(EdgeInsets(top: 0, leading: DesignSystem.Spacing.md, bottom: 0, trailing: DesignSystem.Spacing.md))
+            .listRowSeparator(.hidden)
 
-            List {
-                ForEach(viewModel.trendingRecipes) { recipe in
-                    NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
-                        RecipeCardCompactFromHome(recipe: recipe)
-                    }
+            ForEach(viewModel.trendingRecipes) { recipe in
+                NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
+                    RecipeCardCompactFromHome(recipe: recipe)
                 }
             }
-            .listStyle(.plain)
+        }
+        .listStyle(.plain)
+        .contentMargins(.bottom, 80, for: .scrollContent)
+        .refreshable {
+            viewModel.loadHomeFeed()
         }
     }
 
     private var seeAllLogsView: some View {
-        VStack(spacing: 0) {
-            // Back header
+        List {
+            // Back header as first row
             HStack {
                 Button {
                     viewModel.showAllLogs = false
@@ -452,17 +460,19 @@ struct SearchView: View {
                 // Spacer for balance
                 Color.clear.frame(width: 60)
             }
-            .padding(.horizontal, DesignSystem.Spacing.md)
-            .padding(.vertical, DesignSystem.Spacing.sm)
+            .listRowInsets(EdgeInsets(top: 0, leading: DesignSystem.Spacing.md, bottom: 0, trailing: DesignSystem.Spacing.md))
+            .listRowSeparator(.hidden)
 
-            List {
-                ForEach(viewModel.recentLogs) { log in
-                    NavigationLink(value: SearchNavDestination.log(id: log.id)) {
-                        LogCardCompactFromHome(log: log)
-                    }
+            ForEach(viewModel.recentLogs) { log in
+                NavigationLink(value: SearchNavDestination.log(id: log.id)) {
+                    LogCardCompactFromHome(log: log)
                 }
             }
-            .listStyle(.plain)
+        }
+        .listStyle(.plain)
+        .contentMargins(.bottom, 80, for: .scrollContent)
+        .refreshable {
+            viewModel.loadHomeFeed()
         }
     }
 
@@ -519,6 +529,7 @@ struct SearchView: View {
                 }
             }
             .listStyle(.plain)
+            .contentMargins(.bottom, 80, for: .scrollContent)
         }
     }
 

@@ -51,9 +51,6 @@ struct RecipesListView: View {
             .navigationDestination(for: String.self) { recipeId in
                 RecipeDetailView(recipeId: recipeId)
             }
-            .navigationDestination(for: SearchDestination.self) { _ in
-                SearchView()
-            }
             .sheet(isPresented: $showFilters) {
                 RecipeFiltersView(filters: $viewModel.filters) { viewModel.loadRecipes() }
             }
@@ -79,9 +76,6 @@ struct RecipesListView: View {
         }
     }
 
-    // Placeholder type for search navigation
-    private struct SearchDestination: Hashable {}
-
     private var recipesHeader: some View {
         HStack {
             // Icon header
@@ -95,19 +89,11 @@ struct RecipesListView: View {
 
             Spacer()
 
-            HStack(spacing: DesignSystem.Spacing.sm) {
-                // Search button
-                NavigationLink(value: SearchDestination()) {
-                    Image(systemName: AppIcon.search)
-                        .font(.system(size: DesignSystem.IconSize.md))
-                        .foregroundColor(DesignSystem.Colors.text)
-                }
-                // Filter button
-                Button { showFilters = true } label: {
-                    Image(systemName: AppIcon.filter)
-                        .font(.system(size: DesignSystem.IconSize.md))
-                        .foregroundColor(viewModel.hasActiveFilters ? DesignSystem.Colors.primary : DesignSystem.Colors.text)
-                }
+            // Filter button
+            Button { showFilters = true } label: {
+                Image(systemName: AppIcon.filter)
+                    .font(.system(size: DesignSystem.IconSize.md))
+                    .foregroundColor(viewModel.hasActiveFilters ? DesignSystem.Colors.primary : DesignSystem.Colors.text)
             }
         }
         .padding(.horizontal, DesignSystem.Spacing.md)

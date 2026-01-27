@@ -92,6 +92,7 @@ struct NotificationsView: View {
             }
         }
         .listStyle(.plain)
+        .contentMargins(.bottom, 80, for: .scrollContent)
     }
 
     private func handleNotificationTap(_ notification: AppNotification) {

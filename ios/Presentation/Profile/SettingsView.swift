@@ -121,6 +121,7 @@ struct EditProfileView: View {
             informationSection
             socialLinksSection
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Edit Profile")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -307,6 +308,7 @@ struct NotificationSettingsView: View {
                 }
             }
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Notifications")
     }
 }
@@ -335,6 +337,7 @@ struct PrivacySettingsView: View {
                 }
             }
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Privacy")
     }
 }
@@ -389,6 +392,7 @@ struct LanguageSettingsView: View {
                 .foregroundColor(DesignSystem.Colors.primaryText)
             }
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Language")
     }
 }
@@ -426,6 +430,7 @@ struct UnitsSettingsView: View {
             }
             .foregroundColor(DesignSystem.Colors.primaryText)
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Units")
     }
 }
@@ -475,6 +480,7 @@ struct AboutView: View {
                 }
             }
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("About")
     }
 }

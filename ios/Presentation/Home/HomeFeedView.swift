@@ -84,7 +84,7 @@ struct HomeFeedView: View {
                 Image("LogoIcon")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 32, height: 32)
+                    .frame(width: 36, height: 36)
                 Text("Cookstemma")
                     .font(DesignSystem.Typography.headline)
                     .foregroundColor(DesignSystem.Colors.text)
