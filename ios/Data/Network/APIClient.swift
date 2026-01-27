@@ -45,7 +45,7 @@ extension APIEndpoint {
 
 // MARK: - API Error
 
-enum APIError: Error, Equatable {
+enum APIError: LocalizedError, Equatable {
     case invalidURL
     case networkError(String)
     case unauthorized
@@ -55,6 +55,29 @@ enum APIError: Error, Equatable {
     case serverError(Int, String)
     case decodingError(String)
     case unknown
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "Invalid URL"
+        case .networkError(let message):
+            return "Network error: \(message)"
+        case .unauthorized:
+            return "Unauthorized - please sign in again"
+        case .forbidden:
+            return "Access forbidden"
+        case .notFound:
+            return "Resource not found"
+        case .badRequest(let message):
+            return "Bad request: \(message)"
+        case .serverError(let code, let message):
+            return "Server error (\(code)): \(message)"
+        case .decodingError(let message):
+            return "Data error: \(message)"
+        case .unknown:
+            return "An unknown error occurred"
+        }
+    }
 
     static func == (lhs: APIError, rhs: APIError) -> Bool {
         switch (lhs, rhs) {
@@ -87,7 +110,7 @@ protocol TokenManagerProtocol: AnyObject {
     var accessToken: String? { get }
     var refreshToken: String? { get }
     var isAuthenticated: Bool { get }
-    func saveTokens(accessToken: String, refreshToken: String, expiresIn: Int)
+    func saveTokens(accessToken: String, refreshToken: String)
     func refreshAccessToken() async throws
     func clearTokens()
 }
@@ -129,9 +152,20 @@ final class APIClient: APIClientProtocol {
     }
 
     func request<T: Decodable>(_ endpoint: APIEndpoint) async throws -> T {
-        let request = try buildRequest(endpoint)
+        let request: URLRequest
+        do {
+            request = try buildRequest(endpoint)
+        } catch {
+            #if DEBUG
+            print("[API] Build request error: \(error)")
+            #endif
+            throw error
+        }
         #if DEBUG
         print("[API] Request: \(request.httpMethod ?? "GET") \(request.url?.absoluteString ?? "")")
+        if let body = request.httpBody, let bodyString = String(data: body, encoding: .utf8) {
+            print("[API] Body: \(bodyString)")
+        }
         #endif
         let (data, response) = try await performRequest(request, endpoint: endpoint)
         #if DEBUG
@@ -213,10 +247,19 @@ final class APIClient: APIClientProtocol {
             }
             return (data, httpResponse)
         } catch let error as APIError {
+            #if DEBUG
+            print("[API] APIError: \(error)")
+            #endif
             throw error
-        } catch is URLError {
-            throw APIError.networkError("Network connection failed")
+        } catch let urlError as URLError {
+            #if DEBUG
+            print("[API] URLError: \(urlError.code) - \(urlError.localizedDescription)")
+            #endif
+            throw APIError.networkError("Network connection failed: \(urlError.localizedDescription)")
         } catch {
+            #if DEBUG
+            print("[API] Other error: \(type(of: error)) - \(error)")
+            #endif
             throw APIError.networkError(error.localizedDescription)
         }
     }

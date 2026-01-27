@@ -18,38 +18,54 @@ struct UserSummary: Codable, Identifiable, Equatable {
     var displayNameOrUsername: String { displayName ?? username }
 }
 
-// MARK: - My Profile
+// MARK: - My Profile Response (matches backend MyProfileResponseDto)
 
-struct MyProfile: Codable, Identifiable, Equatable {
-    let id: String
-    let username: String
-    let displayName: String?
-    let email: String?
-    let avatarUrl: String?
-    let bio: String?
-    let level: Int
-    let xp: Int
-    let xpToNextLevel: Int
+struct MyProfile: Codable, Equatable {
+    let user: UserInfo
     let recipeCount: Int
     let logCount: Int
+    let savedCount: Int
+
+    // Convenience accessors for backward compatibility
+    var id: String { user.id }
+    var username: String { user.username }
+    var avatarUrl: String? { user.profileImageUrl }
+    var level: Int { user.level }
+    var followerCount: Int { user.followerCount }
+    var followingCount: Int { user.followingCount }
+    var bio: String? { user.bio }
+    var levelProgress: Double { user.levelProgress ?? 0.0 }
+    var measurementPreference: MeasurementPreference {
+        MeasurementPreference(rawValue: user.measurementPreference ?? "METRIC") ?? .metric
+    }
+}
+
+// MARK: - User Info (matches backend UserDto)
+
+struct UserInfo: Codable, Identifiable, Equatable {
+    let id: String
+    let username: String
+    let role: String
+    let profileImageUrl: String?
+    let gender: String?
+    let locale: String?
+    let defaultCookingStyle: String?
+    let measurementPreference: String?
     let followerCount: Int
     let followingCount: Int
-    let socialLinks: SocialLinks?
-    let measurementPreference: MeasurementPreference
-    let createdAt: Date
+    let recipeCount: Int
+    let logCount: Int
+    let level: Int
+    let levelName: String?
+    let totalXp: Int?
+    let xpForCurrentLevel: Int?
+    let xpForNextLevel: Int?
+    let levelProgress: Double?
+    let bio: String?
+    let youtubeUrl: String?
+    let instagramHandle: String?
 
-    enum CodingKeys: String, CodingKey {
-        case id = "publicId"
-        case username, displayName, email, avatarUrl
-        case bio, level, xp, xpToNextLevel
-        case recipeCount, logCount, followerCount, followingCount
-        case socialLinks, measurementPreference, createdAt
-    }
-
-    var levelProgress: Double {
-        guard xpToNextLevel > 0 else { return 1.0 }
-        return Double(xp % xpToNextLevel) / Double(xpToNextLevel)
-    }
+    var avatarUrl: String? { profileImageUrl }
 }
 
 // MARK: - User Profile

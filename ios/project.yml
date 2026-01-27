@@ -44,9 +44,14 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.cookstemma.app
         INFOPLIST_FILE: Resources/Info.plist
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: DFAR672Q54
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: false
+    entitlements:
+      path: Resources/Cookstemma.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - default
     info:
       path: Resources/Info.plist
       properties:
@@ -67,7 +72,7 @@ targets:
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLSchemes:
-              - com.googleusercontent.apps.101876506778-4s3pi7kuo1pkg3q281dnim57vtjdbp5a
+              - com.googleusercontent.apps.946572066572-bng1tcf3i8r0g06orikdpnoh0ar5k1u9
 
   CookstemmaTests:
     type: bundle.unit-test

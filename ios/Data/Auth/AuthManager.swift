@@ -79,8 +79,7 @@ final class AuthManager: ObservableObject, AuthManagerProtocol {
 
         tokenManager.saveTokens(
             accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
-            expiresIn: response.expiresIn
+            refreshToken: response.refreshToken
         )
 
         try await fetchUserProfile()

@@ -161,13 +161,20 @@ final class LoginViewModel: ObservableObject {
 
         do {
             // 1. Sign in with Google and get Firebase ID token
+            print("[Login] Starting Google Sign-In...")
             let firebaseToken = try await firebaseService.signInWithGoogle()
+            print("[Login] Got Firebase token, calling backend...")
 
             // 2. Exchange Firebase token with backend for app tokens
             try await authManager.loginWithFirebase(token: firebaseToken)
+            print("[Login] Success!")
             isAuthenticated = true
+        } catch let apiError as APIError {
+            print("[Login] APIError: \(apiError)")
+            self.error = apiError.errorDescription ?? "Unknown API error"
         } catch {
-            self.error = error.localizedDescription
+            print("[Login] Other error: \(type(of: error)) - \(error)")
+            self.error = String(describing: error)
         }
 
         isLoading = false

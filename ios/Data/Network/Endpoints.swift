@@ -5,7 +5,9 @@ import Foundation
 struct AuthResponse: Codable {
     let accessToken: String
     let refreshToken: String
-    let expiresIn: Int
+    let userPublicId: String
+    let username: String
+    let role: String
 }
 
 // MARK: - Auth Request (camelCase keys for backend)

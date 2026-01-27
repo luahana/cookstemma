@@ -2,6 +2,8 @@ import Foundation
 import FirebaseCore
 import FirebaseAuth
 import GoogleSignIn
+import AuthenticationServices
+import CryptoKit
 
 // MARK: - Firebase Service Protocol
 
@@ -14,10 +16,15 @@ protocol FirebaseServiceProtocol {
 
 // MARK: - Firebase Service
 
-final class FirebaseService: FirebaseServiceProtocol {
+final class FirebaseService: NSObject, FirebaseServiceProtocol {
     static let shared = FirebaseService()
 
-    private init() {}
+    private var currentNonce: String?
+    private var appleSignInContinuation: CheckedContinuation<ASAuthorization, Error>?
+
+    private override init() {
+        super.init()
+    }
 
     // MARK: - Configuration
 
@@ -63,8 +70,58 @@ final class FirebaseService: FirebaseServiceProtocol {
 
     /// Signs in with Apple and returns Firebase ID token
     func signInWithApple() async throws -> String {
-        // TODO: Implement Apple Sign In
-        throw FirebaseServiceError.notImplemented
+        let nonce = randomNonceString()
+        currentNonce = nonce
+
+        let appleIDProvider = ASAuthorizationAppleIDProvider()
+        let request = appleIDProvider.createRequest()
+        request.requestedScopes = [.fullName, .email]
+        request.nonce = sha256(nonce)
+
+        let authorizationController = ASAuthorizationController(authorizationRequests: [request])
+        authorizationController.delegate = self
+
+        let authorization = try await withCheckedThrowingContinuation { continuation in
+            self.appleSignInContinuation = continuation
+            authorizationController.performRequests()
+        }
+
+        guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
+              let appleIDToken = appleIDCredential.identityToken,
+              let idTokenString = String(data: appleIDToken, encoding: .utf8),
+              let nonce = currentNonce else {
+            throw FirebaseServiceError.missingIdToken
+        }
+
+        let credential = OAuthProvider.appleCredential(
+            withIDToken: idTokenString,
+            rawNonce: nonce,
+            fullName: appleIDCredential.fullName
+        )
+
+        let authResult = try await Auth.auth().signIn(with: credential)
+        let firebaseToken = try await authResult.user.getIDToken()
+
+        return firebaseToken
+    }
+
+    // MARK: - Nonce Helpers
+
+    private func randomNonceString(length: Int = 32) -> String {
+        precondition(length > 0)
+        var randomBytes = [UInt8](repeating: 0, count: length)
+        let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
+        if errorCode != errSecSuccess {
+            fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
+        }
+        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+        return String(randomBytes.map { charset[Int($0) % charset.count] })
+    }
+
+    private func sha256(_ input: String) -> String {
+        let inputData = Data(input.utf8)
+        let hashedData = SHA256.hash(data: inputData)
+        return hashedData.compactMap { String(format: "%02x", $0) }.joined()
     }
 
     // MARK: - Sign Out
@@ -89,6 +146,7 @@ enum FirebaseServiceError: LocalizedError {
     case missingIdToken
     case missingFirebaseToken
     case notImplemented
+    case appleSignInFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -97,11 +155,27 @@ enum FirebaseServiceError: LocalizedError {
         case .noRootViewController:
             return "Could not find root view controller"
         case .missingIdToken:
-            return "Could not get Google ID token"
+            return "Could not get ID token"
         case .missingFirebaseToken:
             return "Could not get Firebase token"
         case .notImplemented:
             return "This feature is not yet implemented"
+        case .appleSignInFailed(let message):
+            return "Apple Sign-In failed: \(message)"
         }
+    }
+}
+
+// MARK: - ASAuthorizationControllerDelegate
+
+extension FirebaseService: ASAuthorizationControllerDelegate {
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        appleSignInContinuation?.resume(returning: authorization)
+        appleSignInContinuation = nil
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        appleSignInContinuation?.resume(throwing: error)
+        appleSignInContinuation = nil
     }
 }

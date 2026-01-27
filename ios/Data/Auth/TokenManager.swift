@@ -40,13 +40,13 @@ final class TokenManager: TokenManagerProtocol {
         tokenExpiryDate = UserDefaults.standard.object(forKey: tokenExpiryKey) as? Date
     }
 
-    func saveTokens(accessToken: String, refreshToken: String, expiresIn: Int) {
+    func saveTokens(accessToken: String, refreshToken: String) {
         // Save to Keychain
         setKeychainValue(value: accessToken, key: accessTokenKey)
         setKeychainValue(value: refreshToken, key: refreshTokenKey)
 
-        // Calculate and save expiry
-        let expiryDate = Date().addingTimeInterval(TimeInterval(expiresIn))
+        // Use default 1 hour expiry (backend doesn't return expiresIn)
+        let expiryDate = Date().addingTimeInterval(3600)
         UserDefaults.standard.set(expiryDate, forKey: tokenExpiryKey)
 
         // Update cache
@@ -67,8 +67,7 @@ final class TokenManager: TokenManagerProtocol {
 
         saveTokens(
             accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
-            expiresIn: response.expiresIn
+            refreshToken: response.refreshToken
         )
     }
 
