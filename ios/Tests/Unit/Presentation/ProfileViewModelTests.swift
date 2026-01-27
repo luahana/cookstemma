@@ -6,170 +6,219 @@ final class ProfileViewModelTests: XCTestCase {
 
     var sut: ProfileViewModel!
     var mockUserRepository: MockUserRepository!
+    var mockLogRepository: MockCookingLogRepository!
+    var mockSavedContentRepository: MockSavedContentRepository!
 
     override func setUp() async throws {
         try await super.setUp()
         mockUserRepository = MockUserRepository()
+        mockLogRepository = MockCookingLogRepository()
+        mockSavedContentRepository = MockSavedContentRepository()
     }
 
     override func tearDown() async throws {
         sut = nil
         mockUserRepository = nil
+        mockLogRepository = nil
+        mockSavedContentRepository = nil
         try await super.tearDown()
     }
 
     // MARK: - Load Own Profile Tests
 
-    func testLoadProfile_withNilUserId_loadsOwnProfile() async {
+    func testLoadProfile_withNilUserId_isOwnProfile() {
+        // Given
+        sut = ProfileViewModel(
+            userId: nil,
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
+
+        // Then
+        XCTAssertTrue(sut.isOwnProfile)
+    }
+
+    func testLoadProfile_withUserId_isNotOwnProfile() {
+        // Given
+        sut = ProfileViewModel(
+            userId: "user-other",
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
+
+        // Then
+        XCTAssertFalse(sut.isOwnProfile)
+    }
+
+    func testLoadProfile_ownProfile_loadsMyProfile() async {
         // Given
         let myProfile = createMockMyProfile()
         mockUserRepository.getMyProfileResult = .success(myProfile)
-        sut = ProfileViewModel(userId: nil, userRepository: mockUserRepository)
+        sut = ProfileViewModel(
+            userId: nil,
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
 
         // When
-        await sut.loadProfile()
+        sut.loadProfile()
+        try? await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
-        XCTAssertEqual(sut.profile?.id, "user-me")
-        XCTAssertEqual(sut.profile?.username, "myuser")
-        XCTAssertTrue(sut.isOwnProfile)
+        XCTAssertNotNil(sut.myProfile)
+        XCTAssertEqual(sut.myProfile?.username, "testuser")
+        if case .loaded = sut.state {
+            // Success
+        } else {
+            XCTFail("Expected loaded state")
+        }
     }
 
-    func testLoadProfile_ownProfile_showsEditButton() async {
-        // Given
-        mockUserRepository.getMyProfileResult = .success(createMockMyProfile())
-        sut = ProfileViewModel(userId: nil, userRepository: mockUserRepository)
-
-        // When
-        await sut.loadProfile()
-
-        // Then
-        XCTAssertTrue(sut.isOwnProfile)
-    }
-
-    // MARK: - Load Other User Profile Tests
-
-    func testLoadProfile_withUserId_loadsUserProfile() async {
+    func testLoadProfile_otherUser_loadsUserProfile() async {
         // Given
         let userProfile = createMockUserProfile()
         mockUserRepository.getUserProfileResult = .success(userProfile)
-        sut = ProfileViewModel(userId: "user-other", userRepository: mockUserRepository)
+        sut = ProfileViewModel(
+            userId: "user-other",
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
 
         // When
-        await sut.loadProfile()
+        sut.loadProfile()
+        try? await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
-        XCTAssertEqual(sut.profile?.id, "user-other")
-        XCTAssertFalse(sut.isOwnProfile)
+        XCTAssertNotNil(sut.profile)
+        XCTAssertEqual(sut.profile?.username, "otheruser")
     }
 
     func testLoadProfile_failure_setsErrorState() async {
         // Given
         mockUserRepository.getUserProfileResult = .failure(.notFound)
-        sut = ProfileViewModel(userId: "user-invalid", userRepository: mockUserRepository)
+        sut = ProfileViewModel(
+            userId: "user-invalid",
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
 
         // When
-        await sut.loadProfile()
+        sut.loadProfile()
+        try? await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
-        XCTAssertNotNil(sut.error)
-    }
-
-    // MARK: - Follow/Unfollow Tests
-
-    func testToggleFollow_notFollowing_follows() async {
-        // Given
-        let profile = createMockUserProfile(isFollowing: false)
-        mockUserRepository.getUserProfileResult = .success(profile)
-        mockUserRepository.followResult = .success(())
-        sut = ProfileViewModel(userId: "user-other", userRepository: mockUserRepository)
-        await sut.loadProfile()
-
-        XCTAssertFalse(sut.isFollowing)
-
-        // When
-        await sut.toggleFollow()
-
-        // Then
-        XCTAssertTrue(sut.isFollowing)
-    }
-
-    func testToggleFollow_following_unfollows() async {
-        // Given
-        let profile = createMockUserProfile(isFollowing: true)
-        mockUserRepository.getUserProfileResult = .success(profile)
-        mockUserRepository.unfollowResult = .success(())
-        sut = ProfileViewModel(userId: "user-other", userRepository: mockUserRepository)
-        await sut.loadProfile()
-
-        XCTAssertTrue(sut.isFollowing)
-
-        // When
-        await sut.toggleFollow()
-
-        // Then
-        XCTAssertFalse(sut.isFollowing)
-    }
-
-    func testToggleFollow_optimisticallyUpdatesFollowerCount() async {
-        // Given
-        let profile = createMockUserProfile(isFollowing: false, followerCount: 100)
-        mockUserRepository.getUserProfileResult = .success(profile)
-        mockUserRepository.followResult = .success(())
-        sut = ProfileViewModel(userId: "user-other", userRepository: mockUserRepository)
-        await sut.loadProfile()
-
-        // When
-        await sut.toggleFollow()
-
-        // Then
-        XCTAssertEqual(sut.followerCount, 101)
-    }
-
-    func testToggleFollow_failure_revertsState() async {
-        // Given
-        let profile = createMockUserProfile(isFollowing: false, followerCount: 100)
-        mockUserRepository.getUserProfileResult = .success(profile)
-        mockUserRepository.followResult = .failure(.networkError("Failed"))
-        sut = ProfileViewModel(userId: "user-other", userRepository: mockUserRepository)
-        await sut.loadProfile()
-
-        // When
-        await sut.toggleFollow()
-
-        // Then - should revert
-        XCTAssertFalse(sut.isFollowing)
-        XCTAssertEqual(sut.followerCount, 100)
+        if case .error = sut.state {
+            // Success
+        } else {
+            XCTFail("Expected error state")
+        }
     }
 
     // MARK: - Tab Selection Tests
 
-    func testSelectTab_recipes_loadsRecipes() async {
+    func testSelectedTab_defaultIsRecipes() {
         // Given
-        mockUserRepository.getMyProfileResult = .success(createMockMyProfile())
-        mockUserRepository.getUserRecipesResult = .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
-        sut = ProfileViewModel(userId: nil, userRepository: mockUserRepository)
-        await sut.loadProfile()
-
-        // When
-        await sut.selectTab(.recipes)
+        sut = ProfileViewModel(
+            userId: nil,
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
 
         // Then
         XCTAssertEqual(sut.selectedTab, .recipes)
     }
 
-    func testSelectTab_logs_loadsLogs() async {
+    func testSelectedTab_changingToLogs_updatesTab() async {
         // Given
         mockUserRepository.getMyProfileResult = .success(createMockMyProfile())
-        mockUserRepository.getUserLogsResult = .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
-        sut = ProfileViewModel(userId: nil, userRepository: mockUserRepository)
-        await sut.loadProfile()
+        sut = ProfileViewModel(
+            userId: nil,
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
 
         // When
-        await sut.selectTab(.logs)
+        sut.selectedTab = .logs
+        sut.loadContent()
+        try? await Task.sleep(nanoseconds: 100_000_000)
 
         // Then
         XCTAssertEqual(sut.selectedTab, .logs)
+    }
+
+    func testSelectedTab_savedTab_availableForOwnProfile() {
+        // Given
+        sut = ProfileViewModel(
+            userId: nil,
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
+
+        // When
+        sut.selectedTab = .saved
+
+        // Then - should be allowed for own profile
+        XCTAssertEqual(sut.selectedTab, .saved)
+    }
+
+    // MARK: - Saved Content Tests
+
+    func testSavedCount_returnsMyProfileSavedCount() async {
+        // Given
+        let myProfile = createMockMyProfile(savedCount: 42)
+        mockUserRepository.getMyProfileResult = .success(myProfile)
+        sut = ProfileViewModel(
+            userId: nil,
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
+
+        // When
+        sut.loadProfile()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then
+        XCTAssertEqual(sut.savedCount, 42)
+    }
+
+    // MARK: - Visibility Filter Tests
+
+    func testVisibilityFilter_defaultIsAll() {
+        // Given
+        sut = ProfileViewModel(
+            userId: nil,
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
+
+        // Then
+        XCTAssertEqual(sut.visibilityFilter, .all)
+    }
+
+    func testVisibilityFilter_canBeChanged() {
+        // Given
+        sut = ProfileViewModel(
+            userId: nil,
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
+
+        // When
+        sut.visibilityFilter = .publicOnly
+
+        // Then
+        XCTAssertEqual(sut.visibilityFilter, .publicOnly)
     }
 
     // MARK: - Block User Tests
@@ -178,54 +227,52 @@ final class ProfileViewModelTests: XCTestCase {
         // Given
         let profile = createMockUserProfile()
         mockUserRepository.getUserProfileResult = .success(profile)
-        mockUserRepository.blockUserResult = .success(())
-        sut = ProfileViewModel(userId: "user-other", userRepository: mockUserRepository)
-        await sut.loadProfile()
+        sut = ProfileViewModel(
+            userId: "user-other",
+            userRepository: mockUserRepository,
+            logRepository: mockLogRepository,
+            savedContentRepository: mockSavedContentRepository
+        )
+        sut.loadProfile()
+        try? await Task.sleep(nanoseconds: 100_000_000)
 
         // When
         await sut.blockUser()
 
         // Then
-        XCTAssertTrue(sut.isBlocked)
-    }
-
-    // MARK: - Stats Tests
-
-    func testProfile_hasCorrectStats() async {
-        // Given
-        let profile = createMockUserProfile(recipeCount: 45, logCount: 203, followerCount: 5200)
-        mockUserRepository.getUserProfileResult = .success(profile)
-        sut = ProfileViewModel(userId: "user-other", userRepository: mockUserRepository)
-
-        // When
-        await sut.loadProfile()
-
-        // Then
-        XCTAssertEqual(sut.recipeCount, 45)
-        XCTAssertEqual(sut.logCount, 203)
-        XCTAssertEqual(sut.followerCount, 5200)
+        XCTAssertTrue(sut.profile?.isBlocked ?? false)
     }
 
     // MARK: - Helpers
 
-    private func createMockMyProfile() -> MyProfile {
+    private func createMockMyProfile(savedCount: Int = 10) -> MyProfile {
         MyProfile(
-            id: "user-me",
-            username: "myuser",
-            displayName: "My User",
-            email: "me@example.com",
-            avatarUrl: nil,
-            bio: "My bio",
-            level: 12,
-            xp: 2450,
-            xpToNextLevel: 1000,
+            user: UserInfo(
+                id: "user-me",
+                username: "testuser",
+                role: "USER",
+                profileImageUrl: nil,
+                gender: nil,
+                locale: "en",
+                defaultCookingStyle: nil,
+                measurementPreference: "METRIC",
+                followerCount: 100,
+                followingCount: 50,
+                recipeCount: 15,
+                logCount: 89,
+                level: 12,
+                levelName: "Home Cook",
+                totalXp: 2450,
+                xpForCurrentLevel: 450,
+                xpForNextLevel: 1000,
+                levelProgress: 0.45,
+                bio: "Test bio",
+                youtubeUrl: nil,
+                instagramHandle: nil
+            ),
             recipeCount: 15,
             logCount: 89,
-            followerCount: 1200,
-            followingCount: 350,
-            socialLinks: nil,
-            measurementPreference: .metric,
-            createdAt: Date()
+            savedCount: savedCount
         )
     }
 
@@ -253,34 +300,4 @@ final class ProfileViewModelTests: XCTestCase {
             createdAt: Date()
         )
     }
-}
-
-// MARK: - Mock User Repository
-
-class MockUserRepository: UserRepositoryProtocol {
-    var getMyProfileResult: RepositoryResult<MyProfile>?
-    var getUserProfileResult: RepositoryResult<UserProfile>?
-    var updateProfileResult: RepositoryResult<MyProfile>?
-    var getUserRecipesResult: RepositoryResult<PaginatedResponse<RecipeSummary>> = .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
-    var getUserLogsResult: RepositoryResult<PaginatedResponse<CookingLogSummary>> = .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
-    var followResult: RepositoryResult<Void> = .success(())
-    var unfollowResult: RepositoryResult<Void> = .success(())
-    var getFollowersResult: RepositoryResult<PaginatedResponse<UserSummary>> = .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
-    var getFollowingResult: RepositoryResult<PaginatedResponse<UserSummary>> = .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
-    var blockUserResult: RepositoryResult<Void> = .success(())
-    var unblockUserResult: RepositoryResult<Void> = .success(())
-    var reportUserResult: RepositoryResult<Void> = .success(())
-
-    func getMyProfile() async -> RepositoryResult<MyProfile> { getMyProfileResult ?? .failure(.unauthorized) }
-    func getUserProfile(id: String) async -> RepositoryResult<UserProfile> { getUserProfileResult ?? .failure(.notFound) }
-    func updateProfile(_ request: UpdateProfileRequest) async -> RepositoryResult<MyProfile> { updateProfileResult ?? .failure(.unknown) }
-    func getUserRecipes(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeSummary>> { getUserRecipesResult }
-    func getUserLogs(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> { getUserLogsResult }
-    func follow(userId: String) async -> RepositoryResult<Void> { followResult }
-    func unfollow(userId: String) async -> RepositoryResult<Void> { unfollowResult }
-    func getFollowers(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<UserSummary>> { getFollowersResult }
-    func getFollowing(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<UserSummary>> { getFollowingResult }
-    func blockUser(userId: String) async -> RepositoryResult<Void> { blockUserResult }
-    func unblockUser(userId: String) async -> RepositoryResult<Void> { unblockUserResult }
-    func reportUser(userId: String, reason: ReportReason) async -> RepositoryResult<Void> { reportUserResult }
 }
