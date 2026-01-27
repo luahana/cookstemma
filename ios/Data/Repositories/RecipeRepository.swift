@@ -63,6 +63,25 @@ final class RecipeRepository: RecipeRepositoryProtocol {
         .success(false)
     }
 
+    func recordRecipeView(id: String) async {
+        do {
+            try await apiClient.request(ViewHistoryEndpoint.recordRecipeView(id: id))
+        } catch {
+            // Silently fail - view tracking shouldn't break the app
+            print("Failed to record recipe view: \(error)")
+        }
+    }
+
+    func getRecentlyViewedRecipes(limit: Int) async -> RepositoryResult<[RecipeSummary]> {
+        do {
+            return .success(try await apiClient.request(ViewHistoryEndpoint.recentRecipes(limit: limit)))
+        } catch let error as APIError {
+            return .failure(mapError(error))
+        } catch {
+            return .failure(.unknown)
+        }
+    }
+
     private func mapError(_ error: APIError) -> RepositoryError {
         switch error {
         case .networkError(let msg): return .networkError(msg)

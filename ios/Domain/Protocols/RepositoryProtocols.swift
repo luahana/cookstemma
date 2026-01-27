@@ -43,6 +43,8 @@ protocol RecipeRepositoryProtocol {
     func saveRecipe(id: String) async -> RepositoryResult<Void>
     func unsaveRecipe(id: String) async -> RepositoryResult<Void>
     func isRecipeSaved(id: String) async -> RepositoryResult<Bool>
+    func recordRecipeView(id: String) async
+    func getRecentlyViewedRecipes(limit: Int) async -> RepositoryResult<[RecipeSummary]>
 }
 
 // MARK: - Cooking Log Repository

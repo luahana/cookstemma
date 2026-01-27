@@ -22,10 +22,14 @@ final class CreateLogViewModel: ObservableObject {
     @Published var isPrivate: Bool = false
 
     private let logRepository: CookingLogRepositoryProtocol
-    private let maxPhotos = 5
+    private let maxPhotos = 3
+    let maxContentLength = 2000
+    let maxHashtags = 5
 
     var canSubmit: Bool { !photos.isEmpty && rating >= 1 && state != .uploading && state != .submitting }
     var photosRemaining: Int { max(0, maxPhotos - photos.count) }
+    var contentRemaining: Int { maxContentLength - content.count }
+    var hashtagsRemaining: Int { max(0, maxHashtags - hashtags.count) }
 
     init(logRepository: CookingLogRepositoryProtocol = CookingLogRepository()) {
         self.logRepository = logRepository
@@ -42,6 +46,21 @@ final class CreateLogViewModel: ObservableObject {
     }
 
     func selectRecipe(_ recipe: RecipeSummary?) { selectedRecipe = recipe }
+
+    func addHashtag(_ tag: String) {
+        let cleaned = tag.trimmingCharacters(in: .whitespaces)
+            .lowercased()
+            .replacingOccurrences(of: "#", with: "")
+        guard !cleaned.isEmpty,
+              hashtags.count < maxHashtags,
+              !hashtags.contains(cleaned) else { return }
+        hashtags.append(cleaned)
+    }
+
+    func removeHashtag(at index: Int) {
+        guard hashtags.indices.contains(index) else { return }
+        hashtags.remove(at: index)
+    }
 
     func submit() async {
         guard canSubmit else { return }

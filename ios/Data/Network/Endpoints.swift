@@ -415,3 +415,38 @@ enum SavedEndpoint: APIEndpoint {
         }
     }
 }
+
+// MARK: - View History Endpoints
+
+enum ViewHistoryEndpoint: APIEndpoint {
+    case recordRecipeView(id: String)
+    case recordLogView(id: String)
+    case recentRecipes(limit: Int)
+    case recentLogs(limit: Int)
+
+    var path: String {
+        switch self {
+        case .recordRecipeView(let id): return "view-history/recipes/\(id)"
+        case .recordLogView(let id): return "view-history/logs/\(id)"
+        case .recentRecipes: return "view-history/recipes"
+        case .recentLogs: return "view-history/logs"
+        }
+    }
+
+    var method: HTTPMethod {
+        switch self {
+        case .recordRecipeView, .recordLogView: return .post
+        case .recentRecipes, .recentLogs: return .get
+        }
+    }
+
+    var queryItems: [URLQueryItem]? {
+        switch self {
+        case .recentRecipes(let limit), .recentLogs(let limit):
+            return [URLQueryItem(name: "limit", value: "\(limit)")]
+        default: return nil
+        }
+    }
+
+    var requiresAuth: Bool { true }
+}

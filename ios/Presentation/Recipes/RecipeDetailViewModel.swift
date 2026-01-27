@@ -39,6 +39,8 @@ final class RecipeDetailViewModel: ObservableObject {
                 self.recipe = recipe
                 self.isSaved = recipe.isSaved
                 state = .loaded(recipe)
+                // Record view for history (syncs with web)
+                await recipeRepository.recordRecipeView(id: recipeId)
                 // Load logs separately
                 await loadLogsInitial()
             case .failure(let error):
