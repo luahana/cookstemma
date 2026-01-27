@@ -8,6 +8,26 @@ struct AuthResponse: Codable {
     let expiresIn: Int
 }
 
+// MARK: - Auth Request (camelCase keys for backend)
+
+struct SocialLoginRequest: Codable {
+    let idToken: String
+    let locale: String
+
+    enum CodingKeys: String, CodingKey {
+        case idToken
+        case locale
+    }
+}
+
+struct TokenReissueRequest: Codable {
+    let refreshToken: String
+
+    enum CodingKeys: String, CodingKey {
+        case refreshToken
+    }
+}
+
 // MARK: - Auth Endpoints
 
 enum AuthEndpoint: APIEndpoint {
@@ -33,9 +53,9 @@ enum AuthEndpoint: APIEndpoint {
     var body: Encodable? {
         switch self {
         case .socialLogin(let idToken, let locale):
-            return ["idToken": idToken, "locale": locale]
+            return SocialLoginRequest(idToken: idToken, locale: locale)
         case .refreshToken(let token):
-            return ["refreshToken": token]
+            return TokenReissueRequest(refreshToken: token)
         case .logout:
             return nil
         }
