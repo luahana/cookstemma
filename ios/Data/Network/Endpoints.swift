@@ -84,7 +84,7 @@ enum RecipeEndpoint: APIEndpoint {
         switch self {
         case .list: return "recipes"
         case .detail(let id): return "recipes/\(id)"
-        case .logs(let id, _): return "recipes/\(id)/logs"
+        case .logs(let id, _): return "log_posts/recipe/\(id)"
         case .save(let id), .unsave(let id): return "recipes/\(id)/save"
         }
     }
@@ -110,7 +110,10 @@ enum RecipeEndpoint: APIEndpoint {
             }
             return items.isEmpty ? nil : items
         case .logs(_, let cursor):
-            return cursor.map { [URLQueryItem(name: "cursor", value: $0)] }
+            // Backend uses page-based pagination (Spring Slice)
+            var items = [URLQueryItem(name: "size", value: "20")]
+            if let page = cursor { items.append(URLQueryItem(name: "page", value: page)) }
+            return items
         default: return nil
         }
     }

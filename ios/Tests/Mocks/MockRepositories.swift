@@ -19,7 +19,7 @@ final class MockRecipeRepository: RecipeRepositoryProtocol {
         return getRecipeResult ?? .failure(.notFound)
     }
 
-    func getRecipeLogs(recipeId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+    func getRecipeLogs(recipeId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeLogItem>> {
         return .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
     }
 

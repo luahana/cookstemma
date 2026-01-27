@@ -8,7 +8,7 @@ enum RecipeDetailState: Equatable {
 final class RecipeDetailViewModel: ObservableObject {
     @Published private(set) var state: RecipeDetailState = .idle
     @Published private(set) var recipe: RecipeDetail?
-    @Published private(set) var logs: [CookingLogSummary] = []
+    @Published private(set) var logs: [RecipeLogItem] = []
     @Published private(set) var isLoadingLogs = false
     @Published private(set) var hasMoreLogs = true
     @Published private(set) var isSaved = false
@@ -56,10 +56,18 @@ final class RecipeDetailViewModel: ObservableObject {
         isLoadingLogs = true
         defer { isLoadingLogs = false }
         let result = await recipeRepository.getRecipeLogs(recipeId: recipeId, cursor: nil)
-        if case .success(let response) = result {
+        switch result {
+        case .success(let response):
+            #if DEBUG
+            print("[RecipeDetail] Logs loaded: \(response.content.count) items")
+            #endif
             logs = response.content
             nextLogsCursor = response.nextCursor
             hasMoreLogs = response.hasMore
+        case .failure(let error):
+            #if DEBUG
+            print("[RecipeDetail] Failed to load logs: \(error)")
+            #endif
         }
     }
 

@@ -27,12 +27,20 @@ final class RecipeRepository: RecipeRepositoryProtocol {
         }
     }
 
-    func getRecipeLogs(recipeId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+    func getRecipeLogs(recipeId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeLogItem>> {
         do {
-            return .success(try await apiClient.request(RecipeEndpoint.logs(recipeId: recipeId, cursor: cursor)))
+            // Backend returns Spring Slice format, convert to PaginatedResponse
+            let slice: SliceResponse<RecipeLogItem> = try await apiClient.request(RecipeEndpoint.logs(recipeId: recipeId, cursor: cursor))
+            return .success(slice.toPaginatedResponse())
         } catch let error as APIError {
+            #if DEBUG
+            print("[RecipeRepository] getRecipeLogs error: \(error)")
+            #endif
             return .failure(mapError(error))
         } catch {
+            #if DEBUG
+            print("[RecipeRepository] getRecipeLogs unknown error: \(error)")
+            #endif
             return .failure(.unknown)
         }
     }

@@ -10,6 +10,29 @@ struct PaginatedResponse<T: Codable>: Codable {
     var hasMore: Bool { hasNext }
 }
 
+/// Spring Slice response format (offset-based pagination)
+struct SliceResponse<T: Codable>: Codable {
+    let content: [T]
+    let last: Bool
+    let first: Bool
+    let empty: Bool
+    let numberOfElements: Int
+    let size: Int
+    let number: Int
+
+    var hasMore: Bool { !last }
+    var nextPage: Int? { last ? nil : number + 1 }
+
+    /// Convert to PaginatedResponse for compatibility
+    func toPaginatedResponse() -> PaginatedResponse<T> {
+        PaginatedResponse(
+            content: content,
+            nextCursor: nextPage.map { String($0) },
+            hasNext: hasMore
+        )
+    }
+}
+
 // MARK: - Repository Error
 
 enum RepositoryError: Error, Equatable {
@@ -39,7 +62,7 @@ typealias RepositoryResult<T> = Result<T, RepositoryError>
 protocol RecipeRepositoryProtocol {
     func getRecipes(cursor: String?, filters: RecipeFilters?) async -> RepositoryResult<PaginatedResponse<RecipeSummary>>
     func getRecipe(id: String) async -> RepositoryResult<RecipeDetail>
-    func getRecipeLogs(recipeId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>>
+    func getRecipeLogs(recipeId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeLogItem>>
     func saveRecipe(id: String) async -> RepositoryResult<Void>
     func unsaveRecipe(id: String) async -> RepositoryResult<Void>
     func isRecipeSaved(id: String) async -> RepositoryResult<Bool>

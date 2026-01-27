@@ -341,7 +341,7 @@ final class RecipeDetailViewModelTests: XCTestCase {
 class MockRecipeRepository: RecipeRepositoryProtocol {
     var getRecipeResult: RepositoryResult<RecipeDetail> = .failure(.notFound)
     var getRecipesResult: RepositoryResult<PaginatedResponse<RecipeSummary>> = .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
-    var getRecipeLogsResult: RepositoryResult<PaginatedResponse<CookingLogSummary>> = .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
+    var getRecipeLogsResult: RepositoryResult<PaginatedResponse<RecipeLogItem>> = .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
     var saveRecipeResult: RepositoryResult<Void> = .success(())
     var unsaveRecipeResult: RepositoryResult<Void> = .success(())
     var searchResult: RepositoryResult<PaginatedResponse<RecipeSummary>> = .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
@@ -361,7 +361,7 @@ class MockRecipeRepository: RecipeRepositoryProtocol {
         return getRecipesResult
     }
 
-    func getRecipeLogs(recipeId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+    func getRecipeLogs(recipeId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeLogItem>> {
         getRecipeLogsCalled = true
         if delay > 0 { try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000)) }
         return getRecipeLogsResult

@@ -309,7 +309,7 @@ struct RecipeDetailView: View {
                         ForEach(viewModel.logs) { log in
                             NavigationLink(destination: LogDetailView(logId: log.id)) {
                                 ZStack(alignment: .bottomLeading) {
-                                    AsyncImage(url: URL(string: log.images.first?.thumbnailUrl ?? "")) { img in
+                                    AsyncImage(url: URL(string: log.thumbnailUrl ?? "")) { img in
                                         img.resizable().scaledToFill()
                                     } placeholder: {
                                         Rectangle().fill(DesignSystem.Colors.tertiaryBackground)
@@ -332,22 +332,6 @@ struct RecipeDetailView: View {
                                     .padding(4)
                                 }
                             }
-                        }
-
-                        // Add log button
-                        Button {
-                            appState.requireAuth {
-                                showCreateLog = true
-                            }
-                        } label: {
-                            VStack {
-                                Image(systemName: "plus")
-                                    .font(.system(size: DesignSystem.IconSize.lg))
-                                    .foregroundColor(DesignSystem.Colors.tertiaryText)
-                            }
-                            .frame(width: 80, height: 80)
-                            .background(DesignSystem.Colors.tertiaryBackground)
-                            .cornerRadius(DesignSystem.CornerRadius.sm)
                         }
                     }
                 }
