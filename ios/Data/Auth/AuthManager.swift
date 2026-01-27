@@ -72,7 +72,9 @@ final class AuthManager: ObservableObject, AuthManagerProtocol {
     // MARK: - Public Methods
 
     func loginWithFirebase(token: String) async throws {
-        let response: AuthResponse = try await apiClient.request( AuthEndpoint.login(firebaseToken: token)
+        let locale = Locale.current.identifier
+        let response: AuthResponse = try await apiClient.request(
+            AuthEndpoint.socialLogin(idToken: token, locale: locale)
         )
 
         tokenManager.saveTokens(

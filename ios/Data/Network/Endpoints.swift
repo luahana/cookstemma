@@ -11,36 +11,39 @@ struct AuthResponse: Codable {
 // MARK: - Auth Endpoints
 
 enum AuthEndpoint: APIEndpoint {
-    case login(firebaseToken: String)
+    case socialLogin(idToken: String, locale: String)
     case refreshToken(refreshToken: String)
     case logout
 
     var path: String {
         switch self {
-        case .login: return "auth/login"
-        case .refreshToken: return "auth/token/reissue"
+        case .socialLogin: return "auth/social-login"
+        case .refreshToken: return "auth/reissue"
         case .logout: return "auth/logout"
         }
     }
 
     var method: HTTPMethod {
         switch self {
-        case .login, .refreshToken: return .post
+        case .socialLogin, .refreshToken: return .post
         case .logout: return .delete
         }
     }
 
     var body: Encodable? {
         switch self {
-        case .login(let token): return ["firebaseToken": token]
-        case .refreshToken(let token): return ["refreshToken": token]
-        case .logout: return nil
+        case .socialLogin(let idToken, let locale):
+            return ["idToken": idToken, "locale": locale]
+        case .refreshToken(let token):
+            return ["refreshToken": token]
+        case .logout:
+            return nil
         }
     }
 
     var requiresAuth: Bool {
         switch self {
-        case .login, .refreshToken: return false
+        case .socialLogin, .refreshToken: return false
         case .logout: return true
         }
     }
