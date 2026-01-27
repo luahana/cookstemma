@@ -278,7 +278,7 @@ struct RecipeDetailView: View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
             // Header with icon and count
             HStack {
-                LogoIconView(size: DesignSystem.IconSize.lg)
+                LogoIconView(size: DesignSystem.IconSize.xl)
                 Spacer()
                 Text("\(viewModel.logs.count)")
                     .font(DesignSystem.Typography.caption)
@@ -292,9 +292,11 @@ struct RecipeDetailView: View {
             if viewModel.logs.isEmpty {
                 // Empty state (icon only)
                 VStack(spacing: DesignSystem.Spacing.sm) {
-                    Image(systemName: AppIcon.addPhoto)
-                        .font(.system(size: DesignSystem.IconSize.xxl))
-                        .foregroundColor(DesignSystem.Colors.tertiaryText)
+                    LogoIconView(
+                        size: DesignSystem.IconSize.xxl,
+                        color: DesignSystem.Colors.tertiaryText,
+                        useOriginalColors: false
+                    )
                     Text("+")
                         .font(DesignSystem.Typography.caption)
                         .foregroundColor(DesignSystem.Colors.tertiaryText)
