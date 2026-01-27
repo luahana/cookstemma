@@ -100,7 +100,7 @@ final class UserRepositoryTests: XCTestCase {
         mockAPIClient.mockResponse = expectedProfile
 
         let request = UpdateProfileRequest(
-            displayName: "New Name",
+            username: "newusername",
             bio: "Updated bio",
             avatarImageId: nil,
             socialLinks: nil,

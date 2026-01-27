@@ -19,7 +19,7 @@ final class MockRecipeRepository: RecipeRepositoryProtocol {
         return getRecipeResult ?? .failure(.notFound)
     }
 
-    func getRecipeLogs(recipeId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+    func getRecipeLogs(recipeId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeLogItem>> {
         return .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
     }
 
@@ -31,6 +31,18 @@ final class MockRecipeRepository: RecipeRepositoryProtocol {
     func unsaveRecipe(id: String) async -> RepositoryResult<Void> {
         unsaveRecipeCalled = true
         return .success(())
+    }
+
+    func isRecipeSaved(id: String) async -> RepositoryResult<Bool> {
+        return .success(false)
+    }
+
+    func recordRecipeView(id: String) async {
+        // No-op for mock
+    }
+
+    func getRecentlyViewedRecipes(limit: Int) async -> RepositoryResult<[RecipeSummary]> {
+        return .success([])
     }
 }
 
@@ -100,9 +112,15 @@ final class MockCookingLogRepository: CookingLogRepositoryProtocol {
 final class MockUserRepository: UserRepositoryProtocol {
     var getMyProfileResult: RepositoryResult<MyProfile>?
     var getUserProfileResult: RepositoryResult<UserProfile>?
+    var updateProfileResult: RepositoryResult<MyProfile>?
+    var checkUsernameAvailabilityResult: RepositoryResult<Bool> = .success(true)
     var followCalled = false
     var unfollowCalled = false
     var blockCalled = false
+    var updateProfileCalled = false
+    var checkUsernameAvailabilityCalled = false
+    var lastCheckedUsername: String?
+    var lastUpdateProfileRequest: UpdateProfileRequest?
 
     func getMyProfile() async -> RepositoryResult<MyProfile> {
         return getMyProfileResult ?? .failure(.notFound)
@@ -112,8 +130,16 @@ final class MockUserRepository: UserRepositoryProtocol {
         return getUserProfileResult ?? .failure(.notFound)
     }
 
-    func updateProfile(request: UpdateProfileRequest) async -> RepositoryResult<MyProfile> {
-        return getMyProfileResult ?? .failure(.notFound)
+    func updateProfile(_ request: UpdateProfileRequest) async -> RepositoryResult<MyProfile> {
+        updateProfileCalled = true
+        lastUpdateProfileRequest = request
+        return updateProfileResult ?? getMyProfileResult ?? .failure(.notFound)
+    }
+
+    func checkUsernameAvailability(_ username: String) async -> RepositoryResult<Bool> {
+        checkUsernameAvailabilityCalled = true
+        lastCheckedUsername = username
+        return checkUsernameAvailabilityResult
     }
 
     func getUserRecipes(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeSummary>> {
@@ -157,6 +183,10 @@ final class MockUserRepository: UserRepositoryProtocol {
 final class MockCommentRepository: CommentRepositoryProtocol {
     var getCommentsResult: RepositoryResult<PaginatedResponse<Comment>> = .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
     var createCommentResult: RepositoryResult<Comment>?
+    var updateCommentResult: RepositoryResult<Comment>?
+    var deleteCommentResult: RepositoryResult<Void> = .success(())
+    var likeCommentResult: RepositoryResult<Void> = .success(())
+    var unlikeCommentResult: RepositoryResult<Void> = .success(())
     var likeCommentCalled = false
     var unlikeCommentCalled = false
 
@@ -165,25 +195,25 @@ final class MockCommentRepository: CommentRepositoryProtocol {
     }
 
     func createComment(logId: String, content: String, parentId: String?) async -> RepositoryResult<Comment> {
-        return createCommentResult ?? .failure(.unknown(NSError(domain: "", code: 0)))
+        return createCommentResult ?? .failure(.unknown)
     }
 
     func updateComment(id: String, content: String) async -> RepositoryResult<Comment> {
-        return .failure(.notFound)
+        return updateCommentResult ?? .failure(.notFound)
     }
 
     func deleteComment(id: String) async -> RepositoryResult<Void> {
-        return .success(())
+        return deleteCommentResult
     }
 
     func likeComment(id: String) async -> RepositoryResult<Void> {
         likeCommentCalled = true
-        return .success(())
+        return likeCommentResult
     }
 
     func unlikeComment(id: String) async -> RepositoryResult<Void> {
         unlikeCommentCalled = true
-        return .success(())
+        return unlikeCommentResult
     }
 }
 
@@ -215,6 +245,25 @@ final class MockSearchRepository: SearchRepositoryProtocol {
 
     func getHashtagContent(hashtag: String, type: SearchType?, cursor: String?) async -> RepositoryResult<SearchResponse> {
         return searchResult
+    }
+}
+
+// MARK: - Mock Saved Content Repository
+
+final class MockSavedContentRepository: SavedContentRepositoryProtocol {
+    var getSavedRecipesResult: RepositoryResult<PaginatedResponse<RecipeSummary>> = .success(
+        PaginatedResponse(content: [], nextCursor: nil, hasNext: false)
+    )
+    var getSavedLogsResult: RepositoryResult<PaginatedResponse<CookingLogSummary>> = .success(
+        PaginatedResponse(content: [], nextCursor: nil, hasNext: false)
+    )
+
+    func getSavedRecipes(cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeSummary>> {
+        return getSavedRecipesResult
+    }
+
+    func getSavedLogs(cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+        return getSavedLogsResult
     }
 }
 

@@ -123,11 +123,17 @@ enum MeasurementPreference: String, Codable, CaseIterable {
 // MARK: - Update Profile Request
 
 struct UpdateProfileRequest: Codable {
-    let displayName: String?
+    let username: String?
     let bio: String?
     let avatarImageId: String?
     let socialLinks: SocialLinks?
     let measurementPreference: MeasurementPreference?
+}
+
+// MARK: - Username Availability Response
+
+struct UsernameAvailabilityResponse: Codable {
+    let available: Bool
 }
 
 // MARK: - Report Reason

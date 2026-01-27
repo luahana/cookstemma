@@ -39,7 +39,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'temurin'
+          distribution: 'corretto'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4

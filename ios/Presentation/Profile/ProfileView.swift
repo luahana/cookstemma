@@ -1,13 +1,27 @@
 import SwiftUI
 
+// MARK: - Navigation Destinations
+enum ProfileNavDestination: Hashable {
+    case settings
+    case followers(userId: String)
+    case following(userId: String)
+    case recipe(id: String)
+    case log(id: String)
+}
+
 struct ProfileView: View {
     var userId: String? = nil
     @StateObject private var viewModel: ProfileViewModel
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var appState: AppState
+    @State private var navigationPath = NavigationPath()
 
-    /// True when viewing own profile (no userId provided)
     private var isViewingOwnProfile: Bool { userId == nil }
+    private let gridColumns = [
+        GridItem(.flexible(), spacing: 2),
+        GridItem(.flexible(), spacing: 2),
+        GridItem(.flexible(), spacing: 2)
+    ]
 
     init(userId: String? = nil) {
         self.userId = userId
@@ -15,7 +29,7 @@ struct ProfileView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             Group {
                 if isViewingOwnProfile && !authManager.isAuthenticated {
                     loginPromptView
@@ -23,20 +37,15 @@ struct ProfileView: View {
                     mainContent
                 }
             }
-            .background(DesignSystem.Colors.secondaryBackground)
+            .background(DesignSystem.Colors.background)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if viewModel.isOwnProfile && authManager.isAuthenticated {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        NavigationLink(destination: SettingsView()) {
-                            Image(systemName: AppIcon.settings)
-                                .foregroundColor(DesignSystem.Colors.text)
-                        }
-                    }
-                } else if viewModel.profile != nil {
+                if !viewModel.isOwnProfile, viewModel.profile != nil {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Menu {
-                            ShareLink(item: URL(string: "https://cookstemma.com/users/\(userId ?? "")")!) {
+                            ShareLink(
+                                item: URL(string: "https://cookstemma.com/users/\(userId ?? "")")!
+                            ) {
                                 Label("", systemImage: AppIcon.share)
                             }
                             Button(role: .destructive) {
@@ -51,12 +60,38 @@ struct ProfileView: View {
                 }
             }
             .refreshable { viewModel.loadProfile() }
+            .navigationDestination(for: ProfileNavDestination.self) { destination in
+                switch destination {
+                case .settings:
+                    SettingsView()
+                case .followers(let userId):
+                    FollowersListView(userId: userId, initialTab: .followers)
+                case .following(let userId):
+                    FollowersListView(userId: userId, initialTab: .following)
+                case .recipe(let id):
+                    RecipeDetailView(recipeId: id)
+                case .log(let id):
+                    LogDetailView(logId: id)
+                }
+            }
         }
         .onAppear {
-            // Only load profile if authenticated (for own profile) or viewing someone else
             if !isViewingOwnProfile || authManager.isAuthenticated {
                 if case .idle = viewModel.state { viewModel.loadProfile() }
             }
+        }
+        .onReceive(appState.$profileScrollToTopTrigger.dropFirst()) { _ in
+            // Only handle for own profile tab (not when viewing other users)
+            guard isViewingOwnProfile else { return }
+
+            // Pop to root if navigated
+            if !navigationPath.isEmpty {
+                navigationPath = NavigationPath()
+                return
+            }
+
+            // Refresh profile
+            viewModel.loadProfile()
         }
     }
 
@@ -97,155 +132,362 @@ struct ProfileView: View {
     @ViewBuilder
     private var profileContent: some View {
         VStack(spacing: DesignSystem.Spacing.md) {
-            // Profile Card
-            VStack(spacing: DesignSystem.Spacing.sm) {
-                // Avatar
-                AvatarView(
-                    url: viewModel.isOwnProfile ? viewModel.myProfile?.avatarUrl : viewModel.profile?.avatarUrl,
-                    size: DesignSystem.AvatarSize.xl
-                )
+            profileCard
 
-                // Level badge (Icon-focused)
-                if let profile = viewModel.myProfile {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: AppIcon.fire)
-                            .foregroundColor(DesignSystem.Colors.primary)
-                        Text("\(profile.level)")
-                            .font(DesignSystem.Typography.headline)
-                    }
+            Divider()
+                .padding(.horizontal, DesignSystem.Spacing.md)
 
-                    // XP Progress bar
-                    ProgressView(value: profile.levelProgress)
-                        .progressViewStyle(.linear)
-                        .frame(width: 120)
-                        .tint(DesignSystem.Colors.primary)
+            tabSection
+            contentGrid
+        }
+        .padding(.vertical, DesignSystem.Spacing.md)
+        .safeAreaPadding(.bottom)
+    }
+
+    // MARK: - Profile Section (Seamless Layout)
+    private var profileCard: some View {
+        VStack(spacing: DesignSystem.Spacing.md) {
+            profileHeader
+            statsRow
+            followButton
+        }
+        .padding(.horizontal, DesignSystem.Spacing.md)
+    }
+
+    private var profileHeader: some View {
+        HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
+            AvatarView(
+                url: viewModel.isOwnProfile
+                    ? viewModel.myProfile?.avatarUrl
+                    : viewModel.profile?.avatarUrl,
+                size: DesignSystem.AvatarSize.xl
+            )
+
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                Text("@\(username)")
+                    .font(DesignSystem.Typography.title3)
+                    .foregroundColor(DesignSystem.Colors.text)
+
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Image(systemName: AppIcon.fire)
+                        .foregroundColor(DesignSystem.Colors.primary)
+                    Text("Lv.\(level)")
+                        .font(DesignSystem.Typography.subheadline)
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
                 }
 
-                // Bio (if any)
-                if let bio = (viewModel.isOwnProfile ? viewModel.myProfile?.bio : viewModel.profile?.bio), !bio.isEmpty {
+                if let bio = bio, !bio.isEmpty {
                     Text(bio)
                         .font(DesignSystem.Typography.body)
                         .foregroundColor(DesignSystem.Colors.secondaryText)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(3)
-                }
-
-                // Stats Row (Icons with counts)
-                HStack(spacing: DesignSystem.Spacing.xl) {
-                    // Recipes
-                    StatIconItem(
-                        icon: AppIcon.recipe,
-                        count: viewModel.isOwnProfile ? viewModel.myProfile?.recipeCount ?? 0 : viewModel.profile?.recipeCount ?? 0
-                    )
-
-                    // Logs
-                    StatIconItem(
-                        icon: AppIcon.log,
-                        count: viewModel.isOwnProfile ? viewModel.myProfile?.logCount ?? 0 : viewModel.profile?.logCount ?? 0
-                    )
-
-                    // Followers
-                    NavigationLink(destination: FollowersListView(userId: userId ?? viewModel.myProfile?.id ?? "")) {
-                        StatIconItem(
-                            icon: AppIcon.followers,
-                            count: viewModel.isOwnProfile ? viewModel.myProfile?.followerCount ?? 0 : viewModel.profile?.followerCount ?? 0
-                        )
-                    }
-                }
-                .padding(.vertical, DesignSystem.Spacing.sm)
-
-                // Follow Button (for other profiles)
-                if !viewModel.isOwnProfile, let profile = viewModel.profile {
-                    FollowIconButton(isFollowing: profile.isFollowing) {
-                        await viewModel.toggleFollow()
-                    }
+                        .lineLimit(2)
                 }
             }
-            .padding(DesignSystem.Spacing.lg)
-            .background(DesignSystem.Colors.background)
-            .cornerRadius(DesignSystem.CornerRadius.lg)
-            .padding(.horizontal, DesignSystem.Spacing.md)
 
-            // Tab Selector (Icons only)
-            HStack(spacing: 0) {
-                TabIconButton(
-                    icon: AppIcon.recipe,
-                    isSelected: viewModel.selectedTab == .recipes,
-                    action: { viewModel.selectedTab = .recipes }
-                )
-                TabIconButton(
-                    icon: AppIcon.log,
-                    isSelected: viewModel.selectedTab == .logs,
-                    action: { viewModel.selectedTab = .logs }
-                )
+            Spacer()
+
+            // Settings button (own profile only)
+            if viewModel.isOwnProfile {
+                NavigationLink(value: ProfileNavDestination.settings) {
+                    Image(systemName: AppIcon.settings)
+                        .font(.system(size: DesignSystem.IconSize.lg))
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                }
             }
-            .padding(DesignSystem.Spacing.xs)
-            .background(DesignSystem.Colors.background)
-            .cornerRadius(DesignSystem.CornerRadius.md)
-            .padding(.horizontal, DesignSystem.Spacing.md)
-            .onChange(of: viewModel.selectedTab) { _ in viewModel.loadContent() }
+        }
+    }
 
-            // Content Grid
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: DesignSystem.Spacing.sm) {
-                if viewModel.selectedTab == .recipes {
+    private var statsRow: some View {
+        HStack(spacing: 0) {
+            ProfileStatItem(count: recipeCount, label: "Recipes")
+            ProfileStatItem(count: logCount, label: "Logs")
+            NavigationLink(value: ProfileNavDestination.followers(userId: userId ?? viewModel.myProfile?.id ?? "")) {
+                ProfileStatItem(count: followerCount, label: "Followers")
+            }
+            .buttonStyle(.plain)
+            NavigationLink(value: ProfileNavDestination.following(userId: userId ?? viewModel.myProfile?.id ?? "")) {
+                ProfileStatItem(count: followingCount, label: "Following")
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.vertical, DesignSystem.Spacing.sm)
+    }
+
+    @ViewBuilder
+    private var followButton: some View {
+        if !viewModel.isOwnProfile, let profile = viewModel.profile {
+            FollowIconButton(isFollowing: profile.isFollowing) {
+                await viewModel.toggleFollow()
+            }
+        }
+    }
+
+    // MARK: - Tab Section
+    private var tabSection: some View {
+        VStack(spacing: DesignSystem.Spacing.sm) {
+            tabBar
+            if viewModel.isOwnProfile {
+                visibilityFilter
+            }
+        }
+        .padding(.horizontal, DesignSystem.Spacing.md)
+    }
+
+    private var tabBar: some View {
+        HStack(spacing: 0) {
+            ProfileTabButton(
+                title: "Recipes",
+                count: recipeCount,
+                isSelected: viewModel.selectedTab == .recipes
+            ) {
+                viewModel.selectedTab = .recipes
+            }
+
+            ProfileTabButton(
+                title: "Logs",
+                count: logCount,
+                isSelected: viewModel.selectedTab == .logs
+            ) {
+                viewModel.selectedTab = .logs
+            }
+
+            if viewModel.isOwnProfile {
+                ProfileTabButton(
+                    title: "Saved",
+                    count: viewModel.savedCount,
+                    isSelected: viewModel.selectedTab == .saved
+                ) {
+                    viewModel.selectedTab = .saved
+                }
+            }
+        }
+        .onChange(of: viewModel.selectedTab) { viewModel.loadContent() }
+    }
+
+    @ViewBuilder
+    private var visibilityFilter: some View {
+        if viewModel.selectedTab == .saved {
+            Picker("Saved Filter", selection: $viewModel.savedContentFilter) {
+                ForEach(SavedContentFilter.allCases, id: \.self) { filter in
+                    Text(filter.title).tag(filter)
+                }
+            }
+            .pickerStyle(.segmented)
+        } else {
+            Picker("Visibility", selection: $viewModel.visibilityFilter) {
+                ForEach(VisibilityFilter.allCases, id: \.self) { filter in
+                    Text(filter.title).tag(filter)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
+    // MARK: - Content Grid
+    @ViewBuilder
+    private var contentGrid: some View {
+        VStack(spacing: 0) {
+            LazyVGrid(columns: gridColumns, spacing: 2) {
+                switch viewModel.selectedTab {
+                case .recipes:
                     ForEach(viewModel.recipes) { recipe in
-                        NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
-                            GridItemView(imageUrl: recipe.coverImageUrl)
+                        NavigationLink(value: ProfileNavDestination.recipe(id: recipe.id)) {
+                            ProfileGridItem(imageUrl: recipe.coverImageUrl)
                         }
                     }
-                } else {
+                case .logs:
                     ForEach(viewModel.logs) { log in
-                        NavigationLink(destination: LogDetailView(logId: log.id)) {
-                            GridItemView(imageUrl: log.images.first?.thumbnailUrl)
+                        NavigationLink(value: ProfileNavDestination.log(id: log.id)) {
+                            ProfileGridItem(imageUrl: log.images.first?.thumbnailUrl)
                         }
                     }
+                case .saved:
+                    savedContent
                 }
             }
             .padding(.horizontal, DesignSystem.Spacing.md)
 
             if viewModel.isLoadingContent {
                 ProgressView()
+                    .padding()
+            }
+
+            if isEmpty {
+                emptyState
             }
         }
-        .padding(.vertical, DesignSystem.Spacing.md)
-        .safeAreaPadding(.bottom)
+    }
+
+    @ViewBuilder
+    private var savedContent: some View {
+        if viewModel.savedContentFilter != .logs {
+            ForEach(viewModel.savedRecipes) { recipe in
+                NavigationLink(value: ProfileNavDestination.recipe(id: recipe.id)) {
+                    ProfileGridItem(imageUrl: recipe.coverImageUrl, isSaved: true)
+                }
+            }
+        }
+        if viewModel.savedContentFilter != .recipes {
+            ForEach(viewModel.savedLogs) { log in
+                NavigationLink(value: ProfileNavDestination.log(id: log.id)) {
+                    ProfileGridItem(imageUrl: log.images.first?.thumbnailUrl, isSaved: true)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var emptyState: some View {
+        VStack(spacing: DesignSystem.Spacing.xs) {
+            if viewModel.selectedTab == .logs ||
+                (viewModel.selectedTab == .saved && viewModel.savedContentFilter == .logs) {
+                LogoIconView(
+                    size: 80,
+                    color: DesignSystem.Colors.tertiaryText,
+                    useOriginalColors: false
+                )
+                .padding(.vertical, -16)
+            } else {
+                Image(systemName: emptyIcon)
+                    .font(.system(size: DesignSystem.IconSize.xxl))
+                    .foregroundColor(DesignSystem.Colors.tertiaryText)
+            }
+            Text(emptyMessage)
+                .font(DesignSystem.Typography.body)
+                .foregroundColor(DesignSystem.Colors.tertiaryText)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, DesignSystem.Spacing.xxl)
+    }
+
+    // MARK: - Computed Properties
+    private var username: String {
+        viewModel.isOwnProfile
+            ? viewModel.myProfile?.username ?? ""
+            : viewModel.profile?.username ?? ""
+    }
+
+    private var level: Int {
+        viewModel.isOwnProfile
+            ? viewModel.myProfile?.level ?? 1
+            : viewModel.profile?.level ?? 1
+    }
+
+    private var bio: String? {
+        viewModel.isOwnProfile
+            ? viewModel.myProfile?.bio
+            : viewModel.profile?.bio
+    }
+
+    private var recipeCount: Int {
+        viewModel.isOwnProfile
+            ? viewModel.myProfile?.recipeCount ?? 0
+            : viewModel.profile?.recipeCount ?? 0
+    }
+
+    private var logCount: Int {
+        viewModel.isOwnProfile
+            ? viewModel.myProfile?.logCount ?? 0
+            : viewModel.profile?.logCount ?? 0
+    }
+
+    private var followerCount: Int {
+        viewModel.isOwnProfile
+            ? viewModel.myProfile?.followerCount ?? 0
+            : viewModel.profile?.followerCount ?? 0
+    }
+
+    private var followingCount: Int {
+        viewModel.isOwnProfile
+            ? viewModel.myProfile?.followingCount ?? 0
+            : viewModel.profile?.followingCount ?? 0
+    }
+
+    private var isEmpty: Bool {
+        switch viewModel.selectedTab {
+        case .recipes: return viewModel.recipes.isEmpty && !viewModel.isLoadingContent
+        case .logs: return viewModel.logs.isEmpty && !viewModel.isLoadingContent
+        case .saved:
+            switch viewModel.savedContentFilter {
+            case .all:
+                return viewModel.savedRecipes.isEmpty
+                    && viewModel.savedLogs.isEmpty
+                    && !viewModel.isLoadingContent
+            case .recipes:
+                return viewModel.savedRecipes.isEmpty && !viewModel.isLoadingContent
+            case .logs:
+                return viewModel.savedLogs.isEmpty && !viewModel.isLoadingContent
+            }
+        }
+    }
+
+    private var emptyIcon: String {
+        switch viewModel.selectedTab {
+        case .recipes: return AppIcon.recipe
+        case .logs: return AppIcon.log
+        case .saved:
+            switch viewModel.savedContentFilter {
+            case .all: return AppIcon.saveOutline
+            case .recipes: return AppIcon.recipe
+            case .logs: return AppIcon.log
+            }
+        }
+    }
+
+    private var emptyMessage: String {
+        switch viewModel.selectedTab {
+        case .recipes: return "No recipes yet"
+        case .logs: return "No cooking logs yet"
+        case .saved:
+            switch viewModel.savedContentFilter {
+            case .all: return "No saved items yet"
+            case .recipes: return "No saved recipes yet"
+            case .logs: return "No saved logs yet"
+            }
+        }
     }
 }
 
-// MARK: - Stat Icon Item
-struct StatIconItem: View {
-    let icon: String
+// MARK: - Profile Stat Item
+struct ProfileStatItem: View {
     let count: Int
+    let label: String
 
     var body: some View {
-        VStack(spacing: DesignSystem.Spacing.xxs) {
-            Image(systemName: icon)
-                .font(.system(size: DesignSystem.IconSize.md))
-                .foregroundColor(DesignSystem.Colors.secondaryText)
+        VStack(spacing: DesignSystem.Spacing.xxxs) {
             Text("\(count.abbreviated)")
                 .font(DesignSystem.Typography.headline)
                 .foregroundColor(DesignSystem.Colors.text)
+            Text(label)
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.secondaryText)
         }
+        .frame(maxWidth: .infinity)
     }
 }
 
-// MARK: - Tab Icon Button
-struct TabIconButton: View {
-    let icon: String
+// MARK: - Profile Tab Button
+struct ProfileTabButton: View {
+    let title: String
+    let count: Int
     let isSelected: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: DesignSystem.Spacing.xxs) {
-                Image(systemName: icon)
-                    .font(.system(size: DesignSystem.IconSize.lg))
-                    .foregroundColor(isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.tertiaryText)
+                Text("\(title) (\(count))")
+                    .font(DesignSystem.Typography.subheadline)
+                    .fontWeight(isSelected ? .semibold : .regular)
+                    .foregroundColor(
+                        isSelected
+                            ? DesignSystem.Colors.primary
+                            : DesignSystem.Colors.secondaryText
+                    )
 
-                // Selection indicator
-                Circle()
+                Rectangle()
                     .fill(isSelected ? DesignSystem.Colors.primary : Color.clear)
-                    .frame(width: 4, height: 4)
+                    .frame(height: 2)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, DesignSystem.Spacing.sm)
@@ -253,19 +495,31 @@ struct TabIconButton: View {
     }
 }
 
-// MARK: - Grid Item View
-struct GridItemView: View {
+// MARK: - Profile Grid Item
+struct ProfileGridItem: View {
     let imageUrl: String?
+    var isSaved: Bool = false
 
     var body: some View {
-        AsyncImage(url: URL(string: imageUrl ?? "")) { img in
-            img.resizable().scaledToFill()
-        } placeholder: {
-            Rectangle().fill(DesignSystem.Colors.tertiaryBackground)
+        ZStack(alignment: .topTrailing) {
+            AsyncImage(url: URL(string: imageUrl ?? "")) { img in
+                img.resizable().scaledToFill()
+            } placeholder: {
+                Rectangle().fill(DesignSystem.Colors.tertiaryBackground)
+            }
+            .frame(height: 120)
+            .clipped()
+
+            if isSaved {
+                Image(systemName: AppIcon.save)
+                    .font(.system(size: DesignSystem.IconSize.sm))
+                    .foregroundColor(.white)
+                    .padding(DesignSystem.Spacing.xs)
+                    .background(Color.black.opacity(0.5))
+                    .cornerRadius(DesignSystem.CornerRadius.xs)
+                    .padding(DesignSystem.Spacing.xxs)
+            }
         }
-        .frame(height: 120)
-        .cornerRadius(DesignSystem.CornerRadius.sm)
-        .clipped()
     }
 }
 

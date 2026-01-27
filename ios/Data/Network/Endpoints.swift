@@ -84,7 +84,7 @@ enum RecipeEndpoint: APIEndpoint {
         switch self {
         case .list: return "recipes"
         case .detail(let id): return "recipes/\(id)"
-        case .logs(let id, _): return "recipes/\(id)/logs"
+        case .logs(let id, _): return "log_posts/recipe/\(id)"
         case .save(let id), .unsave(let id): return "recipes/\(id)/save"
         }
     }
@@ -110,7 +110,10 @@ enum RecipeEndpoint: APIEndpoint {
             }
             return items.isEmpty ? nil : items
         case .logs(_, let cursor):
-            return cursor.map { [URLQueryItem(name: "cursor", value: $0)] }
+            // Backend uses page-based pagination (Spring Slice)
+            var items = [URLQueryItem(name: "size", value: "20")]
+            if let page = cursor { items.append(URLQueryItem(name: "page", value: page)) }
+            return items
         default: return nil
         }
     }
@@ -194,6 +197,7 @@ enum UserEndpoint: APIEndpoint {
     case myProfile
     case profile(id: String)
     case updateProfile(UpdateProfileRequest)
+    case checkUsername(String)
     case userRecipes(userId: String, cursor: String?)
     case follow(userId: String)
     case unfollow(userId: String)
@@ -208,6 +212,7 @@ enum UserEndpoint: APIEndpoint {
         case .myProfile: return "users/me"
         case .profile(let id): return "users/\(id)"
         case .updateProfile: return "users/me"
+        case .checkUsername: return "users/check-username"
         case .userRecipes(let id, _): return "users/\(id)/recipes"
         case .follow(let id), .unfollow(let id): return "users/\(id)/follow"
         case .followers(let id, _): return "users/\(id)/followers"
@@ -219,7 +224,7 @@ enum UserEndpoint: APIEndpoint {
 
     var method: HTTPMethod {
         switch self {
-        case .myProfile, .profile, .userRecipes, .followers, .following: return .get
+        case .myProfile, .profile, .checkUsername, .userRecipes, .followers, .following: return .get
         case .updateProfile: return .patch
         case .follow, .block, .report: return .post
         case .unfollow, .unblock: return .delete
@@ -228,6 +233,8 @@ enum UserEndpoint: APIEndpoint {
 
     var queryItems: [URLQueryItem]? {
         switch self {
+        case .checkUsername(let username):
+            return [URLQueryItem(name: "username", value: username)]
         case .userRecipes(_, let cursor), .followers(_, let cursor), .following(_, let cursor):
             return cursor.map { [URLQueryItem(name: "cursor", value: $0)] }
         default: return nil
@@ -239,6 +246,13 @@ enum UserEndpoint: APIEndpoint {
         case .updateProfile(let req): return req
         case .report(_, let reason): return ["reason": reason.rawValue]
         default: return nil
+        }
+    }
+
+    var requiresAuth: Bool {
+        switch self {
+        case .checkUsername: return false
+        default: return true
         }
     }
 }
@@ -255,8 +269,8 @@ enum CommentEndpoint: APIEndpoint {
 
     var path: String {
         switch self {
-        case .list(let logId, _): return "logs/\(logId)/comments"
-        case .create(let logId, _, _): return "logs/\(logId)/comments"
+        case .list(let logId, _): return "log_posts/\(logId)/comments"
+        case .create(let logId, _, _): return "log_posts/\(logId)/comments"
         case .update(let id, _), .delete(let id): return "comments/\(id)"
         case .like(let id), .unlike(let id): return "comments/\(id)/like"
         }
@@ -273,7 +287,10 @@ enum CommentEndpoint: APIEndpoint {
 
     var queryItems: [URLQueryItem]? {
         if case .list(_, let cursor) = self {
-            return cursor.map { [URLQueryItem(name: "cursor", value: $0)] }
+            // Backend uses page-based pagination (Spring Page)
+            var items = [URLQueryItem(name: "size", value: "20")]
+            if let page = cursor { items.append(URLQueryItem(name: "page", value: page)) }
+            return items
         }
         return nil
     }

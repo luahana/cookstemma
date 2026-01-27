@@ -3,13 +3,17 @@ import PhotosUI
 
 struct CreateLogView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = CreateLogViewModel()
+    @StateObject private var viewModel: CreateLogViewModel
     @State private var showingPhotoSourceSheet = false
     @State private var showingCamera = false
     @State private var showingGallery = false
     @State private var hashtagInput = ""
 
     private let maxPhotos = 3
+
+    init(recipe: RecipeSummary? = nil) {
+        self._viewModel = StateObject(wrappedValue: CreateLogViewModel(recipe: recipe))
+    }
 
     var body: some View {
         NavigationStack {

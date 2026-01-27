@@ -5,6 +5,7 @@ struct RecipeDetailView: View {
     @StateObject private var viewModel: RecipeDetailViewModel
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var appState: AppState
+    @State private var showCreateLog = false
 
     init(recipeId: String) {
         self.recipeId = recipeId
@@ -18,6 +19,29 @@ struct RecipeDetailView: View {
             case .loaded(let recipe): recipeContent(recipe)
             case .error(let msg): ErrorStateView(message: msg) { viewModel.loadRecipe() }
             }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            // FAB for creating cooking log
+            if case .loaded = viewModel.state {
+                Button {
+                    appState.requireAuth {
+                        showCreateLog = true
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 56, height: 56)
+                        .background(DesignSystem.Colors.primary)
+                        .clipShape(Circle())
+                        .shadow(radius: 4, y: 2)
+                }
+                .padding(.trailing, DesignSystem.Spacing.md)
+                .padding(.bottom, 100)
+            }
+        }
+        .sheet(isPresented: $showCreateLog) {
+            CreateLogView(recipe: viewModel.recipeSummary)
         }
         .background(DesignSystem.Colors.secondaryBackground)
         .navigationBarTitleDisplayMode(.inline)
@@ -254,9 +278,7 @@ struct RecipeDetailView: View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
             // Header with icon and count
             HStack {
-                Image(systemName: AppIcon.log)
-                    .font(.system(size: DesignSystem.IconSize.lg))
-                    .foregroundColor(DesignSystem.Colors.primary)
+                LogoIconView(size: DesignSystem.IconSize.xl)
                 Spacer()
                 Text("\(viewModel.logs.count)")
                     .font(DesignSystem.Typography.caption)
@@ -270,9 +292,11 @@ struct RecipeDetailView: View {
             if viewModel.logs.isEmpty {
                 // Empty state (icon only)
                 VStack(spacing: DesignSystem.Spacing.sm) {
-                    Image(systemName: AppIcon.addPhoto)
-                        .font(.system(size: DesignSystem.IconSize.xxl))
-                        .foregroundColor(DesignSystem.Colors.tertiaryText)
+                    LogoIconView(
+                        size: DesignSystem.IconSize.xxl,
+                        color: DesignSystem.Colors.tertiaryText,
+                        useOriginalColors: false
+                    )
                     Text("+")
                         .font(DesignSystem.Typography.caption)
                         .foregroundColor(DesignSystem.Colors.tertiaryText)
@@ -285,7 +309,7 @@ struct RecipeDetailView: View {
                         ForEach(viewModel.logs) { log in
                             NavigationLink(destination: LogDetailView(logId: log.id)) {
                                 ZStack(alignment: .bottomLeading) {
-                                    AsyncImage(url: URL(string: log.images.first?.thumbnailUrl ?? "")) { img in
+                                    AsyncImage(url: URL(string: log.thumbnailUrl ?? "")) { img in
                                         img.resizable().scaledToFill()
                                     } placeholder: {
                                         Rectangle().fill(DesignSystem.Colors.tertiaryBackground)
@@ -308,18 +332,6 @@ struct RecipeDetailView: View {
                                     .padding(4)
                                 }
                             }
-                        }
-
-                        // Add log button
-                        NavigationLink(destination: CreateLogView()) {
-                            VStack {
-                                Image(systemName: "plus")
-                                    .font(.system(size: DesignSystem.IconSize.lg))
-                                    .foregroundColor(DesignSystem.Colors.tertiaryText)
-                            }
-                            .frame(width: 80, height: 80)
-                            .background(DesignSystem.Colors.tertiaryBackground)
-                            .cornerRadius(DesignSystem.CornerRadius.sm)
                         }
                     }
                 }

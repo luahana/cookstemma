@@ -99,8 +99,12 @@ struct MainTabView: View {
                     appState.triggerHomeScrollToTop()
                 case .recipes:
                     appState.triggerRecipesScrollToTop()
-                default:
-                    break
+                case .search:
+                    appState.triggerSearchScrollToTop()
+                case .profile:
+                    appState.triggerProfileScrollToTop()
+                case .create:
+                    break  // Create is a sheet, not a tab view
                 }
             }
             previousTab = selectedTab

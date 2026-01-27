@@ -157,6 +157,9 @@ struct LogDetailView: View {
 struct CommentsSection: View {
     let logId: String
     @StateObject private var viewModel: CommentsViewModel
+    @EnvironmentObject private var authManager: AuthManager
+    @State private var showBlockConfirmation = false
+    @State private var userToBlock: UserSummary?
 
     init(logId: String) {
         self.logId = logId
@@ -170,7 +173,18 @@ struct CommentsSection: View {
                 .padding(.horizontal)
 
             ForEach(viewModel.comments) { comment in
-                CommentRow(comment: comment, onLike: { Task { await viewModel.likeComment(comment) } })
+                CommentRow(
+                    comment: comment,
+                    isOwnComment: comment.author.id == authManager.currentUser?.id,
+                    onLike: { Task { await viewModel.likeComment(comment) } },
+                    onBlock: {
+                        userToBlock = comment.author
+                        showBlockConfirmation = true
+                    },
+                    onReport: { reason in
+                        Task { await viewModel.reportUser(comment.author.id, reason: reason) }
+                    }
+                )
             }
 
             if viewModel.hasMore {
@@ -193,12 +207,27 @@ struct CommentsSection: View {
             .padding()
         }
         .onAppear { viewModel.loadComments() }
+        .alert("Block User", isPresented: $showBlockConfirmation) {
+            Button("Block", role: .destructive) {
+                guard let user = userToBlock else { return }
+                Task { await viewModel.blockUser(user.id) }
+            }
+            Button("Cancel", role: .cancel) { userToBlock = nil }
+        } message: {
+            if let user = userToBlock {
+                Text("Are you sure you want to block @\(user.username)? You won't see their content anymore.")
+            }
+        }
     }
 }
 
 struct CommentRow: View {
     let comment: Comment
+    let isOwnComment: Bool
     let onLike: () -> Void
+    let onBlock: () -> Void
+    let onReport: (ReportReason) -> Void
+    @State private var showReportSheet = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
@@ -222,8 +251,29 @@ struct CommentRow: View {
                     }
                 }
                 Spacer()
+                if !isOwnComment {
+                    Menu {
+                        Button(role: .destructive) { onBlock() } label: {
+                            Label("Block User", systemImage: AppIcon.block)
+                        }
+                        Button(role: .destructive) { showReportSheet = true } label: {
+                            Label("Report", systemImage: AppIcon.report)
+                        }
+                    } label: {
+                        Image(systemName: AppIcon.more)
+                            .font(.caption)
+                            .foregroundColor(DesignSystem.Colors.secondaryText)
+                            .padding(DesignSystem.Spacing.xs)
+                    }
+                }
             }
             .padding(.horizontal)
+            .confirmationDialog("Report Comment", isPresented: $showReportSheet, titleVisibility: .visible) {
+                ForEach(ReportReason.allCases, id: \.self) { reason in
+                    Button(reason.displayText) { onReport(reason) }
+                }
+                Button("Cancel", role: .cancel) { }
+            }
 
             // Replies
             if let replies = comment.replies, !replies.isEmpty {

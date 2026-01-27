@@ -10,13 +10,17 @@ enum MockFactory {
         id: String = "user-1",
         username: String = "testuser",
         displayName: String? = "Test User",
-        avatarUrl: String? = nil
+        avatarUrl: String? = nil,
+        level: Int = 5,
+        isFollowing: Bool? = nil
     ) -> UserSummary {
         UserSummary(
             id: id,
             username: username,
             displayName: displayName,
-            avatarUrl: avatarUrl
+            avatarUrl: avatarUrl,
+            level: level,
+            isFollowing: isFollowing
         )
     }
 
@@ -195,17 +199,63 @@ enum MockFactory {
     static func comment(
         id: String = "comment-1",
         content: String = "Great recipe!",
-        isLiked: Bool = false
+        isLiked: Bool = false,
+        isEdited: Bool = false,
+        parentId: String? = nil,
+        replyCount: Int = 0,
+        replies: [Comment]? = nil
     ) -> Comment {
         Comment(
             id: id,
-            author: userSummary(),
             content: content,
+            author: userSummary(),
             likeCount: 5,
             isLiked: isLiked,
+            isEdited: isEdited,
+            parentId: parentId,
+            replies: replies,
+            replyCount: replyCount,
             createdAt: Date(),
-            updatedAt: nil,
-            replies: []
+            updatedAt: nil
+        )
+    }
+
+    static func commentResponse(
+        publicId: String = "comment-1",
+        content: String = "Great recipe!",
+        creatorPublicId: String = "user-1",
+        creatorUsername: String = "testuser",
+        creatorProfileImageUrl: String? = nil,
+        replyCount: Int = 0,
+        likeCount: Int = 5,
+        isLikedByCurrentUser: Bool = false,
+        isEdited: Bool = false
+    ) -> CommentResponse {
+        CommentResponse(
+            publicId: publicId,
+            content: content,
+            creatorPublicId: creatorPublicId,
+            creatorUsername: creatorUsername,
+            creatorProfileImageUrl: creatorProfileImageUrl,
+            replyCount: replyCount,
+            likeCount: likeCount,
+            isLikedByCurrentUser: isLikedByCurrentUser,
+            isEdited: isEdited,
+            isDeleted: false,
+            isHidden: false,
+            createdAt: Date()
+        )
+    }
+
+    static func commentWithReplies(
+        comment: CommentResponse? = nil,
+        replies: [CommentResponse] = [],
+        hasMoreReplies: Bool = false
+    ) -> CommentWithReplies {
+        CommentWithReplies(
+            comment: comment ?? commentResponse(),
+            replies: replies,
+            hasMoreReplies: hasMoreReplies
         )
     }
 

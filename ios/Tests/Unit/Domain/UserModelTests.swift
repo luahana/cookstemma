@@ -384,7 +384,7 @@ final class UserModelTests: XCTestCase {
     func testUpdateProfileRequest_encodesAllFields() throws {
         // Given
         let request = UpdateProfileRequest(
-            displayName: "New Name",
+            username: "newusername",
             bio: "Updated bio",
             avatarImageId: "img-123",
             socialLinks: SocialLinks(
@@ -402,7 +402,7 @@ final class UserModelTests: XCTestCase {
         let decoded = try JSONSerialization.jsonObject(with: data) as? [String: Any]
 
         // Then
-        XCTAssertEqual(decoded?["displayName"] as? String, "New Name")
+        XCTAssertEqual(decoded?["username"] as? String, "newusername")
         XCTAssertEqual(decoded?["bio"] as? String, "Updated bio")
         XCTAssertEqual(decoded?["avatarImageId"] as? String, "img-123")
         XCTAssertNotNil(decoded?["socialLinks"])
@@ -410,9 +410,9 @@ final class UserModelTests: XCTestCase {
     }
 
     func testUpdateProfileRequest_partialUpdate() throws {
-        // Given - only updating display name
+        // Given - only updating username
         let request = UpdateProfileRequest(
-            displayName: "Just New Name",
+            username: "newusername",
             bio: nil,
             avatarImageId: nil,
             socialLinks: nil,
@@ -425,7 +425,7 @@ final class UserModelTests: XCTestCase {
         let decoded = try JSONSerialization.jsonObject(with: data) as? [String: Any]
 
         // Then
-        XCTAssertEqual(decoded?["displayName"] as? String, "Just New Name")
+        XCTAssertEqual(decoded?["username"] as? String, "newusername")
     }
 
     // MARK: - ReportReason Tests

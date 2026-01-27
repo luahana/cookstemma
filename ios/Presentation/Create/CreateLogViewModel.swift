@@ -31,8 +31,9 @@ final class CreateLogViewModel: ObservableObject {
     var contentRemaining: Int { maxContentLength - content.count }
     var hashtagsRemaining: Int { max(0, maxHashtags - hashtags.count) }
 
-    init(logRepository: CookingLogRepositoryProtocol = CookingLogRepository()) {
+    init(recipe: RecipeSummary? = nil, logRepository: CookingLogRepositoryProtocol = CookingLogRepository()) {
         self.logRepository = logRepository
+        self.selectedRecipe = recipe
     }
 
     func addPhoto(_ image: UIImage) {

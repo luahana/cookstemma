@@ -85,7 +85,11 @@ struct SettingsView: View {
                         .foregroundColor(DesignSystem.Colors.secondaryText)
                 }
             }
+            .listRowBackground(Color.clear)
+            .listSectionSpacing(.compact)
         }
+        .listStyle(.insetGrouped)
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Settings")
         .confirmationDialog("Log Out", isPresented: $showLogoutConfirmation) {
             Button("Log Out", role: .destructive) {
@@ -108,42 +112,171 @@ struct SettingsView: View {
 
 // MARK: - Settings Subviews
 struct EditProfileView: View {
-    @State private var displayName = ""
-    @State private var username = ""
-    @State private var bio = ""
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var viewModel = EditProfileViewModel()
 
     var body: some View {
         Form {
-            Section("Profile Photo") {
-                HStack {
-                    Spacer()
-                    VStack {
-                        Circle()
-                            .fill(DesignSystem.Colors.secondaryBackground)
-                            .frame(width: 100, height: 100)
-                            .overlay(Image(systemName: "camera").font(.title))
-                        Button("Change Photo") { }
-                    }
-                    Spacer()
-                }
-            }
-
-            Section("Information") {
-                TextField("Display Name", text: $displayName)
-                TextField("Username", text: $username)
-                TextField("Bio", text: $bio, axis: .vertical)
-                    .lineLimit(3...6)
-            }
-
-            Section("Social Links") {
-                TextField("YouTube URL", text: .constant(""))
-                TextField("Instagram Handle", text: .constant(""))
-            }
+            profilePhotoSection
+            informationSection
+            socialLinksSection
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Edit Profile")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Save") { }
+                saveButton
+            }
+        }
+        .task {
+            await viewModel.loadProfile()
+        }
+        .alert("Error", isPresented: .constant(viewModel.error != nil)) {
+            Button("OK") { viewModel.resetError() }
+        } message: {
+            Text(viewModel.error ?? "")
+        }
+        .onChange(of: viewModel.saveSuccess) { _, success in
+            if success { dismiss() }
+        }
+    }
+
+    // MARK: - Profile Photo Section
+
+    private var profilePhotoSection: some View {
+        Section("Profile Photo") {
+            HStack {
+                Spacer()
+                VStack {
+                    Circle()
+                        .fill(DesignSystem.Colors.secondaryBackground)
+                        .frame(width: 100, height: 100)
+                        .overlay(Image(systemName: "camera").font(.title))
+                    Button("Change Photo") { }
+                }
+                Spacer()
+            }
+        }
+    }
+
+    // MARK: - Information Section
+
+    private var informationSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                Text("Username")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.secondaryText)
+
+                HStack(spacing: DesignSystem.Spacing.sm) {
+                    HStack {
+                        Text("@")
+                            .foregroundColor(DesignSystem.Colors.secondaryText)
+                        TextField("username", text: $viewModel.username)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.sm)
+                    .padding(.vertical, DesignSystem.Spacing.xs)
+                    .background(DesignSystem.Colors.secondaryBackground)
+                    .cornerRadius(DesignSystem.CornerRadius.sm)
+
+                    Button {
+                        Task { await viewModel.checkUsernameAvailability() }
+                    } label: {
+                        if viewModel.isCheckingUsername {
+                            ProgressView()
+                                .frame(width: 60)
+                        } else {
+                            Text("Check")
+                                .frame(width: 60)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!viewModel.canCheckUsername)
+                }
+
+                usernameValidationMessage
+
+                HStack {
+                    Spacer()
+                    Text(viewModel.usernameCharacterCount)
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                Text("Bio")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.secondaryText)
+
+                TextField("Tell us about yourself", text: $viewModel.bio, axis: .vertical)
+                    .lineLimit(3...6)
+            }
+        } header: {
+            Text("Information")
+        } footer: {
+            Text("Username: 5-30 characters, starts with letter. Allowed: a-z, 0-9, . _ -")
+                .font(DesignSystem.Typography.caption)
+        }
+    }
+
+    // MARK: - Username Validation Message
+
+    @ViewBuilder
+    private var usernameValidationMessage: some View {
+        if let formatError = viewModel.usernameFormatError {
+            Label(formatError, systemImage: "exclamationmark.triangle.fill")
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(.orange)
+        } else if viewModel.usernameAvailable == true {
+            Label("Username available", systemImage: "checkmark.circle.fill")
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(.green)
+        } else if viewModel.usernameAvailable == false {
+            Label("Username already taken", systemImage: "xmark.circle.fill")
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(.red)
+        }
+    }
+
+    // MARK: - Social Links Section
+
+    private var socialLinksSection: some View {
+        Section("Social Links") {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                Text("YouTube URL")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                TextField("https://youtube.com/@channel", text: $viewModel.youtubeUrl)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .keyboardType(.URL)
+            }
+
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                Text("Instagram Handle")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                TextField("@username", text: $viewModel.instagramHandle)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+            }
+        }
+    }
+
+    // MARK: - Save Button
+
+    private var saveButton: some View {
+        Group {
+            if viewModel.isSubmitting {
+                ProgressView()
+            } else {
+                Button("Save") {
+                    Task { await viewModel.saveProfile() }
+                }
+                .disabled(!viewModel.canSave)
             }
         }
     }
@@ -175,6 +308,7 @@ struct NotificationSettingsView: View {
                 }
             }
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Notifications")
     }
 }
@@ -203,6 +337,7 @@ struct PrivacySettingsView: View {
                 }
             }
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Privacy")
     }
 }
@@ -257,6 +392,7 @@ struct LanguageSettingsView: View {
                 .foregroundColor(DesignSystem.Colors.primaryText)
             }
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Language")
     }
 }
@@ -294,6 +430,7 @@ struct UnitsSettingsView: View {
             }
             .foregroundColor(DesignSystem.Colors.primaryText)
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Units")
     }
 }
@@ -343,6 +480,7 @@ struct AboutView: View {
                 }
             }
         }
+        .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("About")
     }
 }

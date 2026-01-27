@@ -70,23 +70,40 @@ final class CommentsViewModel: ObservableObject {
 
     private let logId: String
     private let commentRepository: CommentRepositoryProtocol
+    private let userRepository: UserRepositoryProtocol
     private var nextCursor: String?
 
-    init(logId: String, commentRepository: CommentRepositoryProtocol = CommentRepository()) {
+    init(
+        logId: String,
+        commentRepository: CommentRepositoryProtocol = CommentRepository(),
+        userRepository: UserRepositoryProtocol = UserRepository()
+    ) {
         self.logId = logId
         self.commentRepository = commentRepository
+        self.userRepository = userRepository
     }
 
     func loadComments() {
         guard !isLoading else { return }
         isLoading = true
         Task {
+            #if DEBUG
+            print("[Comments] Loading comments for log: \(logId)")
+            #endif
             let result = await commentRepository.getComments(logId: logId, cursor: nil)
             isLoading = false
-            if case .success(let response) = result {
+            switch result {
+            case .success(let response):
+                #if DEBUG
+                print("[Comments] Loaded \(response.content.count) comments, hasMore: \(response.hasMore)")
+                #endif
                 comments = response.content
                 nextCursor = response.nextCursor
                 hasMore = response.hasMore
+            case .failure(let error):
+                #if DEBUG
+                print("[Comments] Failed to load: \(error)")
+                #endif
             }
         }
     }
@@ -95,12 +112,23 @@ final class CommentsViewModel: ObservableObject {
         guard !isLoading, hasMore else { return }
         isLoading = true
         Task {
+            #if DEBUG
+            print("[Comments] Loading more comments, cursor: \(nextCursor ?? "nil")")
+            #endif
             let result = await commentRepository.getComments(logId: logId, cursor: nextCursor)
             isLoading = false
-            if case .success(let response) = result {
+            switch result {
+            case .success(let response):
+                #if DEBUG
+                print("[Comments] Loaded \(response.content.count) more comments")
+                #endif
                 comments.append(contentsOf: response.content)
                 nextCursor = response.nextCursor
                 hasMore = response.hasMore
+            case .failure(let error):
+                #if DEBUG
+                print("[Comments] Failed to load more: \(error)")
+                #endif
             }
         }
     }
@@ -137,5 +165,27 @@ final class CommentsViewModel: ObservableObject {
         if case .failure = result {
             comments[index] = comment
         }
+    }
+
+    func blockUser(_ userId: String) async {
+        let result = await userRepository.blockUser(userId: userId)
+        if case .success = result {
+            // Remove all comments from blocked user
+            comments.removeAll { $0.author.id == userId }
+            #if DEBUG
+            print("[Comments] Blocked user \(userId), removed their comments")
+            #endif
+        }
+    }
+
+    func reportUser(_ userId: String, reason: ReportReason) async {
+        let result = await userRepository.reportUser(userId: userId, reason: reason)
+        #if DEBUG
+        if case .success = result {
+            print("[Comments] Reported user \(userId) for: \(reason.rawValue)")
+        } else if case .failure(let error) = result {
+            print("[Comments] Failed to report user: \(error)")
+        }
+        #endif
     }
 }

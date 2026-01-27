@@ -54,6 +54,7 @@ struct FollowersListView: View {
                 }
             }
             .listStyle(.plain)
+            .contentMargins(.bottom, 80, for: .scrollContent)
         }
         .navigationTitle(selectedTab.rawValue)
         .onChange(of: selectedTab) { newTab in

@@ -136,6 +136,14 @@ export async function generateMetadata({
     },
     description: siteConfig.description,
     metadataBase: new URL(siteConfig.url),
+    icons: {
+      icon: [
+        { url: '/icon.svg', sizes: '48x48', type: 'image/svg+xml' },
+      ],
+      apple: [
+        { url: '/icon.svg', sizes: '180x180', type: 'image/svg+xml' },
+      ],
+    },
     alternates: {
       canonical: `${baseUrl}/${locale}`,
       languages,

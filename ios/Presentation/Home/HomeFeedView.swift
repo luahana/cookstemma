@@ -29,7 +29,7 @@ struct HomeFeedView: View {
                     VStack {
                         Color.clear.frame(height: headerHeight)
                         Spacer()
-                        IconEmptyState(icon: AppIcon.log, subtitle: "No cooking logs yet")
+                        IconEmptyState(useLogoIcon: true, subtitle: "No cooking logs yet")
                         Spacer()
                     }
                 case .error(let msg):
@@ -84,7 +84,7 @@ struct HomeFeedView: View {
                 Image("LogoIcon")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 28, height: 28)
+                    .frame(width: 36, height: 36)
                 Text("Cookstemma")
                     .font(DesignSystem.Typography.headline)
                     .foregroundColor(DesignSystem.Colors.text)
@@ -317,7 +317,7 @@ struct RecipeCardCompact: View {
 
                     // Log count
                     HStack(spacing: 2) {
-                        Image(systemName: AppIcon.log)
+                        LogoIconView(size: 12)
                         Text("\(recipe.logCount)")
                     }
                     .font(DesignSystem.Typography.caption)

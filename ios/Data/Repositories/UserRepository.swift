@@ -37,6 +37,17 @@ final class UserRepository: UserRepositoryProtocol {
         }
     }
 
+    func checkUsernameAvailability(_ username: String) async -> RepositoryResult<Bool> {
+        do {
+            let response: UsernameAvailabilityResponse = try await apiClient.request(UserEndpoint.checkUsername(username))
+            return .success(response.available)
+        } catch let error as APIError {
+            return .failure(mapError(error))
+        } catch {
+            return .failure(.unknown)
+        }
+    }
+
     func getUserRecipes(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeSummary>> {
         do {
             return .success(try await apiClient.request(UserEndpoint.userRecipes(userId: userId, cursor: cursor)))

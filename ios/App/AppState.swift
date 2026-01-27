@@ -13,6 +13,10 @@ final class AppState: ObservableObject {
     @Published var homeScrollToTopTrigger: Int = 0
     /// Trigger to scroll recipes list to top and refresh (incremented on each trigger)
     @Published var recipesScrollToTopTrigger: Int = 0
+    /// Trigger to scroll search view to top and refresh (incremented on each trigger)
+    @Published var searchScrollToTopTrigger: Int = 0
+    /// Trigger to scroll profile view to top and refresh (incremented on each trigger)
+    @Published var profileScrollToTopTrigger: Int = 0
 
     func triggerHomeScrollToTop() {
         homeScrollToTopTrigger += 1
@@ -20,6 +24,14 @@ final class AppState: ObservableObject {
 
     func triggerRecipesScrollToTop() {
         recipesScrollToTopTrigger += 1
+    }
+
+    func triggerSearchScrollToTop() {
+        searchScrollToTopTrigger += 1
+    }
+
+    func triggerProfileScrollToTop() {
+        profileScrollToTopTrigger += 1
     }
 
     /// Call this to require authentication before performing an action

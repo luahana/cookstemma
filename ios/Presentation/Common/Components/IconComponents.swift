@@ -282,16 +282,57 @@ struct CookCountBadge: View {
     }
 }
 
+// MARK: - Logo Icon View (Reusable)
+struct LogoIconView: View {
+    var size: CGFloat = DesignSystem.IconSize.lg
+    var color: Color? = nil
+    var useOriginalColors: Bool = true
+
+    var body: some View {
+        if useOriginalColors {
+            Image("LogoIcon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+        } else {
+            Image("LogoIcon")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+                .foregroundColor(color ?? DesignSystem.Colors.primary)
+        }
+    }
+}
+
 // MARK: - Empty State (Icon-Focused)
 struct IconEmptyState: View {
-    let icon: String
+    let icon: String?
+    var useLogoIcon: Bool = false
     var subtitle: String? = nil
+
+    init(icon: String, subtitle: String? = nil) {
+        self.icon = icon
+        self.useLogoIcon = false
+        self.subtitle = subtitle
+    }
+
+    init(useLogoIcon: Bool = true, subtitle: String? = nil) {
+        self.icon = nil
+        self.useLogoIcon = useLogoIcon
+        self.subtitle = subtitle
+    }
 
     var body: some View {
         VStack(spacing: DesignSystem.Spacing.md) {
-            Image(systemName: icon)
-                .font(.system(size: DesignSystem.IconSize.xxl))
-                .foregroundColor(DesignSystem.Colors.tertiaryText)
+            if useLogoIcon {
+                LogoIconView(size: DesignSystem.IconSize.xxl)
+                    .opacity(0.5)
+            } else if let icon = icon {
+                Image(systemName: icon)
+                    .font(.system(size: DesignSystem.IconSize.xxl))
+                    .foregroundColor(DesignSystem.Colors.tertiaryText)
+            }
             if let subtitle = subtitle {
                 Text(subtitle)
                     .font(DesignSystem.Typography.caption)

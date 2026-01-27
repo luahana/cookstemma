@@ -18,23 +18,71 @@ enum SearchTab: CaseIterable {
     }
 }
 
+// MARK: - Navigation Destinations
+enum SearchNavDestination: Hashable {
+    case recipe(id: String)
+    case log(id: String)
+    case user(id: String)
+    case hashtag(name: String)
+}
+
 struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
+    @EnvironmentObject private var appState: AppState
     @State private var selectedTab: SearchTab = .all
+    @State private var navigationPath = NavigationPath()
     @FocusState private var isSearchFocused: Bool
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             VStack(spacing: 0) {
-                searchBar
+                if !viewModel.showAllRecipes && !viewModel.showAllLogs {
+                    searchBar
+                }
                 contentView
             }
+            .frame(maxHeight: .infinity, alignment: .top)
             .navigationBarHidden(true)
+            .navigationDestination(for: SearchNavDestination.self) { destination in
+                switch destination {
+                case .recipe(let id):
+                    RecipeDetailView(recipeId: id)
+                case .log(let id):
+                    LogDetailView(logId: id)
+                case .user(let id):
+                    ProfileView(userId: id)
+                case .hashtag(let name):
+                    HashtagView(hashtag: name)
+                }
+            }
         }
         .onAppear {
             viewModel.loadRecentSearches()
             viewModel.loadHomeFeed()
         }
+        .onReceive(appState.$searchScrollToTopTrigger.dropFirst()) { _ in
+            handleScrollToTop()
+        }
+    }
+
+    private func handleScrollToTop() {
+        // Pop to root if navigated
+        if !navigationPath.isEmpty {
+            navigationPath = NavigationPath()
+        }
+
+        // Reset "see all" views if active
+        if viewModel.showAllRecipes || viewModel.showAllLogs {
+            viewModel.resetSeeAllState()
+        }
+
+        // Clear search if active
+        if !viewModel.query.isEmpty {
+            viewModel.clearSearch()
+        }
+
+        // Refresh home feed
+        viewModel.loadHomeFeed()
     }
 
     // MARK: - Search Bar
@@ -107,6 +155,9 @@ struct SearchView: View {
             .padding(.vertical, DesignSystem.Spacing.md)
             .safeAreaPadding(.bottom)
         }
+        .refreshable {
+            viewModel.loadHomeFeed()
+        }
     }
 
     private var trendingRecipesSection: some View {
@@ -150,7 +201,7 @@ struct SearchView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: DesignSystem.Spacing.sm) {
                         ForEach(viewModel.trendingRecipes) { recipe in
-                            NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
+                            NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
                                 HorizontalRecipeCard(recipe: recipe)
                             }
                             .buttonStyle(.plain)
@@ -182,7 +233,7 @@ struct SearchView: View {
             } else {
                 FlowLayout(spacing: DesignSystem.Spacing.sm) {
                     ForEach(viewModel.trendingHashtags, id: \.name) { hashtag in
-                        NavigationLink(destination: HashtagView(hashtag: hashtag.name)) {
+                        NavigationLink(value: SearchNavDestination.hashtag(name: hashtag.name)) {
                             Text("#\(hashtag.name)")
                                 .font(DesignSystem.Typography.subheadline)
                                 .foregroundColor(DesignSystem.Colors.primary)
@@ -203,9 +254,7 @@ struct SearchView: View {
             // Section header
             HStack {
                 HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: AppIcon.log)
-                        .font(.system(size: DesignSystem.IconSize.md))
-                        .foregroundColor(DesignSystem.Colors.primary)
+                    LogoIconView(size: DesignSystem.IconSize.lg)
                     Text("Recent Cooking Logs")
                         .font(DesignSystem.Typography.headline)
                         .foregroundColor(DesignSystem.Colors.text)
@@ -234,12 +283,12 @@ struct SearchView: View {
                 }
                 .frame(height: 180)
             } else if viewModel.recentLogs.isEmpty {
-                emptyStateCard(icon: AppIcon.log, message: "No cooking logs yet")
+                emptyStateCardWithLogo(message: "No cooking logs yet")
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: DesignSystem.Spacing.sm) {
                         ForEach(viewModel.recentLogs) { log in
-                            NavigationLink(destination: LogDetailView(logId: log.id)) {
+                            NavigationLink(value: SearchNavDestination.log(id: log.id)) {
                                 HorizontalLogCard(log: log)
                             }
                             .buttonStyle(.plain)
@@ -258,6 +307,23 @@ struct SearchView: View {
                 Image(systemName: icon)
                     .font(.system(size: DesignSystem.IconSize.xl))
                     .foregroundColor(DesignSystem.Colors.tertiaryText)
+                Text(message)
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.tertiaryText)
+            }
+            Spacer()
+        }
+        .frame(height: 120)
+        .background(DesignSystem.Colors.secondaryBackground)
+        .cornerRadius(DesignSystem.CornerRadius.md)
+    }
+
+    private func emptyStateCardWithLogo(message: String) -> some View {
+        HStack {
+            Spacer()
+            VStack(spacing: DesignSystem.Spacing.xs) {
+                LogoIconView(size: DesignSystem.IconSize.xl)
+                    .opacity(0.5)
                 Text(message)
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.tertiaryText)
@@ -337,8 +403,8 @@ struct SearchView: View {
     // MARK: - See All Views
 
     private var seeAllRecipesView: some View {
-        VStack(spacing: 0) {
-            // Back header
+        List {
+            // Back header as first row
             HStack {
                 Button {
                     viewModel.showAllRecipes = false
@@ -357,23 +423,25 @@ struct SearchView: View {
                 // Spacer for balance
                 Color.clear.frame(width: 60)
             }
-            .padding(.horizontal, DesignSystem.Spacing.md)
-            .padding(.vertical, DesignSystem.Spacing.sm)
+            .listRowInsets(EdgeInsets(top: 0, leading: DesignSystem.Spacing.md, bottom: 0, trailing: DesignSystem.Spacing.md))
+            .listRowSeparator(.hidden)
 
-            List {
-                ForEach(viewModel.trendingRecipes) { recipe in
-                    NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
-                        RecipeCardCompactFromHome(recipe: recipe)
-                    }
+            ForEach(viewModel.trendingRecipes) { recipe in
+                NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
+                    RecipeCardCompactFromHome(recipe: recipe)
                 }
             }
-            .listStyle(.plain)
+        }
+        .listStyle(.plain)
+        .contentMargins(.bottom, 80, for: .scrollContent)
+        .refreshable {
+            viewModel.loadHomeFeed()
         }
     }
 
     private var seeAllLogsView: some View {
-        VStack(spacing: 0) {
-            // Back header
+        List {
+            // Back header as first row
             HStack {
                 Button {
                     viewModel.showAllLogs = false
@@ -392,17 +460,19 @@ struct SearchView: View {
                 // Spacer for balance
                 Color.clear.frame(width: 60)
             }
-            .padding(.horizontal, DesignSystem.Spacing.md)
-            .padding(.vertical, DesignSystem.Spacing.sm)
+            .listRowInsets(EdgeInsets(top: 0, leading: DesignSystem.Spacing.md, bottom: 0, trailing: DesignSystem.Spacing.md))
+            .listRowSeparator(.hidden)
 
-            List {
-                ForEach(viewModel.recentLogs) { log in
-                    NavigationLink(destination: LogDetailView(logId: log.id)) {
-                        LogCardCompactFromHome(log: log)
-                    }
+            ForEach(viewModel.recentLogs) { log in
+                NavigationLink(value: SearchNavDestination.log(id: log.id)) {
+                    LogCardCompactFromHome(log: log)
                 }
             }
-            .listStyle(.plain)
+        }
+        .listStyle(.plain)
+        .contentMargins(.bottom, 80, for: .scrollContent)
+        .refreshable {
+            viewModel.loadHomeFeed()
         }
     }
 
@@ -417,13 +487,18 @@ struct SearchView: View {
                         selectedTab = tab
                     } label: {
                         VStack(spacing: DesignSystem.Spacing.xxs) {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: DesignSystem.IconSize.md))
-                                .foregroundColor(
-                                    selectedTab == tab
-                                        ? DesignSystem.Colors.primary
-                                        : DesignSystem.Colors.tertiaryText
-                                )
+                            if tab == .logs {
+                                LogoIconView(size: DesignSystem.IconSize.md)
+                                    .opacity(selectedTab == tab ? 1.0 : 0.4)
+                            } else {
+                                Image(systemName: tab.icon)
+                                    .font(.system(size: DesignSystem.IconSize.md))
+                                    .foregroundColor(
+                                        selectedTab == tab
+                                            ? DesignSystem.Colors.primary
+                                            : DesignSystem.Colors.tertiaryText
+                                    )
+                            }
 
                             Circle()
                                 .fill(selectedTab == tab ? DesignSystem.Colors.primary : Color.clear)
@@ -454,6 +529,7 @@ struct SearchView: View {
                 }
             }
             .listStyle(.plain)
+            .contentMargins(.bottom, 80, for: .scrollContent)
         }
     }
 
@@ -468,7 +544,7 @@ struct SearchView: View {
         if !viewModel.results.recipes.isEmpty {
             Section("Recipes (\(viewModel.results.recipes.count))") {
                 ForEach(viewModel.results.recipes.prefix(3)) { recipe in
-                    NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
+                    NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
                         RecipeCardCompact(recipe: recipe)
                     }
                 }
@@ -478,7 +554,7 @@ struct SearchView: View {
         if !viewModel.results.logs.isEmpty {
             Section("Cooking Logs (\(viewModel.results.logs.count))") {
                 ForEach(viewModel.results.logs.prefix(3)) { log in
-                    NavigationLink(destination: LogDetailView(logId: log.id)) {
+                    NavigationLink(value: SearchNavDestination.log(id: log.id)) {
                         LogCardCompact(log: log)
                     }
                 }
@@ -488,7 +564,7 @@ struct SearchView: View {
         if !viewModel.results.users.isEmpty {
             Section("Users (\(viewModel.results.users.count))") {
                 ForEach(viewModel.results.users.prefix(3)) { user in
-                    NavigationLink(destination: ProfileView(userId: user.id)) {
+                    NavigationLink(value: SearchNavDestination.user(id: user.id)) {
                         UserRow(user: user)
                     }
                 }
@@ -498,7 +574,7 @@ struct SearchView: View {
         if !viewModel.results.hashtags.isEmpty {
             Section("Hashtags") {
                 ForEach(viewModel.results.hashtags.prefix(3).map { $0 }, id: \.id) { (hashtag: HashtagCount) in
-                    NavigationLink(destination: HashtagView(hashtag: hashtag.name)) {
+                    NavigationLink(value: SearchNavDestination.hashtag(name: hashtag.name)) {
                         HStack {
                             Text("#\(hashtag.name)").fontWeight(.medium)
                             Spacer()
@@ -513,7 +589,7 @@ struct SearchView: View {
 
     private var recipesResultsSection: some View {
         ForEach(viewModel.results.recipes) { recipe in
-            NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
+            NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
                 RecipeCardCompact(recipe: recipe)
             }
         }
@@ -521,7 +597,7 @@ struct SearchView: View {
 
     private var logsResultsSection: some View {
         ForEach(viewModel.results.logs) { log in
-            NavigationLink(destination: LogDetailView(logId: log.id)) {
+            NavigationLink(value: SearchNavDestination.log(id: log.id)) {
                 LogCardCompact(log: log)
             }
         }
@@ -529,7 +605,7 @@ struct SearchView: View {
 
     private var usersResultsSection: some View {
         ForEach(viewModel.results.users) { user in
-            NavigationLink(destination: ProfileView(userId: user.id)) {
+            NavigationLink(value: SearchNavDestination.user(id: user.id)) {
                 UserRow(user: user)
             }
         }
@@ -537,7 +613,7 @@ struct SearchView: View {
 
     private var hashtagsResultsSection: some View {
         ForEach(viewModel.results.hashtags) { hashtag in
-            NavigationLink(destination: HashtagView(hashtag: hashtag.name)) {
+            NavigationLink(value: SearchNavDestination.hashtag(name: hashtag.name)) {
                 HStack {
                     Text("#\(hashtag.name)").fontWeight(.medium)
                     Spacer()
@@ -552,19 +628,19 @@ struct SearchView: View {
     private func searchResultRow(_ result: SearchResult) -> some View {
         switch result {
         case .recipe(let recipe):
-            NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
+            NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
                 RecipeCardCompact(recipe: recipe)
             }
         case .log(let log):
-            NavigationLink(destination: LogDetailView(logId: log.id)) {
+            NavigationLink(value: SearchNavDestination.log(id: log.id)) {
                 LogCardCompact(log: log)
             }
         case .user(let user):
-            NavigationLink(destination: ProfileView(userId: user.id)) {
+            NavigationLink(value: SearchNavDestination.user(id: user.id)) {
                 UserRow(user: user)
             }
         case .hashtag(let hashtag):
-            NavigationLink(destination: HashtagView(hashtag: hashtag.name)) {
+            NavigationLink(value: SearchNavDestination.hashtag(name: hashtag.name)) {
                 HStack {
                     Text("#\(hashtag.name)").fontWeight(.medium)
                     Spacer()
@@ -700,7 +776,7 @@ struct RecipeCardCompactFromHome: View {
                     }
 
                     HStack(spacing: 2) {
-                        Image(systemName: AppIcon.log)
+                        LogoIconView(size: 12)
                         Text("\(recipe.logCount)")
                     }
                     .font(DesignSystem.Typography.caption)
@@ -810,7 +886,7 @@ struct HashtagView: View {
                 HashtagTabButton(icon: AppIcon.recipe, isSelected: selectedTab == 0) {
                     selectedTab = 0
                 }
-                HashtagTabButton(icon: AppIcon.log, isSelected: selectedTab == 1) {
+                HashtagTabButton(useLogoIcon: true, isSelected: selectedTab == 1) {
                     selectedTab = 1
                 }
             }
@@ -838,20 +914,40 @@ struct HashtagView: View {
 }
 
 struct HashtagTabButton: View {
-    let icon: String
+    let icon: String?
+    var useLogoIcon: Bool = false
     let isSelected: Bool
     let action: () -> Void
+
+    init(icon: String, isSelected: Bool, action: @escaping () -> Void) {
+        self.icon = icon
+        self.useLogoIcon = false
+        self.isSelected = isSelected
+        self.action = action
+    }
+
+    init(useLogoIcon: Bool, isSelected: Bool, action: @escaping () -> Void) {
+        self.icon = nil
+        self.useLogoIcon = useLogoIcon
+        self.isSelected = isSelected
+        self.action = action
+    }
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: DesignSystem.Spacing.xxs) {
-                Image(systemName: icon)
-                    .font(.system(size: DesignSystem.IconSize.lg))
-                    .foregroundColor(
-                        isSelected
-                            ? DesignSystem.Colors.primary
-                            : DesignSystem.Colors.tertiaryText
-                    )
+                if useLogoIcon {
+                    LogoIconView(size: DesignSystem.IconSize.lg)
+                        .opacity(isSelected ? 1.0 : 0.4)
+                } else if let icon = icon {
+                    Image(systemName: icon)
+                        .font(.system(size: DesignSystem.IconSize.lg))
+                        .foregroundColor(
+                            isSelected
+                                ? DesignSystem.Colors.primary
+                                : DesignSystem.Colors.tertiaryText
+                        )
+                }
                 Circle()
                     .fill(isSelected ? DesignSystem.Colors.primary : Color.clear)
                     .frame(width: 4, height: 4)
@@ -913,4 +1009,4 @@ struct FlowLayout: Layout {
     }
 }
 
-#Preview { SearchView() }
+#Preview { SearchView().environmentObject(AppState()) }

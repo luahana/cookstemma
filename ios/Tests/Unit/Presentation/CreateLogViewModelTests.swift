@@ -39,6 +39,26 @@ final class CreateLogViewModelTests: XCTestCase {
         XCTAssertEqual(sut.photosRemaining, 5)
     }
 
+    func testInit_withPreSelectedRecipe_setsRecipe() {
+        // Given
+        let recipe = createMockRecipeSummary()
+
+        // When
+        let viewModel = CreateLogViewModel(recipe: recipe, logRepository: mockRepository)
+
+        // Then
+        XCTAssertEqual(viewModel.selectedRecipe?.id, recipe.id)
+        XCTAssertEqual(viewModel.selectedRecipe?.title, recipe.title)
+    }
+
+    func testInit_withNilRecipe_hasNoRecipe() {
+        // When
+        let viewModel = CreateLogViewModel(recipe: nil, logRepository: mockRepository)
+
+        // Then
+        XCTAssertNil(viewModel.selectedRecipe)
+    }
+
     // MARK: - addPhoto Tests
 
     func testAddPhoto_addsPhotoToList() {

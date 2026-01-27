@@ -202,6 +202,33 @@ struct LinkedRecipeSummary: Codable, Identifiable, Equatable {
     var coverImageUrl: String? { thumbnail }
 }
 
+// MARK: - Recipe Log Item (for recipe detail page)
+
+/// Simplified log model matching backend LogPostSummaryDto
+struct RecipeLogItem: Codable, Identifiable, Equatable {
+    let id: String
+    let title: String?
+    let content: String?
+    let rating: Int
+    let thumbnailUrl: String?
+    let creatorPublicId: String
+    let userName: String
+    let foodName: String?
+    let recipeTitle: String?
+    let hashtags: [String]?
+    let isVariant: Bool?
+    let isPrivate: Bool?
+    let commentCount: Int?
+    let cookingStyle: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id = "publicId"
+        case title, content, rating, thumbnailUrl
+        case creatorPublicId, userName, foodName, recipeTitle
+        case hashtags, isVariant, isPrivate, commentCount, cookingStyle
+    }
+}
+
 // MARK: - Image Info
 
 struct ImageInfo: Codable, Identifiable, Equatable {

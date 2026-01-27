@@ -1,7 +1,30 @@
 import Foundation
 
 enum ProfileState: Equatable { case idle, loading, loaded, error(String) }
-enum ProfileTab: String, CaseIterable { case recipes, logs }
+enum ProfileTab: String, CaseIterable { case recipes, logs, saved }
+enum VisibilityFilter: String, CaseIterable {
+    case all, publicOnly, privateOnly
+
+    var title: String {
+        switch self {
+        case .all: return "All"
+        case .publicOnly: return "Public"
+        case .privateOnly: return "Private"
+        }
+    }
+}
+
+enum SavedContentFilter: String, CaseIterable {
+    case all, recipes, logs
+
+    var title: String {
+        switch self {
+        case .all: return "All"
+        case .recipes: return "Recipes"
+        case .logs: return "Logs"
+        }
+    }
+}
 
 @MainActor
 final class ProfileViewModel: ObservableObject {
@@ -11,21 +34,36 @@ final class ProfileViewModel: ObservableObject {
     @Published private(set) var isOwnProfile: Bool
     @Published private(set) var recipes: [RecipeSummary] = []
     @Published private(set) var logs: [CookingLogSummary] = []
+    @Published private(set) var savedRecipes: [RecipeSummary] = []
+    @Published private(set) var savedLogs: [CookingLogSummary] = []
     @Published private(set) var isLoadingContent = false
     @Published private(set) var hasMoreRecipes = true
     @Published private(set) var hasMoreLogs = true
+    @Published private(set) var hasMoreSavedRecipes = true
+    @Published private(set) var hasMoreSavedLogs = true
     @Published var selectedTab: ProfileTab = .recipes
+    @Published var visibilityFilter: VisibilityFilter = .all
+    @Published var savedContentFilter: SavedContentFilter = .all
 
     private let userId: String?
     private let userRepository: UserRepositoryProtocol
     private let logRepository: CookingLogRepositoryProtocol
+    private let savedContentRepository: SavedContentRepositoryProtocol
     private var recipesNextCursor: String?
     private var logsNextCursor: String?
+    private var savedRecipesNextCursor: String?
+    private var savedLogsNextCursor: String?
 
-    init(userId: String? = nil, userRepository: UserRepositoryProtocol = UserRepository(), logRepository: CookingLogRepositoryProtocol = CookingLogRepository()) {
+    init(
+        userId: String? = nil,
+        userRepository: UserRepositoryProtocol = UserRepository(),
+        logRepository: CookingLogRepositoryProtocol = CookingLogRepository(),
+        savedContentRepository: SavedContentRepositoryProtocol = SavedContentRepository()
+    ) {
         self.userId = userId
         self.userRepository = userRepository
         self.logRepository = logRepository
+        self.savedContentRepository = savedContentRepository
         self.isOwnProfile = userId == nil
     }
 
@@ -42,8 +80,13 @@ final class ProfileViewModel: ObservableObject {
             switch selectedTab {
             case .recipes: await loadRecipes(refresh: true)
             case .logs: await loadLogs(refresh: true)
+            case .saved: await loadSavedContent(refresh: true)
             }
         }
+    }
+
+    var savedCount: Int {
+        myProfile?.savedCount ?? 0
     }
 
     func toggleFollow() async {
@@ -111,5 +154,44 @@ final class ProfileViewModel: ObservableObject {
             bio: p.bio, level: p.level, recipeCount: p.recipeCount, logCount: p.logCount,
             followerCount: p.followerCount + (isFollowing ? 1 : -1), followingCount: p.followingCount, socialLinks: p.socialLinks,
             isFollowing: isFollowing, isFollowedBy: p.isFollowedBy, isBlocked: p.isBlocked, createdAt: p.createdAt)
+    }
+
+    private func loadSavedContent(refresh: Bool) async {
+        guard isOwnProfile else { return }
+        isLoadingContent = true
+        defer { isLoadingContent = false }
+
+        // Load both saved recipes and logs in parallel
+        async let recipesTask = savedContentRepository.getSavedRecipes(
+            cursor: refresh ? nil : savedRecipesNextCursor
+        )
+        async let logsTask = savedContentRepository.getSavedLogs(
+            cursor: refresh ? nil : savedLogsNextCursor
+        )
+
+        let recipesResult = await recipesTask
+        let logsResult = await logsTask
+
+        if case .success(let response) = recipesResult {
+            savedRecipes = refresh ? response.content : savedRecipes + response.content
+            savedRecipesNextCursor = response.nextCursor
+            hasMoreSavedRecipes = response.hasMore
+        }
+
+        if case .success(let response) = logsResult {
+            savedLogs = refresh ? response.content : savedLogs + response.content
+            savedLogsNextCursor = response.nextCursor
+            hasMoreSavedLogs = response.hasMore
+        }
+    }
+
+    func loadMoreContent() {
+        Task {
+            switch selectedTab {
+            case .recipes: await loadRecipes(refresh: false)
+            case .logs: await loadLogs(refresh: false)
+            case .saved: await loadSavedContent(refresh: false)
+            }
+        }
     }
 }

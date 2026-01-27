@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>946572066572-bng1tcf3i8r0g06orikdpnoh0ar5k1u9.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.946572066572-bng1tcf3i8r0g06orikdpnoh0ar5k1u9</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCbV39P5EQs2fgLEEY2UMVCABv8sO64Nco</string>
+	<key>GCM_SENDER_ID</key>
+	<string>946572066572</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.cookstemma.app</string>
+	<key>PROJECT_ID</key>
+	<string>cookstemma-dev</string>
+	<key>STORAGE_BUCKET</key>
+	<string>cookstemma-dev.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:946572066572:ios:681c8b839946e2fe4e9329</string>
+</dict>
+</plist>

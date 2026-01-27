@@ -28,3 +28,6 @@ iOSInjectionProject/
 # Environment files
 .env*
 !.env.example
+
+# Firebase config (contains API keys)
+Resources/GoogleService-Info.plist
