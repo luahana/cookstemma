@@ -42,7 +42,7 @@ struct SavedView: View {
                     action: { selectedTab = .recipes }
                 )
                 SavedTabIconButton(
-                    icon: AppIcon.log,
+                    useLogoIcon: true,
                     isSelected: selectedTab == .logs,
                     action: { selectedTab = .logs }
                 )
@@ -90,16 +90,36 @@ struct SavedView: View {
 
 // MARK: - Tab Icon Button
 struct SavedTabIconButton: View {
-    let icon: String
+    let icon: String?
+    var useLogoIcon: Bool = false
     let isSelected: Bool
     let action: () -> Void
+
+    init(icon: String, isSelected: Bool, action: @escaping () -> Void) {
+        self.icon = icon
+        self.useLogoIcon = false
+        self.isSelected = isSelected
+        self.action = action
+    }
+
+    init(useLogoIcon: Bool, isSelected: Bool, action: @escaping () -> Void) {
+        self.icon = nil
+        self.useLogoIcon = useLogoIcon
+        self.isSelected = isSelected
+        self.action = action
+    }
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: DesignSystem.Spacing.xxs) {
-                Image(systemName: icon)
-                    .font(.system(size: DesignSystem.IconSize.lg))
-                    .foregroundColor(isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.tertiaryText)
+                if useLogoIcon {
+                    LogoIconView(size: DesignSystem.IconSize.lg)
+                        .opacity(isSelected ? 1.0 : 0.4)
+                } else if let icon = icon {
+                    Image(systemName: icon)
+                        .font(.system(size: DesignSystem.IconSize.lg))
+                        .foregroundColor(isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.tertiaryText)
+                }
 
                 // Selection indicator
                 Circle()

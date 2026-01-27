@@ -278,9 +278,7 @@ struct RecipeDetailView: View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
             // Header with icon and count
             HStack {
-                Image(systemName: AppIcon.log)
-                    .font(.system(size: DesignSystem.IconSize.lg))
-                    .foregroundColor(DesignSystem.Colors.primary)
+                LogoIconView(size: DesignSystem.IconSize.lg)
                 Spacer()
                 Text("\(viewModel.logs.count)")
                     .font(DesignSystem.Typography.caption)

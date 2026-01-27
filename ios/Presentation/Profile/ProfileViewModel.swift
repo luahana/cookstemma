@@ -14,6 +14,18 @@ enum VisibilityFilter: String, CaseIterable {
     }
 }
 
+enum SavedContentFilter: String, CaseIterable {
+    case all, recipes, logs
+
+    var title: String {
+        switch self {
+        case .all: return "All"
+        case .recipes: return "Recipes"
+        case .logs: return "Logs"
+        }
+    }
+}
+
 @MainActor
 final class ProfileViewModel: ObservableObject {
     @Published private(set) var state: ProfileState = .idle
@@ -31,6 +43,7 @@ final class ProfileViewModel: ObservableObject {
     @Published private(set) var hasMoreSavedLogs = true
     @Published var selectedTab: ProfileTab = .recipes
     @Published var visibilityFilter: VisibilityFilter = .all
+    @Published var savedContentFilter: SavedContentFilter = .all
 
     private let userId: String?
     private let userRepository: UserRepositoryProtocol

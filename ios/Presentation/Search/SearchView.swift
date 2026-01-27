@@ -248,9 +248,7 @@ struct SearchView: View {
             // Section header
             HStack {
                 HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: AppIcon.log)
-                        .font(.system(size: DesignSystem.IconSize.md))
-                        .foregroundColor(DesignSystem.Colors.primary)
+                    LogoIconView(size: DesignSystem.IconSize.md)
                     Text("Recent Cooking Logs")
                         .font(DesignSystem.Typography.headline)
                         .foregroundColor(DesignSystem.Colors.text)
@@ -279,7 +277,7 @@ struct SearchView: View {
                 }
                 .frame(height: 180)
             } else if viewModel.recentLogs.isEmpty {
-                emptyStateCard(icon: AppIcon.log, message: "No cooking logs yet")
+                emptyStateCardWithLogo(message: "No cooking logs yet")
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: DesignSystem.Spacing.sm) {
@@ -303,6 +301,23 @@ struct SearchView: View {
                 Image(systemName: icon)
                     .font(.system(size: DesignSystem.IconSize.xl))
                     .foregroundColor(DesignSystem.Colors.tertiaryText)
+                Text(message)
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.tertiaryText)
+            }
+            Spacer()
+        }
+        .frame(height: 120)
+        .background(DesignSystem.Colors.secondaryBackground)
+        .cornerRadius(DesignSystem.CornerRadius.md)
+    }
+
+    private func emptyStateCardWithLogo(message: String) -> some View {
+        HStack {
+            Spacer()
+            VStack(spacing: DesignSystem.Spacing.xs) {
+                LogoIconView(size: DesignSystem.IconSize.xl)
+                    .opacity(0.5)
                 Text(message)
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.tertiaryText)
@@ -462,13 +477,18 @@ struct SearchView: View {
                         selectedTab = tab
                     } label: {
                         VStack(spacing: DesignSystem.Spacing.xxs) {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: DesignSystem.IconSize.md))
-                                .foregroundColor(
-                                    selectedTab == tab
-                                        ? DesignSystem.Colors.primary
-                                        : DesignSystem.Colors.tertiaryText
-                                )
+                            if tab == .logs {
+                                LogoIconView(size: DesignSystem.IconSize.md)
+                                    .opacity(selectedTab == tab ? 1.0 : 0.4)
+                            } else {
+                                Image(systemName: tab.icon)
+                                    .font(.system(size: DesignSystem.IconSize.md))
+                                    .foregroundColor(
+                                        selectedTab == tab
+                                            ? DesignSystem.Colors.primary
+                                            : DesignSystem.Colors.tertiaryText
+                                    )
+                            }
 
                             Circle()
                                 .fill(selectedTab == tab ? DesignSystem.Colors.primary : Color.clear)
@@ -745,7 +765,7 @@ struct RecipeCardCompactFromHome: View {
                     }
 
                     HStack(spacing: 2) {
-                        Image(systemName: AppIcon.log)
+                        LogoIconView(size: 12)
                         Text("\(recipe.logCount)")
                     }
                     .font(DesignSystem.Typography.caption)
@@ -855,7 +875,7 @@ struct HashtagView: View {
                 HashtagTabButton(icon: AppIcon.recipe, isSelected: selectedTab == 0) {
                     selectedTab = 0
                 }
-                HashtagTabButton(icon: AppIcon.log, isSelected: selectedTab == 1) {
+                HashtagTabButton(useLogoIcon: true, isSelected: selectedTab == 1) {
                     selectedTab = 1
                 }
             }
@@ -883,20 +903,40 @@ struct HashtagView: View {
 }
 
 struct HashtagTabButton: View {
-    let icon: String
+    let icon: String?
+    var useLogoIcon: Bool = false
     let isSelected: Bool
     let action: () -> Void
+
+    init(icon: String, isSelected: Bool, action: @escaping () -> Void) {
+        self.icon = icon
+        self.useLogoIcon = false
+        self.isSelected = isSelected
+        self.action = action
+    }
+
+    init(useLogoIcon: Bool, isSelected: Bool, action: @escaping () -> Void) {
+        self.icon = nil
+        self.useLogoIcon = useLogoIcon
+        self.isSelected = isSelected
+        self.action = action
+    }
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: DesignSystem.Spacing.xxs) {
-                Image(systemName: icon)
-                    .font(.system(size: DesignSystem.IconSize.lg))
-                    .foregroundColor(
-                        isSelected
-                            ? DesignSystem.Colors.primary
-                            : DesignSystem.Colors.tertiaryText
-                    )
+                if useLogoIcon {
+                    LogoIconView(size: DesignSystem.IconSize.lg)
+                        .opacity(isSelected ? 1.0 : 0.4)
+                } else if let icon = icon {
+                    Image(systemName: icon)
+                        .font(.system(size: DesignSystem.IconSize.lg))
+                        .foregroundColor(
+                            isSelected
+                                ? DesignSystem.Colors.primary
+                                : DesignSystem.Colors.tertiaryText
+                        )
+                }
                 Circle()
                     .fill(isSelected ? DesignSystem.Colors.primary : Color.clear)
                     .frame(width: 4, height: 4)

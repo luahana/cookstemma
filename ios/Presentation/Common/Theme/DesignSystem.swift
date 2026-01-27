@@ -75,6 +75,8 @@ enum DesignSystem {
         static let lg: CGFloat = 24
         static let xl: CGFloat = 32
         static let xxl: CGFloat = 48
+        /// Logo icon in tab bar (larger to match SF Symbol visual weight)
+        static let tabBarLogo: CGFloat = 38
     }
 
     // MARK: - Avatar Sizes

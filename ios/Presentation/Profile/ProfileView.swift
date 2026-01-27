@@ -266,7 +266,14 @@ struct ProfileView: View {
 
     @ViewBuilder
     private var visibilityFilter: some View {
-        if viewModel.selectedTab != .saved {
+        if viewModel.selectedTab == .saved {
+            Picker("Saved Filter", selection: $viewModel.savedContentFilter) {
+                ForEach(SavedContentFilter.allCases, id: \.self) { filter in
+                    Text(filter.title).tag(filter)
+                }
+            }
+            .pickerStyle(.segmented)
+        } else {
             Picker("Visibility", selection: $viewModel.visibilityFilter) {
                 ForEach(VisibilityFilter.allCases, id: \.self) { filter in
                     Text(filter.title).tag(filter)
@@ -313,24 +320,38 @@ struct ProfileView: View {
 
     @ViewBuilder
     private var savedContent: some View {
-        ForEach(viewModel.savedRecipes) { recipe in
-            NavigationLink(value: ProfileNavDestination.recipe(id: recipe.id)) {
-                ProfileGridItem(imageUrl: recipe.coverImageUrl, isSaved: true)
+        if viewModel.savedContentFilter != .logs {
+            ForEach(viewModel.savedRecipes) { recipe in
+                NavigationLink(value: ProfileNavDestination.recipe(id: recipe.id)) {
+                    ProfileGridItem(imageUrl: recipe.coverImageUrl, isSaved: true)
+                }
             }
         }
-        ForEach(viewModel.savedLogs) { log in
-            NavigationLink(value: ProfileNavDestination.log(id: log.id)) {
-                ProfileGridItem(imageUrl: log.images.first?.thumbnailUrl, isSaved: true)
+        if viewModel.savedContentFilter != .recipes {
+            ForEach(viewModel.savedLogs) { log in
+                NavigationLink(value: ProfileNavDestination.log(id: log.id)) {
+                    ProfileGridItem(imageUrl: log.images.first?.thumbnailUrl, isSaved: true)
+                }
             }
         }
     }
 
     @ViewBuilder
     private var emptyState: some View {
-        VStack(spacing: DesignSystem.Spacing.md) {
-            Image(systemName: emptyIcon)
-                .font(.system(size: DesignSystem.IconSize.xxl))
-                .foregroundColor(DesignSystem.Colors.tertiaryText)
+        VStack(spacing: DesignSystem.Spacing.xs) {
+            if viewModel.selectedTab == .logs ||
+                (viewModel.selectedTab == .saved && viewModel.savedContentFilter == .logs) {
+                LogoIconView(
+                    size: 80,
+                    color: DesignSystem.Colors.tertiaryText,
+                    useOriginalColors: false
+                )
+                .padding(.vertical, -16)
+            } else {
+                Image(systemName: emptyIcon)
+                    .font(.system(size: DesignSystem.IconSize.xxl))
+                    .foregroundColor(DesignSystem.Colors.tertiaryText)
+            }
             Text(emptyMessage)
                 .font(DesignSystem.Typography.body)
                 .foregroundColor(DesignSystem.Colors.tertiaryText)
@@ -387,9 +408,16 @@ struct ProfileView: View {
         case .recipes: return viewModel.recipes.isEmpty && !viewModel.isLoadingContent
         case .logs: return viewModel.logs.isEmpty && !viewModel.isLoadingContent
         case .saved:
-            return viewModel.savedRecipes.isEmpty
-                && viewModel.savedLogs.isEmpty
-                && !viewModel.isLoadingContent
+            switch viewModel.savedContentFilter {
+            case .all:
+                return viewModel.savedRecipes.isEmpty
+                    && viewModel.savedLogs.isEmpty
+                    && !viewModel.isLoadingContent
+            case .recipes:
+                return viewModel.savedRecipes.isEmpty && !viewModel.isLoadingContent
+            case .logs:
+                return viewModel.savedLogs.isEmpty && !viewModel.isLoadingContent
+            }
         }
     }
 
@@ -397,7 +425,12 @@ struct ProfileView: View {
         switch viewModel.selectedTab {
         case .recipes: return AppIcon.recipe
         case .logs: return AppIcon.log
-        case .saved: return AppIcon.saveOutline
+        case .saved:
+            switch viewModel.savedContentFilter {
+            case .all: return AppIcon.saveOutline
+            case .recipes: return AppIcon.recipe
+            case .logs: return AppIcon.log
+            }
         }
     }
 
@@ -405,7 +438,12 @@ struct ProfileView: View {
         switch viewModel.selectedTab {
         case .recipes: return "No recipes yet"
         case .logs: return "No cooking logs yet"
-        case .saved: return "No saved items yet"
+        case .saved:
+            switch viewModel.savedContentFilter {
+            case .all: return "No saved items yet"
+            case .recipes: return "No saved recipes yet"
+            case .logs: return "No saved logs yet"
+            }
         }
     }
 }
