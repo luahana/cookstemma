@@ -1,0 +1,256 @@
+import Foundation
+@testable import Cookstemma
+
+/// Factory for creating mock data for tests
+enum MockFactory {
+
+    // MARK: - Users
+
+    static func userSummary(
+        id: String = "user-1",
+        username: String = "testuser",
+        displayName: String? = "Test User",
+        avatarUrl: String? = nil
+    ) -> UserSummary {
+        UserSummary(
+            id: id,
+            username: username,
+            displayName: displayName,
+            avatarUrl: avatarUrl
+        )
+    }
+
+    static func myProfile(
+        id: String = "me-1",
+        username: String = "myuser",
+        displayName: String? = "My Name",
+        email: String = "test@example.com",
+        level: Int = 5,
+        xp: Int = 500,
+        levelProgress: Double = 0.5,
+        recipeCount: Int = 10,
+        logCount: Int = 25,
+        followerCount: Int = 100,
+        followingCount: Int = 50
+    ) -> MyProfile {
+        MyProfile(
+            id: id,
+            username: username,
+            displayName: displayName,
+            email: email,
+            avatarUrl: nil,
+            bio: nil,
+            level: level,
+            xp: xp,
+            levelProgress: levelProgress,
+            recipeCount: recipeCount,
+            logCount: logCount,
+            followerCount: followerCount,
+            followingCount: followingCount,
+            socialLinks: nil,
+            createdAt: Date()
+        )
+    }
+
+    static func userProfile(
+        id: String = "user-1",
+        username: String = "testuser",
+        isFollowing: Bool = false,
+        isBlocked: Bool = false
+    ) -> UserProfile {
+        UserProfile(
+            id: id,
+            username: username,
+            displayName: "Test User",
+            avatarUrl: nil,
+            bio: "Test bio",
+            level: 10,
+            recipeCount: 5,
+            logCount: 20,
+            followerCount: 100,
+            followingCount: 50,
+            socialLinks: nil,
+            isFollowing: isFollowing,
+            isFollowedBy: false,
+            isBlocked: isBlocked,
+            createdAt: Date()
+        )
+    }
+
+    // MARK: - Recipes
+
+    static func recipeSummary(
+        id: String = "recipe-1",
+        title: String = "Test Recipe",
+        cookCount: Int = 10,
+        isSaved: Bool = false
+    ) -> RecipeSummary {
+        RecipeSummary(
+            id: id,
+            title: title,
+            description: "A test recipe description",
+            coverImageUrl: nil,
+            cookingTimeRange: .between15And30,
+            servings: 2,
+            cookCount: cookCount,
+            averageRating: 4.5,
+            author: userSummary(),
+            isSaved: isSaved,
+            category: nil,
+            createdAt: Date()
+        )
+    }
+
+    static func recipeDetail(
+        id: String = "recipe-1",
+        title: String = "Test Recipe",
+        isSaved: Bool = false
+    ) -> RecipeDetail {
+        RecipeDetail(
+            id: id,
+            title: title,
+            description: "A detailed test recipe",
+            coverImageUrl: nil,
+            images: [],
+            cookingTimeRange: .between30And60,
+            servings: 4,
+            cookCount: 50,
+            saveCount: 25,
+            averageRating: 4.2,
+            author: userSummary(),
+            ingredients: [
+                Ingredient(name: "Flour", amount: "2 cups", category: .main),
+                Ingredient(name: "Sugar", amount: "1 cup", category: .main),
+                Ingredient(name: "Salt", amount: "1 tsp", category: .seasoning)
+            ],
+            steps: [
+                RecipeStep(order: 1, instruction: "Mix dry ingredients", imageUrl: nil, tipContent: nil),
+                RecipeStep(order: 2, instruction: "Add wet ingredients", imageUrl: nil, tipContent: "Mix slowly")
+            ],
+            hashtags: ["baking", "easy"],
+            isSaved: isSaved,
+            category: nil,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+
+    // MARK: - Cooking Logs
+
+    static func cookingLogSummary(
+        id: String = "log-1",
+        rating: Int = 4,
+        isLiked: Bool = false,
+        isSaved: Bool = false
+    ) -> CookingLogSummary {
+        CookingLogSummary(
+            id: id,
+            author: userSummary(),
+            images: [LogImage(thumbnailUrl: "https://example.com/thumb.jpg", originalUrl: "https://example.com/original.jpg")],
+            rating: rating,
+            contentPreview: "This was delicious!",
+            recipe: nil,
+            likeCount: 10,
+            commentCount: 5,
+            isLiked: isLiked,
+            isSaved: isSaved,
+            createdAt: Date()
+        )
+    }
+
+    static func cookingLogDetail(
+        id: String = "log-1",
+        rating: Int = 4,
+        isLiked: Bool = false,
+        isSaved: Bool = false
+    ) -> CookingLogDetail {
+        CookingLogDetail(
+            id: id,
+            author: userSummary(),
+            images: [LogImage(thumbnailUrl: "https://example.com/thumb.jpg", originalUrl: "https://example.com/original.jpg")],
+            rating: rating,
+            content: "This was a great recipe! I modified it slightly by adding extra garlic.",
+            recipe: recipeSummary(),
+            hashtags: ["homecooking", "dinner"],
+            isPrivate: false,
+            likeCount: 25,
+            commentCount: 8,
+            isLiked: isLiked,
+            isSaved: isSaved,
+            createdAt: Date()
+        )
+    }
+
+    static func feedItem(log: CookingLogSummary? = nil, recipe: RecipeSummary? = nil) -> FeedItem {
+        if let log = log {
+            return .log(log)
+        } else if let recipe = recipe {
+            return .recipe(recipe)
+        }
+        return .log(cookingLogSummary())
+    }
+
+    // MARK: - Comments
+
+    static func comment(
+        id: String = "comment-1",
+        content: String = "Great recipe!",
+        isLiked: Bool = false
+    ) -> Comment {
+        Comment(
+            id: id,
+            author: userSummary(),
+            content: content,
+            likeCount: 5,
+            isLiked: isLiked,
+            createdAt: Date(),
+            updatedAt: nil,
+            replies: []
+        )
+    }
+
+    // MARK: - Notifications
+
+    static func notification(
+        id: String = "notif-1",
+        type: NotificationType = .newFollower,
+        isRead: Bool = false
+    ) -> AppNotification {
+        AppNotification(
+            id: id,
+            type: type,
+            title: "New follower",
+            body: "@testuser started following you",
+            actorAvatarUrl: nil,
+            thumbnailUrl: nil,
+            data: ["userId": "user-1"],
+            isRead: isRead,
+            createdAt: Date()
+        )
+    }
+
+    // MARK: - Search
+
+    static func hashtagCount(name: String = "cooking", count: Int = 100) -> HashtagCount {
+        HashtagCount(name: name, count: count)
+    }
+
+    static func searchResponse(
+        recipes: [RecipeSummary] = [],
+        logs: [CookingLogSummary] = [],
+        users: [UserSummary] = [],
+        hashtags: [HashtagCount] = []
+    ) -> SearchResponse {
+        SearchResponse(recipes: recipes, logs: logs, users: users, hashtags: hashtags)
+    }
+
+    // MARK: - Paginated Responses
+
+    static func paginatedResponse<T>(
+        content: [T],
+        nextCursor: String? = nil,
+        hasNext: Bool = false
+    ) -> PaginatedResponse<T> {
+        PaginatedResponse(content: content, nextCursor: nextCursor, hasNext: hasNext)
+    }
+}

@@ -1,0 +1,113 @@
+# SwiftLint Configuration for Cookstemma iOS
+
+excluded:
+  - .build
+  - DerivedData
+  - Pods
+  - Carthage
+  - Tests/Fixtures
+
+disabled_rules:
+  - trailing_whitespace
+  - todo
+  - orphaned_doc_comment
+
+opt_in_rules:
+  - array_init
+  - closure_end_indentation
+  - closure_spacing
+  - collection_alignment
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - discouraged_object_literal
+  - empty_collection_literal
+  - empty_count
+  - empty_string
+  - enum_case_associated_values_count
+  - explicit_init
+  - extension_access_modifier
+  - fallthrough
+  - fatal_error_message
+  - first_where
+  - flatmap_over_map_reduce
+  - identical_operands
+  - implicit_return
+  - joined_default_parameter
+  - last_where
+  - legacy_multiple
+  - literal_expression_end_indentation
+  - modifier_order
+  - operator_usage_whitespace
+  - overridden_super_call
+  - prefer_self_type_over_type_of_self
+  - prefer_zero_over_explicit_init
+  - private_action
+  - private_outlet
+  - prohibited_super_call
+  - redundant_nil_coalescing
+  - redundant_type_annotation
+  - sorted_first_last
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - vertical_parameter_alignment_on_call
+  - yoda_condition
+
+line_length:
+  warning: 120
+  error: 200
+  ignores_urls: true
+  ignores_comments: true
+
+type_body_length:
+  warning: 300
+  error: 500
+
+file_length:
+  warning: 400
+  error: 600
+
+function_body_length:
+  warning: 50
+  error: 100
+
+function_parameter_count:
+  warning: 6
+  error: 8
+
+type_name:
+  min_length: 2
+  max_length: 50
+
+identifier_name:
+  min_length:
+    warning: 1
+  max_length:
+    warning: 50
+  excluded:
+    - id
+    - i
+    - x
+    - y
+    - z
+
+nesting:
+  type_level:
+    warning: 3
+  function_level:
+    warning: 5
+
+cyclomatic_complexity:
+  warning: 15
+  error: 25
+
+reporter: "xcode"
+
+custom_rules:
+  no_print_statement:
+    name: "No Print Statements"
+    regex: "\\bprint\\s*\\("
+    message: "Use Logger instead of print"
+    severity: warning
+    match_kinds:
+      - identifier
