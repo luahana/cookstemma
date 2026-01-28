@@ -180,16 +180,11 @@ struct RecipeDetailView: View {
                 FlowLayout(spacing: DesignSystem.Spacing.xs) {
                     ForEach(hashtags, id: \.self) { tag in
                         Text("#\(tag)")
-                            .font(DesignSystem.Typography.caption)
-                            .padding(.horizontal, DesignSystem.Spacing.xs)
-                            .padding(.vertical, DesignSystem.Spacing.xxs)
-                            .background(DesignSystem.Colors.tertiaryBackground)
-                            .cornerRadius(DesignSystem.CornerRadius.xs)
+                            .font(DesignSystem.Typography.subheadline)
+                            .foregroundColor(DesignSystem.Colors.primary)
                     }
                 }
-                .padding(.horizontal, DesignSystem.Spacing.md)
-                .padding(.top, DesignSystem.Spacing.md)
-                .padding(.bottom, DesignSystem.Spacing.md)
+                .padding(.horizontal)
             }
 
         }
