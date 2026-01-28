@@ -9,7 +9,12 @@ final class NotificationRepository: NotificationRepositoryProtocol {
 
     func getNotifications(cursor: String?) async -> RepositoryResult<PaginatedResponse<AppNotification>> {
         do {
-            return .success(try await apiClient.request(NotificationEndpoint.list(cursor: cursor)))
+            let response: NotificationListResponse = try await apiClient.request(NotificationEndpoint.list(cursor: cursor))
+            return .success(PaginatedResponse(
+                content: response.notifications,
+                nextCursor: nil,
+                hasNext: response.hasNext
+            ))
         } catch let error as APIError {
             return .failure(mapError(error))
         } catch {
@@ -20,7 +25,7 @@ final class NotificationRepository: NotificationRepositoryProtocol {
     func getUnreadCount() async -> RepositoryResult<Int> {
         do {
             let response: UnreadCountResponse = try await apiClient.request(NotificationEndpoint.unreadCount)
-            return .success(response.count)
+            return .success(response.unreadCount)
         } catch let error as APIError {
             return .failure(mapError(error))
         } catch {
@@ -84,6 +89,12 @@ final class NotificationRepository: NotificationRepositoryProtocol {
     }
 }
 
+private struct NotificationListResponse: Codable {
+    let notifications: [AppNotification]
+    let unreadCount: Int
+    let hasNext: Bool
+}
+
 private struct UnreadCountResponse: Codable {
-    let count: Int
+    let unreadCount: Int
 }

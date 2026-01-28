@@ -5,45 +5,43 @@ struct NotificationsView: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        NavigationStack {
-            Group {
-                switch viewModel.state {
-                case .idle, .loading:
-                    LoadingView()
-                case .loaded:
-                    if viewModel.notifications.isEmpty {
-                        // Empty state (icon only)
-                        IconEmptyState(icon: AppIcon.notificationsOutline)
-                    } else {
-                        notificationsList
-                    }
-                case .error(let message):
-                    ErrorStateView(message: message) { viewModel.loadNotifications() }
+        Group {
+            switch viewModel.state {
+            case .idle, .loading:
+                LoadingView()
+            case .loaded:
+                if viewModel.notifications.isEmpty {
+                    // Empty state (icon only)
+                    IconEmptyState(icon: AppIcon.notificationsOutline)
+                } else {
+                    notificationsList
                 }
+            case .error(let message):
+                ErrorStateView(message: message) { viewModel.loadNotifications() }
             }
-            .background(DesignSystem.Colors.secondaryBackground)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    // Icon header
-                    Image(systemName: AppIcon.notifications)
-                        .font(.system(size: DesignSystem.IconSize.lg))
-                        .foregroundColor(DesignSystem.Colors.primary)
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    if !viewModel.notifications.isEmpty {
-                        // Mark all button (icon only)
-                        Button {
-                            Task { await viewModel.markAllAsRead() }
-                        } label: {
-                            Image(systemName: AppIcon.checkmarkAll)
-                                .foregroundColor(DesignSystem.Colors.primary)
-                        }
-                    }
-                }
-            }
-            .refreshable { viewModel.loadNotifications() }
         }
+        .background(DesignSystem.Colors.secondaryBackground)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                // Icon header
+                Image(systemName: AppIcon.notifications)
+                    .font(.system(size: DesignSystem.IconSize.lg))
+                    .foregroundColor(DesignSystem.Colors.primary)
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if !viewModel.notifications.isEmpty {
+                    // Mark all button (icon only)
+                    Button {
+                        Task { await viewModel.markAllAsRead() }
+                    } label: {
+                        Image(systemName: AppIcon.checkmarkAll)
+                            .foregroundColor(DesignSystem.Colors.primary)
+                    }
+                }
+            }
+        }
+        .refreshable { viewModel.loadNotifications() }
         .onAppear {
             if case .idle = viewModel.state { viewModel.loadNotifications() }
         }
@@ -113,8 +111,8 @@ struct NotificationsView: View {
             }
         case .commentLike:
             appState.deepLinkDestination = .log(id: targetId)
-        case .weeklyDigest:
-            break // No navigation for weekly digest
+        case .weeklyDigest, .unknown:
+            break // No navigation for weekly digest or unknown types
         }
     }
 }

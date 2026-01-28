@@ -11,8 +11,45 @@ struct UserSummary: Codable, Identifiable, Equatable {
     let isFollowing: Bool?
 
     enum CodingKeys: String, CodingKey {
-        case id = "publicId"
-        case username, displayName, avatarUrl, level, isFollowing
+        case id, visitorId = "publicId"
+        case username, displayName, avatarUrl, profileImageUrl, level, isFollowing
+    }
+
+    // Memberwise initializer
+    init(id: String, username: String, displayName: String?, avatarUrl: String?, level: Int, isFollowing: Bool?) {
+        self.id = id
+        self.username = username
+        self.displayName = displayName
+        self.avatarUrl = avatarUrl
+        self.level = level
+        self.isFollowing = isFollowing
+    }
+
+    // Custom decoder to handle both "id" and "publicId"
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // Try "id" first, then fall back to "publicId"
+        if let id = try container.decodeIfPresent(String.self, forKey: .id) {
+            self.id = id
+        } else {
+            self.id = try container.decode(String.self, forKey: .visitorId)
+        }
+        self.username = try container.decode(String.self, forKey: .username)
+        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+        self.avatarUrl = try container.decodeIfPresent(String.self, forKey: .avatarUrl)
+            ?? container.decodeIfPresent(String.self, forKey: .profileImageUrl)
+        self.level = try container.decodeIfPresent(Int.self, forKey: .level) ?? 1
+        self.isFollowing = try container.decodeIfPresent(Bool.self, forKey: .isFollowing)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(username, forKey: .username)
+        try container.encodeIfPresent(displayName, forKey: .displayName)
+        try container.encodeIfPresent(avatarUrl, forKey: .avatarUrl)
+        try container.encode(level, forKey: .level)
+        try container.encodeIfPresent(isFollowing, forKey: .isFollowing)
     }
 
     var displayNameOrUsername: String { displayName ?? username }
