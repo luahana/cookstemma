@@ -4,6 +4,7 @@ struct LogDetailView: View {
     let logId: String
     @StateObject private var viewModel: LogDetailViewModel
     @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var appState: AppState
     @Environment(\.dismiss) private var dismiss
 
     init(logId: String) {
@@ -27,18 +28,32 @@ struct LogDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                if let log = viewModel.log,
-                   log.author.id != authManager.currentUser?.id {
-                    BlockReportShareMenu(
-                        targetUserId: log.author.id,
-                        targetUsername: log.author.username,
-                        shareURL: URL(string: "https://cookstemma.com/logs/\(logId)")!,
-                        onBlock: { Task { await viewModel.blockUser() } },
-                        onReport: { reason in Task { await viewModel.reportUser(reason: reason) } }
-                    )
-                } else {
+                HStack(spacing: DesignSystem.Spacing.sm) {
+                    // Save button (icon only) - requires auth
+                    Button {
+                        appState.requireAuth {
+                            Task { await viewModel.toggleSave() }
+                        }
+                    } label: {
+                        Image(systemName: viewModel.isSaved ? AppIcon.save : AppIcon.saveOutline)
+                            .foregroundColor(viewModel.isSaved ? DesignSystem.Colors.bookmark : DesignSystem.Colors.secondaryText)
+                    }
+
+                    // Share button (icon only)
                     ShareLink(item: URL(string: "https://cookstemma.com/logs/\(logId)")!) {
                         Image(systemName: AppIcon.share)
+                            .foregroundColor(DesignSystem.Colors.text)
+                    }
+
+                    // More options (block/report) - only show for other users' logs
+                    if let log = viewModel.log,
+                       log.author.id != authManager.currentUser?.id {
+                        BlockReportMenu(
+                            targetUserId: log.author.id,
+                            targetUsername: log.author.username,
+                            onBlock: { Task { await viewModel.blockUser() } },
+                            onReport: { reason in Task { await viewModel.reportUser(reason: reason) } }
+                        )
                     }
                 }
             }
