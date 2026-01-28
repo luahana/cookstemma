@@ -57,7 +57,7 @@ final class SearchRepository: SearchRepositoryProtocol {
         }
     }
 
-    func getHashtagContent(hashtag: String, type: SearchType?, cursor: String?) async -> RepositoryResult<SearchResponse> {
+    func getHashtagContent(hashtag: String, type: SearchType?, cursor: String?) async -> RepositoryResult<HashtagContentResponse> {
         do {
             return .success(try await apiClient.request(SearchEndpoint.hashtagContent(hashtag: hashtag, type: type, cursor: cursor)))
         } catch let error as APIError {

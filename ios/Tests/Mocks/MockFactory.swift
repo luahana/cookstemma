@@ -281,8 +281,8 @@ enum MockFactory {
 
     // MARK: - Search
 
-    static func hashtagCount(name: String = "cooking", count: Int = 100) -> HashtagCount {
-        HashtagCount(name: name, count: count)
+    static func hashtagCount(name: String = "cooking", postCount: Int = 100) -> HashtagCount {
+        HashtagCount(name: name, postCount: postCount)
     }
 
     static func searchResponse(

@@ -22,7 +22,8 @@ struct HashtagCount: Codable, Identifiable, Equatable {
 
     enum CodingKeys: String, CodingKey {
         case id = "publicId"
-        case name, postCount
+        case name
+        case postCount = "totalCount"
     }
 
     init(id: String = UUID().uuidString, name: String, postCount: Int) {
@@ -148,5 +149,41 @@ struct TrendingHashtag: Codable, Identifiable, Equatable {
 
     var formattedPostCount: String {
         postCount >= 1000 ? String(format: "%.1fK", Double(postCount) / 1000) : "\(postCount)"
+    }
+}
+
+// MARK: - Hashtag Content Response
+
+struct HashtagContentResponse: Codable {
+    let content: [HashtagContentItem]
+    let totalElements: Int?
+    let totalPages: Int?
+    let currentPage: Int?
+    let nextCursor: String?
+    let hasNext: Bool
+    let size: Int
+}
+
+struct HashtagContentItem: Codable, Identifiable, Equatable {
+    let id: String
+    let type: String  // "recipe" or "log"
+    let title: String?
+    let thumbnailUrl: String?
+    let creatorPublicId: String
+    let userName: String
+    let hashtags: [String]
+    let foodName: String?
+    let cookingStyle: String?
+    let rating: Int?
+    let recipeTitle: String?
+    let isPrivate: Bool?
+
+    var isRecipe: Bool { type == "recipe" }
+    var isLog: Bool { type == "log" }
+
+    enum CodingKeys: String, CodingKey {
+        case id = "publicId"
+        case type, title, thumbnailUrl, creatorPublicId, userName
+        case hashtags, foodName, cookingStyle, rating, recipeTitle, isPrivate
     }
 }

@@ -212,8 +212,8 @@ final class SearchViewModelTests: XCTestCase {
     func testLoadRecentSearches_loadsTrendingHashtags() {
         // Given
         mockSearchRepository.getTrendingHashtagsResult = .success([
-            HashtagCount(tag: "trending", count: 100),
-            HashtagCount(tag: "popular", count: 50)
+            HashtagCount(name: "trending", postCount: 100),
+            HashtagCount(name: "popular", postCount: 50)
         ])
 
         // When
@@ -362,7 +362,7 @@ final class SearchViewModelTests: XCTestCase {
             recipes: [createMockRecipeSummary()],
             logs: [createMockLogSummary()],
             users: [createMockUserSummary()],
-            hashtags: [HashtagCount(tag: "test", count: 10)]
+            hashtags: [HashtagCount(name: "test", postCount: 10)]
         )
     }
 

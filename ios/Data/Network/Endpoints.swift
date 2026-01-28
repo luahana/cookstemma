@@ -332,8 +332,8 @@ enum SearchEndpoint: APIEndpoint {
         case .searchLogs: return "search/logs"
         case .searchUsers: return "search/users"
         case .recentSearches, .clearRecentSearches: return "search/history"
-        case .trending: return "hashtags/trending"
-        case .hashtagContent(let h, _, _): return "hashtags/\(h)"
+        case .trending: return "hashtags/popular"
+        case .hashtagContent(let h, _, _): return "hashtags/\(h)/content"
         }
     }
 

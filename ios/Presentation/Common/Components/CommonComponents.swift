@@ -779,6 +779,172 @@ struct LogGridCard: View {
     }
 }
 
+// MARK: - Log Grid Card (CookingLogSummary variant)
+struct LogGridCardFromSummary: View {
+    let log: CookingLogSummary
+    var showSavedBadge: Bool = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+            // Thumbnail with rating overlay
+            ZStack {
+                Color.clear
+                    .aspectRatio(1, contentMode: .fit)
+                    .overlay(
+                        AsyncImage(url: URL(string: log.images.first?.thumbnailUrl ?? "")) { img in
+                            img.resizable().scaledToFill()
+                        } placeholder: {
+                            Rectangle()
+                                .fill(DesignSystem.Colors.tertiaryBackground)
+                                .overlay(
+                                    LogoIconView(
+                                        size: 24,
+                                        color: DesignSystem.Colors.secondaryText.opacity(0.5),
+                                        useOriginalColors: false
+                                    )
+                                )
+                        }
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
+
+                // Overlays
+                VStack {
+                    // Saved badge (top right)
+                    HStack {
+                        Spacer()
+                        if showSavedBadge {
+                            Image(systemName: AppIcon.save)
+                                .font(.system(size: 12))
+                                .foregroundColor(.white)
+                                .padding(6)
+                                .background(Color.black.opacity(0.5))
+                                .clipShape(Circle())
+                        }
+                    }
+
+                    Spacer()
+
+                    // Rating stars (bottom left)
+                    HStack {
+                        if log.rating > 0 {
+                            HStack(spacing: 2) {
+                                ForEach(0..<log.rating, id: \.self) { _ in
+                                    Image(systemName: AppIcon.star)
+                                        .font(.system(size: 10))
+                                }
+                            }
+                            .foregroundColor(DesignSystem.Colors.rating)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 4)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(4)
+                        }
+                        Spacer()
+                    }
+                }
+                .padding(8)
+            }
+
+            // Recipe title
+            if let recipeTitle = log.recipe?.title {
+                Text(recipeTitle)
+                    .font(DesignSystem.Typography.subheadline)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                    .foregroundColor(DesignSystem.Colors.text)
+            }
+
+            // Username
+            Text("@\(log.author.username)")
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.secondaryText)
+                .lineLimit(1)
+        }
+    }
+}
+
+// MARK: - Hashtag Content Grid Card
+struct HashtagContentGridCard: View {
+    let item: HashtagContentItem
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+            // Thumbnail with optional rating overlay (for logs)
+            ZStack {
+                Color.clear
+                    .aspectRatio(1, contentMode: .fit)
+                    .overlay(
+                        AsyncImage(url: URL(string: item.thumbnailUrl ?? "")) { img in
+                            img.resizable().scaledToFill()
+                        } placeholder: {
+                            Rectangle()
+                                .fill(DesignSystem.Colors.tertiaryBackground)
+                                .overlay(
+                                    Group {
+                                        if item.isRecipe {
+                                            Image(systemName: AppIcon.recipe)
+                                                .font(.system(size: 24))
+                                                .foregroundColor(DesignSystem.Colors.secondaryText.opacity(0.5))
+                                        } else {
+                                            LogoIconView(
+                                                size: 24,
+                                                color: DesignSystem.Colors.secondaryText.opacity(0.5),
+                                                useOriginalColors: false
+                                            )
+                                        }
+                                    }
+                                )
+                        }
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
+
+                // Rating overlay for logs
+                if item.isLog, let rating = item.rating, rating > 0 {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            HStack(spacing: 2) {
+                                ForEach(0..<rating, id: \.self) { _ in
+                                    Image(systemName: AppIcon.star)
+                                        .font(.system(size: 10))
+                                }
+                            }
+                            .foregroundColor(DesignSystem.Colors.rating)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 4)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(4)
+                            Spacer()
+                        }
+                    }
+                    .padding(8)
+                }
+            }
+
+            // Title (recipe title or food name for recipes, recipe title for logs)
+            if item.isRecipe {
+                Text(item.title ?? item.foodName ?? "")
+                    .font(DesignSystem.Typography.subheadline)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                    .foregroundColor(DesignSystem.Colors.text)
+            } else if let recipeTitle = item.recipeTitle {
+                Text(recipeTitle)
+                    .font(DesignSystem.Typography.subheadline)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                    .foregroundColor(DesignSystem.Colors.text)
+            }
+
+            // Username
+            Text("@\(item.userName)")
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.secondaryText)
+                .lineLimit(1)
+        }
+    }
+}
+
 // MARK: - Content Grid
 /// Reusable 2-column grid layout for content cards
 struct ContentGrid<Content: View>: View {

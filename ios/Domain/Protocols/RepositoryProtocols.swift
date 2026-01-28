@@ -167,7 +167,7 @@ protocol SearchRepositoryProtocol {
     func searchLogs(query: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>>
     func searchUsers(query: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<UserSummary>>
     func getTrendingHashtags() async -> RepositoryResult<[HashtagCount]>
-    func getHashtagContent(hashtag: String, type: SearchType?, cursor: String?) async -> RepositoryResult<SearchResponse>
+    func getHashtagContent(hashtag: String, type: SearchType?, cursor: String?) async -> RepositoryResult<HashtagContentResponse>
 }
 
 // MARK: - Notification Repository

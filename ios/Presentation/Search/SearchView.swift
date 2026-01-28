@@ -226,25 +226,37 @@ struct SearchView: View {
             }
             .padding(.horizontal, DesignSystem.Spacing.md)
 
-            // Flow layout hashtag pills
+            // Horizontal scroll hashtag chips with post counts
             if viewModel.trendingHashtags.isEmpty {
                 emptyStateCard(icon: "number", message: "No hashtags yet")
                     .padding(.horizontal, DesignSystem.Spacing.md)
             } else {
-                FlowLayout(spacing: DesignSystem.Spacing.sm) {
-                    ForEach(viewModel.trendingHashtags, id: \.name) { hashtag in
-                        NavigationLink(value: SearchNavDestination.hashtag(name: hashtag.name)) {
-                            Text("#\(hashtag.name)")
-                                .font(DesignSystem.Typography.subheadline)
-                                .foregroundColor(DesignSystem.Colors.primary)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: DesignSystem.Spacing.sm) {
+                        ForEach(viewModel.trendingHashtags, id: \.id) { hashtag in
+                            NavigationLink(value: SearchNavDestination.hashtag(name: hashtag.name)) {
+                                HStack(spacing: DesignSystem.Spacing.xxs) {
+                                    Text("#\(hashtag.name)")
+                                        .font(DesignSystem.Typography.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(DesignSystem.Colors.primary)
+                                    
+                                    Text("·")
+                                        .foregroundColor(DesignSystem.Colors.primary.opacity(0.5))
+                                    
+                                    Text(formatCount(hashtag.postCount))
+                                        .font(DesignSystem.Typography.caption)
+                                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                                }
                                 .padding(.horizontal, DesignSystem.Spacing.sm)
                                 .padding(.vertical, DesignSystem.Spacing.xs)
                                 .background(DesignSystem.Colors.primary.opacity(0.1))
                                 .cornerRadius(DesignSystem.CornerRadius.full)
+                            }
                         }
                     }
+                    .padding(.horizontal, DesignSystem.Spacing.md)
                 }
-                .padding(.horizontal, DesignSystem.Spacing.md)
             }
         }
     }
@@ -333,6 +345,16 @@ struct SearchView: View {
         .frame(height: 120)
         .background(DesignSystem.Colors.secondaryBackground)
         .cornerRadius(DesignSystem.CornerRadius.md)
+    }
+
+    private func formatCount(_ count: Int) -> String {
+        if count >= 1_000_000 {
+            return String(format: "%.1fM", Double(count) / 1_000_000)
+        } else if count >= 1_000 {
+            return String(format: "%.1fK", Double(count) / 1_000)
+        } else {
+            return "\(count)"
+        }
     }
 
     // MARK: - Search History View (When Focused)
@@ -876,27 +898,92 @@ struct LogCardCompact: View {
     }
 }
 
+enum HashtagContentFilter: String, CaseIterable {
+    case all, recipes, logs
+
+    var title: String {
+        switch self {
+        case .all: return "All"
+        case .recipes: return "Recipes"
+        case .logs: return "Logs"
+        }
+    }
+}
+
+@MainActor
+final class HashtagContentViewModel: ObservableObject {
+    @Published private(set) var items: [HashtagContentItem] = []
+    @Published private(set) var isLoading = false
+    @Published private(set) var cursor: String?
+    @Published private(set) var hasNext = false
+    @Published var contentFilter: HashtagContentFilter = .all
+
+    private let searchRepository: SearchRepositoryProtocol
+    private let hashtag: String
+
+    var filteredItems: [HashtagContentItem] {
+        switch contentFilter {
+        case .all: return items
+        case .recipes: return items.filter { $0.isRecipe }
+        case .logs: return items.filter { $0.isLog }
+        }
+    }
+
+    init(hashtag: String, searchRepository: SearchRepositoryProtocol = SearchRepository()) {
+        self.hashtag = hashtag
+        self.searchRepository = searchRepository
+    }
+
+    func loadContent() {
+        guard !isLoading else { return }
+        isLoading = true
+
+        Task {
+            defer { isLoading = false }
+            let result = await searchRepository.getHashtagContent(hashtag: hashtag, type: nil, cursor: nil)
+            if case .success(let response) = result {
+                items = response.content
+                cursor = response.nextCursor
+                hasNext = response.hasNext
+            }
+        }
+    }
+}
+
 struct HashtagView: View {
     let hashtag: String
-    @State private var selectedTab = 0
+    @StateObject private var viewModel: HashtagContentViewModel
+
+    private let gridColumns = [
+        GridItem(.flexible(), spacing: DesignSystem.Spacing.sm),
+        GridItem(.flexible(), spacing: DesignSystem.Spacing.sm)
+    ]
+
+    init(hashtag: String) {
+        self.hashtag = hashtag
+        self._viewModel = StateObject(wrappedValue: HashtagContentViewModel(hashtag: hashtag))
+    }
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                HashtagTabButton(icon: AppIcon.recipe, isSelected: selectedTab == 0) {
-                    selectedTab = 0
-                }
-                HashtagTabButton(useLogoIcon: true, isSelected: selectedTab == 1) {
-                    selectedTab = 1
+            // Segmented filter picker
+            Picker("Filter", selection: $viewModel.contentFilter) {
+                ForEach(HashtagContentFilter.allCases, id: \.self) { filter in
+                    Text(filter.title).tag(filter)
                 }
             }
-            .padding(DesignSystem.Spacing.xs)
-            .background(DesignSystem.Colors.background)
-            .cornerRadius(DesignSystem.CornerRadius.md)
+            .pickerStyle(.segmented)
             .padding(.horizontal, DesignSystem.Spacing.md)
             .padding(.vertical, DesignSystem.Spacing.sm)
 
-            Spacer()
+            // Content
+            if viewModel.isLoading {
+                Spacer()
+                ProgressView()
+                Spacer()
+            } else {
+                contentGrid
+            }
         }
         .background(DesignSystem.Colors.secondaryBackground)
         .navigationBarTitleDisplayMode(.inline)
@@ -910,6 +997,69 @@ struct HashtagView: View {
                 }
             }
         }
+        .onAppear {
+            if viewModel.items.isEmpty {
+                viewModel.loadContent()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var contentGrid: some View {
+        if viewModel.filteredItems.isEmpty {
+            emptyStateView
+        } else {
+            ScrollView {
+                LazyVGrid(columns: gridColumns, spacing: DesignSystem.Spacing.md) {
+                    ForEach(viewModel.filteredItems) { item in
+                        NavigationLink(value: item.isRecipe
+                            ? SearchNavDestination.recipe(id: item.id)
+                            : SearchNavDestination.log(id: item.id)
+                        ) {
+                            HashtagContentGridCard(item: item)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, DesignSystem.Spacing.md)
+                .padding(.bottom, DesignSystem.Spacing.xl)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var emptyStateView: some View {
+        switch viewModel.contentFilter {
+        case .all:
+            emptyState(icon: "number", message: "No content with this hashtag")
+        case .recipes:
+            emptyState(icon: AppIcon.recipe, message: "No recipes with this hashtag")
+        case .logs:
+            emptyStateWithLogo(message: "No cooking logs with this hashtag")
+        }
+    }
+
+    private func emptyState(icon: String, message: String) -> some View {
+        VStack(spacing: DesignSystem.Spacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: DesignSystem.IconSize.xxl))
+                .foregroundColor(DesignSystem.Colors.tertiaryText)
+            Text(message)
+                .font(DesignSystem.Typography.subheadline)
+                .foregroundColor(DesignSystem.Colors.tertiaryText)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func emptyStateWithLogo(message: String) -> some View {
+        VStack(spacing: DesignSystem.Spacing.sm) {
+            LogoIconView(size: DesignSystem.IconSize.xxl)
+                .opacity(0.5)
+            Text(message)
+                .font(DesignSystem.Typography.subheadline)
+                .foregroundColor(DesignSystem.Colors.tertiaryText)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
