@@ -996,8 +996,8 @@ struct HashtagView: View {
                         .foregroundColor(DesignSystem.Colors.primary)
                     Text(hashtag)
                         .font(DesignSystem.Typography.headline)
-                    if let total = viewModel.totalElements {
-                        Text("(\(total))")
+                    if !viewModel.items.isEmpty {
+                        Text("(\(viewModel.items.count))")
                             .font(DesignSystem.Typography.subheadline)
                             .foregroundColor(DesignSystem.Colors.secondaryText)
                     }
