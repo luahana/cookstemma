@@ -16,21 +16,21 @@ struct RecipeSummary: Codable, Identifiable, Equatable {
     let cookingTimeRange: String?
     let hashtags: [String]
     let isPrivate: Bool
-    private let _isSaved: Bool?
+    private let savedStatus: Bool?
 
     enum CodingKeys: String, CodingKey {
         case id = "publicId"
         case title, description, foodName, cookingStyle
         case userName, thumbnail, variantCount, logCount
         case servings, cookingTimeRange, hashtags, isPrivate
-        case _isSaved = "isSaved"
+        case savedStatus = "isSaved"
     }
 
     // Computed properties for compatibility
     var coverImageUrl: String? { thumbnail }
     var cookCount: Int { logCount }
     var averageRating: Double? { nil }
-    var isSaved: Bool { _isSaved ?? false }
+    var isSaved: Bool { savedStatus ?? false }
 
     // Memberwise initializer for manual creation
     init(id: String, title: String, description: String?, foodName: String, cookingStyle: String?,
@@ -49,7 +49,7 @@ struct RecipeSummary: Codable, Identifiable, Equatable {
         self.cookingTimeRange = cookingTimeRange
         self.hashtags = hashtags
         self.isPrivate = isPrivate
-        self._isSaved = isSaved
+        self.savedStatus = isSaved
     }
 }
 
