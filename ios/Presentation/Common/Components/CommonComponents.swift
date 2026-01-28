@@ -622,3 +622,181 @@ struct TrackableScrollView<Content: View>: UIViewRepresentable {
         }
     }
 }
+
+// MARK: - Recipe Grid Card
+/// Compact card for displaying recipes in a 2-column grid
+struct RecipeGridCard: View {
+    let recipe: RecipeSummary
+    var showSavedBadge: Bool = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+            // Thumbnail with optional saved badge
+            ZStack(alignment: .topTrailing) {
+                Color.clear
+                    .aspectRatio(1, contentMode: .fit)
+                    .overlay(
+                        AsyncImage(url: URL(string: recipe.coverImageUrl ?? "")) { img in
+                            img.resizable().scaledToFill()
+                        } placeholder: {
+                            Rectangle()
+                                .fill(DesignSystem.Colors.tertiaryBackground)
+                                .overlay(
+                                    Image(systemName: AppIcon.recipe)
+                                        .font(.system(size: 24))
+                                        .foregroundColor(DesignSystem.Colors.secondaryText.opacity(0.5))
+                                )
+                        }
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
+
+                // Saved indicator
+                if showSavedBadge {
+                    Image(systemName: AppIcon.save)
+                        .font(.system(size: 12))
+                        .foregroundColor(.white)
+                        .padding(6)
+                        .background(Color.black.opacity(0.5))
+                        .clipShape(Circle())
+                        .padding(8)
+                }
+            }
+
+            // Title
+            Text(recipe.title)
+                .font(DesignSystem.Typography.subheadline)
+                .fontWeight(.medium)
+                .lineLimit(1)
+                .foregroundColor(DesignSystem.Colors.text)
+
+            // Subtitle (food name + cooking time)
+            HStack(spacing: 4) {
+                Text(recipe.foodName)
+                    .lineLimit(1)
+
+                if let time = recipe.cookingTimeRange {
+                    Text("·")
+                    Image(systemName: AppIcon.timer)
+                        .font(.system(size: 10))
+                    Text(time.cookingTimeDisplayText)
+                }
+            }
+            .font(DesignSystem.Typography.caption)
+            .foregroundColor(DesignSystem.Colors.secondaryText)
+            .lineLimit(1)
+        }
+    }
+}
+
+// MARK: - Log Grid Card
+/// Compact card for displaying cooking logs in a 2-column grid
+struct LogGridCard: View {
+    let log: FeedLogItem
+    var showSavedBadge: Bool = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+            // Thumbnail with rating overlay
+            ZStack {
+                Color.clear
+                    .aspectRatio(1, contentMode: .fit)
+                    .overlay(
+                        AsyncImage(url: URL(string: log.thumbnailUrl ?? "")) { img in
+                            img.resizable().scaledToFill()
+                        } placeholder: {
+                            Rectangle()
+                                .fill(DesignSystem.Colors.tertiaryBackground)
+                                .overlay(
+                                    LogoIconView(
+                                        size: 24,
+                                        color: DesignSystem.Colors.secondaryText.opacity(0.5),
+                                        useOriginalColors: false
+                                    )
+                                )
+                        }
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
+
+                // Overlays
+                VStack {
+                    // Saved badge (top right)
+                    HStack {
+                        Spacer()
+                        if showSavedBadge {
+                            Image(systemName: AppIcon.save)
+                                .font(.system(size: 12))
+                                .foregroundColor(.white)
+                                .padding(6)
+                                .background(Color.black.opacity(0.5))
+                                .clipShape(Circle())
+                        }
+                    }
+
+                    Spacer()
+
+                    // Rating stars (bottom left)
+                    HStack {
+                        if let rating = log.rating, rating > 0 {
+                            HStack(spacing: 2) {
+                                ForEach(0..<rating, id: \.self) { _ in
+                                    Image(systemName: AppIcon.star)
+                                        .font(.system(size: 10))
+                                }
+                            }
+                            .foregroundColor(DesignSystem.Colors.rating)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 4)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(4)
+                        }
+                        Spacer()
+                    }
+                }
+                .padding(8)
+            }
+
+            // Food name
+            if let foodName = log.foodName {
+                Text(foodName)
+                    .font(DesignSystem.Typography.subheadline)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                    .foregroundColor(DesignSystem.Colors.text)
+            } else if let recipeTitle = log.recipeTitle {
+                Text(recipeTitle)
+                    .font(DesignSystem.Typography.subheadline)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                    .foregroundColor(DesignSystem.Colors.text)
+            }
+
+            // Username
+            Text("@\(log.userName)")
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.secondaryText)
+                .lineLimit(1)
+        }
+    }
+}
+
+// MARK: - Content Grid
+/// Reusable 2-column grid layout for content cards
+struct ContentGrid<Content: View>: View {
+    let content: () -> Content
+
+    init(@ViewBuilder content: @escaping () -> Content) {
+        self.content = content
+    }
+
+    private let columns = [
+        GridItem(.flexible(), spacing: DesignSystem.Spacing.sm),
+        GridItem(.flexible(), spacing: DesignSystem.Spacing.sm)
+    ]
+
+    var body: some View {
+        LazyVGrid(columns: columns, spacing: DesignSystem.Spacing.md) {
+            content()
+        }
+        .padding(.horizontal, DesignSystem.Spacing.md)
+    }
+}

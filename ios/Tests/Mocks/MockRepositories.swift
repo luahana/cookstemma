@@ -70,7 +70,7 @@ final class MockCookingLogRepository: CookingLogRepositoryProtocol {
         return getLogResult ?? .failure(.notFound)
     }
 
-    func getUserLogs(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+    func getUserLogs(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<FeedLogItem>> {
         return .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
     }
 
@@ -258,7 +258,7 @@ final class MockSavedContentRepository: SavedContentRepositoryProtocol {
     var getSavedRecipesResult: RepositoryResult<PaginatedResponse<RecipeSummary>> = .success(
         PaginatedResponse(content: [], nextCursor: nil, hasNext: false)
     )
-    var getSavedLogsResult: RepositoryResult<PaginatedResponse<CookingLogSummary>> = .success(
+    var getSavedLogsResult: RepositoryResult<PaginatedResponse<FeedLogItem>> = .success(
         PaginatedResponse(content: [], nextCursor: nil, hasNext: false)
     )
 
@@ -266,7 +266,7 @@ final class MockSavedContentRepository: SavedContentRepositoryProtocol {
         return getSavedRecipesResult
     }
 
-    func getSavedLogs(cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+    func getSavedLogs(cursor: String?) async -> RepositoryResult<PaginatedResponse<FeedLogItem>> {
         return getSavedLogsResult
     }
 }

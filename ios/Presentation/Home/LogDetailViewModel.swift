@@ -52,15 +52,31 @@ final class LogDetailViewModel: ObservableObject {
     }
 
     func toggleSave() async {
-        guard log != nil else { return }
+        guard log != nil else {
+            #if DEBUG
+            print("[LogDetail] toggleSave: log is nil, returning early")
+            #endif
+            return
+        }
         let wasSaved = isSaved
         isSaved = !wasSaved
+        #if DEBUG
+        print("[LogDetail] toggleSave: wasSaved=\(wasSaved), now isSaved=\(isSaved)")
+        #endif
 
         let result = wasSaved
             ? await logRepository.unsaveLog(id: logId)
             : await logRepository.saveLog(id: logId)
 
-        if case .failure = result {
+        switch result {
+        case .success:
+            #if DEBUG
+            print("[LogDetail] toggleSave: API success, isSaved=\(isSaved)")
+            #endif
+        case .failure(let error):
+            #if DEBUG
+            print("[LogDetail] toggleSave: API failed with error: \(error), reverting to \(wasSaved)")
+            #endif
             isSaved = wasSaved
         }
     }

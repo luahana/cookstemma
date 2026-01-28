@@ -1,5 +1,6 @@
 package com.cookstemma.cookstemma.controller;
 
+import com.cookstemma.cookstemma.dto.common.UnifiedPageResponse;
 import com.cookstemma.cookstemma.dto.log_post.LogPostSummaryDto;
 import com.cookstemma.cookstemma.dto.recipe.RecipeSummaryDto;
 import com.cookstemma.cookstemma.dto.user.CookingDnaDto;
@@ -125,15 +126,19 @@ public class UserController {
 
     /**
      * 타인의 레시피 목록 조회 (공개)
+     * GET /api/v1/users/{userId}/recipes?cursor=xxx (mobile - cursor-based)
+     * GET /api/v1/users/{userId}/recipes?page=0 (web - page-based)
      * @param userId 조회할 사용자의 publicId
      * @param typeFilter "original" (only root recipes), "variants" (only variants), or null (all)
      * @param visibility "all", "public", or "private" - private only allowed for own profile
      */
     @GetMapping("/{userId}/recipes")
-    public ResponseEntity<Slice<RecipeSummaryDto>> getUserRecipes(
+    public ResponseEntity<UnifiedPageResponse<RecipeSummaryDto>> getUserRecipes(
             @PathVariable("userId") UUID userId,
             @RequestParam(required = false) String typeFilter,
             @RequestParam(required = false, defaultValue = "public") String visibility,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Integer page,
             @AuthenticationPrincipal UserPrincipal principal,
             Pageable pageable) {
         String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
@@ -141,19 +146,32 @@ public class UserController {
         UUID requesterId = (principal != null) ? principal.getPublicId() : null;
         boolean isOwnProfile = userId.equals(requesterId);
         String effectiveVisibility = isOwnProfile ? visibility : "public";
-        Slice<RecipeSummaryDto> response = userService.getUserRecipes(userId, typeFilter, effectiveVisibility, pageable, locale);
-        return ResponseEntity.ok(response);
+        Slice<RecipeSummaryDto> slice = userService.getUserRecipes(userId, typeFilter, effectiveVisibility, pageable, locale);
+
+        // Cursor-based response for mobile, page-based for web
+        boolean isCursorBased = cursor != null || page == null;
+        if (isCursorBased) {
+            String nextCursor = slice.hasNext() ? String.valueOf(pageable.getPageNumber() + 1) : null;
+            return ResponseEntity.ok(UnifiedPageResponse.fromSlice(slice, nextCursor, pageable.getPageSize()));
+        } else {
+            // Web gets page-based response (nextCursor is null)
+            return ResponseEntity.ok(UnifiedPageResponse.fromSlice(slice, null, pageable.getPageSize()));
+        }
     }
 
     /**
      * 타인의 로그 목록 조회 (공개)
+     * GET /api/v1/users/{userId}/logs?cursor=xxx (mobile - cursor-based)
+     * GET /api/v1/users/{userId}/logs?page=0 (web - page-based)
      * @param userId 조회할 사용자의 publicId
      * @param visibility "all", "public", or "private" - private only allowed for own profile
      */
     @GetMapping("/{userId}/logs")
-    public ResponseEntity<Slice<LogPostSummaryDto>> getUserLogs(
+    public ResponseEntity<UnifiedPageResponse<LogPostSummaryDto>> getUserLogs(
             @PathVariable("userId") UUID userId,
             @RequestParam(required = false, defaultValue = "public") String visibility,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Integer page,
             @AuthenticationPrincipal UserPrincipal principal,
             Pageable pageable) {
         String locale = LocaleUtils.toLocaleCode(LocaleContextHolder.getLocale());
@@ -161,7 +179,16 @@ public class UserController {
         UUID requesterId = (principal != null) ? principal.getPublicId() : null;
         boolean isOwnProfile = userId.equals(requesterId);
         String effectiveVisibility = isOwnProfile ? visibility : "public";
-        Slice<LogPostSummaryDto> response = userService.getUserLogs(userId, effectiveVisibility, pageable, locale);
-        return ResponseEntity.ok(response);
+        Slice<LogPostSummaryDto> slice = userService.getUserLogs(userId, effectiveVisibility, pageable, locale);
+
+        // Cursor-based response for mobile, page-based for web
+        boolean isCursorBased = cursor != null || page == null;
+        if (isCursorBased) {
+            String nextCursor = slice.hasNext() ? String.valueOf(pageable.getPageNumber() + 1) : null;
+            return ResponseEntity.ok(UnifiedPageResponse.fromSlice(slice, nextCursor, pageable.getPageSize()));
+        } else {
+            // Web gets page-based response (nextCursor is null)
+            return ResponseEntity.ok(UnifiedPageResponse.fromSlice(slice, null, pageable.getPageSize()));
+        }
     }
 }

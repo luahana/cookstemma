@@ -18,6 +18,7 @@ import com.cookstemma.cookstemma.repository.log_post.LogPostRepository;
 import com.cookstemma.cookstemma.repository.recipe.RecipeLogRepository;
 import com.cookstemma.cookstemma.repository.recipe.RecipeRepository;
 import com.cookstemma.cookstemma.repository.recipe.SavedRecipeRepository;
+import com.cookstemma.cookstemma.repository.log_post.SavedLogRepository;
 import com.cookstemma.cookstemma.repository.user.UserRepository;
 import com.cookstemma.cookstemma.security.UserPrincipal;
 import com.cookstemma.cookstemma.util.LocaleUtils;
@@ -48,6 +49,7 @@ public class UserService {
     private final ImageRepository imageRepository;
     private final LogPostRepository logPostRepository;
     private final SavedRecipeRepository savedRecipeRepository;
+    private final SavedLogRepository savedLogRepository;
     private final CookingDnaService cookingDnaService;
     private final TranslationEventService translationEventService;
 
@@ -71,7 +73,7 @@ public class UserService {
                 .user(UserDto.from(user, urlPrefix, normalizedLocale))
                 .recipeCount(recipeRepository.countByCreatorIdAndDeletedAtIsNull(userId))
                 .logCount(logPostRepository.countByCreatorIdAndDeletedAtIsNull(userId))
-                .savedCount(savedRecipeRepository.countByUserId(userId))
+                .savedCount(savedRecipeRepository.countByUserId(userId) + savedLogRepository.countByUserId(userId))
                 .build();
     }
 

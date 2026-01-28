@@ -37,7 +37,7 @@ final class CookingLogRepository: CookingLogRepositoryProtocol {
         }
     }
 
-    func getUserLogs(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+    func getUserLogs(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<FeedLogItem>> {
         do {
             return .success(try await apiClient.request(LogEndpoint.userLogs(userId: userId, cursor: cursor)))
         } catch let error as APIError {

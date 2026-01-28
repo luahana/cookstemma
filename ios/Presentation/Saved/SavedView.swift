@@ -134,91 +134,191 @@ struct SavedTabIconButton: View {
 
 // MARK: - Saved Recipes View
 struct SavedRecipesView: View {
-    @State private var recipes: [RecipeSummary] = []
-    @State private var isLoading = true
+    @StateObject private var viewModel = SavedRecipesViewModel()
 
     var body: some View {
         Group {
-            if isLoading {
+            if viewModel.isLoading && viewModel.recipes.isEmpty {
                 LoadingView()
-            } else if recipes.isEmpty {
-                // Empty state (icon only)
+            } else if viewModel.recipes.isEmpty {
                 IconEmptyState(icon: AppIcon.saveOutline)
             } else {
                 ScrollView {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: DesignSystem.Spacing.sm) {
-                        ForEach(recipes) { recipe in
+                    ContentGrid {
+                        ForEach(viewModel.recipes) { recipe in
                             NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
-                                SavedGridItem(imageUrl: recipe.coverImageUrl)
+                                RecipeGridCard(recipe: recipe, showSavedBadge: true)
                             }
+                            .buttonStyle(.plain)
                         }
                     }
-                    .padding(DesignSystem.Spacing.md)
-                    .safeAreaPadding(.bottom)
+                    .padding(.vertical, DesignSystem.Spacing.md)
+
+                    if viewModel.hasMore && !viewModel.isLoading {
+                        ProgressView()
+                            .padding()
+                            .onAppear {
+                                viewModel.loadMore()
+                            }
+                    }
+                }
+                .refreshable {
+                    await viewModel.refresh()
                 }
             }
+        }
+        .task {
+            await viewModel.loadInitial()
         }
     }
 }
 
 // MARK: - Saved Logs View
 struct SavedLogsView: View {
-    @State private var logs: [CookingLogSummary] = []
-    @State private var isLoading = true
+    @StateObject private var viewModel = SavedLogsViewModel()
 
     var body: some View {
         Group {
-            if isLoading {
+            if viewModel.isLoading && viewModel.logs.isEmpty {
                 LoadingView()
-            } else if logs.isEmpty {
-                // Empty state (icon only)
+            } else if viewModel.logs.isEmpty {
                 IconEmptyState(icon: AppIcon.saveOutline)
             } else {
                 ScrollView {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: DesignSystem.Spacing.sm) {
-                        ForEach(logs) { log in
+                    ContentGrid {
+                        ForEach(viewModel.logs) { log in
                             NavigationLink(destination: LogDetailView(logId: log.id)) {
-                                ZStack(alignment: .bottomLeading) {
-                                    SavedGridItem(imageUrl: log.images.first?.thumbnailUrl)
-
-                                    // Rating overlay (stars only)
-                                    HStack(spacing: 1) {
-                                        ForEach(0..<log.rating, id: \.self) { _ in
-                                            Image(systemName: AppIcon.star)
-                                                .font(.system(size: 8))
-                                                .foregroundColor(DesignSystem.Colors.rating)
-                                        }
-                                    }
-                                    .padding(4)
-                                    .background(Color.black.opacity(0.5))
-                                    .cornerRadius(4)
-                                    .padding(4)
-                                }
+                                LogGridCard(log: log, showSavedBadge: true)
                             }
+                            .buttonStyle(.plain)
                         }
                     }
-                    .padding(DesignSystem.Spacing.md)
-                    .safeAreaPadding(.bottom)
+                    .padding(.vertical, DesignSystem.Spacing.md)
+
+                    if viewModel.hasMore && !viewModel.isLoading {
+                        ProgressView()
+                            .padding()
+                            .onAppear {
+                                viewModel.loadMore()
+                            }
+                    }
+                }
+                .refreshable {
+                    await viewModel.refresh()
                 }
             }
+        }
+        .task {
+            await viewModel.loadInitial()
         }
     }
 }
 
-// MARK: - Saved Grid Item
-struct SavedGridItem: View {
-    let imageUrl: String?
+// MARK: - Saved Recipes ViewModel
+@MainActor
+final class SavedRecipesViewModel: ObservableObject {
+    @Published private(set) var recipes: [RecipeSummary] = []
+    @Published private(set) var isLoading = false
+    @Published private(set) var hasMore = true
 
-    var body: some View {
-        AsyncImage(url: URL(string: imageUrl ?? "")) { img in
-            img.resizable().scaledToFill()
-        } placeholder: {
-            Rectangle().fill(DesignSystem.Colors.tertiaryBackground)
+    private let repository: SavedContentRepositoryProtocol
+    private var nextCursor: String?
+
+    init(repository: SavedContentRepositoryProtocol = SavedContentRepository()) {
+        self.repository = repository
+    }
+
+    func loadInitial() async {
+        guard recipes.isEmpty else { return }
+        await load(refresh: true)
+    }
+
+    func refresh() async {
+        await load(refresh: true)
+    }
+
+    func loadMore() {
+        guard !isLoading, hasMore else { return }
+        Task {
+            await load(refresh: false)
         }
-        .frame(height: 120)
-        .cornerRadius(DesignSystem.CornerRadius.sm)
-        .clipped()
-        .contentShape(Rectangle())
+    }
+
+    private func load(refresh: Bool) async {
+        isLoading = true
+        defer { isLoading = false }
+
+        let cursor = refresh ? nil : nextCursor
+        let result = await repository.getSavedRecipes(cursor: cursor)
+
+        switch result {
+        case .success(let response):
+            if refresh {
+                recipes = response.content
+            } else {
+                recipes.append(contentsOf: response.content)
+            }
+            nextCursor = response.nextCursor
+            hasMore = response.hasMore
+        case .failure(let error):
+            #if DEBUG
+            print("[SavedRecipes] Error: \(error)")
+            #endif
+        }
+    }
+}
+
+// MARK: - Saved Logs ViewModel
+@MainActor
+final class SavedLogsViewModel: ObservableObject {
+    @Published private(set) var logs: [FeedLogItem] = []
+    @Published private(set) var isLoading = false
+    @Published private(set) var hasMore = true
+
+    private let repository: SavedContentRepositoryProtocol
+    private var nextCursor: String?
+
+    init(repository: SavedContentRepositoryProtocol = SavedContentRepository()) {
+        self.repository = repository
+    }
+
+    func loadInitial() async {
+        guard logs.isEmpty else { return }
+        await load(refresh: true)
+    }
+
+    func refresh() async {
+        await load(refresh: true)
+    }
+
+    func loadMore() {
+        guard !isLoading, hasMore else { return }
+        Task {
+            await load(refresh: false)
+        }
+    }
+
+    private func load(refresh: Bool) async {
+        isLoading = true
+        defer { isLoading = false }
+
+        let cursor = refresh ? nil : nextCursor
+        let result = await repository.getSavedLogs(cursor: cursor)
+
+        switch result {
+        case .success(let response):
+            if refresh {
+                logs = response.content
+            } else {
+                logs.append(contentsOf: response.content)
+            }
+            nextCursor = response.nextCursor
+            hasMore = response.hasMore
+        case .failure(let error):
+            #if DEBUG
+            print("[SavedLogs] Error: \(error)")
+            #endif
+        }
     }
 }
 

@@ -33,9 +33,9 @@ final class ProfileViewModel: ObservableObject {
     @Published private(set) var myProfile: MyProfile?
     @Published private(set) var isOwnProfile: Bool
     @Published private(set) var recipes: [RecipeSummary] = []
-    @Published private(set) var logs: [CookingLogSummary] = []
+    @Published private(set) var logs: [FeedLogItem] = []
     @Published private(set) var savedRecipes: [RecipeSummary] = []
-    @Published private(set) var savedLogs: [CookingLogSummary] = []
+    @Published private(set) var savedLogs: [FeedLogItem] = []
     @Published private(set) var isLoadingContent = false
     @Published private(set) var hasMoreRecipes = true
     @Published private(set) var hasMoreLogs = true
@@ -171,6 +171,10 @@ final class ProfileViewModel: ObservableObject {
         isLoadingContent = true
         defer { isLoadingContent = false }
 
+        #if DEBUG
+        print("[Profile] Loading saved content, refresh=\(refresh)")
+        #endif
+
         // Load both saved recipes and logs in parallel
         async let recipesTask = savedContentRepository.getSavedRecipes(
             cursor: refresh ? nil : savedRecipesNextCursor
@@ -182,16 +186,32 @@ final class ProfileViewModel: ObservableObject {
         let recipesResult = await recipesTask
         let logsResult = await logsTask
 
-        if case .success(let response) = recipesResult {
+        switch recipesResult {
+        case .success(let response):
+            #if DEBUG
+            print("[Profile] Saved recipes loaded: \(response.content.count) items")
+            #endif
             savedRecipes = refresh ? response.content : savedRecipes + response.content
             savedRecipesNextCursor = response.nextCursor
             hasMoreSavedRecipes = response.hasMore
+        case .failure(let error):
+            #if DEBUG
+            print("[Profile] Failed to load saved recipes: \(error)")
+            #endif
         }
 
-        if case .success(let response) = logsResult {
+        switch logsResult {
+        case .success(let response):
+            #if DEBUG
+            print("[Profile] Saved logs loaded: \(response.content.count) items")
+            #endif
             savedLogs = refresh ? response.content : savedLogs + response.content
             savedLogsNextCursor = response.nextCursor
             hasMoreSavedLogs = response.hasMore
+        case .failure(let error):
+            #if DEBUG
+            print("[Profile] Failed to load saved logs: \(error)")
+            #endif
         }
     }
 

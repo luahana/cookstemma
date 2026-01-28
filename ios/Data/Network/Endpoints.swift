@@ -422,8 +422,8 @@ enum SavedEndpoint: APIEndpoint {
 
     var path: String {
         switch self {
-        case .recipes: return "saved/recipes"
-        case .logs: return "saved/logs"
+        case .recipes: return "recipes/saved"
+        case .logs: return "log_posts/saved"
         }
     }
 

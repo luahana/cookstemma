@@ -2,12 +2,56 @@ import Foundation
 
 // MARK: - Pagination
 
+/// Flexible pagination response that handles both cursor-based and Spring Page formats
 struct PaginatedResponse<T: Codable>: Codable {
     let content: [T]
     let nextCursor: String?
     let hasNext: Bool
 
     var hasMore: Bool { hasNext }
+
+    enum CodingKeys: String, CodingKey {
+        case content, nextCursor, hasNext
+        // Spring Page format keys
+        case last, number
+    }
+
+    init(content: [T], nextCursor: String?, hasNext: Bool) {
+        self.content = content
+        self.nextCursor = nextCursor
+        self.hasNext = hasNext
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        content = try container.decode([T].self, forKey: .content)
+
+        // Try cursor-based format first
+        if let hasNext = try? container.decode(Bool.self, forKey: .hasNext) {
+            self.hasNext = hasNext
+            self.nextCursor = try container.decodeIfPresent(String.self, forKey: .nextCursor)
+        }
+        // Fall back to Spring Page format (has `last` instead of `hasNext`)
+        else if let last = try? container.decode(Bool.self, forKey: .last) {
+            self.hasNext = !last
+            // For Spring Page, use page number as cursor
+            if let pageNumber = try? container.decode(Int.self, forKey: .number), !last {
+                self.nextCursor = String(pageNumber + 1)
+            } else {
+                self.nextCursor = nil
+            }
+        } else {
+            self.hasNext = false
+            self.nextCursor = nil
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(content, forKey: .content)
+        try container.encodeIfPresent(nextCursor, forKey: .nextCursor)
+        try container.encode(hasNext, forKey: .hasNext)
+    }
 }
 
 /// Spring Slice response format (offset-based pagination)
@@ -76,7 +120,7 @@ protocol CookingLogRepositoryProtocol {
     func getHomeFeed() async -> RepositoryResult<HomeFeedResponse>
     func getFeed(cursor: String?, size: Int) async -> RepositoryResult<PaginatedResponse<FeedLogItem>>
     func getLog(id: String) async -> RepositoryResult<CookingLogDetail>
-    func getUserLogs(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>>
+    func getUserLogs(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<FeedLogItem>>
     func createLog(_ request: CreateLogRequest) async -> RepositoryResult<CookingLogDetail>
     func updateLog(id: String, _ request: UpdateLogRequest) async -> RepositoryResult<CookingLogDetail>
     func deleteLog(id: String) async -> RepositoryResult<Void>
@@ -141,5 +185,5 @@ protocol NotificationRepositoryProtocol {
 
 protocol SavedContentRepositoryProtocol {
     func getSavedRecipes(cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeSummary>>
-    func getSavedLogs(cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>>
+    func getSavedLogs(cursor: String?) async -> RepositoryResult<PaginatedResponse<FeedLogItem>>
 }

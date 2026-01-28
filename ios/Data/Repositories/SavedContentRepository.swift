@@ -9,22 +9,48 @@ final class SavedContentRepository: SavedContentRepositoryProtocol {
 
     func getSavedRecipes(cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeSummary>> {
         do {
-            let slice: SliceResponse<RecipeSummary> = try await apiClient.request(SavedEndpoint.recipes(cursor: cursor))
-            return .success(slice.toPaginatedResponse())
+            #if DEBUG
+            print("[SavedContent] Fetching saved recipes, cursor=\(cursor ?? "nil")")
+            #endif
+            // Backend returns UnifiedPageResponse format with hasNext
+            let response: PaginatedResponse<RecipeSummary> = try await apiClient.request(SavedEndpoint.recipes(cursor: cursor))
+            #if DEBUG
+            print("[SavedContent] Got \(response.content.count) saved recipes")
+            #endif
+            return .success(response)
         } catch let error as APIError {
+            #if DEBUG
+            print("[SavedContent] API error fetching saved recipes: \(error)")
+            #endif
             return .failure(mapError(error))
         } catch {
+            #if DEBUG
+            print("[SavedContent] Unknown error fetching saved recipes: \(error)")
+            #endif
             return .failure(.unknown)
         }
     }
 
-    func getSavedLogs(cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+    func getSavedLogs(cursor: String?) async -> RepositoryResult<PaginatedResponse<FeedLogItem>> {
         do {
-            let slice: SliceResponse<CookingLogSummary> = try await apiClient.request(SavedEndpoint.logs(cursor: cursor))
-            return .success(slice.toPaginatedResponse())
+            #if DEBUG
+            print("[SavedContent] Fetching saved logs, cursor=\(cursor ?? "nil")")
+            #endif
+            // Backend returns UnifiedPageResponse format with hasNext
+            let response: PaginatedResponse<FeedLogItem> = try await apiClient.request(SavedEndpoint.logs(cursor: cursor))
+            #if DEBUG
+            print("[SavedContent] Got \(response.content.count) saved logs")
+            #endif
+            return .success(response)
         } catch let error as APIError {
+            #if DEBUG
+            print("[SavedContent] API error fetching saved logs: \(error)")
+            #endif
             return .failure(mapError(error))
         } catch {
+            #if DEBUG
+            print("[SavedContent] Unknown error fetching saved logs: \(error)")
+            #endif
             return .failure(.unknown)
         }
     }

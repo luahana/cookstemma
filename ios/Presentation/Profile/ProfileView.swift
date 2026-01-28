@@ -18,9 +18,8 @@ struct ProfileView: View {
 
     private var isViewingOwnProfile: Bool { userId == nil }
     private let gridColumns = [
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2)
+        GridItem(.flexible(), spacing: DesignSystem.Spacing.sm),
+        GridItem(.flexible(), spacing: DesignSystem.Spacing.sm)
     ]
 
     init(userId: String? = nil) {
@@ -280,19 +279,21 @@ struct ProfileView: View {
     @ViewBuilder
     private var contentGrid: some View {
         VStack(spacing: 0) {
-            LazyVGrid(columns: gridColumns, spacing: 2) {
+            LazyVGrid(columns: gridColumns, spacing: DesignSystem.Spacing.md) {
                 switch viewModel.selectedTab {
                 case .recipes:
                     ForEach(viewModel.recipes) { recipe in
                         NavigationLink(value: ProfileNavDestination.recipe(id: recipe.id)) {
-                            ProfileGridItem(imageUrl: recipe.coverImageUrl)
+                            RecipeGridCard(recipe: recipe)
                         }
+                        .buttonStyle(.plain)
                     }
                 case .logs:
                     ForEach(viewModel.logs) { log in
                         NavigationLink(value: ProfileNavDestination.log(id: log.id)) {
-                            ProfileGridItem(imageUrl: log.images.first?.thumbnailUrl)
+                            LogGridCard(log: log)
                         }
+                        .buttonStyle(.plain)
                     }
                 case .saved:
                     savedContent
@@ -316,15 +317,17 @@ struct ProfileView: View {
         if viewModel.savedContentFilter != .logs {
             ForEach(viewModel.savedRecipes) { recipe in
                 NavigationLink(value: ProfileNavDestination.recipe(id: recipe.id)) {
-                    ProfileGridItem(imageUrl: recipe.coverImageUrl, isSaved: true)
+                    RecipeGridCard(recipe: recipe, showSavedBadge: true)
                 }
+                .buttonStyle(.plain)
             }
         }
         if viewModel.savedContentFilter != .recipes {
             ForEach(viewModel.savedLogs) { log in
                 NavigationLink(value: ProfileNavDestination.log(id: log.id)) {
-                    ProfileGridItem(imageUrl: log.images.first?.thumbnailUrl, isSaved: true)
+                    LogGridCard(log: log, showSavedBadge: true)
                 }
+                .buttonStyle(.plain)
             }
         }
     }
