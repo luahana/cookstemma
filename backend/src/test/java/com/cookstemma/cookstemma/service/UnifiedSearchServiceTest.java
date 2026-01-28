@@ -67,7 +67,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Should return empty response for null keyword")
         void search_NullKeyword_ReturnsEmpty() {
-            UnifiedSearchResponse result = unifiedSearchService.search(null, "all", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search(null, "all", null, 20, "en-US");
 
             assertThat(result.content()).isEmpty();
             assertThat(result.counts().total()).isZero();
@@ -76,7 +76,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Should return empty response for keyword shorter than 2 chars")
         void search_ShortKeyword_ReturnsEmpty() {
-            UnifiedSearchResponse result = unifiedSearchService.search("a", "all", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("a", "all", null, 20, "en-US");
 
             assertThat(result.content()).isEmpty();
             assertThat(result.counts().total()).isZero();
@@ -94,7 +94,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             recipeRepository.save(recipe);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("  burger  ", "recipes", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("  burger  ", "recipes", null, 20, "en-US");
 
             assertThat(result.counts().recipes()).isEqualTo(1);
         }
@@ -123,7 +123,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             hashtagRepository.save(hashtag);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("taco", "all", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("taco", "all", null, 20, "en-US");
 
             assertThat(result.counts().recipes()).isEqualTo(1);
             assertThat(result.counts().hashtags()).isEqualTo(1);
@@ -149,7 +149,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             hashtagRepository.save(hashtag);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("curry", "recipes", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("curry", "recipes", null, 20, "en-US");
 
             // Should only return recipe items, but counts should still include hashtags
             assertThat(result.content()).allMatch(item ->
@@ -187,7 +187,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
             logPost.setRecipeLog(recipeLog);
             logPostRepository.save(logPost);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("sushi", "logs", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("sushi", "logs", null, 20, "en-US");
 
             assertThat(result.content()).allMatch(item ->
                     item.type().equals(SearchResultItem.TYPE_LOG));
@@ -213,7 +213,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             hashtagRepository.save(hashtag);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("ramen", "hashtags", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("ramen", "hashtags", null, 20, "en-US");
 
             assertThat(result.content()).allMatch(item ->
                     item.type().equals(SearchResultItem.TYPE_HASHTAG));
@@ -232,7 +232,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             recipeRepository.save(recipe);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("salad", null, 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("salad", null, null, 20, "en-US");
 
             assertThat(result.counts().recipes()).isEqualTo(1);
         }
@@ -263,7 +263,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             hashtagRepository.save(hashtag);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("pizza", "all", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("pizza", "all", null, 20, "en-US");
 
             assertThat(result.counts().recipes()).isEqualTo(2);
             assertThat(result.counts().logs()).isZero();
@@ -274,7 +274,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Should return 0 counts when no matches")
         void search_NoMatches_ReturnsZeroCounts() {
-            UnifiedSearchResponse result = unifiedSearchService.search("xyz123nonexistent", "all", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("xyz123nonexistent", "all", null, 20, "en-US");
 
             assertThat(result.counts().recipes()).isZero();
             assertThat(result.counts().logs()).isZero();
@@ -302,7 +302,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                 recipeRepository.save(recipe);
             }
 
-            UnifiedSearchResponse result = unifiedSearchService.search("steak", "recipes", 0, 2, "ko-KR");
+            UnifiedSearchResponse result = unifiedSearchService.search("steak", "recipes", null, 2, "ko-KR");
 
             assertThat(result.content()).hasSize(2);
             assertThat(result.page()).isZero();
@@ -324,7 +324,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                 recipeRepository.save(recipe);
             }
 
-            UnifiedSearchResponse result = unifiedSearchService.search("sandwich", "recipes", 0, 2, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("sandwich", "recipes", null, 2, "en-US");
 
             assertThat(result.hasNext()).isTrue();
         }
@@ -345,7 +345,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
             }
 
             // Request page that includes all results
-            UnifiedSearchResponse result = unifiedSearchService.search("soup", "recipes", 0, 10, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("soup", "recipes", null, 10, "en-US");
 
             assertThat(result.hasNext()).isFalse();
         }
@@ -365,7 +365,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                 recipeRepository.save(recipe);
             }
 
-            UnifiedSearchResponse result = unifiedSearchService.search("bread", "recipes", 0, 3, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("bread", "recipes", null, 3, "en-US");
 
             assertThat(result.totalPages()).isEqualTo(3); // 7 items / 3 per page = 3 pages
             assertThat(result.totalElements()).isEqualTo(7);
@@ -388,7 +388,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             recipeRepository.save(recipe);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("carbonara", "recipes", 0, 20, "ko-KR");
+            UnifiedSearchResponse result = unifiedSearchService.search("carbonara", "recipes", null, 20, "ko-KR");
 
             assertThat(result.content()).hasSize(1);
             SearchResultItem item = result.content().get(0);
@@ -424,7 +424,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
             logPost.setRecipeLog(recipeLog);
             logPostRepository.save(logPost);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("risotto", "logs", 0, 20, "ko-KR");
+            UnifiedSearchResponse result = unifiedSearchService.search("risotto", "logs", null, 20, "ko-KR");
 
             assertThat(result.content()).hasSize(1);
             SearchResultItem item = result.content().get(0);
@@ -456,7 +456,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             recipeRepository.save(recipe);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("dessert", "hashtags", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("dessert", "hashtags", null, 20, "en-US");
 
             assertThat(result.content()).hasSize(1);
             SearchResultItem item = result.content().get(0);
@@ -485,7 +485,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             hashtagRepository.save(prefixMatch);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("korean", "hashtags", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("korean", "hashtags", null, 20, "en-US");
 
             assertThat(result.content()).hasSizeGreaterThanOrEqualTo(1);
             // Exact match should have higher or equal relevance
@@ -505,7 +505,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             recipeRepository.save(recipe);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("waffle", "all", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("waffle", "all", null, 20, "en-US");
 
             assertThat(result.content()).allMatch(item ->
                     item.relevanceScore() != null && item.relevanceScore() > 0);
@@ -519,7 +519,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Should handle empty results gracefully")
         void search_EmptyResults_ReturnsValidResponse() {
-            UnifiedSearchResponse result = unifiedSearchService.search("veryrandomnonexistent", "all", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("veryrandomnonexistent", "all", null, 20, "en-US");
 
             assertThat(result).isNotNull();
             assertThat(result.content()).isEmpty();
@@ -530,7 +530,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Should handle whitespace-only keyword")
         void search_WhitespaceKeyword_ReturnsEmpty() {
-            UnifiedSearchResponse result = unifiedSearchService.search("   ", "all", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("   ", "all", null, 20, "en-US");
 
             assertThat(result.content()).isEmpty();
             assertThat(result.counts().total()).isZero();
@@ -548,7 +548,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             recipeRepository.save(recipe);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("pancake", "unknown_type", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("pancake", "unknown_type", null, 20, "en-US");
 
             // Should default to "all" behavior
             assertThat(result.counts().recipes()).isEqualTo(1);
@@ -578,7 +578,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             recipeRepository.save(activeRecipe);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("omelette", "recipes", 0, 20, "ko-KR");
+            UnifiedSearchResponse result = unifiedSearchService.search("omelette", "recipes", null, 20, "ko-KR");
 
             assertThat(result.counts().recipes()).isEqualTo(1);
             assertThat(result.content()).hasSize(1);
@@ -609,7 +609,7 @@ class UnifiedSearchServiceTest extends BaseIntegrationTest {
                     .build();
             recipeRepository.save(publicRecipe);
 
-            UnifiedSearchResponse result = unifiedSearchService.search("muffin", "recipes", 0, 20, "en-US");
+            UnifiedSearchResponse result = unifiedSearchService.search("muffin", "recipes", null, 20, "en-US");
 
             assertThat(result.counts().recipes()).isEqualTo(1);
         }

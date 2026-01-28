@@ -7,9 +7,9 @@ final class SearchRepository: SearchRepositoryProtocol {
         self.apiClient = apiClient
     }
 
-    func search(query: String, type: SearchType?, cursor: String?) async -> RepositoryResult<SearchResponse> {
+    func search(query: String, type: SearchType?, cursor: String?, size: Int = 20) async -> RepositoryResult<UnifiedSearchResponse> {
         do {
-            return .success(try await apiClient.request(SearchEndpoint.search(query: query, type: type, cursor: cursor)))
+            return .success(try await apiClient.request(SearchEndpoint.search(query: query, type: type, cursor: cursor, size: size)))
         } catch let error as APIError {
             return .failure(mapError(error))
         } catch {

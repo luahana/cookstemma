@@ -11,6 +11,117 @@ struct SearchResponse: Codable, Equatable {
     let cursor: String?
 }
 
+// MARK: - Unified Search Response (matches backend)
+
+struct UnifiedSearchResponse: Codable {
+    let content: [SearchResultItem]
+    let counts: SearchCountsResponse
+    let page: Int
+    let size: Int
+    let totalElements: Int
+    let totalPages: Int
+    let hasNext: Bool
+    let nextCursor: String?
+}
+
+struct SearchCountsResponse: Codable, Equatable {
+    let recipes: Int
+    let logs: Int
+    let hashtags: Int
+    let total: Int
+}
+
+struct SearchResultItem: Codable {
+    let type: String
+    let relevanceScore: Double?
+    let data: SearchItemData
+}
+
+enum SearchItemData: Codable {
+    case recipe(RecipeSummary)
+    case log(LogPostSummaryResponse)
+    case hashtag(HashtagSearchResult)
+    case unknown
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        // Try to decode as recipe first (most common)
+        if let recipe = try? container.decode(RecipeSummary.self) {
+            self = .recipe(recipe)
+            return
+        }
+        // Try log
+        if let log = try? container.decode(LogPostSummaryResponse.self) {
+            self = .log(log)
+            return
+        }
+        // Try hashtag
+        if let hashtag = try? container.decode(HashtagSearchResult.self) {
+            self = .hashtag(hashtag)
+            return
+        }
+        // Unknown type
+        self = .unknown
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .recipe(let recipe): try container.encode(recipe)
+        case .log(let log): try container.encode(log)
+        case .hashtag(let hashtag): try container.encode(hashtag)
+        case .unknown: try container.encodeNil()
+        }
+    }
+}
+
+/// Log post summary as returned by backend search API
+struct LogPostSummaryResponse: Codable, Identifiable, Equatable {
+    let id: String
+    let title: String?
+    let content: String?
+    let rating: Int?
+    let thumbnailUrl: String?
+    let creatorPublicId: String?
+    let userName: String
+    let foodName: String?
+    let recipeTitle: String?
+    let hashtags: [String]
+    let isVariant: Bool?
+    let isPrivate: Bool?
+    let commentCount: Int?
+    let locale: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id = "publicId"
+        case title, content, rating, thumbnailUrl
+        case creatorPublicId, userName, foodName, recipeTitle
+        case hashtags, isVariant, isPrivate, commentCount, locale
+    }
+}
+
+struct HashtagSearchResult: Codable, Identifiable, Equatable {
+    let id: String
+    let name: String
+    let recipeCount: Int
+    let logCount: Int
+    let sampleThumbnails: [String]?
+    let topContributors: [ContributorPreview]?
+
+    enum CodingKeys: String, CodingKey {
+        case id = "publicId"
+        case name, recipeCount, logCount, sampleThumbnails, topContributors
+    }
+
+    var totalCount: Int { recipeCount + logCount }
+}
+
+struct ContributorPreview: Codable, Equatable {
+    let publicId: String
+    let username: String
+    let avatarUrl: String?
+}
+
 // MARK: - Hashtag Count (for trending/search results)
 
 struct HashtagCount: Codable, Identifiable, Equatable {

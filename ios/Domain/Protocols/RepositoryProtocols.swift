@@ -162,7 +162,7 @@ protocol CommentRepositoryProtocol {
 // MARK: - Search Repository
 
 protocol SearchRepositoryProtocol {
-    func search(query: String, type: SearchType?, cursor: String?) async -> RepositoryResult<SearchResponse>
+    func search(query: String, type: SearchType?, cursor: String?, size: Int) async -> RepositoryResult<UnifiedSearchResponse>
     func searchRecipes(query: String, filters: RecipeFilters?, cursor: String?) async -> RepositoryResult<PaginatedResponse<RecipeSummary>>
     func searchLogs(query: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>>
     func searchUsers(query: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<UserSummary>>

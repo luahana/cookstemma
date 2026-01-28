@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -48,17 +49,7 @@ public class UnifiedSearchService {
     @Value("${file.upload.url-prefix}")
     private String urlPrefix;
 
-    /**
-     * Unified search across recipes, logs, and hashtags.
-     *
-     * @param keyword Search keyword (min 2 chars)
-     * @param type    Filter type: all, recipes, logs, hashtags
-     * @param page    Page number (0-indexed)
-     * @param size    Items per page
-     * @param locale  Locale for translations
-     * @return Unified search response with mixed results and counts
-     */
-    public UnifiedSearchResponse search(String keyword, String type, int page, int size, String locale) {
+    public UnifiedSearchResponse search(String keyword, String type, String cursor, int size, String locale) {
         if (keyword == null || keyword.trim().length() < MIN_KEYWORD_LENGTH) {
             return UnifiedSearchResponse.empty(size);
         }
@@ -66,6 +57,9 @@ public class UnifiedSearchService {
         String normalizedKeyword = keyword.trim();
         String normalizedType = type != null ? type.toLowerCase() : TYPE_ALL;
         String normalizedLocale = LocaleUtils.normalizeLocale(locale);
+
+        // Decode cursor to page number (cursor is Base64(pageNumber))
+        int page = decodePageCursor(cursor);
 
         // Get counts for all types (for filter chips)
         SearchCounts counts = getCounts(normalizedKeyword);
@@ -94,7 +88,37 @@ public class UnifiedSearchService {
             }
         }
 
-        return UnifiedSearchResponse.of(items, counts, page, size, totalElements);
+        // Generate nextCursor if there are more items
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        String nextCursor = page < totalPages - 1 ? encodePageCursor(page + 1) : null;
+
+        return UnifiedSearchResponse.of(items, counts, page, size, totalElements, nextCursor);
+    }
+
+
+    /**
+     * Decode page cursor back to page number.
+     * Cursor format: Base64(pageNumber)
+     */
+    private int decodePageCursor(String cursor) {
+        if (cursor == null || cursor.isBlank()) {
+            return 0;
+        }
+        try {
+            String decoded = new String(Base64.getDecoder().decode(cursor), StandardCharsets.UTF_8);
+            return Integer.parseInt(decoded);
+        } catch (Exception e) {
+            log.warn("Invalid cursor format: {}", cursor);
+            return 0;
+        }
+    }
+
+    /**
+     * Encode page number as cursor.
+     * Cursor format: Base64(pageNumber)
+     */
+    private String encodePageCursor(int page) {
+        return Base64.getEncoder().encodeToString(String.valueOf(page).getBytes(StandardCharsets.UTF_8));
     }
 
     /**

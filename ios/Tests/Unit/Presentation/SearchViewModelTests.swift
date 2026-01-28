@@ -357,12 +357,43 @@ final class SearchViewModelTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func createMockSearchResponse() -> SearchResponse {
-        SearchResponse(
-            recipes: [createMockRecipeSummary()],
-            logs: [createMockLogSummary()],
-            users: [createMockUserSummary()],
-            hashtags: [HashtagCount(name: "test", postCount: 10)]
+    private func createMockSearchResponse() -> UnifiedSearchResponse {
+        UnifiedSearchResponse(
+            content: [
+                SearchResultItem(type: "RECIPE", relevanceScore: 1.0, data: .recipe(createMockRecipeSummary())),
+                SearchResultItem(
+                    type: "LOG",
+                    relevanceScore: 0.9,
+                    data: .log(LogPostSummaryResponse(
+                        id: "log-1",
+                        title: "Test Log",
+                        content: "Test log",
+                        rating: 4,
+                        thumbnailUrl: nil,
+                        creatorPublicId: "user-1",
+                        userName: "testuser",
+                        foodName: nil,
+                        recipeTitle: nil,
+                        hashtags: [],
+                        isVariant: nil,
+                        isPrivate: false,
+                        commentCount: 2,
+                        locale: nil
+                    ))
+                ),
+                SearchResultItem(
+                    type: "HASHTAG",
+                    relevanceScore: 0.8,
+                    data: .hashtag(HashtagSearchResult(id: "hash-1", name: "test", recipeCount: 5, logCount: 5, sampleThumbnails: nil, topContributors: nil))
+                )
+            ],
+            counts: SearchCountsResponse(recipes: 1, logs: 1, hashtags: 1, total: 3),
+            page: 0,
+            size: 20,
+            totalElements: 3,
+            totalPages: 1,
+            hasNext: false,
+            nextCursor: nil
         )
     }
 
@@ -448,11 +479,20 @@ final class SearchViewModelTests: XCTestCase {
 // MARK: - Search Mock Repositories (local to this file to avoid conflicts)
 
 final class SearchMockSearchRepository: SearchRepositoryProtocol {
-    var searchResult: RepositoryResult<SearchResponse> = .success(SearchResponse(recipes: [], logs: [], users: [], hashtags: []))
+    var searchResult: RepositoryResult<UnifiedSearchResponse> = .success(UnifiedSearchResponse(
+        content: [],
+        counts: SearchCountsResponse(recipes: 0, logs: 0, hashtags: 0, total: 0),
+        page: 0,
+        size: 20,
+        totalElements: 0,
+        totalPages: 0,
+        hasNext: false,
+        nextCursor: nil
+    ))
     var getTrendingHashtagsResult: RepositoryResult<[HashtagCount]> = .success([])
     var delay: TimeInterval = 0
 
-    func search(query: String, type: SearchType?, cursor: String?) async -> RepositoryResult<SearchResponse> {
+    func search(query: String, type: SearchType?, cursor: String?, size: Int) async -> RepositoryResult<UnifiedSearchResponse> {
         if delay > 0 { try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000)) }
         return searchResult
     }
@@ -473,8 +513,8 @@ final class SearchMockSearchRepository: SearchRepositoryProtocol {
         getTrendingHashtagsResult
     }
 
-    func getHashtagContent(hashtag: String, type: SearchType?, cursor: String?) async -> RepositoryResult<SearchResponse> {
-        searchResult
+    func getHashtagContent(hashtag: String, type: SearchType?, cursor: String?) async -> RepositoryResult<HashtagContentResponse> {
+        .success(HashtagContentResponse(content: [], totalElements: 0, totalPages: 0, currentPage: 0, nextCursor: nil, hasNext: false, size: 20))
     }
 }
 
@@ -497,7 +537,7 @@ final class SearchMockLogRepository: CookingLogRepositoryProtocol {
         .failure(.notFound)
     }
 
-    func getUserLogs(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<CookingLogSummary>> {
+    func getUserLogs(userId: String, cursor: String?) async -> RepositoryResult<PaginatedResponse<FeedLogItem>> {
         .success(PaginatedResponse(content: [], nextCursor: nil, hasNext: false))
     }
 

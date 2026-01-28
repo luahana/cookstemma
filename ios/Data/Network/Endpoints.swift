@@ -316,7 +316,7 @@ enum CommentEndpoint: APIEndpoint {
 // MARK: - Search Endpoints
 
 enum SearchEndpoint: APIEndpoint {
-    case search(query: String, type: SearchType?, cursor: String?)
+    case search(query: String, type: SearchType?, cursor: String?, size: Int)
     case searchRecipes(query: String, filters: RecipeFilters?, cursor: String?)
     case searchLogs(query: String, cursor: String?)
     case searchUsers(query: String, cursor: String?)
@@ -346,10 +346,17 @@ enum SearchEndpoint: APIEndpoint {
 
     var queryItems: [URLQueryItem]? {
         switch self {
-        case .search(let q, let type, let cursor):
-            var items = [URLQueryItem(name: "q", value: q)]
-            if let t = type, t != .all { items.append(URLQueryItem(name: "type", value: t.rawValue)) }
-            if let c = cursor { items.append(URLQueryItem(name: "cursor", value: c)) }
+        case .search(let q, let type, let cursor, let size):
+            var items = [
+                URLQueryItem(name: "q", value: q),
+                URLQueryItem(name: "size", value: String(size))
+            ]
+            if let t = type, t != .all {
+                items.append(URLQueryItem(name: "type", value: t.rawValue.lowercased()))
+            }
+            if let c = cursor {
+                items.append(URLQueryItem(name: "cursor", value: c))
+            }
             return items
         case .searchRecipes(let q, let filters, let cursor):
             var items = [URLQueryItem(name: "q", value: q)]
