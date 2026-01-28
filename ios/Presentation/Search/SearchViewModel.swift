@@ -129,13 +129,30 @@ final class SearchViewModel: ObservableObject {
                 recipes.append(recipe)
             case .log(let log):
                 // Transform LogPostSummaryResponse to CookingLogSummary
+                let recipe: RecipeSummary? = log.recipeTitle.map { title in
+                    RecipeSummary(
+                        id: "",
+                        title: title,
+                        description: nil,
+                        foodName: log.foodName ?? "",
+                        cookingStyle: nil,
+                        userName: "",
+                        thumbnail: nil,
+                        variantCount: 0,
+                        logCount: 0,
+                        servings: nil,
+                        cookingTimeRange: nil,
+                        hashtags: [],
+                        isPrivate: false
+                    )
+                }
                 let logSummary = CookingLogSummary(
                     id: log.id,
                     rating: log.rating ?? 0,
                     content: log.content,
                     images: log.thumbnailUrl.map { [ImageInfo(id: log.id, url: $0, thumbnailUrl: $0, width: nil, height: nil)] } ?? [],
                     author: UserSummary(id: log.creatorPublicId ?? "", username: log.userName, displayName: nil, avatarUrl: nil, level: 0, isFollowing: nil),
-                    recipe: nil,
+                    recipe: recipe,
                     likeCount: 0,
                     commentCount: log.commentCount ?? 0,
                     isLiked: false,
@@ -155,13 +172,30 @@ final class SearchViewModel: ObservableObject {
             switch item.data {
             case .recipe(let recipe): return .recipe(recipe)
             case .log(let log):
+                let recipe: RecipeSummary? = log.recipeTitle.map { title in
+                    RecipeSummary(
+                        id: "",
+                        title: title,
+                        description: nil,
+                        foodName: log.foodName ?? "",
+                        cookingStyle: nil,
+                        userName: "",
+                        thumbnail: nil,
+                        variantCount: 0,
+                        logCount: 0,
+                        servings: nil,
+                        cookingTimeRange: nil,
+                        hashtags: [],
+                        isPrivate: false
+                    )
+                }
                 let logSummary = CookingLogSummary(
                     id: log.id,
                     rating: log.rating ?? 0,
                     content: log.content,
                     images: log.thumbnailUrl.map { [ImageInfo(id: log.id, url: $0, thumbnailUrl: $0, width: nil, height: nil)] } ?? [],
                     author: UserSummary(id: log.creatorPublicId ?? "", username: log.userName, displayName: nil, avatarUrl: nil, level: 0, isFollowing: nil),
-                    recipe: nil,
+                    recipe: recipe,
                     likeCount: 0,
                     commentCount: log.commentCount ?? 0,
                     isLiked: false,

@@ -498,18 +498,13 @@ struct SearchView: View {
                         selectedTab = tab
                     } label: {
                         VStack(spacing: DesignSystem.Spacing.xxs) {
-                            if tab == .logs {
-                                LogoIconView(size: DesignSystem.IconSize.md)
-                                    .opacity(selectedTab == tab ? 1.0 : 0.4)
-                            } else {
-                                Image(systemName: tab.icon)
-                                    .font(.system(size: DesignSystem.IconSize.md))
-                                    .foregroundColor(
-                                        selectedTab == tab
-                                            ? DesignSystem.Colors.primary
-                                            : DesignSystem.Colors.tertiaryText
-                                    )
-                            }
+                            Image(systemName: tab.icon)
+                                .font(.system(size: DesignSystem.IconSize.md))
+                                .foregroundColor(
+                                    selectedTab == tab
+                                        ? DesignSystem.Colors.primary
+                                        : DesignSystem.Colors.tertiaryText
+                                )
 
                             Circle()
                                 .fill(selectedTab == tab ? DesignSystem.Colors.primary : Color.clear)
@@ -865,24 +860,38 @@ struct LogCardCompact: View {
     let log: CookingLogSummary
 
     var body: some View {
-        HStack {
+        VStack(alignment: .leading, spacing: 0) {
+            // Large image
             AsyncImage(url: URL(string: log.images.first?.thumbnailUrl ?? "")) { img in
                 img.resizable().scaledToFill()
             } placeholder: {
                 Rectangle().fill(DesignSystem.Colors.secondaryBackground)
             }
-            .frame(width: 60, height: 60)
-            .cornerRadius(DesignSystem.CornerRadius.sm)
+            .frame(height: 120)
+            .frame(maxWidth: .infinity)
             .clipped()
 
-            VStack(alignment: .leading) {
-                Text(log.author.displayNameOrUsername)
+            // Info section
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
+                Text(log.recipe?.title ?? "Cooking Log")
                     .font(DesignSystem.Typography.subheadline)
                     .fontWeight(.medium)
-                StarRating(rating: log.rating)
+                    .lineLimit(1)
+                    .foregroundColor(DesignSystem.Colors.text)
+
+                HStack {
+                    Text("@\(log.author.username)")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                    Spacer()
+                    StarRating(rating: log.rating)
+                }
             }
-            Spacer()
+            .padding(DesignSystem.Spacing.sm)
         }
+        .background(DesignSystem.Colors.background)
+        .cornerRadius(DesignSystem.CornerRadius.md)
+        .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
         .contentShape(Rectangle())
     }
 }
