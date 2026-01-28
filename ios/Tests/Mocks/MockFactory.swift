@@ -27,32 +27,42 @@ enum MockFactory {
     static func myProfile(
         id: String = "me-1",
         username: String = "myuser",
-        displayName: String? = "My Name",
-        email: String = "test@example.com",
         level: Int = 5,
-        xp: Int = 500,
         levelProgress: Double = 0.5,
         recipeCount: Int = 10,
         logCount: Int = 25,
+        savedCount: Int = 5,
         followerCount: Int = 100,
         followingCount: Int = 50
     ) -> MyProfile {
-        MyProfile(
+        let userInfo = UserInfo(
             id: id,
             username: username,
-            displayName: displayName,
-            email: email,
-            avatarUrl: nil,
-            bio: nil,
-            level: level,
-            xp: xp,
-            levelProgress: levelProgress,
-            recipeCount: recipeCount,
-            logCount: logCount,
+            role: "USER",
+            profileImageUrl: nil,
+            gender: nil,
+            locale: "en",
+            defaultCookingStyle: nil,
+            measurementPreference: "METRIC",
             followerCount: followerCount,
             followingCount: followingCount,
-            socialLinks: nil,
-            createdAt: Date()
+            recipeCount: recipeCount,
+            logCount: logCount,
+            level: level,
+            levelName: "homeCook",
+            totalXp: 500,
+            xpForCurrentLevel: 100,
+            xpForNextLevel: 200,
+            levelProgress: levelProgress,
+            bio: nil,
+            youtubeUrl: nil,
+            instagramHandle: nil
+        )
+        return MyProfile(
+            user: userInfo,
+            recipeCount: recipeCount,
+            logCount: logCount,
+            savedCount: savedCount
         )
     }
 
@@ -69,11 +79,13 @@ enum MockFactory {
             avatarUrl: nil,
             bio: "Test bio",
             level: 10,
+            levelName: "homeCook",
             recipeCount: 5,
             logCount: 20,
             followerCount: 100,
             followingCount: 50,
-            socialLinks: nil,
+            youtubeUrl: nil,
+            instagramHandle: nil,
             isFollowing: isFollowing,
             isFollowedBy: false,
             isBlocked: isBlocked,

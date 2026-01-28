@@ -164,10 +164,25 @@ final class ProfileViewModel: ObservableObject {
         guard let profile = profile else { return }
         let result = await userRepository.blockUser(userId: profile.id)
         if case .success = result {
-            self.profile = UserProfile(id: profile.id, username: profile.username, displayName: profile.displayName, avatarUrl: profile.avatarUrl,
-                bio: profile.bio, level: profile.level, recipeCount: profile.recipeCount, logCount: profile.logCount,
-                followerCount: profile.followerCount, followingCount: profile.followingCount, socialLinks: profile.socialLinks,
-                isFollowing: false, isFollowedBy: profile.isFollowedBy, isBlocked: true, createdAt: profile.createdAt)
+            self.profile = UserProfile(
+                id: profile.id,
+                username: profile.username,
+                displayName: profile.displayName,
+                avatarUrl: profile.avatarUrl,
+                bio: profile.bio,
+                level: profile.level,
+                levelName: profile.levelName,
+                recipeCount: profile.recipeCount,
+                logCount: profile.logCount,
+                followerCount: profile.followerCount,
+                followingCount: profile.followingCount,
+                youtubeUrl: profile.youtubeUrl,
+                instagramHandle: profile.instagramHandle,
+                isFollowing: false,
+                isFollowedBy: profile.isFollowedBy,
+                isBlocked: true,
+                createdAt: profile.createdAt
+            )
         }
     }
 
@@ -228,10 +243,25 @@ final class ProfileViewModel: ObservableObject {
 
     private func updateFollowState(_ isFollowing: Bool) {
         guard let p = profile else { return }
-        profile = UserProfile(id: p.id, username: p.username, displayName: p.displayName, avatarUrl: p.avatarUrl,
-            bio: p.bio, level: p.level, recipeCount: p.recipeCount, logCount: p.logCount,
-            followerCount: p.followerCount + (isFollowing ? 1 : -1), followingCount: p.followingCount, socialLinks: p.socialLinks,
-            isFollowing: isFollowing, isFollowedBy: p.isFollowedBy, isBlocked: p.isBlocked, createdAt: p.createdAt)
+        profile = UserProfile(
+            id: p.id,
+            username: p.username,
+            displayName: p.displayName,
+            avatarUrl: p.avatarUrl,
+            bio: p.bio,
+            level: p.level,
+            levelName: p.levelName,
+            recipeCount: p.recipeCount,
+            logCount: p.logCount,
+            followerCount: p.followerCount + (isFollowing ? 1 : -1),
+            followingCount: p.followingCount,
+            youtubeUrl: p.youtubeUrl,
+            instagramHandle: p.instagramHandle,
+            isFollowing: isFollowing,
+            isFollowedBy: p.isFollowedBy,
+            isBlocked: p.isBlocked,
+            createdAt: p.createdAt
+        )
     }
 
     private func loadSavedContent(refresh: Bool) async {

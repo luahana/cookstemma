@@ -68,9 +68,13 @@ struct MyProfile: Codable, Equatable {
     var username: String { user.username }
     var avatarUrl: String? { user.profileImageUrl }
     var level: Int { user.level }
+    var levelName: String? { user.levelName }
+    var localizedLevelName: String { user.localizedLevelName }
     var followerCount: Int { user.followerCount }
     var followingCount: Int { user.followingCount }
     var bio: String? { user.bio }
+    var youtubeUrl: String? { user.youtubeUrl }
+    var instagramHandle: String? { user.instagramHandle }
     var levelProgress: Double { user.levelProgress ?? 0.0 }
     var measurementPreference: MeasurementPreference {
         MeasurementPreference(rawValue: user.measurementPreference ?? "METRIC") ?? .metric
@@ -103,6 +107,11 @@ struct UserInfo: Codable, Identifiable, Equatable {
     let instagramHandle: String?
 
     var avatarUrl: String? { profileImageUrl }
+
+    /// Returns the localized display name for the level
+    var localizedLevelName: String {
+        LevelName.displayName(for: levelName)
+    }
 }
 
 // MARK: - User Profile
@@ -114,11 +123,13 @@ struct UserProfile: Codable, Identifiable, Equatable {
     let avatarUrl: String?
     let bio: String?
     let level: Int
+    let levelName: String?
     let recipeCount: Int
     let logCount: Int
     let followerCount: Int
     let followingCount: Int
-    let socialLinks: SocialLinks?
+    let youtubeUrl: String?
+    let instagramHandle: String?
     let isFollowing: Bool
     let isFollowedBy: Bool
     let isBlocked: Bool
@@ -126,9 +137,9 @@ struct UserProfile: Codable, Identifiable, Equatable {
 
     enum CodingKeys: String, CodingKey {
         case id
-        case username, displayName, avatarUrl, profileImageUrl, bio, level
+        case username, displayName, avatarUrl, profileImageUrl, bio, level, levelName
         case recipeCount, logCount, followerCount, followingCount
-        case socialLinks, isFollowing, isFollowedBy, isBlocked, createdAt
+        case youtubeUrl, instagramHandle, isFollowing, isFollowedBy, isBlocked, createdAt
     }
 
     // Memberwise initializer for creating instances programmatically
@@ -139,11 +150,13 @@ struct UserProfile: Codable, Identifiable, Equatable {
         avatarUrl: String?,
         bio: String?,
         level: Int,
+        levelName: String? = nil,
         recipeCount: Int,
         logCount: Int,
         followerCount: Int,
         followingCount: Int,
-        socialLinks: SocialLinks?,
+        youtubeUrl: String? = nil,
+        instagramHandle: String? = nil,
         isFollowing: Bool,
         isFollowedBy: Bool,
         isBlocked: Bool,
@@ -155,11 +168,13 @@ struct UserProfile: Codable, Identifiable, Equatable {
         self.avatarUrl = avatarUrl
         self.bio = bio
         self.level = level
+        self.levelName = levelName
         self.recipeCount = recipeCount
         self.logCount = logCount
         self.followerCount = followerCount
         self.followingCount = followingCount
-        self.socialLinks = socialLinks
+        self.youtubeUrl = youtubeUrl
+        self.instagramHandle = instagramHandle
         self.isFollowing = isFollowing
         self.isFollowedBy = isFollowedBy
         self.isBlocked = isBlocked
@@ -178,11 +193,13 @@ struct UserProfile: Codable, Identifiable, Equatable {
             ?? container.decodeIfPresent(String.self, forKey: .profileImageUrl)
         self.bio = try container.decodeIfPresent(String.self, forKey: .bio)
         self.level = try container.decode(Int.self, forKey: .level)
+        self.levelName = try container.decodeIfPresent(String.self, forKey: .levelName)
         self.recipeCount = try container.decode(Int.self, forKey: .recipeCount)
         self.logCount = try container.decode(Int.self, forKey: .logCount)
         self.followerCount = try container.decode(Int.self, forKey: .followerCount)
         self.followingCount = try container.decode(Int.self, forKey: .followingCount)
-        self.socialLinks = try container.decodeIfPresent(SocialLinks.self, forKey: .socialLinks)
+        self.youtubeUrl = try container.decodeIfPresent(String.self, forKey: .youtubeUrl)
+        self.instagramHandle = try container.decodeIfPresent(String.self, forKey: .instagramHandle)
         self.isFollowing = try container.decodeIfPresent(Bool.self, forKey: .isFollowing) ?? false
         self.isFollowedBy = try container.decodeIfPresent(Bool.self, forKey: .isFollowedBy) ?? false
         self.isBlocked = try container.decodeIfPresent(Bool.self, forKey: .isBlocked) ?? false
@@ -197,11 +214,13 @@ struct UserProfile: Codable, Identifiable, Equatable {
         try container.encodeIfPresent(avatarUrl, forKey: .avatarUrl)
         try container.encodeIfPresent(bio, forKey: .bio)
         try container.encode(level, forKey: .level)
+        try container.encodeIfPresent(levelName, forKey: .levelName)
         try container.encode(recipeCount, forKey: .recipeCount)
         try container.encode(logCount, forKey: .logCount)
         try container.encode(followerCount, forKey: .followerCount)
         try container.encode(followingCount, forKey: .followingCount)
-        try container.encodeIfPresent(socialLinks, forKey: .socialLinks)
+        try container.encodeIfPresent(youtubeUrl, forKey: .youtubeUrl)
+        try container.encodeIfPresent(instagramHandle, forKey: .instagramHandle)
         try container.encode(isFollowing, forKey: .isFollowing)
         try container.encode(isFollowedBy, forKey: .isFollowedBy)
         try container.encode(isBlocked, forKey: .isBlocked)
@@ -209,6 +228,35 @@ struct UserProfile: Codable, Identifiable, Equatable {
     }
 
     var displayNameOrUsername: String { displayName ?? username }
+
+    /// Returns the localized display name for the level
+    var localizedLevelName: String {
+        LevelName.displayName(for: levelName)
+    }
+}
+
+// MARK: - Level Name Translations
+
+/// Maps backend level names to localized display names
+enum LevelName {
+    static func displayName(for key: String?) -> String {
+        guard let key = key else { return "Beginner" }
+        switch key {
+        case "beginner": return "Beginner"
+        case "noviceCook": return "Novice Cook"
+        case "homeCook": return "Home Cook"
+        case "hobbyCook": return "Hobby Cook"
+        case "skilledCook": return "Skilled Cook"
+        case "expertCook": return "Expert Cook"
+        case "juniorChef": return "Junior Chef"
+        case "sousChef": return "Sous Chef"
+        case "chef": return "Chef"
+        case "headChef": return "Head Chef"
+        case "executiveChef": return "Executive Chef"
+        case "masterChef": return "Master Chef"
+        default: return key.capitalized
+        }
+    }
 }
 
 // MARK: - Social Links
@@ -223,15 +271,28 @@ struct SocialLinks: Codable, Equatable {
 // MARK: - Measurement Preference
 
 enum MeasurementPreference: String, Codable, CaseIterable {
+    case original = "ORIGINAL"
     case metric = "METRIC"
-    case imperial = "IMPERIAL"
+    case us = "US"
 
-    var displayText: String {
+    var displayName: String {
         switch self {
-        case .metric: return "Metric (g, ml)"
-        case .imperial: return "Imperial (oz, cups)"
+        case .original: return "Original"
+        case .metric: return "Metric"
+        case .us: return "US"
         }
     }
+
+    var description: String {
+        switch self {
+        case .original: return "As written in recipe"
+        case .metric: return "grams, milliliters"
+        case .us: return "cups, ounces"
+        }
+    }
+
+    // Legacy alias for backward compatibility
+    var displayText: String { displayName }
 }
 
 // MARK: - Update Profile Request
@@ -240,8 +301,26 @@ struct UpdateProfileRequest: Codable {
     let username: String?
     let bio: String?
     let avatarImageId: String?
-    let socialLinks: SocialLinks?
+    let youtubeUrl: String?
+    let instagramHandle: String?
     let measurementPreference: MeasurementPreference?
+
+    // Backward compatibility initializer
+    init(
+        username: String? = nil,
+        bio: String? = nil,
+        avatarImageId: String? = nil,
+        youtubeUrl: String? = nil,
+        instagramHandle: String? = nil,
+        measurementPreference: MeasurementPreference? = nil
+    ) {
+        self.username = username
+        self.bio = bio
+        self.avatarImageId = avatarImageId
+        self.youtubeUrl = youtubeUrl
+        self.instagramHandle = instagramHandle
+        self.measurementPreference = measurementPreference
+    }
 }
 
 // MARK: - Username Availability Response

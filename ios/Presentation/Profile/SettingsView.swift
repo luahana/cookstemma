@@ -301,6 +301,23 @@ struct EditProfileView: View {
 
                 TextField("Tell us about yourself", text: $viewModel.bio, axis: .vertical)
                     .lineLimit(3...6)
+                    .onChange(of: viewModel.bio) { _, newValue in
+                        // Limit bio to max length
+                        if newValue.count > EditProfileViewModel.maxBioLength {
+                            viewModel.bio = String(newValue.prefix(EditProfileViewModel.maxBioLength))
+                        }
+                    }
+
+                HStack {
+                    Spacer()
+                    Text(viewModel.bioCharacterCount)
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(
+                            viewModel.isBioOverLimit
+                                ? .red
+                                : DesignSystem.Colors.secondaryText
+                        )
+                }
             }
         } header: {
             Text("Information")
@@ -542,29 +559,6 @@ struct LanguageSettingsView: View {
         }
         .contentMargins(.bottom, 80, for: .scrollContent)
         .navigationTitle("Language")
-    }
-}
-
-// MARK: - Measurement Preference
-enum MeasurementPreference: String, CaseIterable {
-    case original = "ORIGINAL"
-    case metric = "METRIC"
-    case us = "US"
-
-    var displayName: String {
-        switch self {
-        case .original: return "Original"
-        case .metric: return "Metric"
-        case .us: return "US"
-        }
-    }
-
-    var description: String {
-        switch self {
-        case .original: return "As written in recipe"
-        case .metric: return "grams, milliliters"
-        case .us: return "cups, ounces"
-        }
     }
 }
 

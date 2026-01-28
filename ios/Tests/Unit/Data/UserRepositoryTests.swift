@@ -103,7 +103,8 @@ final class UserRepositoryTests: XCTestCase {
             username: "newusername",
             bio: "Updated bio",
             avatarImageId: nil,
-            socialLinks: nil,
+            youtubeUrl: nil,
+            instagramHandle: nil,
             measurementPreference: nil
         )
 
@@ -322,23 +323,34 @@ final class UserRepositoryTests: XCTestCase {
     // MARK: - Helpers
 
     private func createMockMyProfile() -> MyProfile {
-        MyProfile(
+        let userInfo = UserInfo(
             id: "user-me",
             username: "myuser",
-            displayName: "My User",
-            email: "me@example.com",
-            avatarUrl: nil,
-            bio: "My bio",
-            level: 12,
-            xp: 2450,
-            xpToNextLevel: 1000,
-            recipeCount: 15,
-            logCount: 89,
+            role: "USER",
+            profileImageUrl: nil,
+            gender: nil,
+            locale: "en",
+            defaultCookingStyle: nil,
+            measurementPreference: "METRIC",
             followerCount: 1200,
             followingCount: 350,
-            socialLinks: nil,
-            measurementPreference: .metric,
-            createdAt: Date()
+            recipeCount: 15,
+            logCount: 89,
+            level: 12,
+            levelName: "homeCook",
+            totalXp: 2450,
+            xpForCurrentLevel: 450,
+            xpForNextLevel: 1000,
+            levelProgress: 0.45,
+            bio: "My bio",
+            youtubeUrl: nil,
+            instagramHandle: nil
+        )
+        return MyProfile(
+            user: userInfo,
+            recipeCount: 15,
+            logCount: 89,
+            savedCount: 5
         )
     }
 
@@ -350,11 +362,13 @@ final class UserRepositoryTests: XCTestCase {
             avatarUrl: nil,
             bio: "Other bio",
             level: 24,
+            levelName: "skilledCook",
             recipeCount: 45,
             logCount: 203,
             followerCount: 5200,
             followingCount: 150,
-            socialLinks: nil,
+            youtubeUrl: nil,
+            instagramHandle: nil,
             isFollowing: false,
             isFollowedBy: false,
             isBlocked: false,

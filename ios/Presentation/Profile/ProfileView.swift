@@ -166,10 +166,19 @@ struct ProfileView: View {
                     .font(DesignSystem.Typography.title3)
                     .foregroundColor(DesignSystem.Colors.text)
 
-                HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: AppIcon.fire)
+                HStack(spacing: DesignSystem.Spacing.sm) {
+                    // Level name badge
+                    Text(localizedLevelName)
+                        .font(DesignSystem.Typography.caption)
+                        .fontWeight(.medium)
                         .foregroundColor(DesignSystem.Colors.primary)
-                    Text("Lv.\(level)")
+                        .padding(.horizontal, DesignSystem.Spacing.sm)
+                        .padding(.vertical, DesignSystem.Spacing.xxxs)
+                        .background(DesignSystem.Colors.primary.opacity(0.1))
+                        .cornerRadius(DesignSystem.CornerRadius.full)
+
+                    // Level number
+                    Text("Lv. \(level)")
                         .font(DesignSystem.Typography.subheadline)
                         .foregroundColor(DesignSystem.Colors.secondaryText)
                 }
@@ -179,6 +188,43 @@ struct ProfileView: View {
                         .font(DesignSystem.Typography.body)
                         .foregroundColor(DesignSystem.Colors.secondaryText)
                         .lineLimit(2)
+                }
+
+                // Social Links
+                if hasAnySocialLink {
+                    HStack(spacing: DesignSystem.Spacing.sm) {
+                        if let youtubeUrl = youtubeUrl, !youtubeUrl.isEmpty,
+                           let url = URL(string: youtubeUrl) {
+                            Link(destination: url) {
+                                Image(systemName: "play.rectangle.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white)
+                                    .frame(width: 32, height: 32)
+                                    .background(Color.red)
+                                    .cornerRadius(DesignSystem.CornerRadius.full)
+                            }
+                        }
+
+                        if let handle = instagramHandle, !handle.isEmpty {
+                            let cleanHandle = handle.replacingOccurrences(of: "@", with: "")
+                            if let url = URL(string: "https://instagram.com/\(cleanHandle)") {
+                                Link(destination: url) {
+                                    Image(systemName: "camera.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.white)
+                                        .frame(width: 32, height: 32)
+                                        .background(
+                                            LinearGradient(
+                                                colors: [.orange, .pink, .purple],
+                                                startPoint: .bottomLeading,
+                                                endPoint: .topTrailing
+                                            )
+                                        )
+                                        .cornerRadius(DesignSystem.CornerRadius.full)
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -468,10 +514,33 @@ struct ProfileView: View {
             : viewModel.profile?.level ?? 1
     }
 
+    private var localizedLevelName: String {
+        viewModel.isOwnProfile
+            ? viewModel.myProfile?.localizedLevelName ?? LevelName.displayName(for: nil)
+            : viewModel.profile?.localizedLevelName ?? LevelName.displayName(for: nil)
+    }
+
     private var bio: String? {
         viewModel.isOwnProfile
             ? viewModel.myProfile?.bio
             : viewModel.profile?.bio
+    }
+
+    private var youtubeUrl: String? {
+        viewModel.isOwnProfile
+            ? viewModel.myProfile?.youtubeUrl
+            : viewModel.profile?.youtubeUrl
+    }
+
+    private var instagramHandle: String? {
+        viewModel.isOwnProfile
+            ? viewModel.myProfile?.instagramHandle
+            : viewModel.profile?.instagramHandle
+    }
+
+    private var hasAnySocialLink: Bool {
+        (youtubeUrl != nil && !youtubeUrl!.isEmpty) ||
+        (instagramHandle != nil && !instagramHandle!.isEmpty)
     }
 
     private var recipeCount: Int {

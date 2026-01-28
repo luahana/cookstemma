@@ -202,22 +202,14 @@ final class AuthManagerTests: XCTestCase {
         try await sut.loginWithFirebase(token: "firebase-token")
 
         // Then refresh with updated profile
-        let updatedProfile = MyProfile(
-            id: "user-1",
-            username: "testuser",
+        let updatedProfile = createMockProfile(
             displayName: "Updated Name",
-            email: "test@example.com",
-            avatarUrl: nil,
             bio: "Updated bio",
             level: 10,
-            xp: 1000,
-            levelProgress: 0.5,
             recipeCount: 20,
             logCount: 50,
             followerCount: 200,
-            followingCount: 100,
-            socialLinks: nil,
-            createdAt: Date()
+            followingCount: 100
         )
         mockAPIClient.mockResponse = updatedProfile
 
@@ -259,23 +251,47 @@ final class AuthManagerTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func createMockProfile() -> MyProfile {
-        MyProfile(
-            id: "user-1",
-            username: "testuser",
-            displayName: "Test User",
-            email: "test@example.com",
-            avatarUrl: nil,
-            bio: "Test bio",
-            level: 5,
-            xp: 500,
-            levelProgress: 0.5,
-            recipeCount: 10,
-            logCount: 25,
-            followerCount: 100,
-            followingCount: 50,
-            socialLinks: nil,
-            createdAt: Date()
+    private func createMockProfile(
+        id: String = "user-1",
+        username: String = "testuser",
+        displayName: String? = "Test User",
+        bio: String? = "Test bio",
+        level: Int = 5,
+        levelProgress: Double = 0.5,
+        recipeCount: Int = 10,
+        logCount: Int = 25,
+        savedCount: Int = 5,
+        followerCount: Int = 100,
+        followingCount: Int = 50
+    ) -> MyProfile {
+        let userInfo = UserInfo(
+            id: id,
+            username: username,
+            role: "USER",
+            profileImageUrl: nil,
+            gender: nil,
+            locale: "en",
+            defaultCookingStyle: nil,
+            measurementPreference: "METRIC",
+            followerCount: followerCount,
+            followingCount: followingCount,
+            recipeCount: recipeCount,
+            logCount: logCount,
+            level: level,
+            levelName: "homeCook",
+            totalXp: 500,
+            xpForCurrentLevel: 100,
+            xpForNextLevel: 200,
+            levelProgress: levelProgress,
+            bio: bio,
+            youtubeUrl: nil,
+            instagramHandle: nil
+        )
+        return MyProfile(
+            user: userInfo,
+            recipeCount: recipeCount,
+            logCount: logCount,
+            savedCount: savedCount
         )
     }
 }

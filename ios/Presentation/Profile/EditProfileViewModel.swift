@@ -23,6 +23,7 @@ final class EditProfileViewModel: ObservableObject {
     static let minUsernameLength = 5
     static let maxUsernameLength = 30
     static let usernamePattern = "^[a-zA-Z][a-zA-Z0-9._-]{4,29}$"
+    static let maxBioLength = 150
 
     // MARK: - Private
 
@@ -120,6 +121,14 @@ final class EditProfileViewModel: ObservableObject {
         "\(username.count)/\(Self.maxUsernameLength)"
     }
 
+    var bioCharacterCount: String {
+        "\(bio.count)/\(Self.maxBioLength)"
+    }
+
+    var isBioOverLimit: Bool {
+        bio.count > Self.maxBioLength
+    }
+
     var hasUsernameChanged: Bool {
         username != initialUsername
     }
@@ -134,7 +143,8 @@ final class EditProfileViewModel: ObservableObject {
     var canSave: Bool {
         !isSubmitting &&
         (usernameFormatError == nil) &&
-        (!hasUsernameChanged || usernameAvailable == true)
+        (!hasUsernameChanged || usernameAvailable == true) &&
+        !isBioOverLimit
     }
 
     // MARK: - Check Username Availability
@@ -174,18 +184,12 @@ final class EditProfileViewModel: ObservableObject {
         isSubmitting = true
         error = nil
 
-        let socialLinks = SocialLinks(
-            youtube: youtubeUrl.isEmpty ? nil : youtubeUrl,
-            instagram: instagramHandle.isEmpty ? nil : instagramHandle,
-            twitter: nil,
-            website: nil
-        )
-
         let request = UpdateProfileRequest(
             username: hasUsernameChanged ? username : nil,
             bio: bio.isEmpty ? nil : bio,
             avatarImageId: nil,
-            socialLinks: socialLinks,
+            youtubeUrl: youtubeUrl.isEmpty ? nil : youtubeUrl,
+            instagramHandle: instagramHandle.isEmpty ? nil : instagramHandle,
             measurementPreference: nil
         )
 

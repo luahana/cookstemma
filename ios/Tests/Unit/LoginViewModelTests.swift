@@ -187,22 +187,34 @@ class MockAuthManager: AuthManagerProtocol {
     }
 
     private func createMockProfile() -> MyProfile {
-        MyProfile(
+        let userInfo = UserInfo(
             id: "user-1",
             username: "testuser",
-            displayName: "Test User",
-            email: "test@example.com",
-            avatarUrl: nil,
-            bio: "Test bio",
-            level: 5,
-            xp: 500,
-            levelProgress: 0.5,
-            recipeCount: 10,
-            logCount: 25,
+            role: "USER",
+            profileImageUrl: nil,
+            gender: nil,
+            locale: "en",
+            defaultCookingStyle: nil,
+            measurementPreference: "METRIC",
             followerCount: 100,
             followingCount: 50,
-            socialLinks: nil,
-            createdAt: Date()
+            recipeCount: 10,
+            logCount: 25,
+            level: 5,
+            levelName: "homeCook",
+            totalXp: 500,
+            xpForCurrentLevel: 100,
+            xpForNextLevel: 200,
+            levelProgress: 0.5,
+            bio: "Test bio",
+            youtubeUrl: nil,
+            instagramHandle: nil
+        )
+        return MyProfile(
+            user: userInfo,
+            recipeCount: 10,
+            logCount: 25,
+            savedCount: 5
         )
     }
 }
