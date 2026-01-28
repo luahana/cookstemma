@@ -11,6 +11,9 @@ disabled_rules:
   - trailing_whitespace
   - todo
   - orphaned_doc_comment
+  - empty_count
+  - implicit_return
+  - trailing_comma
 
 opt_in_rules:
   - array_init
@@ -22,7 +25,6 @@ opt_in_rules:
   - contains_over_first_not_nil
   - discouraged_object_literal
   - empty_collection_literal
-  - empty_count
   - empty_string
   - enum_case_associated_values_count
   - explicit_init
@@ -32,7 +34,6 @@ opt_in_rules:
   - first_where
   - flatmap_over_map_reduce
   - identical_operands
-  - implicit_return
   - joined_default_parameter
   - last_where
   - legacy_multiple
