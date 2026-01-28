@@ -54,10 +54,23 @@ final class CommentRepository: CommentRepositoryProtocol {
 
     func createComment(logId: String, content: String, parentId: String?) async -> RepositoryResult<Comment> {
         do {
-            // Backend returns CommentResponseDto
-            let response: CommentResponse = try await apiClient.request(
-                CommentEndpoint.create(logId: logId, content: content, parentId: parentId)
-            )
+            // Backend has separate endpoints for top-level comments and replies:
+            // - Top-level: POST /api/v1/log_posts/{logId}/comments
+            // - Replies: POST /api/v1/comments/{parentCommentId}/replies
+            let endpoint: CommentEndpoint
+            if let parentId = parentId {
+                endpoint = .reply(parentCommentId: parentId, content: content)
+                #if DEBUG
+                print("[CommentRepository] Creating reply to comment: \(parentId)")
+                #endif
+            } else {
+                endpoint = .create(logId: logId, content: content)
+                #if DEBUG
+                print("[CommentRepository] Creating top-level comment on log: \(logId)")
+                #endif
+            }
+
+            let response: CommentResponse = try await apiClient.request(endpoint)
             return .success(response.toComment())
         } catch let error as APIError {
             #if DEBUG

@@ -209,10 +209,11 @@ enum UserEndpoint: APIEndpoint {
     case unblock(userId: String)
     case blockedUsers(page: Int)
     case report(userId: String, reason: ReportReason)
+    case deleteAccount
 
     var path: String {
         switch self {
-        case .myProfile: return "users/me"
+        case .myProfile, .deleteAccount: return "users/me"
         case .profile(let id): return "users/\(id)"
         case .updateProfile: return "users/me"
         case .checkUsername: return "users/check-username"
@@ -231,7 +232,7 @@ enum UserEndpoint: APIEndpoint {
         case .myProfile, .profile, .checkUsername, .userRecipes, .followers, .following, .blockedUsers: return .get
         case .updateProfile: return .patch
         case .follow, .block, .report: return .post
-        case .unfollow, .unblock: return .delete
+        case .unfollow, .unblock, .deleteAccount: return .delete
         }
     }
 
@@ -267,7 +268,8 @@ enum UserEndpoint: APIEndpoint {
 
 enum CommentEndpoint: APIEndpoint {
     case list(logId: String, cursor: String?)
-    case create(logId: String, content: String, parentId: String?)
+    case create(logId: String, content: String)
+    case reply(parentCommentId: String, content: String)
     case update(id: String, content: String)
     case delete(id: String)
     case like(id: String)
@@ -276,7 +278,8 @@ enum CommentEndpoint: APIEndpoint {
     var path: String {
         switch self {
         case .list(let logId, _): return "log_posts/\(logId)/comments"
-        case .create(let logId, _, _): return "log_posts/\(logId)/comments"
+        case .create(let logId, _): return "log_posts/\(logId)/comments"
+        case .reply(let parentCommentId, _): return "comments/\(parentCommentId)/replies"
         case .update(let id, _), .delete(let id): return "comments/\(id)"
         case .like(let id), .unlike(let id): return "comments/\(id)/like"
         }
@@ -285,7 +288,7 @@ enum CommentEndpoint: APIEndpoint {
     var method: HTTPMethod {
         switch self {
         case .list: return .get
-        case .create, .like: return .post
+        case .create, .reply, .like: return .post
         case .update: return .patch
         case .delete, .unlike: return .delete
         }
@@ -303,10 +306,8 @@ enum CommentEndpoint: APIEndpoint {
 
     var body: Encodable? {
         switch self {
-        case .create(_, let content, let parentId):
-            var body: [String: String] = ["content": content]
-            if let parentId = parentId { body["parentId"] = parentId }
-            return body
+        case .create(_, let content), .reply(_, let content):
+            return ["content": content]
         case .update(_, let content):
             return ["content": content]
         default:
