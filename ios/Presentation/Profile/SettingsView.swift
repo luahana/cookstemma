@@ -40,9 +40,6 @@ struct SettingsView: View {
 
             // Support section
             Section("Support") {
-                Link(destination: URL(string: "https://cookstemma.com/help")!) {
-                    Label("Help Center", systemImage: "questionmark.circle")
-                }
                 Link(destination: URL(string: "https://cookstemma.com/feedback")!) {
                     Label("Send Feedback", systemImage: "envelope")
                 }
@@ -99,11 +96,11 @@ struct SettingsView: View {
         } message: {
             Text("Are you sure you want to log out?")
         }
-        .confirmationDialog("Delete Account", isPresented: $showDeleteAccountConfirmation) {
-            Button("Delete Account", role: .destructive) {
+        .alert("Delete Account", isPresented: $showDeleteAccountConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
                 // Delete account flow
             }
-            Button("Cancel", role: .cancel) { }
         } message: {
             Text("This action cannot be undone. All your data will be permanently deleted.")
         }
@@ -314,23 +311,8 @@ struct NotificationSettingsView: View {
 }
 
 struct PrivacySettingsView: View {
-    @State private var privateAccount = false
-    @State private var showActivityStatus = true
-
     var body: some View {
         Form {
-            Section {
-                Toggle("Private Account", isOn: $privateAccount)
-            } footer: {
-                Text("When enabled, only approved followers can see your content.")
-            }
-
-            Section {
-                Toggle("Show Activity Status", isOn: $showActivityStatus)
-            } footer: {
-                Text("Let others see when you were last active.")
-            }
-
             Section("Blocked Users") {
                 NavigationLink("Manage Blocked Users") {
                     BlockedUsersView()
