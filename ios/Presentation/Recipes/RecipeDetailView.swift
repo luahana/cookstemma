@@ -7,6 +7,7 @@ struct RecipeDetailView: View {
     @EnvironmentObject private var appState: AppState
     @Environment(\.dismiss) private var dismiss
     @State private var showCreateLog = false
+    @AppStorage("userMeasurement") private var measurementPreference: MeasurementPreference = .original
 
     init(recipeId: String) {
         self.recipeId = recipeId
@@ -257,8 +258,12 @@ struct RecipeDetailView: View {
                     Text(ing.name)
                         .font(DesignSystem.Typography.body)
                     Spacer()
-                    if let amount = ing.quantity {
-                        Text("\(String(format: "%.1f", amount)) \(ing.displayUnit)")
+                    if let converted = MeasurementConverter.convert(
+                        quantity: ing.quantity,
+                        unitString: ing.unit,
+                        preference: measurementPreference
+                    ) {
+                        Text(converted.displayString)
                             .font(DesignSystem.Typography.caption)
                             .foregroundColor(DesignSystem.Colors.secondaryText)
                     }
