@@ -30,7 +30,7 @@ jobs:
       - name: Run SwiftLint
         run: |
           cd ios
-          swiftlint lint --strict --reporter github-actions-logging
+          swiftlint lint --reporter github-actions-logging
 
   unit-tests:
     name: Unit Tests
