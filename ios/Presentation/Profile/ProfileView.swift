@@ -349,7 +349,7 @@ struct ProfileView: View {
                     emptyState
                 }
             }
-            .padding(.bottom, DesignSystem.Spacing.xl)
+            .padding(.bottom, 100) // Extra padding for tab bar
         }
     }
 
@@ -386,7 +386,7 @@ struct ProfileView: View {
                     savedEmptyState(for: filter)
                 }
             }
-            .padding(.bottom, DesignSystem.Spacing.xl)
+            .padding(.bottom, 100) // Extra padding for tab bar
         }
     }
 

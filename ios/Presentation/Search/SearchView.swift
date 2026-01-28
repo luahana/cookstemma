@@ -1038,7 +1038,7 @@ struct HashtagView: View {
                     }
                 }
                 .padding(.horizontal, DesignSystem.Spacing.md)
-                .padding(.bottom, DesignSystem.Spacing.xl)
+                .padding(.bottom, 100) // Extra padding for tab bar
             }
         }
     }
