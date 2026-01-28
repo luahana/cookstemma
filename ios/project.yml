@@ -7,12 +7,33 @@ options:
   createIntermediateGroups: true
   groupSortPosition: top
 
+configFiles:
+  Debug-Dev: Configurations/Dev.xcconfig
+  Debug-Prod: Configurations/Prod.xcconfig
+  Release-Dev: Configurations/Dev.xcconfig
+  Release-Prod: Configurations/Prod.xcconfig
+
+configs:
+  Debug-Dev: debug
+  Debug-Prod: debug
+  Release-Dev: release
+  Release-Prod: release
+
 settings:
   base:
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "5.9"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+  configs:
+    Debug-Dev:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG DEV
+    Debug-Prod:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG PROD
+    Release-Dev:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEV
+    Release-Prod:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: PROD
 
 packages:
   firebase-ios-sdk:
@@ -32,6 +53,12 @@ targets:
       - path: Domain
       - path: Presentation
       - path: Resources
+        excludes:
+          - "GoogleService-Info.plist"
+      - path: Scripts
+        buildPhase: none
+      - path: Firebase
+        buildPhase: none
     dependencies:
       - package: firebase-ios-sdk
         product: FirebaseAuth
@@ -39,6 +66,11 @@ targets:
         product: GoogleSignIn
       - package: GoogleSignIn-iOS
         product: GoogleSignInSwift
+    preBuildScripts:
+      - name: Copy Firebase Config
+        script: |
+          "${PROJECT_DIR}/Scripts/copy-firebase-config.sh"
+        basedOnDependencyAnalysis: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cookstemma.app
@@ -47,6 +79,15 @@ targets:
         DEVELOPMENT_TEAM: DFAR672Q54
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: false
+      configs:
+        Debug-Dev:
+          PRODUCT_BUNDLE_IDENTIFIER: com.cookstemma.app.dev
+        Debug-Prod:
+          PRODUCT_BUNDLE_IDENTIFIER: com.cookstemma.app
+        Release-Dev:
+          PRODUCT_BUNDLE_IDENTIFIER: com.cookstemma.app.dev
+        Release-Prod:
+          PRODUCT_BUNDLE_IDENTIFIER: com.cookstemma.app
     entitlements:
       path: Resources/Cookstemma.entitlements
       properties:
@@ -72,7 +113,7 @@ targets:
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLSchemes:
-              - com.googleusercontent.apps.946572066572-bng1tcf3i8r0g06orikdpnoh0ar5k1u9
+              - $(REVERSED_CLIENT_ID)
 
   CookstemmaTests:
     type: bundle.unit-test
@@ -103,22 +144,42 @@ targets:
         GENERATE_INFOPLIST_FILE: true
 
 schemes:
-  Cookstemma:
+  Cookstemma-Dev:
     build:
       targets:
         Cookstemma: all
         CookstemmaTests: [test]
         CookstemmaUITests: [test]
     run:
-      config: Debug
+      config: Debug-Dev
     test:
-      config: Debug
+      config: Debug-Dev
       targets:
         - CookstemmaTests
         - CookstemmaUITests
     profile:
-      config: Release
+      config: Release-Dev
     analyze:
-      config: Debug
+      config: Debug-Dev
     archive:
-      config: Release
+      config: Release-Dev
+
+  Cookstemma-Prod:
+    build:
+      targets:
+        Cookstemma: all
+        CookstemmaTests: [test]
+        CookstemmaUITests: [test]
+    run:
+      config: Debug-Prod
+    test:
+      config: Debug-Prod
+      targets:
+        - CookstemmaTests
+        - CookstemmaUITests
+    profile:
+      config: Release-Prod
+    analyze:
+      config: Debug-Prod
+    archive:
+      config: Release-Prod

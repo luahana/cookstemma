@@ -1,0 +1,5 @@
+// Dev environment configuration
+// Update this with your REVERSED_CLIENT_ID from Firebase Console
+// Get it from your GoogleService-Info.plist
+
+REVERSED_CLIENT_ID = com.googleusercontent.apps.PLACEHOLDER_DEV

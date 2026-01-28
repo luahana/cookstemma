@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		00DD69CBC716625EC044494C /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CC3364F977F366D52C22268 /* AuthManager.swift */; };
+		0A50071436DB116596DCA830 /* EditProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0077D40D7E36139E801A766F /* EditProfileViewModel.swift */; };
 		0AEA07D3C5782652564EDD74 /* CreateLogFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C8C7036074BACD1A36AABCD /* CreateLogFlowTests.swift */; };
 		0BFAB9AA68A3BAAF9EDA76E1 /* Comment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62A98D18B3577308DD394FCA /* Comment.swift */; };
 		0C57C4AF3A3043864A03FE29 /* UserModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B020E4720EAD418FB695969 /* UserModelTests.swift */; };
@@ -15,12 +16,10 @@
 		129F99DF54E9F0E20C9DB33A /* Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E2A2ADE0748C4F10AADBEBA /* Search.swift */; };
 		131C5F4A5F836A13E7C502FE /* SavedContentRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE56EF13C7F8229DD931781 /* SavedContentRepository.swift */; };
 		14E957CCFBBFC8308CD5615E /* BrowseAndSaveFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD8D2449AEC86AEB71574086 /* BrowseAndSaveFlowTests.swift */; };
-		1966693348F4A090DE25115F /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7AFB89B24D72725E4DC53D4F /* GoogleService-Info.plist */; };
 		1B73D7E9545F97EBAE48CFD1 /* SearchViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50201D5E8D37E134D4DA36A /* SearchViewModelTests.swift */; };
 		27322C44E58AD72961F0273D /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = B03F4BF26B053031DE54FA23 /* Notification.swift */; };
 		2749E7E376C59AA3A79AE7B9 /* RecipeRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D21F32B253CB3D6AAC7E2078 /* RecipeRepository.swift */; };
 		37E9645073C4E9F06358605C /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2EA0940FC94AEF97610AE0 /* ProfileViewModel.swift */; };
-		4FBFDA2335A0CAC0830528C7 /* EditProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B31068C5EBEDB300ABAC91 /* EditProfileViewModel.swift */; };
 		39AF14A02C8E359A678BED0D /* IconComponentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E2D452556372EF16A803407 /* IconComponentsTests.swift */; };
 		3EF4CD8875E99656DC7B849D /* NotificationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603F0F3394EC6C048A41082B /* NotificationsViewModel.swift */; };
 		3F9F7E645AD5798C46C56554 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 238BC7119941E1893C403569 /* GoogleSignInSwift */; };
@@ -29,11 +28,12 @@
 		44D5A891CD2081622824A590 /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DEA7599B5BC6D8FB6FBD338 /* SearchViewModel.swift */; };
 		46C5B658C75C4D22F43C8B03 /* FollowersListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EF85B72BF0EDD59C915DCB3 /* FollowersListView.swift */; };
 		536E8BD4AA68C31D209F79F2 /* MockFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D90D3C0F1599F3BB9A37924 /* MockFactory.swift */; };
-		5B310C122AF7617182DD9400 /* SavedContentRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBD652D077BA72601CE6C00 /* SavedContentRepositoryTests.swift */; };
 		5BB5F29E94F3CC1B19E83F07 /* RecipesListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B90AAC9AA308EE22EEA7593 /* RecipesListViewModel.swift */; };
 		5EB0F8274E3389E2FD0154E2 /* LogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 533DD3B69A2C5628610BE62B /* LogDetailView.swift */; };
+		5F079EFE85646E6E7322F605 /* CommentsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B449BF4CD994678396276D3 /* CommentsViewModelTests.swift */; };
 		6189D6096BD8682D2951EA7A /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96861625AB4204F5BDD2999F /* User.swift */; };
 		6A671576B0DD767B3AC7903D /* UserRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE3AC25A0E207BF81A92757 /* UserRepository.swift */; };
+		6C81968DDA23D43896669C74 /* SplashViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D527E6375ED32FDDD5333DD /* SplashViewTests.swift */; };
 		6C9BCF027B4CFB75DF3EFF85 /* CommonModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2C087499E87942A10D5820 /* CommonModelTests.swift */; };
 		6DA1DB3A8BAC66C86C2A8116 /* RepositoryProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = B31A94AE34383DF660BE97FD /* RepositoryProtocols.swift */; };
 		74A986F07FF6D713DE27F500 /* SearchFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B7A721FDAEFC7F6B1B0214 /* SearchFlowTests.swift */; };
@@ -49,6 +49,7 @@
 		86AA49997AF8CACD96F2AC00 /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFE50B6379808D1814ADEBF9 /* Endpoints.swift */; };
 		8AD27BD73EC3AD41F007526B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62A588ACC8B3D618C9F92FE1 /* SettingsView.swift */; };
 		8B6582EDFB2A1714BC7A3BD7 /* CreateLogViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC27085ADC6864A49837F7AA /* CreateLogViewModelTests.swift */; };
+		8DDF5ADD8100CB9767B7FC14 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACD96A7B2A7FDDC145E262F0 /* SplashView.swift */; };
 		8E8EDDB4BCCDB04663839546 /* RecipeDetailViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4B9DDD6D43FAD96F91B03E8 /* RecipeDetailViewModelTests.swift */; };
 		8EA70F96F626C248025A55F0 /* CookingLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BF18BA17E4D601D7257E52A /* CookingLog.swift */; };
 		94A38950001E89BE0C99C431 /* SearchRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DDC535F5529C231835F7152 /* SearchRepository.swift */; };
@@ -64,19 +65,21 @@
 		AC5AF6009E51D0CEE704F866 /* CommonComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94BDBB0A49E8C28622D21B8 /* CommonComponents.swift */; };
 		B3045C99D6E143D1ECAF8DF5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7494AD993D9EBA00CCE0D97A /* Assets.xcassets */; };
 		B42E874BDFAB1BF7B409459B /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B485840789EC116FFCA145 /* MainTabView.swift */; };
+		B6D897F2CD7BB8648C20EA3D /* EditProfileViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DECB5DBAFF7306FEDD1B1E2 /* EditProfileViewModelTests.swift */; };
 		B9EA9FCFAD32EACFB5E8B890 /* TokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47B78F7BACDD946CC71CA73E /* TokenManager.swift */; };
 		BA52F015C6E2C8DE7B79EE25 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 5147DB9E45407D09E9295A00 /* GoogleSignIn */; };
 		BA87B73427EBDC62CC5521C1 /* HomeFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAA3B5ACD5E882281C559AC7 /* HomeFeedView.swift */; };
 		C4872FB589939027BCEA32B8 /* CookstemmaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 318653CC2620DEB7CE09B19A /* CookstemmaApp.swift */; };
 		CACF3A6B977E561740DC7D94 /* RecipeDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0849A63B454430095407688 /* RecipeDetailViewModel.swift */; };
+		CCD81A93A2C693FE295686F9 /* AppStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C364262043B2BF1E92E62B9 /* AppStateTests.swift */; };
 		CDC9C3AA635D1776160652BD /* SocialFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67A7A7F8552B8F2E05FF3B79 /* SocialFlowTests.swift */; };
 		CFD300E5FF7E365395E231E8 /* LogDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633CAD7C6D42CA6F0BB5B5C6 /* LogDetailViewModel.swift */; };
 		D13795EEC0C83CAD68E0FF1B /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23BD8B8B87E0A0689BA9435E /* APIClient.swift */; };
 		DBF88D8CDA4F99004FFEA70A /* ProfileViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3718D4703F859364302AD17B /* ProfileViewModelTests.swift */; };
-		1397122A8C1F8C5CCBC1A058 /* EditProfileViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331F0590D9CBAEC29ACD1167 /* EditProfileViewModelTests.swift */; };
 		E28248F55232465E7EA5D212 /* FirebaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32E773C35B5145A023B29CF /* FirebaseService.swift */; };
 		E9FF871B83F8FD1301D19C1B /* MockRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AB7FEB5AFAAC5BB087D0C13 /* MockRepositories.swift */; };
 		EA84C17A84544EFA0D22F6C5 /* SavedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16EAA82C73A4B512CB1D9A18 /* SavedView.swift */; };
+		F1B5E3110A0305E67F8551DA /* CommentRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440AE3C2C10037D7B5AF1479 /* CommentRepositoryTests.swift */; };
 		F62C2DF81BF879F6362A3334 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BFC287576B4107A1B9DD623 /* ProfileView.swift */; };
 		F79E43AECFA83F77CF29AB47 /* RecipeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8849F6169702EAFC28ED6354 /* RecipeDetailView.swift */; };
 		F85C10938DB19ED1580786DD /* RecipeRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69B378F398366038AAF194CB /* RecipeRepositoryTests.swift */; };
@@ -105,11 +108,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0077D40D7E36139E801A766F /* EditProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileViewModel.swift; sourceTree = "<group>"; };
 		03B485840789EC116FFCA145 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		0ABA2B4F47CB558AA48EE94D /* UserRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserRepositoryTests.swift; sourceTree = "<group>"; };
+		0B446F21BDB616DA524C438F /* Dev.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Dev.xcconfig; sourceTree = "<group>"; };
 		0D90D3C0F1599F3BB9A37924 /* MockFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockFactory.swift; sourceTree = "<group>"; };
+		10254AF73E30C2FE2500B6D4 /* copy-firebase-config.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "copy-firebase-config.sh"; sourceTree = "<group>"; };
+		129D29F9641A30617A25898C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		14296DB72906B6428569BCF2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		16EAA82C73A4B512CB1D9A18 /* SavedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedView.swift; sourceTree = "<group>"; };
+		176BA55ED1DF10698665B67D /* GoogleService-Info-template.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info-template.plist"; sourceTree = "<group>"; };
 		1B020E4720EAD418FB695969 /* UserModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModelTests.swift; sourceTree = "<group>"; };
 		1BF18BA17E4D601D7257E52A /* CookingLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookingLog.swift; sourceTree = "<group>"; };
 		1C8C7036074BACD1A36AABCD /* CreateLogFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateLogFlowTests.swift; sourceTree = "<group>"; };
@@ -117,14 +125,17 @@
 		23FDA9B6D09B743582DB0384 /* RecipesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipesListView.swift; sourceTree = "<group>"; };
 		291A697846B2F4A4FD3F2EE2 /* CreateLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateLogView.swift; sourceTree = "<group>"; };
 		2B875F37CCF07136EBEC996C /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
+		2C364262043B2BF1E92E62B9 /* AppStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateTests.swift; sourceTree = "<group>"; };
+		2E32E9167BC1F0E8CE627E0E /* Prod.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Prod.xcconfig; sourceTree = "<group>"; };
 		2E3B079AF23AAD0458E8F53C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		318653CC2620DEB7CE09B19A /* CookstemmaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookstemmaApp.swift; sourceTree = "<group>"; };
 		33599500F76EDCD6E45B0502 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		340F8A21350F699399B9C0D3 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		3718D4703F859364302AD17B /* ProfileViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModelTests.swift; sourceTree = "<group>"; };
-		331F0590D9CBAEC29ACD1167 /* EditProfileViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileViewModelTests.swift; sourceTree = "<group>"; };
 		3AB7FEB5AFAAC5BB087D0C13 /* MockRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockRepositories.swift; sourceTree = "<group>"; };
+		3D527E6375ED32FDDD5333DD /* SplashViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewTests.swift; sourceTree = "<group>"; };
 		3DEA7599B5BC6D8FB6FBD338 /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
+		440AE3C2C10037D7B5AF1479 /* CommentRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentRepositoryTests.swift; sourceTree = "<group>"; };
 		44733EE02F584C96883B8288 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
 		47B78F7BACDD946CC71CA73E /* TokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenManager.swift; sourceTree = "<group>"; };
 		4B90AAC9AA308EE22EEA7593 /* RecipesListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipesListViewModel.swift; sourceTree = "<group>"; };
@@ -142,11 +153,12 @@
 		650AD6F4A8BB02BD47EB6B8F /* LogsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsListView.swift; sourceTree = "<group>"; };
 		67A7A7F8552B8F2E05FF3B79 /* SocialFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialFlowTests.swift; sourceTree = "<group>"; };
 		69B378F398366038AAF194CB /* RecipeRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeRepositoryTests.swift; sourceTree = "<group>"; };
+		6B449BF4CD994678396276D3 /* CommentsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsViewModelTests.swift; sourceTree = "<group>"; };
 		6C2C087499E87942A10D5820 /* CommonModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonModelTests.swift; sourceTree = "<group>"; };
+		6DECB5DBAFF7306FEDD1B1E2 /* EditProfileViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileViewModelTests.swift; sourceTree = "<group>"; };
 		6E39458FFA5923822299420E /* CookingLogModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookingLogModelTests.swift; sourceTree = "<group>"; };
 		7494AD993D9EBA00CCE0D97A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		79BFBEE873DD76F53FEE650E /* HomeFeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeFeedViewModel.swift; sourceTree = "<group>"; };
-		7AFB89B24D72725E4DC53D4F /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		7EF85B72BF0EDD59C915DCB3 /* FollowersListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowersListView.swift; sourceTree = "<group>"; };
 		82857387D20AAE8153AE7AC6 /* RecipeModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeModelTests.swift; sourceTree = "<group>"; };
 		8849F6169702EAFC28ED6354 /* RecipeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailView.swift; sourceTree = "<group>"; };
@@ -160,8 +172,8 @@
 		9E2A2ADE0748C4F10AADBEBA /* Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Search.swift; sourceTree = "<group>"; };
 		A3E24D00B88C9ADD2D86BC80 /* Cookstemma.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Cookstemma.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA2EA0940FC94AEF97610AE0 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
-		C7B31068C5EBEDB300ABAC91 /* EditProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileViewModel.swift; sourceTree = "<group>"; };
 		ABE3AC25A0E207BF81A92757 /* UserRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserRepository.swift; sourceTree = "<group>"; };
+		ACD96A7B2A7FDDC145E262F0 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		ACE56EF13C7F8229DD931781 /* SavedContentRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedContentRepository.swift; sourceTree = "<group>"; };
 		B03F4BF26B053031DE54FA23 /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		B31A94AE34383DF660BE97FD /* RepositoryProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryProtocols.swift; sourceTree = "<group>"; };
@@ -180,7 +192,6 @@
 		E94BDBB0A49E8C28622D21B8 /* CommonComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonComponents.swift; sourceTree = "<group>"; };
 		EC27085ADC6864A49837F7AA /* CreateLogViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateLogViewModelTests.swift; sourceTree = "<group>"; };
 		ECFCE583A6D775CB118E460F /* CookstemmaTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = CookstemmaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		EEBD652D077BA72601CE6C00 /* SavedContentRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedContentRepositoryTests.swift; sourceTree = "<group>"; };
 		F32E773C35B5145A023B29CF /* FirebaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseService.swift; sourceTree = "<group>"; };
 		F4B9DDD6D43FAD96F91B03E8 /* RecipeDetailViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailViewModelTests.swift; sourceTree = "<group>"; };
 		F812B624CE662F14D5902303 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
@@ -224,6 +235,7 @@
 				1D2194AEE9D9C69C60C6968C /* Recipes */,
 				45F5D19907A3F25D29966EE5 /* Saved */,
 				F5D4D7FB4436230D9FBB7993 /* Search */,
+				5D9C0649DABC9743D3FE69D2 /* Splash */,
 			);
 			path = Presentation;
 			sourceTree = "<group>";
@@ -233,7 +245,6 @@
 			children = (
 				7494AD993D9EBA00CCE0D97A /* Assets.xcassets */,
 				CC6F21EA5A28ADEE00DCCA11 /* Cookstemma.entitlements */,
-				7AFB89B24D72725E4DC53D4F /* GoogleService-Info.plist */,
 				59F384FB57D2490C7F9C1676 /* Info.plist */,
 			);
 			path = Resources;
@@ -254,14 +265,26 @@
 			isa = PBXGroup;
 			children = (
 				90DEC5E3ED0B829AFC57FE3D /* App */,
+				A19110925D530C1590CD5D34 /* Configurations */,
 				67995775FFF470A078D2B852 /* Data */,
 				D2CD4556ADB895818F00B294 /* Domain */,
+				26B8C17AC8E53B7342BA0389 /* Firebase */,
 				0BE55B70EE130B02A8CC8644 /* Presentation */,
 				0DC214E3EA2AC4A7C9D5EF84 /* Resources */,
+				9DEC524BB37EB21F166D005F /* Scripts */,
 				5723AF18AA59A9205CC62008 /* Tests */,
 				3DAD6B67DD2CD552D8D2C0A0 /* UITests */,
 				5D710CE6C6831392AEE30665 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		26B8C17AC8E53B7342BA0389 /* Firebase */ = {
+			isa = PBXGroup;
+			children = (
+				176BA55ED1DF10698665B67D /* GoogleService-Info-template.plist */,
+				129D29F9641A30617A25898C /* README.md */,
+			);
+			path = Firebase;
 			sourceTree = "<group>";
 		};
 		2B7159AE95ADC9E388A4844D /* Theme */ = {
@@ -276,6 +299,7 @@
 			isa = PBXGroup;
 			children = (
 				4E2D452556372EF16A803407 /* IconComponentsTests.swift */,
+				3D527E6375ED32FDDD5333DD /* SplashViewTests.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -326,7 +350,7 @@
 		4C5D46B7D74BB89C70A76D14 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
-				C7B31068C5EBEDB300ABAC91 /* EditProfileViewModel.swift */,
+				0077D40D7E36139E801A766F /* EditProfileViewModel.swift */,
 				7EF85B72BF0EDD59C915DCB3 /* FollowersListView.swift */,
 				8BFC287576B4107A1B9DD623 /* ProfileView.swift */,
 				AA2EA0940FC94AEF97610AE0 /* ProfileViewModel.swift */,
@@ -338,8 +362,9 @@
 		4CA4D02504D9745DB7CB5BDF /* Presentation */ = {
 			isa = PBXGroup;
 			children = (
+				6B449BF4CD994678396276D3 /* CommentsViewModelTests.swift */,
 				EC27085ADC6864A49837F7AA /* CreateLogViewModelTests.swift */,
-				331F0590D9CBAEC29ACD1167 /* EditProfileViewModelTests.swift */,
+				6DECB5DBAFF7306FEDD1B1E2 /* EditProfileViewModelTests.swift */,
 				C47BEB960D43F52C2E71854B /* HomeFeedViewModelTests.swift */,
 				3718D4703F859364302AD17B /* ProfileViewModelTests.swift */,
 				F4B9DDD6D43FAD96F91B03E8 /* RecipeDetailViewModelTests.swift */,
@@ -378,6 +403,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		5D9C0649DABC9743D3FE69D2 /* Splash */ = {
+			isa = PBXGroup;
+			children = (
+				ACD96A7B2A7FDDC145E262F0 /* SplashView.swift */,
+			);
+			path = Splash;
+			sourceTree = "<group>";
+		};
 		634894AC42BB874A21006B20 /* Unit */ = {
 			isa = PBXGroup;
 			children = (
@@ -386,6 +419,7 @@
 				4CA4D02504D9745DB7CB5BDF /* Presentation */,
 				2C5F0489C82979468328F28E /* UI */,
 				F812B624CE662F14D5902303 /* APIClientTests.swift */,
+				2C364262043B2BF1E92E62B9 /* AppStateTests.swift */,
 				C23742E4234B98AF327953BA /* AuthManagerTests.swift */,
 				9DD31A2FB3A7F0DD55D3EAE5 /* LoginViewModelTests.swift */,
 				D4DFCDA6CBEF103F4D936CDC /* TokenManagerTests.swift */,
@@ -414,9 +448,9 @@
 		8DFCD6F64E96BEFD98062073 /* Data */ = {
 			isa = PBXGroup;
 			children = (
+				440AE3C2C10037D7B5AF1479 /* CommentRepositoryTests.swift */,
 				FD5018506AD994339883BC8F /* CookingLogRepositoryTests.swift */,
 				69B378F398366038AAF194CB /* RecipeRepositoryTests.swift */,
-				EEBD652D077BA72601CE6C00 /* SavedContentRepositoryTests.swift */,
 				0ABA2B4F47CB558AA48EE94D /* UserRepositoryTests.swift */,
 			);
 			path = Data;
@@ -447,6 +481,23 @@
 				B68E71662A11E2048DED0812 /* CreateLogViewModel.swift */,
 			);
 			path = Create;
+			sourceTree = "<group>";
+		};
+		9DEC524BB37EB21F166D005F /* Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				10254AF73E30C2FE2500B6D4 /* copy-firebase-config.sh */,
+			);
+			path = Scripts;
+			sourceTree = "<group>";
+		};
+		A19110925D530C1590CD5D34 /* Configurations */ = {
+			isa = PBXGroup;
+			children = (
+				0B446F21BDB616DA524C438F /* Dev.xcconfig */,
+				2E32E9167BC1F0E8CE627E0E /* Prod.xcconfig */,
+			);
+			path = Configurations;
 			sourceTree = "<group>";
 		};
 		B465569470928AE0E3E7A11E /* Common */ = {
@@ -564,6 +615,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6E6274990942D440E33DA143 /* Build configuration list for PBXNativeTarget "Cookstemma" */;
 			buildPhases = (
+				875D2B92795C1CA6F486699E /* Copy Firebase Config */,
 				15B5443F3FB7F8A2F92FDCFF /* Sources */,
 				D977BFD5A09F0AED950F73DA /* Resources */,
 				928DEDDD573B9A5F4DE150D8 /* Frameworks */,
@@ -649,11 +701,32 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3045C99D6E143D1ECAF8DF5 /* Assets.xcassets in Resources */,
-				1966693348F4A090DE25115F /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		875D2B92795C1CA6F486699E /* Copy Firebase Config */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Firebase Config";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PROJECT_DIR}/Scripts/copy-firebase-config.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		15B5443F3FB7F8A2F92FDCFF /* Sources */ = {
@@ -672,6 +745,7 @@
 				11DB5962453A6765D5A70B80 /* CreateLogView.swift in Sources */,
 				FF085349AD686FA9C9ADF322 /* CreateLogViewModel.swift in Sources */,
 				7CA0BE6AC7B4A55AD273E540 /* DesignSystem.swift in Sources */,
+				0A50071436DB116596DCA830 /* EditProfileViewModel.swift in Sources */,
 				86AA49997AF8CACD96F2AC00 /* Endpoints.swift in Sources */,
 				E28248F55232465E7EA5D212 /* FirebaseService.swift in Sources */,
 				46C5B658C75C4D22F43C8B03 /* FollowersListView.swift in Sources */,
@@ -689,7 +763,6 @@
 				3EF4CD8875E99656DC7B849D /* NotificationsViewModel.swift in Sources */,
 				F62C2DF81BF879F6362A3334 /* ProfileView.swift in Sources */,
 				37E9645073C4E9F06358605C /* ProfileViewModel.swift in Sources */,
-				4FBFDA2335A0CAC0830528C7 /* EditProfileViewModel.swift in Sources */,
 				FB2C127D5CEABA6135672784 /* Recipe.swift in Sources */,
 				F79E43AECFA83F77CF29AB47 /* RecipeDetailView.swift in Sources */,
 				CACF3A6B977E561740DC7D94 /* RecipeDetailViewModel.swift in Sources */,
@@ -704,6 +777,7 @@
 				44D1A905104F73D43D8F4046 /* SearchView.swift in Sources */,
 				44D5A891CD2081622824A590 /* SearchViewModel.swift in Sources */,
 				8AD27BD73EC3AD41F007526B /* SettingsView.swift in Sources */,
+				8DDF5ADD8100CB9767B7FC14 /* SplashView.swift in Sources */,
 				B9EA9FCFAD32EACFB5E8B890 /* TokenManager.swift in Sources */,
 				6189D6096BD8682D2951EA7A /* User.swift in Sources */,
 				6A671576B0DD767B3AC7903D /* UserRepository.swift in Sources */,
@@ -727,23 +801,26 @@
 			buildActionMask = 2147483647;
 			files = (
 				A5B3171918C5EF0E81887C58 /* APIClientTests.swift in Sources */,
+				CCD81A93A2C693FE295686F9 /* AppStateTests.swift in Sources */,
 				7FC676DD498F99419A433A53 /* AuthManagerTests.swift in Sources */,
+				F1B5E3110A0305E67F8551DA /* CommentRepositoryTests.swift in Sources */,
+				5F079EFE85646E6E7322F605 /* CommentsViewModelTests.swift in Sources */,
 				6C9BCF027B4CFB75DF3EFF85 /* CommonModelTests.swift in Sources */,
 				8479F4975B58C3BA98E09C61 /* CookingLogModelTests.swift in Sources */,
 				AC4B8EE046DB29A90F13474B /* CookingLogRepositoryTests.swift in Sources */,
 				8B6582EDFB2A1714BC7A3BD7 /* CreateLogViewModelTests.swift in Sources */,
+				B6D897F2CD7BB8648C20EA3D /* EditProfileViewModelTests.swift in Sources */,
 				7871658BF3CDB52568DE754D /* HomeFeedViewModelTests.swift in Sources */,
 				39AF14A02C8E359A678BED0D /* IconComponentsTests.swift in Sources */,
 				FBD65F3A186C8366C8678F5D /* LoginViewModelTests.swift in Sources */,
 				536E8BD4AA68C31D209F79F2 /* MockFactory.swift in Sources */,
 				E9FF871B83F8FD1301D19C1B /* MockRepositories.swift in Sources */,
 				DBF88D8CDA4F99004FFEA70A /* ProfileViewModelTests.swift in Sources */,
-				1397122A8C1F8C5CCBC1A058 /* EditProfileViewModelTests.swift in Sources */,
 				8E8EDDB4BCCDB04663839546 /* RecipeDetailViewModelTests.swift in Sources */,
 				74D7A1E958DDB4A405E377CE /* RecipeModelTests.swift in Sources */,
 				F85C10938DB19ED1580786DD /* RecipeRepositoryTests.swift in Sources */,
-				5B310C122AF7617182DD9400 /* SavedContentRepositoryTests.swift in Sources */,
 				1B73D7E9545F97EBAE48CFD1 /* SearchViewModelTests.swift in Sources */,
+				6C81968DDA23D43896669C74 /* SplashViewTests.swift in Sources */,
 				A3D3B3D20A30D532512E0B38 /* TokenManagerTests.swift in Sources */,
 				0C57C4AF3A3043864A03FE29 /* UserModelTests.swift in Sources */,
 				85ECD231AF48DE7BF582CD34 /* UserRepositoryTests.swift in Sources */,
@@ -766,8 +843,47 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		23C3553233F39B7B2BBAC388 /* Debug */ = {
+		0796A92E40077A024B0D700F /* Debug-Prod */ = {
 			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Tests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.cookstemma.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cookstemma.app/Cookstemma";
+			};
+			name = "Debug-Prod";
+		};
+		2B5EA4E8310CF61C19CAE767 /* Release-Prod */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Resources/Cookstemma.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = DFAR672Q54;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.cookstemma.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Release-Prod";
+		};
+		2B763473FA251A66E964CADD /* Debug-Dev */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0B446F21BDB616DA524C438F /* Dev.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -825,34 +941,99 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG DEV";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
 			};
-			name = Debug;
+			name = "Debug-Dev";
 		};
-		24957160EDE908421AE2D0AE /* Debug */ = {
+		403E6A75FA6CC85874110C1C /* Release-Dev */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Resources/Cookstemma.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = DFAR672Q54;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Resources/Info.plist;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = UITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cookstemma.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cookstemma.uitests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Cookstemma;
 			};
-			name = Debug;
+			name = "Release-Dev";
 		};
-		3D6317AD9949BF355DC2E656 /* Release */ = {
+		42B8F9171C36F20B53DE16BF /* Debug-Prod */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2E32E9167BC1F0E8CE627E0E /* Prod.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG PROD";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = "Debug-Prod";
+		};
+		49DC590642343B1299B289E7 /* Release-Prod */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2E32E9167BC1F0E8CE627E0E /* Prod.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -903,31 +1084,14 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = PROD;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
 			};
-			name = Release;
+			name = "Release-Prod";
 		};
-		54C2750515728FA49CD1C90E /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = UITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cookstemma.uitests;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = Cookstemma;
-			};
-			name = Debug;
-		};
-		C7033156592DC3A405FD19D3 /* Release */ = {
+		7004B1C613182F28BDA520B7 /* Release-Dev */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -943,9 +1107,143 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cookstemma.app/Cookstemma";
 			};
-			name = Release;
+			name = "Release-Dev";
 		};
-		DA376CFF902E54424D2455C1 /* Release */ = {
+		9BC0D7E1FAB4397B6BC9834F /* Debug-Dev */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Tests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.cookstemma.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cookstemma.app/Cookstemma";
+			};
+			name = "Debug-Dev";
+		};
+		A0D7DD9E8869FD1ECE6362C6 /* Debug-Dev */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = UITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.cookstemma.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Cookstemma;
+			};
+			name = "Debug-Dev";
+		};
+		A5BFEDA47CDD80232799C355 /* Release-Dev */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0B446F21BDB616DA524C438F /* Dev.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEV;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = "Release-Dev";
+		};
+		B1E4C4C8F03E03901E5342F5 /* Debug-Dev */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Resources/Cookstemma.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = DFAR672Q54;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.cookstemma.app.dev;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Debug-Dev";
+		};
+		C967D5996FD9CA7FEA6DE481 /* Debug-Prod */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = UITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.cookstemma.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Cookstemma;
+			};
+			name = "Debug-Prod";
+		};
+		E2A2748936FBABA72B442DB4 /* Debug-Prod */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -963,9 +1261,9 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
-			name = Release;
+			name = "Debug-Prod";
 		};
-		E5F7AEAD087A0FF5FCB5B8ED /* Release */ = {
+		EB52500E189CF6A9428DF3C1 /* Release-Prod */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -981,9 +1279,9 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = Cookstemma;
 			};
-			name = Release;
+			name = "Release-Prod";
 		};
-		EBC9F0F1E9411DB65B927D9F /* Debug */ = {
+		EC0588BF3F138F4D333F1D95 /* Release-Prod */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -999,7 +1297,27 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cookstemma.app/Cookstemma";
 			};
-			name = Debug;
+			name = "Release-Prod";
+		};
+		F4E274BA91D9E39E63EE6CDA /* Release-Dev */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Resources/Cookstemma.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = DFAR672Q54;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.cookstemma.app.dev;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = "Release-Dev";
 		};
 /* End XCBuildConfiguration section */
 
@@ -1007,38 +1325,46 @@
 		1B1C73CC12BFADB15465E0AB /* Build configuration list for PBXProject "Cookstemma" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				23C3553233F39B7B2BBAC388 /* Debug */,
-				3D6317AD9949BF355DC2E656 /* Release */,
+				2B763473FA251A66E964CADD /* Debug-Dev */,
+				42B8F9171C36F20B53DE16BF /* Debug-Prod */,
+				A5BFEDA47CDD80232799C355 /* Release-Dev */,
+				49DC590642343B1299B289E7 /* Release-Prod */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = "Debug-Dev";
 		};
 		54DE7CC0242E9BC710253236 /* Build configuration list for PBXNativeTarget "CookstemmaTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				EBC9F0F1E9411DB65B927D9F /* Debug */,
-				C7033156592DC3A405FD19D3 /* Release */,
+				9BC0D7E1FAB4397B6BC9834F /* Debug-Dev */,
+				0796A92E40077A024B0D700F /* Debug-Prod */,
+				7004B1C613182F28BDA520B7 /* Release-Dev */,
+				EC0588BF3F138F4D333F1D95 /* Release-Prod */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = "Debug-Dev";
 		};
 		6E6274990942D440E33DA143 /* Build configuration list for PBXNativeTarget "Cookstemma" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				24957160EDE908421AE2D0AE /* Debug */,
-				DA376CFF902E54424D2455C1 /* Release */,
+				B1E4C4C8F03E03901E5342F5 /* Debug-Dev */,
+				E2A2748936FBABA72B442DB4 /* Debug-Prod */,
+				F4E274BA91D9E39E63EE6CDA /* Release-Dev */,
+				2B5EA4E8310CF61C19CAE767 /* Release-Prod */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = "Debug-Dev";
 		};
 		7A095CCF7767369B9AD371CB /* Build configuration list for PBXNativeTarget "CookstemmaUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				54C2750515728FA49CD1C90E /* Debug */,
-				E5F7AEAD087A0FF5FCB5B8ED /* Release */,
+				A0D7DD9E8869FD1ECE6362C6 /* Debug-Dev */,
+				C967D5996FD9CA7FEA6DE481 /* Debug-Prod */,
+				403E6A75FA6CC85874110C1C /* Release-Dev */,
+				EB52500E189CF6A9428DF3C1 /* Release-Prod */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = "Debug-Dev";
 		};
 /* End XCConfigurationList section */
 

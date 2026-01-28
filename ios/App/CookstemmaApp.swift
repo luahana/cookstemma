@@ -11,21 +11,29 @@ struct CookstemmaApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainTabView()
-                .environmentObject(authManager)
-                .environmentObject(appState)
-                .sheet(isPresented: $appState.showLoginSheet) {
-                    LoginView(onLoginSuccess: {
-                        appState.onLoginSuccess()
-                    })
-                    .environmentObject(authManager)
+            Group {
+                switch authManager.authState {
+                case .unknown:
+                    SplashView()
+                case .authenticated, .unauthenticated:
+                    MainTabView()
+                        .sheet(isPresented: $appState.showLoginSheet) {
+                            LoginView(onLoginSuccess: {
+                                appState.onLoginSuccess()
+                            })
+                            .environmentObject(authManager)
+                        }
                 }
-                .onAppear {
-                    setupAppearance()
-                }
-                .onOpenURL { url in
-                    _ = FirebaseService.handleOpenURL(url)
-                }
+            }
+            .environmentObject(authManager)
+            .environmentObject(appState)
+            .animation(.easeInOut(duration: 0.3), value: authManager.authState)
+            .onAppear {
+                setupAppearance()
+            }
+            .onOpenURL { url in
+                _ = FirebaseService.handleOpenURL(url)
+            }
         }
     }
 

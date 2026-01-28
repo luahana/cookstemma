@@ -1,0 +1,279 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [main, dev, staging]
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios-ci.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios-ci.yml'
+
+env:
+  XCODE_VERSION: '15.2'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Run SwiftLint
+        run: |
+          cd ios
+          swiftlint lint --strict --reporter github-actions-logging
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: macos-14
+    needs: lint
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Setup Firebase Config (Dev)
+        env:
+          GOOGLE_SERVICE_INFO_DEV: ${{ secrets.GOOGLE_SERVICE_INFO_DEV }}
+          REVERSED_CLIENT_ID_DEV: ${{ secrets.REVERSED_CLIENT_ID_DEV }}
+        run: |
+          cd ios
+          mkdir -p Firebase/Dev
+          echo "$GOOGLE_SERVICE_INFO_DEV" | base64 --decode > Firebase/Dev/GoogleService-Info.plist
+          echo "REVERSED_CLIENT_ID = $REVERSED_CLIENT_ID_DEV" > Configurations/Dev.xcconfig
+
+      - name: Generate Xcode Project
+        run: |
+          cd ios
+          if command -v xcodegen &> /dev/null; then
+            xcodegen generate
+          fi
+
+      - name: Cache SPM
+        uses: actions/cache@v3
+        with:
+          path: |
+            ios/.build
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-${{ hashFiles('ios/**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Build and Test
+        run: |
+          cd ios
+          xcodebuild test \
+            -scheme Cookstemma-Dev \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
+            -resultBundlePath TestResults.xcresult \
+            -enableCodeCoverage YES \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcpretty --report junit --output test-results.xml
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-unit-test-results
+          path: |
+            ios/TestResults.xcresult
+            ios/test-results.xml
+
+      - name: Generate Coverage Report
+        run: |
+          cd ios
+          xcrun llvm-cov export \
+            -format="lcov" \
+            -instr-profile DerivedData/Build/ProfileData/*/Coverage.profdata \
+            DerivedData/Build/Products/Debug-Dev-iphonesimulator/Cookstemma.app/Cookstemma \
+            > coverage.lcov || true
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ios/coverage.lcov
+          flags: ios
+          fail_ci_if_error: false
+
+  ui-tests:
+    name: UI Tests
+    runs-on: macos-14
+    needs: unit-tests
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Setup Firebase Config (Dev)
+        env:
+          GOOGLE_SERVICE_INFO_DEV: ${{ secrets.GOOGLE_SERVICE_INFO_DEV }}
+          REVERSED_CLIENT_ID_DEV: ${{ secrets.REVERSED_CLIENT_ID_DEV }}
+        run: |
+          cd ios
+          mkdir -p Firebase/Dev
+          echo "$GOOGLE_SERVICE_INFO_DEV" | base64 --decode > Firebase/Dev/GoogleService-Info.plist
+          echo "REVERSED_CLIENT_ID = $REVERSED_CLIENT_ID_DEV" > Configurations/Dev.xcconfig
+
+      - name: Generate Xcode Project
+        run: |
+          cd ios
+          if command -v xcodegen &> /dev/null; then
+            xcodegen generate
+          fi
+
+      - name: Cache SPM
+        uses: actions/cache@v3
+        with:
+          path: |
+            ios/.build
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-${{ hashFiles('ios/**/Package.resolved') }}
+
+      - name: Run UI Tests
+        run: |
+          cd ios
+          xcodebuild test \
+            -scheme Cookstemma-Dev \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
+            -resultBundlePath UITestResults.xcresult \
+            -only-testing:CookstemmaUITests \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcpretty
+
+      - name: Upload UI Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-ui-test-results
+          path: ios/UITestResults.xcresult
+
+  build-dev:
+    name: Build (Dev)
+    runs-on: macos-14
+    needs: unit-tests
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Setup Firebase Config (Dev)
+        env:
+          GOOGLE_SERVICE_INFO_DEV: ${{ secrets.GOOGLE_SERVICE_INFO_DEV }}
+          REVERSED_CLIENT_ID_DEV: ${{ secrets.REVERSED_CLIENT_ID_DEV }}
+        run: |
+          cd ios
+          mkdir -p Firebase/Dev
+          echo "$GOOGLE_SERVICE_INFO_DEV" | base64 --decode > Firebase/Dev/GoogleService-Info.plist
+          echo "REVERSED_CLIENT_ID = $REVERSED_CLIENT_ID_DEV" > Configurations/Dev.xcconfig
+
+      - name: Generate Xcode Project
+        run: |
+          cd ios
+          if command -v xcodegen &> /dev/null; then
+            xcodegen generate
+          fi
+
+      - name: Cache SPM
+        uses: actions/cache@v3
+        with:
+          path: |
+            ios/.build
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-${{ hashFiles('ios/**/Package.resolved') }}
+
+      - name: Build App
+        run: |
+          cd ios
+          xcodebuild build \
+            -scheme Cookstemma-Dev \
+            -configuration Release-Dev \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/Cookstemma-Dev.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcpretty
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-dev
+          path: ios/build/Cookstemma-Dev.xcarchive
+          retention-days: 7
+
+  build-prod:
+    name: Build (Prod)
+    runs-on: macos-14
+    needs: unit-tests
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Setup Firebase Config (Prod)
+        env:
+          GOOGLE_SERVICE_INFO_PROD: ${{ secrets.GOOGLE_SERVICE_INFO_PROD }}
+          REVERSED_CLIENT_ID_PROD: ${{ secrets.REVERSED_CLIENT_ID_PROD }}
+        run: |
+          cd ios
+          mkdir -p Firebase/Prod
+          echo "$GOOGLE_SERVICE_INFO_PROD" | base64 --decode > Firebase/Prod/GoogleService-Info.plist
+          echo "REVERSED_CLIENT_ID = $REVERSED_CLIENT_ID_PROD" > Configurations/Prod.xcconfig
+
+      - name: Generate Xcode Project
+        run: |
+          cd ios
+          if command -v xcodegen &> /dev/null; then
+            xcodegen generate
+          fi
+
+      - name: Cache SPM
+        uses: actions/cache@v3
+        with:
+          path: |
+            ios/.build
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-${{ hashFiles('ios/**/Package.resolved') }}
+
+      - name: Build App
+        run: |
+          cd ios
+          xcodebuild build \
+            -scheme Cookstemma-Prod \
+            -configuration Release-Prod \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/Cookstemma-Prod.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcpretty
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-prod
+          path: ios/build/Cookstemma-Prod.xcarchive
+          retention-days: 7

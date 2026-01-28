@@ -29,5 +29,12 @@ iOSInjectionProject/
 .env*
 !.env.example
 
-# Firebase config (contains API keys)
-Resources/GoogleService-Info.plist
+# Firebase config (contains API keys) - real configs are gitignored
+Firebase/Dev/*
+Firebase/Prod/*
+!Firebase/Dev/.gitkeep
+!Firebase/Prod/.gitkeep
+# Keep the template: Firebase/GoogleService-Info-template.plist
+
+# xcconfig templates are tracked; developers override locally or in CI
+# Use `git update-index --skip-worktree Configurations/Dev.xcconfig` to ignore local changes
