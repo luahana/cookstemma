@@ -15,9 +15,6 @@ struct SplashView: View {
                 Text("Cookstemma")
                     .font(DesignSystem.Typography.largeTitle)
                     .foregroundColor(DesignSystem.Colors.primary)
-
-                ProgressView()
-                    .tint(DesignSystem.Colors.primary)
             }
         }
     }
