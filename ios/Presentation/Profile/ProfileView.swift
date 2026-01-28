@@ -9,6 +9,7 @@ enum ProfileNavDestination: Hashable {
     case log(id: String)
 }
 
+
 struct ProfileView: View {
     var userId: String? = nil
     @StateObject private var viewModel: ProfileViewModel
