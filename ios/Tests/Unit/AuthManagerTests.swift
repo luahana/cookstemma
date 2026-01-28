@@ -314,4 +314,8 @@ class MockAPIClient: APIClientProtocol {
             throw error
         }
     }
+
+    func uploadImage(_ imageData: Data, type: String) async throws -> ImageUploadResponse {
+        throw APIError.unknown
+    }
 }

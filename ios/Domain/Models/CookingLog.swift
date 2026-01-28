@@ -298,6 +298,12 @@ struct CreateLogRequest: Codable {
     let recipeId: String?
     let hashtags: [String]
     let isPrivate: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case rating, content, hashtags, isPrivate
+        case imageIds = "imagePublicIds"
+        case recipeId = "recipePublicId"
+    }
 }
 
 struct UpdateLogRequest: Codable {
@@ -307,4 +313,10 @@ struct UpdateLogRequest: Codable {
     let recipeId: String?
     let hashtags: [String]?
     let isPrivate: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case rating, content, hashtags, isPrivate
+        case imageIds = "imagePublicIds"
+        case recipeId = "recipePublicId"
+    }
 }

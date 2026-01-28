@@ -144,7 +144,7 @@ struct NotificationRow: View {
                         .lineLimit(2)
                 }
 
-                Text(notification.createdAt, style: .relative)
+                Text(notification.createdAt.timeAgo())
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.secondaryText)
             }

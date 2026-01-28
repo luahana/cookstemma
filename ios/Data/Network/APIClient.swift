@@ -120,6 +120,15 @@ protocol TokenManagerProtocol: AnyObject {
 protocol APIClientProtocol {
     func request<T: Decodable>(_ endpoint: APIEndpoint) async throws -> T
     func request(_ endpoint: APIEndpoint) async throws
+    func uploadImage(_ imageData: Data, type: String) async throws -> ImageUploadResponse
+}
+
+// MARK: - Image Upload Response
+
+struct ImageUploadResponse: Decodable {
+    let imagePublicId: String
+    let imageUrl: String
+    let originalFilename: String?
 }
 
 // MARK: - API Client
@@ -190,6 +199,43 @@ final class APIClient: APIClientProtocol {
         let request = try buildRequest(endpoint)
         let (_, response) = try await performRequest(request, endpoint: endpoint)
         try validateResponse(response)
+    }
+
+    func uploadImage(_ imageData: Data, type: String) async throws -> ImageUploadResponse {
+        let boundary = UUID().uuidString
+        let url = baseURL.appendingPathComponent("images/upload")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 60
+        request.setValue(
+            "multipart/form-data; boundary=\(boundary)",
+            forHTTPHeaderField: "Content-Type"
+        )
+        if let token = tokenManager?.accessToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        var body = Data()
+        // Image file part
+        body.append("--\(boundary)\r\n")
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"photo.jpg\"\r\n")
+        body.append("Content-Type: image/jpeg\r\n\r\n")
+        body.append(imageData)
+        body.append("\r\n")
+        // Type part
+        body.append("--\(boundary)\r\n")
+        body.append("Content-Disposition: form-data; name=\"type\"\r\n\r\n")
+        body.append(type)
+        body.append("\r\n")
+        body.append("--\(boundary)--\r\n")
+        request.httpBody = body
+
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.unknown
+        }
+        try validateResponse(httpResponse)
+        return try decoder.decode(ImageUploadResponse.self, from: data)
     }
 
     private func buildRequest(_ endpoint: APIEndpoint) throws -> URLRequest {
@@ -311,6 +357,16 @@ extension JSONEncoder {
         encoder.dateEncodingStrategy = .iso8601
         return encoder
     }()
+}
+
+// MARK: - Data Multipart Helper
+
+extension Data {
+    mutating func append(_ string: String) {
+        if let data = string.data(using: .utf8) {
+            append(data)
+        }
+    }
 }
 
 extension ISO8601DateFormatter {

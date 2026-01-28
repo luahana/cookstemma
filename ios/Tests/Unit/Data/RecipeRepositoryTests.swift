@@ -384,6 +384,15 @@ class MockAPIClient: APIClientProtocol {
 
         return response
     }
+
+    func request(_ endpoint: any APIEndpoint) async throws {
+        requestCalled = true
+        if let error = mockError { throw error }
+    }
+
+    func uploadImage(_ imageData: Data, type: String) async throws -> ImageUploadResponse {
+        throw APIError.unknown
+    }
 }
 
 // MARK: - Empty Response

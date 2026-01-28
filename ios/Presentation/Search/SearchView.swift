@@ -1008,7 +1008,8 @@ struct HashtagView: View {
             }
         }
         .background(DesignSystem.Colors.secondaryBackground)
-        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBack()
         .onAppear {
             if viewModel.items.isEmpty {
                 viewModel.loadContent()

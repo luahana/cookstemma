@@ -31,6 +31,10 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Cookstemma needs access to your camera to take photos of your cooking.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cookstemma needs access to your photo library to add photos to your cooking logs.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UISupportedInterfaceOrientations</key>
