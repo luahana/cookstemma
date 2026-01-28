@@ -1,5 +1,4 @@
 import Foundation
-import Combine
 
 struct UISearchResults {
     var topResult: SearchResult?
@@ -33,8 +32,6 @@ final class SearchViewModel: ObservableObject {
     private let searchRepository: SearchRepositoryProtocol
     private let logRepository: CookingLogRepositoryProtocol
     private var searchTask: Task<Void, Never>?
-    private var cancellables = Set<AnyCancellable>()
-    private let debounceInterval: TimeInterval = 0.3
 
     init(
         searchRepository: SearchRepositoryProtocol = SearchRepository(),
@@ -42,18 +39,6 @@ final class SearchViewModel: ObservableObject {
     ) {
         self.searchRepository = searchRepository
         self.logRepository = logRepository
-        setupDebounce()
-    }
-
-    private func setupDebounce() {
-        $query
-            .debounce(for: .seconds(debounceInterval), scheduler: DispatchQueue.main)
-            .removeDuplicates()
-            .sink { [weak self] query in
-                guard let self = self, !query.isEmpty else { return }
-                self.search()
-            }
-            .store(in: &cancellables)
     }
 
     func loadRecentSearches() {
