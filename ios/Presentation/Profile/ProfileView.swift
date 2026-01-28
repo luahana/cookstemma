@@ -288,6 +288,9 @@ struct ProfileView: View {
     // MARK: - Content Grid with Swipe Animation
     @ViewBuilder
     private var contentGrid: some View {
+        // Calculate height: screen height minus estimated header (~350) and tab bar (~80)
+        let contentHeight = max(400, UIScreen.main.bounds.height - 430)
+
         if viewModel.selectedTab == .saved {
             // Saved tab with swipeable filter pages
             TabView(selection: $viewModel.savedContentFilter) {
@@ -297,7 +300,7 @@ struct ProfileView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(minHeight: 300)
+            .frame(height: contentHeight)
         } else {
             // Recipes/Logs tab with swipeable visibility filter pages
             TabView(selection: $viewModel.visibilityFilter) {
@@ -307,7 +310,7 @@ struct ProfileView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(minHeight: 300)
+            .frame(height: contentHeight)
         }
     }
 

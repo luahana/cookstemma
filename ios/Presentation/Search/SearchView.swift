@@ -1006,6 +1006,9 @@ struct HashtagView: View {
 
     @ViewBuilder
     private var contentGrid: some View {
+        // Calculate height to fill remaining space below picker
+        let contentHeight = max(400, UIScreen.main.bounds.height - 200)
+
         TabView(selection: $viewModel.contentFilter) {
             ForEach(HashtagContentFilter.allCases, id: \.self) { filter in
                 filterPageContent(for: filter)
@@ -1013,6 +1016,7 @@ struct HashtagView: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
+        .frame(height: contentHeight)
     }
 
     @ViewBuilder
