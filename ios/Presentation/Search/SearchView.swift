@@ -420,12 +420,10 @@ struct SearchView: View {
                 Button {
                     viewModel.showAllRecipes = false
                 } label: {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
-                    }
-                    .font(DesignSystem.Typography.subheadline)
-                    .foregroundColor(DesignSystem.Colors.primary)
+                    Image(systemName: "chevron.left")
+                        .font(DesignSystem.Typography.subheadline)
+                        .foregroundColor(DesignSystem.Colors.primary)
+                        .frame(width: 60, alignment: .leading)
                 }
                 Spacer()
                 Text("Trending Recipes")
@@ -457,12 +455,10 @@ struct SearchView: View {
                 Button {
                     viewModel.showAllLogs = false
                 } label: {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
-                    }
-                    .font(DesignSystem.Typography.subheadline)
-                    .foregroundColor(DesignSystem.Colors.primary)
+                    Image(systemName: "chevron.left")
+                        .font(DesignSystem.Typography.subheadline)
+                        .foregroundColor(DesignSystem.Colors.primary)
+                        .frame(width: 60, alignment: .leading)
                 }
                 Spacer()
                 Text("Recent Cooking Logs")
