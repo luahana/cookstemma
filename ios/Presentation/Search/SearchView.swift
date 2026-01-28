@@ -226,28 +226,26 @@ struct SearchView: View {
             }
             .padding(.horizontal, DesignSystem.Spacing.md)
 
-            // Horizontal scroll hashtag chips with post counts
+            // Wrapping hashtag chips
             if viewModel.trendingHashtags.isEmpty {
                 emptyStateCard(icon: "number", message: "No hashtags yet")
                     .padding(.horizontal, DesignSystem.Spacing.md)
             } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: DesignSystem.Spacing.sm) {
-                        ForEach(viewModel.trendingHashtags, id: \.id) { hashtag in
-                            NavigationLink(value: SearchNavDestination.hashtag(name: hashtag.name)) {
-                                Text("#\(hashtag.name)")
-                                    .font(DesignSystem.Typography.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(DesignSystem.Colors.primary)
-                                    .padding(.horizontal, DesignSystem.Spacing.sm)
-                                    .padding(.vertical, DesignSystem.Spacing.xs)
-                                    .background(DesignSystem.Colors.primary.opacity(0.1))
-                                    .cornerRadius(DesignSystem.CornerRadius.full)
-                            }
+                FlowLayout(spacing: DesignSystem.Spacing.sm) {
+                    ForEach(viewModel.trendingHashtags, id: \.id) { hashtag in
+                        NavigationLink(value: SearchNavDestination.hashtag(name: hashtag.name)) {
+                            Text("#\(hashtag.name)")
+                                .font(DesignSystem.Typography.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(DesignSystem.Colors.primary)
+                                .padding(.horizontal, DesignSystem.Spacing.sm)
+                                .padding(.vertical, DesignSystem.Spacing.xs)
+                                .background(DesignSystem.Colors.primary.opacity(0.1))
+                                .cornerRadius(DesignSystem.CornerRadius.full)
                         }
                     }
-                    .padding(.horizontal, DesignSystem.Spacing.md)
                 }
+                .padding(.horizontal, DesignSystem.Spacing.md)
             }
         }
     }
