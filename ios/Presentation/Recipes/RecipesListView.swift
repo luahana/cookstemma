@@ -4,48 +4,15 @@ struct RecipesListView: View {
     @StateObject private var viewModel = RecipesListViewModel()
     @EnvironmentObject private var appState: AppState
     @State private var showFilters = false
-    @State private var scrollOffset: CGFloat = 0
-    @State private var scrollToTopTrigger: Int = 0
-    @State private var programmaticRefreshTrigger: Int = 0
     @State private var navigationPath = NavigationPath()
-
-    private let headerHeight: CGFloat = 56
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            ZStack(alignment: .top) {
-                // Main content area
-                switch viewModel.state {
-                case .idle, .loading:
-                    // Loading content with header space
-                    VStack {
-                        Color.clear.frame(height: headerHeight)
-                        Spacer()
-                        ProgressView()
-                        Spacer()
-                    }
-                case .loaded:
-                    scrollContent
-                case .empty:
-                    VStack {
-                        Color.clear.frame(height: headerHeight)
-                        Spacer()
-                        IconEmptyState(icon: AppIcon.recipe)
-                        Spacer()
-                    }
-                case .error(let msg):
-                    VStack {
-                        Color.clear.frame(height: headerHeight)
-                        Spacer()
-                        ErrorStateView(message: msg) { viewModel.loadRecipes() }
-                        Spacer()
-                    }
-                }
-
-                // Header overlay - scrolls with content when loaded
+            VStack(spacing: 0) {
                 recipesHeader
-                    .offset(y: min(0, scrollOffset))
+                contentView
             }
+            .frame(maxHeight: .infinity, alignment: .top)
             .background(DesignSystem.Colors.background)
             .navigationBarHidden(true)
             .navigationDestination(for: String.self) { recipeId in
@@ -57,28 +24,16 @@ struct RecipesListView: View {
         }
         .onAppear { if case .idle = viewModel.state { viewModel.loadRecipes() } }
         .onChange(of: appState.recipesScrollToTopTrigger) { _, _ in
-            // Check if in a detail view (navigation path not empty)
             if !navigationPath.isEmpty {
-                // Pop to root with back-button-style animation
                 navigationPath = NavigationPath()
                 return
             }
-
-            // At root - check if scrolled
-            let isAtTop = scrollOffset >= -10
-            if isAtTop {
-                // Already at top - trigger refresh with pull-down animation
-                programmaticRefreshTrigger += 1
-            } else {
-                // Scrolled down - scroll to top smoothly
-                scrollToTopTrigger += 1
-            }
+            Task { await viewModel.refresh() }
         }
     }
 
     private var recipesHeader: some View {
         HStack {
-            // Icon header
             Image(systemName: AppIcon.recipe)
                 .font(.system(size: DesignSystem.IconSize.lg))
                 .foregroundColor(DesignSystem.Colors.primary)
@@ -89,7 +44,6 @@ struct RecipesListView: View {
 
             Spacer()
 
-            // Filter button
             Button { showFilters = true } label: {
                 Image(systemName: AppIcon.filter)
                     .font(.system(size: DesignSystem.IconSize.md))
@@ -97,25 +51,36 @@ struct RecipesListView: View {
             }
         }
         .padding(.horizontal, DesignSystem.Spacing.md)
-        .frame(height: headerHeight)
-        .frame(maxWidth: .infinity)
-        .background(DesignSystem.Colors.background)
+        .padding(.vertical, DesignSystem.Spacing.sm)
     }
 
-    private var scrollContent: some View {
-        CustomRefreshableScrollView(
-            headerHeight: headerHeight,
-            headerScrollOffset: $scrollOffset,
-            scrollToTopTrigger: $scrollToTopTrigger,
-            programmaticRefreshTrigger: $programmaticRefreshTrigger,
-            onRefresh: { await viewModel.refresh() }
-        ) {
-            recipeContent
+    @ViewBuilder
+    private var contentView: some View {
+        switch viewModel.state {
+        case .idle, .loading:
+            Spacer()
+            ProgressView()
+            Spacer()
+        case .loaded:
+            ScrollView(.vertical, showsIndicators: false) {
+                recipeContent
+            }
+            .refreshable {
+                await viewModel.refresh()
+            }
+        case .empty:
+            Spacer()
+            IconEmptyState(icon: AppIcon.recipe)
+            Spacer()
+        case .error(let msg):
+            Spacer()
+            ErrorStateView(message: msg) { viewModel.loadRecipes() }
+            Spacer()
         }
     }
 
     private var recipeContent: some View {
-        VStack(spacing: DesignSystem.Spacing.md) {
+        LazyVStack(spacing: DesignSystem.Spacing.md) {
             ForEach(viewModel.recipes) { recipe in
                 NavigationLink(value: recipe.id) {
                     RecipeCard(
@@ -126,20 +91,17 @@ struct RecipesListView: View {
                 }
                 .buttonStyle(.plain)
                 .onAppear {
-                    // Load more when near the end
                     if recipe.id == viewModel.recipes.suffix(3).first?.id {
                         viewModel.loadMore()
                     }
                 }
             }
 
-            // Loading indicator at bottom
             if viewModel.isLoadingMore {
                 ProgressView()
                     .padding(.vertical, DesignSystem.Spacing.md)
             }
         }
-        .padding(.horizontal, DesignSystem.Spacing.md)
         .padding(.bottom, DesignSystem.Spacing.sm)
     }
 }
@@ -154,9 +116,17 @@ struct RecipeCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
             // Cover image
-            AsyncImage(url: URL(string: recipe.coverImageUrl ?? "")) { img in img.resizable().scaledToFill() }
-                placeholder: { Rectangle().fill(DesignSystem.Colors.tertiaryBackground) }
-                .frame(height: 180).cornerRadius(DesignSystem.CornerRadius.md).clipped()
+            GeometryReader { geometry in
+                AsyncImage(url: URL(string: recipe.coverImageUrl ?? "")) { img in
+                    img.resizable().scaledToFill()
+                } placeholder: {
+                    Rectangle().fill(DesignSystem.Colors.tertiaryBackground)
+                }
+                .frame(width: geometry.size.width, height: 180)
+                .clipped()
+            }
+            .frame(height: 180)
+            .cornerRadius(DesignSystem.CornerRadius.md)
 
             // Title
             Text(recipe.title)
@@ -213,7 +183,6 @@ struct RecipeCard: View {
         }
         .padding(DesignSystem.Spacing.md)
         .background(DesignSystem.Colors.background)
-        .cornerRadius(DesignSystem.CornerRadius.md)
         .contentShape(Rectangle())
     }
 }

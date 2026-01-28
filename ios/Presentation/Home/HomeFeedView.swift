@@ -3,48 +3,15 @@ import SwiftUI
 struct HomeFeedView: View {
     @StateObject private var viewModel = HomeFeedViewModel()
     @EnvironmentObject private var appState: AppState
-    @State private var scrollOffset: CGFloat = 0
-    @State private var scrollToTopTrigger: Int = 0
-    @State private var programmaticRefreshTrigger: Int = 0
     @State private var navigationPath = NavigationPath()
-
-    private let headerHeight: CGFloat = 56
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            ZStack(alignment: .top) {
-                // Main content area
-                switch viewModel.state {
-                case .idle, .loading:
-                    // Loading content with header space
-                    VStack {
-                        Color.clear.frame(height: headerHeight)
-                        Spacer()
-                        ProgressView()
-                        Spacer()
-                    }
-                case .loaded:
-                    scrollContent
-                case .empty:
-                    VStack {
-                        Color.clear.frame(height: headerHeight)
-                        Spacer()
-                        IconEmptyState(useLogoIcon: true, subtitle: "No cooking logs yet")
-                        Spacer()
-                    }
-                case .error(let msg):
-                    VStack {
-                        Color.clear.frame(height: headerHeight)
-                        Spacer()
-                        ErrorStateView(message: msg) { viewModel.loadFeed() }
-                        Spacer()
-                    }
-                }
-
-                // Header overlay - scrolls with content when loaded
+            VStack(spacing: 0) {
                 homeHeader
-                    .offset(y: min(0, scrollOffset))
+                contentView
             }
+            .frame(maxHeight: .infinity, alignment: .top)
             .background(DesignSystem.Colors.background)
             .navigationBarHidden(true)
             .navigationDestination(for: String.self) { logId in
@@ -56,22 +23,11 @@ struct HomeFeedView: View {
         }
         .onAppear { if case .idle = viewModel.state { viewModel.loadFeed() } }
         .onChange(of: appState.homeScrollToTopTrigger) { _, _ in
-            // Check if in a detail view (navigation path not empty)
             if !navigationPath.isEmpty {
-                // Pop to root with back-button-style animation
                 navigationPath = NavigationPath()
                 return
             }
-
-            // At root - check if scrolled
-            let isAtTop = scrollOffset >= -10
-            if isAtTop {
-                // Already at top - trigger refresh with pull-down animation
-                programmaticRefreshTrigger += 1
-            } else {
-                // Scrolled down - scroll to top smoothly
-                scrollToTopTrigger += 1
-            }
+            Task { await viewModel.refresh() }
         }
     }
 
@@ -95,20 +51,31 @@ struct HomeFeedView: View {
             }
         }
         .padding(.horizontal, DesignSystem.Spacing.md)
-        .frame(height: headerHeight)
-        .frame(maxWidth: .infinity)
-        .background(DesignSystem.Colors.background)
+        .padding(.vertical, DesignSystem.Spacing.sm)
     }
 
-    private var scrollContent: some View {
-        CustomRefreshableScrollView(
-            headerHeight: headerHeight,
-            headerScrollOffset: $scrollOffset,
-            scrollToTopTrigger: $scrollToTopTrigger,
-            programmaticRefreshTrigger: $programmaticRefreshTrigger,
-            onRefresh: { await viewModel.refresh() }
-        ) {
-            feedContent
+    @ViewBuilder
+    private var contentView: some View {
+        switch viewModel.state {
+        case .idle, .loading:
+            Spacer()
+            ProgressView()
+            Spacer()
+        case .loaded:
+            ScrollView(.vertical, showsIndicators: false) {
+                feedContent
+            }
+            .refreshable {
+                await viewModel.refresh()
+            }
+        case .empty:
+            Spacer()
+            IconEmptyState(useLogoIcon: true, subtitle: "No cooking logs yet")
+            Spacer()
+        case .error(let msg):
+            Spacer()
+            ErrorStateView(message: msg) { viewModel.loadFeed() }
+            Spacer()
         }
     }
 
@@ -130,7 +97,6 @@ struct HomeFeedView: View {
                     .padding(.vertical, DesignSystem.Spacing.md)
             }
         }
-        .padding(.horizontal, DesignSystem.Spacing.md)
         .padding(.bottom, DesignSystem.Spacing.sm)
     }
 }
@@ -246,7 +212,6 @@ struct FeedLogCard: View {
             .padding(DesignSystem.Spacing.sm)
         }
         .background(DesignSystem.Colors.background)
-        .cornerRadius(DesignSystem.CornerRadius.md)
         .contentShape(Rectangle())
     }
 }
