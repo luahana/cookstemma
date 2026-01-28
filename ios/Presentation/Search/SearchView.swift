@@ -420,17 +420,17 @@ struct SearchView: View {
                 Button {
                     viewModel.showAllRecipes = false
                 } label: {
-                    Image(systemName: "chevron.left")
-                        .font(DesignSystem.Typography.subheadline)
+                    Image(systemName: "chevron.backward")
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(DesignSystem.Colors.primary)
-                        .frame(width: 60, alignment: .leading)
+                        .frame(width: 44, alignment: .leading)
                 }
                 Spacer()
                 Text("Trending Recipes")
                     .font(DesignSystem.Typography.headline)
                 Spacer()
                 // Spacer for balance
-                Color.clear.frame(width: 60)
+                Color.clear.frame(width: 44)
             }
             .listRowInsets(EdgeInsets(top: 0, leading: DesignSystem.Spacing.md, bottom: 0, trailing: DesignSystem.Spacing.md))
             .listRowSeparator(.hidden)
@@ -455,17 +455,17 @@ struct SearchView: View {
                 Button {
                     viewModel.showAllLogs = false
                 } label: {
-                    Image(systemName: "chevron.left")
-                        .font(DesignSystem.Typography.subheadline)
+                    Image(systemName: "chevron.backward")
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(DesignSystem.Colors.primary)
-                        .frame(width: 60, alignment: .leading)
+                        .frame(width: 44, alignment: .leading)
                 }
                 Spacer()
                 Text("Recent Cooking Logs")
                     .font(DesignSystem.Typography.headline)
                 Spacer()
                 // Spacer for balance
-                Color.clear.frame(width: 60)
+                Color.clear.frame(width: 44)
             }
             .listRowInsets(EdgeInsets(top: 0, leading: DesignSystem.Spacing.md, bottom: 0, trailing: DesignSystem.Spacing.md))
             .listRowSeparator(.hidden)
