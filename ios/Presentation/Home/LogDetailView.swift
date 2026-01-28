@@ -110,16 +110,14 @@ struct LogDetailView: View {
 
             // Hashtags
             if !log.hashtags.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        ForEach(log.hashtags, id: \.self) { hashtag in
-                            Text("#\(hashtag)")
-                                .font(DesignSystem.Typography.subheadline)
-                                .foregroundColor(DesignSystem.Colors.primary)
-                        }
+                FlowLayout(spacing: DesignSystem.Spacing.xs) {
+                    ForEach(log.hashtags, id: \.self) { hashtag in
+                        Text("#\(hashtag)")
+                            .font(DesignSystem.Typography.subheadline)
+                            .foregroundColor(DesignSystem.Colors.primary)
                     }
-                    .padding(.horizontal)
                 }
+                .padding(.horizontal)
             }
 
             // Linked recipe
