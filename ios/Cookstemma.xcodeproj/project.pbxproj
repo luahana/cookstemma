@@ -13,6 +13,7 @@
 		0AEA07D3C5782652564EDD74 /* CreateLogFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C8C7036074BACD1A36AABCD /* CreateLogFlowTests.swift */; };
 		0BFAB9AA68A3BAAF9EDA76E1 /* Comment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62A98D18B3577308DD394FCA /* Comment.swift */; };
 		0C57C4AF3A3043864A03FE29 /* UserModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B020E4720EAD418FB695969 /* UserModelTests.swift */; };
+		0C6D20BBDDA899F263B6C2CA /* CommentsBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A0FC8E5D0D36F0011EA223 /* CommentsBottomSheet.swift */; };
 		11DB5962453A6765D5A70B80 /* CreateLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 291A697846B2F4A4FD3F2EE2 /* CreateLogView.swift */; };
 		129F99DF54E9F0E20C9DB33A /* Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E2A2ADE0748C4F10AADBEBA /* Search.swift */; };
 		131C5F4A5F836A13E7C502FE /* SavedContentRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE56EF13C7F8229DD931781 /* SavedContentRepository.swift */; };
@@ -214,6 +215,7 @@
 		F20151AFD0EA6FBFD06AF687 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		F32E773C35B5145A023B29CF /* FirebaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseService.swift; sourceTree = "<group>"; };
 		F4B9DDD6D43FAD96F91B03E8 /* RecipeDetailViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailViewModelTests.swift; sourceTree = "<group>"; };
+		F5A0FC8E5D0D36F0011EA223 /* CommentsBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsBottomSheet.swift; sourceTree = "<group>"; };
 		F812B624CE662F14D5902303 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
 		FCFE68BECDCFA40C176669BD /* Recipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recipe.swift; sourceTree = "<group>"; };
 		FD5018506AD994339883BC8F /* CookingLogRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookingLogRepositoryTests.swift; sourceTree = "<group>"; };
@@ -570,6 +572,7 @@
 		C3A4205A990BC3E6AFCF9AFF /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				F5A0FC8E5D0D36F0011EA223 /* CommentsBottomSheet.swift */,
 				2E7CEF0D56F2CE194EC44789 /* EditLogView.swift */,
 				BAA3B5ACD5E882281C559AC7 /* HomeFeedView.swift */,
 				79BFBEE873DD76F53FEE650E /* HomeFeedViewModel.swift */,
@@ -791,6 +794,7 @@
 				63D71AEFB5C8D216266880C4 /* BlockReportMenu.swift in Sources */,
 				0BFAB9AA68A3BAAF9EDA76E1 /* Comment.swift in Sources */,
 				41C195C4B2114B79F5A4DD00 /* CommentRepository.swift in Sources */,
+				0C6D20BBDDA899F263B6C2CA /* CommentsBottomSheet.swift in Sources */,
 				AC5AF6009E51D0CEE704F866 /* CommonComponents.swift in Sources */,
 				8EA70F96F626C248025A55F0 /* CookingLog.swift in Sources */,
 				7ACFFF80BBD947E07357BF27 /* CookingLogRepository.swift in Sources */,

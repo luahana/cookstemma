@@ -9,6 +9,7 @@ struct LogDetailView: View {
     @State private var showDeleteConfirmation = false
     @State private var showEditSheet = false
     @State private var showActionSheet = false
+    @State private var showCommentsSheet = false
 
     init(logId: String) {
         self.logId = logId
@@ -29,9 +30,9 @@ struct LogDetailView: View {
                 }
                 .buttonStyle(.borderless)
                 .padding(.leading, DesignSystem.Spacing.md)
-                
+
                 Spacer()
-                
+
                 HStack(spacing: 0) {
                     // Save button (icon only) - requires auth
                     Button {
@@ -93,26 +94,17 @@ struct LogDetailView: View {
             .padding(.vertical, DesignSystem.Spacing.sm)
             .background(DesignSystem.Colors.background)
 
-            ScrollViewReader { proxy in
-                ScrollView {
-                    switch viewModel.state {
-                    case .idle, .loading:
-                        LoadingView()
-                    case .loaded:
-                        if let log = viewModel.log {
-                            logContent(log, scrollProxy: proxy)
-                        }
-                    case .error(let message):
-                        ErrorStateView(message: message) { viewModel.loadLog() }
+            ScrollView {
+                switch viewModel.state {
+                case .idle, .loading:
+                    LoadingView()
+                case .loaded:
+                    if let log = viewModel.log {
+                        logContent(log)
                     }
+                case .error(let message):
+                    ErrorStateView(message: message) { viewModel.loadLog() }
                 }
-                .scrollDismissesKeyboard(.immediately)
-                .simultaneousGesture(
-                    TapGesture().onEnded {
-                        // Dismiss keyboard when tapping anywhere
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    }
-                )
             }
         }
         .toolbar(.hidden, for: .navigationBar)
@@ -137,10 +129,15 @@ struct LogDetailView: View {
                 }
             }
         }
+        .sheet(isPresented: $showCommentsSheet) {
+            CommentsBottomSheet(logId: logId)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     @ViewBuilder
-    private func logContent(_ log: CookingLogDetail, scrollProxy: ScrollViewProxy) -> some View {
+    private func logContent(_ log: CookingLogDetail) -> some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
             // Author header
             HStack {
@@ -240,204 +237,22 @@ struct LogDetailView: View {
 
             Divider()
 
-            // Comments section
-            CommentsSection(logId: logId, scrollProxy: scrollProxy)
+            // Comments button
+            Button {
+                showCommentsSheet = true
+            } label: {
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Image(systemName: AppIcon.comment)
+                        .font(.system(size: DesignSystem.IconSize.md))
+                    Text("\(log.commentCount)")
+                        .font(DesignSystem.Typography.headline)
+                }
+                .foregroundColor(DesignSystem.Colors.text)
+                .padding(.horizontal)
+                .padding(.vertical, DesignSystem.Spacing.sm)
+            }
         }
         .padding(.bottom, DesignSystem.Spacing.xl)
-    }
-}
-
-// MARK: - Comments Section
-struct CommentsSection: View {
-    let logId: String
-    let scrollProxy: ScrollViewProxy
-    @StateObject private var viewModel: CommentsViewModel
-    @EnvironmentObject private var authManager: AuthManager
-    @State private var showBlockConfirmation = false
-    @State private var userToBlock: UserSummary?
-    @State private var replyingToComment: Comment?
-    @FocusState private var isCommentInputFocused: Bool
-
-    init(logId: String, scrollProxy: ScrollViewProxy) {
-        self.logId = logId
-        self.scrollProxy = scrollProxy
-        self._viewModel = StateObject(wrappedValue: CommentsViewModel(logId: logId))
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-            HStack(spacing: DesignSystem.Spacing.xs) {
-                Image(systemName: AppIcon.comment)
-                    .font(.system(size: DesignSystem.IconSize.md))
-                Text("\(viewModel.comments.count)")
-                    .font(DesignSystem.Typography.headline)
-            }
-            .foregroundColor(DesignSystem.Colors.text)
-            .padding(.horizontal)
-
-            ForEach(viewModel.comments) { comment in
-                CommentRow(
-                    comment: comment,
-                    isOwnComment: comment.author.id == authManager.currentUser?.id,
-                    onLike: { Task { await viewModel.likeComment(comment) } },
-                    onReply: {
-                        #if DEBUG
-                        print("[Comments] Reply tapped - comment.id: \(comment.id), author: \(comment.author.username)")
-                        #endif
-                        replyingToComment = comment
-                        viewModel.newCommentText = "@\(comment.author.username) "
-                        isCommentInputFocused = true
-                    },
-                    onBlock: {
-                        userToBlock = comment.author
-                        showBlockConfirmation = true
-                    },
-                    onReport: { reason in
-                        Task { await viewModel.reportUser(comment.author.id, reason: reason) }
-                    }
-                )
-            }
-
-            if viewModel.hasMore {
-                Button(String(localized: "comments.loadMore")) { viewModel.loadMore() }
-                    .font(DesignSystem.Typography.subheadline)
-                    .padding(.horizontal)
-            }
-
-            // Reply indicator
-            if let replyingTo = replyingToComment {
-                HStack {
-                    Text("comments.replyingTo \(replyingTo.author.username)")
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.secondaryText)
-                    Spacer()
-                    Button {
-                        replyingToComment = nil
-                        viewModel.newCommentText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(DesignSystem.Colors.secondaryText)
-                    }
-                }
-                .padding(.horizontal)
-            }
-
-            // Comment input
-            HStack {
-                TextField(String(localized: "comments.placeholder"), text: $viewModel.newCommentText)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($isCommentInputFocused)
-                Button {
-                    let parentId = replyingToComment?.id  // Capture before Task
-                    #if DEBUG
-                    print("[Comments] Send tapped - parentId: \(parentId ?? "nil"), replyingToComment: \(replyingToComment?.id ?? "nil")")
-                    #endif
-                    replyingToComment = nil
-                    Task {
-                        await viewModel.postComment(parentId: parentId)
-                    }
-                } label: {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(viewModel.newCommentText.isEmpty ? DesignSystem.Colors.secondaryText : DesignSystem.Colors.primary)
-                }
-                .disabled(viewModel.newCommentText.isEmpty)
-            }
-            .padding()
-            .id("commentInput")
-        }
-        .onAppear { viewModel.loadComments() }
-        .onChange(of: isCommentInputFocused) { _, focused in
-            if focused {
-                // Wait for keyboard to fully appear before scrolling
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        scrollProxy.scrollTo("commentInput", anchor: .top)
-                    }
-                }
-            } else {
-                // Clear reply state when keyboard dismissed
-                if replyingToComment != nil && viewModel.newCommentText.isEmpty {
-                    replyingToComment = nil
-                }
-            }
-        }
-        .alert(String(localized: "menu.blockUser"), isPresented: $showBlockConfirmation) {
-            Button(String(localized: "menu.block"), role: .destructive) {
-                guard let user = userToBlock else { return }
-                Task { await viewModel.blockUser(user.id) }
-            }
-            Button(String(localized: "common.cancel"), role: .cancel) { userToBlock = nil }
-        } message: {
-            if let user = userToBlock {
-                Text(String(localized: "menu.blockConfirmMessage \(user.username)"))
-            }
-        }
-    }
-}
-
-struct CommentRow: View {
-    let comment: Comment
-    let isOwnComment: Bool
-    let onLike: () -> Void
-    let onReply: () -> Void
-    let onBlock: () -> Void
-    let onReport: (ReportReason) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-            HStack(alignment: .top) {
-                AvatarView(url: comment.author.avatarUrl, size: DesignSystem.AvatarSize.xs)
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        Text(comment.author.displayNameOrUsername).font(DesignSystem.Typography.caption).fontWeight(.medium)
-                        Text(comment.createdAt.timeAgo()).font(DesignSystem.Typography.caption).foregroundColor(DesignSystem.Colors.secondaryText)
-                    }
-                    Text(comment.content).font(DesignSystem.Typography.body)
-                    HStack {
-                        Button { onLike() } label: {
-                            HStack(spacing: 2) {
-                                Image(systemName: comment.isLiked ? "heart.fill" : "heart").font(.caption)
-                                Text("\(comment.likeCount)").font(DesignSystem.Typography.caption)
-                            }
-                            .foregroundColor(comment.isLiked ? .red : DesignSystem.Colors.secondaryText)
-                        }
-                        Button(String(localized: "comments.reply")) { onReply() }
-                            .font(DesignSystem.Typography.caption)
-                            .foregroundColor(DesignSystem.Colors.secondaryText)
-                    }
-                }
-                Spacer()
-                if !isOwnComment {
-                    BlockReportMenu(
-                        targetUserId: comment.author.id,
-                        targetUsername: comment.author.username,
-                        onBlock: onBlock,
-                        onReport: onReport
-                    )
-                    .font(.caption)
-                }
-            }
-            .padding(.horizontal)
-
-            // Replies
-            if let replies = comment.replies, !replies.isEmpty {
-                ForEach(replies) { reply in
-                    HStack(alignment: .top) {
-                        AvatarView(url: reply.author.avatarUrl, size: DesignSystem.AvatarSize.xs)
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text(reply.author.displayNameOrUsername).font(DesignSystem.Typography.caption).fontWeight(.medium)
-                                Text(reply.createdAt.timeAgo()).font(DesignSystem.Typography.caption).foregroundColor(DesignSystem.Colors.secondaryText)
-                            }
-                            Text(reply.content).font(DesignSystem.Typography.body)
-                        }
-                    }
-                    .padding(.leading, 40)
-                    .padding(.horizontal)
-                }
-            }
-        }
     }
 }
 

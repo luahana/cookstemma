@@ -160,6 +160,125 @@
     "by @%@" : {
 
     },
+    "comments.deleteComment" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Comment"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "댓글 삭제"
+          }
+        }
+      }
+    },
+    "comments.deleteConfirm" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to delete this comment?"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 댓글을 삭제하시겠습니까?"
+          }
+        }
+      }
+    },
+    "comments.editComment" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Comment"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "댓글 수정"
+          }
+        }
+      }
+    },
+    "comments.edited" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(edited)"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(수정됨)"
+          }
+        }
+      }
+    },
+    "comments.editing" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editing comment"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "댓글 수정 중"
+          }
+        }
+      }
+    },
+    "comments.editPlaceholder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit your comment..."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "댓글을 수정하세요..."
+          }
+        }
+      }
+    },
+    "comments.empty" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No comments yet. Be the first to comment!"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 댓글이 없습니다. 첫 댓글을 남겨보세요!"
+          }
+        }
+      }
+    },
     "comments.loadMore" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -223,6 +342,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "@%@님에게 답글"
+          }
+        }
+      }
+    },
+    "comments.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comments"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "댓글"
           }
         }
       }
@@ -1201,6 +1337,23 @@
         }
       }
     },
+    "menu.blockConfirmMessage %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to block @%@? You won't see their content anymore."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "@%@님을 차단하시겠습니까? 더 이상 해당 사용자의 콘텐츠가 표시되지 않습니다."
+          }
+        }
+      }
+    },
     "menu.blockMessage" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1214,6 +1367,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "더 이상 이 사용자의 콘텐츠를 볼 수 없습니다. 상대방에게 알림이 가지 않습니다."
+          }
+        }
+      }
+    },
+    "menu.blockUser" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block User"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사용자 차단"
           }
         }
       }
