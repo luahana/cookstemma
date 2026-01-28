@@ -13,21 +13,22 @@ struct LogDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            switch viewModel.state {
-            case .idle, .loading:
-                LoadingView()
-            case .loaded:
-                if let log = viewModel.log {
-                    logContent(log)
+        VStack(spacing: 0) {
+            // Custom header
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.backward")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(DesignSystem.Colors.primary)
+                        .frame(width: 44, alignment: .leading)
                 }
-            case .error(let message):
-                ErrorStateView(message: message) { viewModel.loadLog() }
-            }
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+                .buttonStyle(.borderless)
+                .padding(.leading, DesignSystem.Spacing.md)
+                
+                Spacer()
+                
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     // Save button (icon only) - requires auth
                     Button {
@@ -56,8 +57,25 @@ struct LogDetailView: View {
                         )
                     }
                 }
+                .padding(.trailing, DesignSystem.Spacing.md)
+            }
+            .padding(.vertical, DesignSystem.Spacing.sm)
+            .background(DesignSystem.Colors.background)
+
+            ScrollView {
+                switch viewModel.state {
+                case .idle, .loading:
+                    LoadingView()
+                case .loaded:
+                    if let log = viewModel.log {
+                        logContent(log)
+                    }
+                case .error(let message):
+                    ErrorStateView(message: message) { viewModel.loadLog() }
+                }
             }
         }
+        .navigationBarHidden(true)
         .onAppear { if case .idle = viewModel.state { viewModel.loadLog() } }
     }
 

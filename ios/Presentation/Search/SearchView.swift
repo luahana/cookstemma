@@ -425,6 +425,8 @@ struct SearchView: View {
                         .foregroundColor(DesignSystem.Colors.primary)
                         .frame(width: 44, alignment: .leading)
                 }
+                .buttonStyle(.borderless)
+                .padding(.leading, DesignSystem.Spacing.sm)
                 Spacer()
                 Text("Trending Recipes")
                     .font(DesignSystem.Typography.headline)
@@ -460,6 +462,8 @@ struct SearchView: View {
                         .foregroundColor(DesignSystem.Colors.primary)
                         .frame(width: 44, alignment: .leading)
                 }
+                .buttonStyle(.borderless)
+                .padding(.leading, DesignSystem.Spacing.sm)
                 Spacer()
                 Text("Recent Cooking Logs")
                     .font(DesignSystem.Typography.headline)
@@ -951,8 +955,39 @@ struct HashtagView: View {
         self._viewModel = StateObject(wrappedValue: HashtagContentViewModel(hashtag: hashtag))
     }
 
+    @Environment(\.dismiss) private var dismiss
+
     var body: some View {
         VStack(spacing: 0) {
+            // Custom header matching Trending Recipes style
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.backward")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(DesignSystem.Colors.primary)
+                        .frame(width: 44, alignment: .leading)
+                }
+                .buttonStyle(.borderless)
+                .padding(.leading, DesignSystem.Spacing.md)
+                Spacer()
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Image(systemName: "number")
+                        .foregroundColor(DesignSystem.Colors.primary)
+                    Text(hashtag)
+                        .font(DesignSystem.Typography.headline)
+                    if !viewModel.items.isEmpty {
+                        Text("(\(viewModel.items.count))")
+                            .font(DesignSystem.Typography.subheadline)
+                            .foregroundColor(DesignSystem.Colors.secondaryText)
+                    }
+                }
+                Spacer()
+                Color.clear.frame(width: 44)
+            }
+            .padding(.vertical, DesignSystem.Spacing.sm)
+
             // Segmented filter picker
             Picker("Filter", selection: $viewModel.contentFilter) {
                 ForEach(HashtagContentFilter.allCases, id: \.self) { filter in
@@ -973,22 +1008,7 @@ struct HashtagView: View {
             }
         }
         .background(DesignSystem.Colors.secondaryBackground)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                HStack(spacing: DesignSystem.Spacing.xs) {
-                    Image(systemName: "number")
-                        .foregroundColor(DesignSystem.Colors.primary)
-                    Text(hashtag)
-                        .font(DesignSystem.Typography.headline)
-                    if !viewModel.items.isEmpty {
-                        Text("(\(viewModel.items.count))")
-                            .font(DesignSystem.Typography.subheadline)
-                            .foregroundColor(DesignSystem.Colors.secondaryText)
-                    }
-                }
-            }
-        }
+        .navigationBarHidden(true)
         .onAppear {
             if viewModel.items.isEmpty {
                 viewModel.loadContent()

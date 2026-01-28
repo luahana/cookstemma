@@ -5,6 +5,7 @@ struct RecipeDetailView: View {
     @StateObject private var viewModel: RecipeDetailViewModel
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var appState: AppState
+    @Environment(\.dismiss) private var dismiss
     @State private var showCreateLog = false
 
     init(recipeId: String) {
@@ -13,40 +14,22 @@ struct RecipeDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            switch viewModel.state {
-            case .idle, .loading: LoadingView()
-            case .loaded(let recipe): recipeContent(recipe)
-            case .error(let msg): ErrorStateView(message: msg) { viewModel.loadRecipe() }
-            }
-        }
-        .overlay(alignment: .bottomTrailing) {
-            // FAB for creating cooking log
-            if case .loaded = viewModel.state {
+        VStack(spacing: 0) {
+            // Custom header
+            HStack {
                 Button {
-                    appState.requireAuth {
-                        showCreateLog = true
-                    }
+                    dismiss()
                 } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(width: 56, height: 56)
-                        .background(DesignSystem.Colors.primary)
-                        .clipShape(Circle())
-                        .shadow(radius: 4, y: 2)
+                    Image(systemName: "chevron.backward")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(DesignSystem.Colors.primary)
+                        .frame(width: 44, alignment: .leading)
                 }
-                .padding(.trailing, DesignSystem.Spacing.md)
-                .padding(.bottom, 100)
-            }
-        }
-        .sheet(isPresented: $showCreateLog) {
-            CreateLogView(recipe: viewModel.recipeSummary)
-        }
-        .background(DesignSystem.Colors.secondaryBackground)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+                .buttonStyle(.borderless)
+                .padding(.leading, DesignSystem.Spacing.md)
+                
+                Spacer()
+                
                 HStack(spacing: DesignSystem.Spacing.sm) {
                     // Save button (icon only) - requires auth
                     Button {
@@ -77,8 +60,44 @@ struct RecipeDetailView: View {
                         )
                     }
                 }
+                .padding(.trailing, DesignSystem.Spacing.md)
+            }
+            .padding(.vertical, DesignSystem.Spacing.sm)
+            .background(DesignSystem.Colors.background)
+
+            ScrollView {
+                switch viewModel.state {
+                case .idle, .loading: LoadingView()
+                case .loaded(let recipe): recipeContent(recipe)
+                case .error(let msg): ErrorStateView(message: msg) { viewModel.loadRecipe() }
+                }
             }
         }
+        .overlay(alignment: .bottomTrailing) {
+            // FAB for creating cooking log
+            if case .loaded = viewModel.state {
+                Button {
+                    appState.requireAuth {
+                        showCreateLog = true
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 56, height: 56)
+                        .background(DesignSystem.Colors.primary)
+                        .clipShape(Circle())
+                        .shadow(radius: 4, y: 2)
+                }
+                .padding(.trailing, DesignSystem.Spacing.md)
+                .padding(.bottom, 100)
+            }
+        }
+        .sheet(isPresented: $showCreateLog) {
+            CreateLogView(recipe: viewModel.recipeSummary)
+        }
+        .background(DesignSystem.Colors.secondaryBackground)
+        .navigationBarHidden(true)
         .onAppear { if case .idle = viewModel.state { viewModel.loadRecipe() } }
     }
 
