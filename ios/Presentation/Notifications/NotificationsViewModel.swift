@@ -137,4 +137,38 @@ final class NotificationsViewModel: ObservableObject {
             }
         }
     }
+
+    func deleteAllNotifications() async {
+        guard !notifications.isEmpty else {
+            #if DEBUG
+            print("[Notifications] Delete all: no notifications to delete")
+            #endif
+            return
+        }
+
+        #if DEBUG
+        print("[Notifications] Delete all: starting with \(notifications.count) notifications")
+        #endif
+
+        // Optimistic update
+        let previousNotifications = notifications
+        let previousUnreadCount = unreadCount
+        notifications = []
+        unreadCount = 0
+
+        let result = await notificationRepository.deleteAllNotifications()
+        switch result {
+        case .success:
+            #if DEBUG
+            print("[Notifications] Delete all: success")
+            #endif
+        case .failure(let error):
+            #if DEBUG
+            print("[Notifications] Delete all failed: \(error)")
+            #endif
+            // Revert on failure
+            notifications = previousNotifications
+            unreadCount = previousUnreadCount
+        }
+    }
 }

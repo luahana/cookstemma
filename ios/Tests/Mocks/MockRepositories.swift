@@ -303,6 +303,12 @@ final class MockNotificationRepository: NotificationRepositoryProtocol {
         return .success(())
     }
 
+    var deleteAllNotificationsCalled = false
+    func deleteAllNotifications() async -> RepositoryResult<Void> {
+        deleteAllNotificationsCalled = true
+        return .success(())
+    }
+
     func registerFCMToken(_ token: String) async -> RepositoryResult<Void> {
         return .success(())
     }

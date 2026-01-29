@@ -26,11 +26,23 @@ struct NotificationsView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 if !viewModel.notifications.isEmpty {
-                    Button {
-                        Task { await viewModel.markAllAsRead() }
-                    } label: {
-                        Image(systemName: AppIcon.checkmarkAll)
-                            .foregroundColor(DesignSystem.Colors.primary)
+                    HStack(spacing: DesignSystem.Spacing.sm) {
+                        Button {
+                            Task { await viewModel.markAllAsRead() }
+                        } label: {
+                            Image(systemName: AppIcon.checkmarkAll)
+                                .foregroundColor(DesignSystem.Colors.primary)
+                        }
+
+                        Button {
+                            #if DEBUG
+                            print("[NotificationsView] Clear all button tapped")
+                            #endif
+                            Task { await viewModel.deleteAllNotifications() }
+                        } label: {
+                            Image(systemName: AppIcon.trash)
+                                .foregroundColor(DesignSystem.Colors.error)
+                        }
                     }
                 }
             }

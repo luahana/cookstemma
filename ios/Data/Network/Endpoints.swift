@@ -391,12 +391,13 @@ enum NotificationEndpoint: APIEndpoint {
     case markRead(id: String)
     case markAllRead
     case delete(id: String)
+    case deleteAll
     case registerFCM(token: String)
     case unregisterFCM(token: String)
 
     var path: String {
         switch self {
-        case .list: return "notifications"
+        case .list, .deleteAll: return "notifications"
         case .unreadCount: return "notifications/unread-count"
         case .markRead(let id): return "notifications/\(id)/read"
         case .markAllRead: return "notifications/read-all"
@@ -410,7 +411,7 @@ enum NotificationEndpoint: APIEndpoint {
         case .list, .unreadCount: return .get
         case .markRead, .markAllRead: return .patch
         case .registerFCM: return .post
-        case .delete, .unregisterFCM: return .delete
+        case .delete, .deleteAll, .unregisterFCM: return .delete
         }
     }
 

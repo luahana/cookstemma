@@ -312,6 +312,11 @@ public class NotificationService {
         log.debug("Deleted notification {} for user {}", notificationPublicId, principal.getId());
     }
 
+    public void deleteAllNotifications(UserPrincipal principal) {
+        notificationRepository.deleteAllByRecipientId(principal.getId());
+        log.debug("Deleted all notifications for user {}", principal.getId());
+    }
+
     // =========== Test ===========
 
     /**

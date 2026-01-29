@@ -66,6 +66,29 @@ final class NotificationRepository: NotificationRepositoryProtocol {
         }
     }
 
+    func deleteAllNotifications() async -> RepositoryResult<Void> {
+        do {
+            #if DEBUG
+            print("[NotificationRepository] deleteAllNotifications: calling API")
+            #endif
+            try await apiClient.request(NotificationEndpoint.deleteAll)
+            #if DEBUG
+            print("[NotificationRepository] deleteAllNotifications: success")
+            #endif
+            return .success(())
+        } catch let error as APIError {
+            #if DEBUG
+            print("[NotificationRepository] deleteAllNotifications: API error \(error)")
+            #endif
+            return .failure(mapError(error))
+        } catch {
+            #if DEBUG
+            print("[NotificationRepository] deleteAllNotifications: unknown error \(error)")
+            #endif
+            return .failure(.unknown)
+        }
+    }
+
     func registerFCMToken(_ token: String) async -> RepositoryResult<Void> {
         do {
             try await apiClient.request(NotificationEndpoint.registerFCM(token: token))
