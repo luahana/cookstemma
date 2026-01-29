@@ -5,6 +5,13 @@ import SwiftUI
 enum AppLanguage: String, CaseIterable, Identifiable {
     case english = "en"
     case korean = "ko"
+    case japanese = "ja"
+    case chinese = "zh-Hans"
+    case spanish = "es"
+    case french = "fr"
+    case german = "de"
+    case russian = "ru"
+    case dutch = "nl"
 
     var id: String { rawValue }
 
@@ -12,6 +19,13 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         switch self {
         case .english: return "English"
         case .korean: return "한국어"
+        case .japanese: return "日本語"
+        case .chinese: return "简体中文"
+        case .spanish: return "Español"
+        case .french: return "Français"
+        case .german: return "Deutsch"
+        case .russian: return "Русский"
+        case .dutch: return "Nederlands"
         }
     }
 }
