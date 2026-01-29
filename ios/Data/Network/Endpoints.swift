@@ -408,7 +408,8 @@ enum NotificationEndpoint: APIEndpoint {
     var method: HTTPMethod {
         switch self {
         case .list, .unreadCount: return .get
-        case .markRead, .markAllRead, .registerFCM: return .post
+        case .markRead, .markAllRead: return .patch
+        case .registerFCM: return .post
         case .delete, .unregisterFCM: return .delete
         }
     }
