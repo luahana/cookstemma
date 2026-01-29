@@ -245,10 +245,18 @@ struct TimeBadge: View {
         HStack(spacing: 2) {
             Image(systemName: AppIcon.timer)
                 .font(.system(size: DesignSystem.IconSize.xs))
-            Text(minutes < 60 ? "\(minutes)m" : "\(minutes/60)h")
+            Text(timeDisplayText)
                 .font(DesignSystem.Typography.caption)
         }
         .foregroundColor(DesignSystem.Colors.secondaryText)
+    }
+
+    private var timeDisplayText: String {
+        if minutes < 60 {
+            return String(localized: "time.minutes \(minutes)")
+        } else {
+            return String(localized: "time.hours \(minutes / 60)")
+        }
     }
 }
 

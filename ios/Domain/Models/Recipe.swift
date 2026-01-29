@@ -172,11 +172,11 @@ struct RecipeStep: Codable, Identifiable, Equatable {
 extension String {
     var cookingTimeDisplayText: String {
         switch self {
-        case "UNDER_15_MIN": return "<15 min"
-        case "MIN_15_TO_30": return "15-30 min"
-        case "MIN_30_TO_60": return "30-60 min"
-        case "HOUR_1_TO_2": return "1-2 hr"
-        case "OVER_2_HOURS": return "2+ hr"
+        case "UNDER_15_MIN": return String(localized: "filter.time.under15min")
+        case "MIN_15_TO_30": return String(localized: "filter.time.15to30min")
+        case "MIN_30_TO_60": return String(localized: "filter.time.30to60min")
+        case "HOUR_1_TO_2": return String(localized: "filter.time.1to2hr")
+        case "OVER_2_HOURS": return String(localized: "filter.time.over2hr")
         default: return self
         }
     }
