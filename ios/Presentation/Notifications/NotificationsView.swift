@@ -52,6 +52,9 @@ struct NotificationsView: View {
                         NotificationRow(notification: notification)
                             .onTapGesture { handleNotificationTap(notification) }
                     }
+                    .onDelete { offsets in
+                        viewModel.deleteNotifications(at: offsets, from: viewModel.newNotifications)
+                    }
                 } header: {
                     HStack(spacing: DesignSystem.Spacing.xs) {
                         Image(systemName: AppIcon.new)
@@ -70,6 +73,9 @@ struct NotificationsView: View {
                     ForEach(viewModel.earlierNotifications) { notification in
                         NotificationRow(notification: notification)
                             .onTapGesture { handleNotificationTap(notification) }
+                    }
+                    .onDelete { offsets in
+                        viewModel.deleteNotifications(at: offsets, from: viewModel.earlierNotifications)
                     }
                 } header: {
                     Image(systemName: AppIcon.history)

@@ -111,4 +111,27 @@ final class NotificationsViewModel: ObservableObject {
             loadNotifications()
         }
     }
+
+    func deleteNotification(_ notification: AppNotification) async {
+        // Optimistic update
+        let wasUnread = !notification.isRead
+        notifications.removeAll { $0.id == notification.id }
+        if wasUnread {
+            unreadCount = max(0, unreadCount - 1)
+        }
+
+        let result = await notificationRepository.deleteNotification(id: notification.id)
+        if case .failure = result {
+            // Revert on failure - reload to get correct state
+            loadNotifications()
+        }
+    }
+
+    func deleteNotifications(at offsets: IndexSet, from list: [AppNotification]) {
+        Task {
+            for index in offsets {
+                await deleteNotification(list[index])
+            }
+        }
+    }
 }

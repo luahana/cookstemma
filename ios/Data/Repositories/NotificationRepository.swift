@@ -55,6 +55,17 @@ final class NotificationRepository: NotificationRepositoryProtocol {
         }
     }
 
+    func deleteNotification(id: String) async -> RepositoryResult<Void> {
+        do {
+            try await apiClient.request(NotificationEndpoint.delete(id: id))
+            return .success(())
+        } catch let error as APIError {
+            return .failure(mapError(error))
+        } catch {
+            return .failure(.unknown)
+        }
+    }
+
     func registerFCMToken(_ token: String) async -> RepositoryResult<Void> {
         do {
             try await apiClient.request(NotificationEndpoint.registerFCM(token: token))

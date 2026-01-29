@@ -299,6 +299,19 @@ public class NotificationService {
         log.debug("Marked all notifications as read for user {}", principal.getId());
     }
 
+    public void deleteNotification(UUID notificationPublicId, UserPrincipal principal) {
+        Notification notification = notificationRepository.findByPublicId(notificationPublicId)
+            .orElseThrow(() -> new IllegalArgumentException("Notification not found"));
+
+        // Security check - only recipient can delete their notification
+        if (!notification.getRecipient().getId().equals(principal.getId())) {
+            throw new SecurityException("Not authorized to delete this notification");
+        }
+
+        notificationRepository.delete(notification);
+        log.debug("Deleted notification {} for user {}", notificationPublicId, principal.getId());
+    }
+
     // =========== Test ===========
 
     /**

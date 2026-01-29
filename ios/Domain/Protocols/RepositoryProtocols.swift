@@ -178,6 +178,7 @@ protocol NotificationRepositoryProtocol {
     func getUnreadCount() async -> RepositoryResult<Int>
     func markAsRead(id: String) async -> RepositoryResult<Void>
     func markAllAsRead() async -> RepositoryResult<Void>
+    func deleteNotification(id: String) async -> RepositoryResult<Void>
     func registerFCMToken(_ token: String) async -> RepositoryResult<Void>
     func unregisterFCMToken(_ token: String) async -> RepositoryResult<Void>
 }
