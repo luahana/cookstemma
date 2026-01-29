@@ -28,6 +28,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     void markAllAsReadByRecipientId(Long userId);
 
     @Modifying(clearAutomatically = true)
-    @Query("DELETE FROM Notification n WHERE n.recipient.id = :userId")
+    @Query(value = "DELETE FROM notifications WHERE recipient_id = :userId", nativeQuery = true)
     void deleteAllByRecipientId(@Param("userId") Long userId);
 }
