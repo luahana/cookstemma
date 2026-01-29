@@ -16,7 +16,9 @@ final class CommentRepository: CommentRepositoryProtocol {
             #if DEBUG
             print("[CommentRepository] Received \(page.content.count) comments from API")
             for (index, wrapper) in page.content.enumerated() {
-                print("[CommentRepository] Comment \(index): content=\(wrapper.comment.content ?? "nil"), author=\(wrapper.comment.creatorUsername), isDeleted=\(wrapper.comment.isDeleted ?? false), isHidden=\(wrapper.comment.isHidden ?? false)")
+                let c = wrapper.comment
+                print("[CommentRepository] Comment \(index): author=\(c.creatorUsername), " +
+                      "deleted=\(c.isDeleted ?? false), hidden=\(c.isHidden ?? false)")
             }
             #endif
             // Convert wrapped comments to flat Comment array, filtering out deleted/hidden comments
