@@ -313,8 +313,14 @@ public class NotificationService {
     }
 
     public void deleteAllNotifications(UserPrincipal principal) {
-        notificationRepository.deleteAllByRecipientId(principal.getId());
-        log.debug("Deleted all notifications for user {}", principal.getId());
+        try {
+            log.info("Deleting all notifications for user {}", principal.getId());
+            notificationRepository.deleteAllByRecipientId(principal.getId());
+            log.info("Deleted all notifications for user {}", principal.getId());
+        } catch (Exception e) {
+            log.error("Failed to delete all notifications for user {}: {}", principal.getId(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     // =========== Test ===========
