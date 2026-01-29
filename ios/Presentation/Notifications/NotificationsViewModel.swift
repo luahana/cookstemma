@@ -121,7 +121,10 @@ final class NotificationsViewModel: ObservableObject {
         }
 
         let result = await notificationRepository.deleteNotification(id: notification.id)
-        if case .failure = result {
+        if case .failure(let error) = result {
+            #if DEBUG
+            print("[Notifications] Delete failed: \(error)")
+            #endif
             // Revert on failure - reload to get correct state
             loadNotifications()
         }
