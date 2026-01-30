@@ -53,10 +53,15 @@ public class SavedRecipeService {
                     .build());
             recipe.incrementSavedCount();
 
-            // Send notification to recipe owner
-            User sender = userRepository.findById(userId).orElse(null);
-            if (sender != null) {
-                notificationService.notifyRecipeSaved(recipe, sender);
+            // Send notification to recipe owner (don't let notification failures affect save)
+            try {
+                User sender = userRepository.findById(userId).orElse(null);
+                if (sender != null) {
+                    notificationService.notifyRecipeSaved(recipe, sender);
+                }
+            } catch (Exception e) {
+                // Log but don't fail the save operation
+                System.err.println("Failed to send recipe saved notification: " + e.getMessage());
             }
         }
     }
