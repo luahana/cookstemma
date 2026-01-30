@@ -3,6 +3,7 @@ package com.cookstemma.app.ui.screens.recipes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cookstemma.app.data.repository.RecipeRepository
+import com.cookstemma.app.data.repository.UserRepository
 import com.cookstemma.app.domain.model.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -11,6 +12,7 @@ import javax.inject.Inject
 
 data class RecipesListUiState(
     val recipes: List<RecipeSummary> = emptyList(),
+    val savedRecipeIds: Set<String> = emptySet(),
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val error: String? = null,
@@ -22,20 +24,48 @@ data class RecipesListUiState(
                 filters.category != null ||
                 filters.servingsRange != null ||
                 filters.sortBy != RecipeSortBy.TRENDING
+    
+    fun isRecipeSaved(recipeId: String): Boolean = savedRecipeIds.contains(recipeId)
 }
 
 @HiltViewModel
 class RecipesListViewModel @Inject constructor(
-    private val recipeRepository: RecipeRepository
+    private val recipeRepository: RecipeRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RecipesListUiState())
     val uiState: StateFlow<RecipesListUiState> = _uiState.asStateFlow()
 
     private var nextCursor: String? = null
+    private var hasFetchedSavedIds = false
 
     init {
         loadRecipes()
+        fetchSavedRecipeIds()
+    }
+    
+    private fun fetchSavedRecipeIds() {
+        if (hasFetchedSavedIds) return
+        
+        viewModelScope.launch {
+            val allSavedIds = mutableSetOf<String>()
+            var cursor: String? = null
+            
+            do {
+                userRepository.getSavedRecipes(cursor).collect { result ->
+                    if (result is Result.Success) {
+                        allSavedIds.addAll(result.data.content.map { it.id })
+                        cursor = if (result.data.hasMore) result.data.nextCursor else null
+                    } else {
+                        cursor = null
+                    }
+                }
+            } while (cursor != null)
+            
+            _uiState.update { it.copy(savedRecipeIds = allSavedIds) }
+            hasFetchedSavedIds = true
+        }
     }
 
     fun loadRecipes() {
@@ -90,9 +120,17 @@ class RecipesListViewModel @Inject constructor(
 
     fun saveRecipe(recipe: RecipeSummary) {
         viewModelScope.launch {
-            val wasSaved = recipe.isSaved
+            val wasSaved = _uiState.value.isRecipeSaved(recipe.id)
+            
             // Optimistic update
-            updateRecipeInList(recipe.id) { it.copy(savedStatus = !wasSaved) }
+            _uiState.update { state ->
+                val newSavedIds = if (wasSaved) {
+                    state.savedRecipeIds - recipe.id
+                } else {
+                    state.savedRecipeIds + recipe.id
+                }
+                state.copy(savedRecipeIds = newSavedIds)
+            }
 
             val result = if (wasSaved) {
                 recipeRepository.unsaveRecipe(recipe.id)
@@ -103,17 +141,18 @@ class RecipesListViewModel @Inject constructor(
             result.collect { res ->
                 if (res is Result.Error) {
                     // Revert on failure
-                    updateRecipeInList(recipe.id) { it.copy(savedStatus = wasSaved) }
+                    _uiState.update { state ->
+                        val revertedIds = if (wasSaved) {
+                            state.savedRecipeIds + recipe.id
+                        } else {
+                            state.savedRecipeIds - recipe.id
+                        }
+                        state.copy(savedRecipeIds = revertedIds)
+                    }
                 }
             }
         }
     }
-
-    private fun updateRecipeInList(recipeId: String, update: (RecipeSummary) -> RecipeSummary) {
-        _uiState.update { state ->
-            state.copy(recipes = state.recipes.map { recipe ->
-                if (recipe.id == recipeId) update(recipe) else recipe
-            })
-        }
-    }
+    
+    fun isRecipeSaved(recipeId: String): Boolean = _uiState.value.isRecipeSaved(recipeId)
 }

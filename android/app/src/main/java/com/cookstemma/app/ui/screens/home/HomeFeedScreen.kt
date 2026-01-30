@@ -136,6 +136,8 @@ fun HomeFeedScreen(
                             items(uiState.items, key = { it.id }) { item ->
                                 FeedLogCard(
                                     item = item,
+                                    isLiked = uiState.isLogLiked(item.id),
+                                    isSaved = uiState.isLogSaved(item.id),
                                     onClick = { onLogClick(item.id) },
                                     onUserClick = { onUserClick(item.creatorPublicId) },
                                     onLikeClick = { viewModel.likeLog(item.id) },
@@ -178,6 +180,8 @@ fun HomeFeedScreen(
 @Composable
 fun FeedLogCard(
     item: FeedItem,
+    isLiked: Boolean = false,
+    isSaved: Boolean = false,
     onClick: () -> Unit,
     onUserClick: () -> Unit,
     onLikeClick: () -> Unit,

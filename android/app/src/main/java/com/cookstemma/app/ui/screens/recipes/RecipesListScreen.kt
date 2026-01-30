@@ -93,6 +93,7 @@ fun RecipesListScreen(
                         items(uiState.recipes, key = { it.id }) { recipe ->
                             RecipeCard(
                                 recipe = recipe,
+                                isSaved = uiState.isRecipeSaved(recipe.id),
                                 onClick = { onRecipeClick(recipe.id) },
                                 onSaveClick = { viewModel.saveRecipe(recipe) }
                             )
@@ -174,6 +175,7 @@ private fun RecipesHeader(
 @Composable
 private fun RecipeCard(
     recipe: RecipeSummary,
+    isSaved: Boolean,
     onClick: () -> Unit,
     onSaveClick: () -> Unit
 ) {
@@ -276,9 +278,9 @@ private fun RecipeCard(
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(
-                    imageVector = if (recipe.isSaved) AppIcons.save else AppIcons.saveOutline,
-                    contentDescription = if (recipe.isSaved) "Unsave" else "Save",
-                    tint = if (recipe.isSaved)
+                    imageVector = if (isSaved) AppIcons.save else AppIcons.saveOutline,
+                    contentDescription = if (isSaved) "Unsave" else "Save",
+                    tint = if (isSaved)
                         MaterialTheme.colorScheme.primary
                     else
                         MaterialTheme.colorScheme.onSurfaceVariant,
