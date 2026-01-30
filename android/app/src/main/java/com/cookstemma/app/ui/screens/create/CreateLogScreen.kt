@@ -44,6 +44,7 @@ fun CreateLogScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     var hashtagInput by remember { mutableStateOf("") }
+    var showRecipeSearchSheet by remember { mutableStateOf(false) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
@@ -134,7 +135,7 @@ fun CreateLogScreen(
             // Recipe Link Section (at top like iOS)
             RecipeLinkSection(
                 linkedRecipe = uiState.linkedRecipe,
-                onNavigateToSearch = onNavigateToRecipeSearch,
+                onNavigateToSearch = { showRecipeSearchSheet = true },
                 onClearRecipe = viewModel::clearLinkedRecipe
             )
 
@@ -202,6 +203,21 @@ fun CreateLogScreen(
         ) {
             Text(error)
         }
+    }
+
+    // Recipe Search Bottom Sheet
+    if (showRecipeSearchSheet) {
+        RecipeSearchBottomSheet(
+            onDismiss = { showRecipeSearchSheet = false },
+            onSelect = { recipe ->
+                viewModel.selectRecipe(recipe)
+                showRecipeSearchSheet = false
+            },
+            searchQuery = uiState.recipeSearchQuery,
+            onSearchQueryChange = viewModel::setRecipeSearchQuery,
+            searchResults = uiState.recipeSearchResults,
+            isSearching = uiState.isSearchingRecipes
+        )
     }
 }
 
