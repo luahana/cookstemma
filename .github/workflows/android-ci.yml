@@ -41,7 +41,7 @@ jobs:
       - name: Run Unit Tests
         run: |
           cd android
-          ./gradlew testDebugUnitTest
+          ./gradlew testDevDebugUnitTest
 
       - name: Upload Unit Test Results
         uses: actions/upload-artifact@v4
@@ -94,7 +94,7 @@ jobs:
           profile: pixel_6
           script: |
             cd android
-            ./gradlew connectedDebugAndroidTest
+            ./gradlew connectedDevDebugAndroidTest
 
       - name: Upload Instrumented Test Results
         uses: actions/upload-artifact@v4
@@ -129,12 +129,12 @@ jobs:
       - name: Build Debug APK
         run: |
           cd android
-          ./gradlew assembleDebug
+          ./gradlew assembleDevDebug
 
       - name: Build Release APK
         run: |
           cd android
-          ./gradlew assembleRelease
+          ./gradlew assembleDevRelease
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
