@@ -19,6 +19,7 @@ import coil.compose.AsyncImage
 import com.cookstemma.app.domain.model.RecipeSummary
 import com.cookstemma.app.domain.model.cookingStyleDisplay
 import com.cookstemma.app.domain.model.cookingTimeDisplayText
+import com.cookstemma.app.ui.AppState
 import com.cookstemma.app.ui.components.*
 import com.cookstemma.app.ui.theme.Spacing
 
@@ -27,7 +28,9 @@ import com.cookstemma.app.ui.theme.Spacing
 fun RecipesListScreen(
     viewModel: RecipesListViewModel = hiltViewModel(),
     onRecipeClick: (String) -> Unit,
-    scrollToTopTrigger: Int = 0
+    scrollToTopTrigger: Int = 0,
+    appState: AppState? = null,
+    isAuthenticated: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
@@ -95,7 +98,15 @@ fun RecipesListScreen(
                                 recipe = recipe,
                                 isSaved = uiState.isRecipeSaved(recipe.id),
                                 onClick = { onRecipeClick(recipe.id) },
-                                onSaveClick = { viewModel.saveRecipe(recipe) }
+                                onSaveClick = {
+                                    if (appState != null) {
+                                        appState.requireAuth(isAuthenticated) {
+                                            viewModel.saveRecipe(recipe)
+                                        }
+                                    } else {
+                                        viewModel.saveRecipe(recipe)
+                                    }
+                                }
                             )
                         }
 

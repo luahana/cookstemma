@@ -159,13 +159,17 @@ private fun MainContent(
                     onLogClick = { navController.navigate("log/$it") },
                     onUserClick = { navController.navigate("user/$it") },
                     onHashtagClick = { tag -> navController.navigate("hashtag/$tag") },
-                    scrollToTopTrigger = homeScrollTrigger
+                    scrollToTopTrigger = homeScrollTrigger,
+                    appState = appState,
+                    isAuthenticated = isAuthenticated
                 )
             }
             composable(BottomNavItem.Recipes.route) {
                 RecipesListScreen(
                     onRecipeClick = { navController.navigate("recipe/$it") },
-                    scrollToTopTrigger = recipesScrollTrigger
+                    scrollToTopTrigger = recipesScrollTrigger,
+                    appState = appState,
+                    isAuthenticated = isAuthenticated
                 )
             }
             composable(BottomNavItem.Search.route) {
@@ -192,7 +196,9 @@ private fun MainContent(
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToLog = { logId -> navController.navigate("log/$logId") },
                     onNavigateToProfile = { userId -> navController.navigate("user/$userId") },
-                    onCreateLog = { navController.navigate("create-log?recipeId=$recipeId") }
+                    onCreateLog = { navController.navigate("create-log?recipeId=$recipeId") },
+                    appState = appState,
+                    isAuthenticated = isAuthenticated
                 )
             }
             composable("log/{logId}", listOf(navArgument("logId") { type = NavType.StringType })) { entry ->
@@ -201,7 +207,9 @@ private fun MainContent(
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToRecipe = { recipeId -> navController.navigate("recipe/$recipeId") },
                     onNavigateToProfile = { userId -> navController.navigate("user/$userId") },
-                    onNavigateToEdit = { navController.navigate("log/$logId/edit") }
+                    onNavigateToEdit = { navController.navigate("log/$logId/edit") },
+                    appState = appState,
+                    isAuthenticated = isAuthenticated
                 )
             }
             composable(

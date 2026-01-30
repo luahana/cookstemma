@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.cookstemma.app.domain.model.RecipeDetail
 import com.cookstemma.app.domain.model.cookingTimeDisplayText
+import com.cookstemma.app.ui.AppState
 import com.cookstemma.app.ui.components.*
 import com.cookstemma.app.ui.navigation.BackIconButton
 import com.cookstemma.app.ui.navigation.MoreOptionsIconButton
@@ -39,7 +40,9 @@ fun RecipeDetailScreen(
     onNavigateToLog: (String) -> Unit,
     onNavigateToProfile: (String) -> Unit,
     onCreateLog: (String) -> Unit,
-    viewModel: RecipeDetailViewModel = hiltViewModel()
+    viewModel: RecipeDetailViewModel = hiltViewModel(),
+    appState: AppState? = null,
+    isAuthenticated: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -51,8 +54,16 @@ fun RecipeDetailScreen(
                     BackIconButton(onClick = onNavigateBack)
                 },
                 actions = {
-                    // Save button (icon only)
-                    IconButton(onClick = viewModel::toggleSave) {
+                    // Save button (icon only) - requires auth
+                    IconButton(onClick = {
+                        if (appState != null) {
+                            appState.requireAuth(isAuthenticated) {
+                                viewModel.toggleSave()
+                            }
+                        } else {
+                            viewModel.toggleSave()
+                        }
+                    }) {
                         Icon(
                             imageVector = if (uiState.recipe?.isSaved == true)
                                 AppIcons.save else AppIcons.saveOutline,
@@ -81,14 +92,22 @@ fun RecipeDetailScreen(
         },
         bottomBar = {
             uiState.recipe?.let { recipe ->
-                // Start cooking button (icon prominent)
+                // Start cooking button (icon prominent) - requires auth
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shadowElevation = 8.dp,
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     Button(
-                        onClick = { onCreateLog(recipe.id) },
+                        onClick = {
+                            if (appState != null) {
+                                appState.requireAuth(isAuthenticated) {
+                                    onCreateLog(recipe.id)
+                                }
+                            } else {
+                                onCreateLog(recipe.id)
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(Spacing.md),

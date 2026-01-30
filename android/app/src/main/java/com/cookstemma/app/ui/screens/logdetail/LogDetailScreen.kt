@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.cookstemma.app.data.repository.Comment
+import com.cookstemma.app.ui.AppState
 import com.cookstemma.app.ui.components.StarRating
 import com.cookstemma.app.ui.theme.BrandOrange
 
@@ -40,7 +41,9 @@ fun LogDetailScreen(
     onNavigateToRecipe: (String) -> Unit,
     onNavigateToProfile: (String) -> Unit,
     onNavigateToEdit: (String) -> Unit = {},
-    viewModel: LogDetailViewModel = hiltViewModel()
+    viewModel: LogDetailViewModel = hiltViewModel(),
+    appState: AppState? = null,
+    isAuthenticated: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -54,7 +57,15 @@ fun LogDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = viewModel::toggleSave) {
+                    IconButton(onClick = {
+                        if (appState != null) {
+                            appState.requireAuth(isAuthenticated) {
+                                viewModel.toggleSave()
+                            }
+                        } else {
+                            viewModel.toggleSave()
+                        }
+                    }) {
                         Icon(
                             if (uiState.log?.isSaved == true) Icons.Filled.Bookmark
                             else Icons.Outlined.BookmarkBorder,

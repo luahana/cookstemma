@@ -25,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.cookstemma.app.R
 import com.cookstemma.app.domain.model.*
+import com.cookstemma.app.ui.AppState
 import com.cookstemma.app.ui.components.*
 import com.cookstemma.app.ui.navigation.NotificationIconButton
 import com.cookstemma.app.ui.theme.Spacing
@@ -39,7 +40,9 @@ fun HomeFeedScreen(
     onHashtagClick: (String) -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     notificationCount: Int = 0,
-    scrollToTopTrigger: Int = 0
+    scrollToTopTrigger: Int = 0,
+    appState: AppState? = null,
+    isAuthenticated: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
@@ -140,10 +143,34 @@ fun HomeFeedScreen(
                                     isSaved = uiState.isLogSaved(item.id),
                                     onClick = { onLogClick(item.id) },
                                     onUserClick = { onUserClick(item.creatorPublicId) },
-                                    onLikeClick = { viewModel.likeLog(item.id) },
-                                    onCommentClick = { showCommentsForLogId = item.id },
+                                    onLikeClick = {
+                                        if (appState != null) {
+                                            appState.requireAuth(isAuthenticated) {
+                                                viewModel.likeLog(item.id)
+                                            }
+                                        } else {
+                                            viewModel.likeLog(item.id)
+                                        }
+                                    },
+                                    onCommentClick = {
+                                        if (appState != null) {
+                                            appState.requireAuth(isAuthenticated) {
+                                                showCommentsForLogId = item.id
+                                            }
+                                        } else {
+                                            showCommentsForLogId = item.id
+                                        }
+                                    },
                                     onHashtagClick = onHashtagClick,
-                                    onSaveClick = { viewModel.saveLog(item.id) }
+                                    onSaveClick = {
+                                        if (appState != null) {
+                                            appState.requireAuth(isAuthenticated) {
+                                                viewModel.saveLog(item.id)
+                                            }
+                                        } else {
+                                            viewModel.saveLog(item.id)
+                                        }
+                                    }
                                 )
                             }
                             if (uiState.isLoadingMore) {
