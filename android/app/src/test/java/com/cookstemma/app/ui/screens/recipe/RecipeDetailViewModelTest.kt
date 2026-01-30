@@ -11,10 +11,8 @@ import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.time.LocalDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,7 +41,7 @@ class RecipeDetailViewModelTest {
     @Test
     fun `initial state is loading`() = runTest {
         coEvery { recipeRepository.getRecipe("recipe-123") } returns flowOf(Result.Loading)
-        coEvery { recipeRepository.getRecipeLogs("recipe-123", null) } returns flowOf(Result.Loading)
+        coEvery { recipeRepository.getRecipeLogs("recipe-123", 0) } returns flowOf(Result.Loading)
 
         viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository)
 
@@ -58,7 +56,7 @@ class RecipeDetailViewModelTest {
         val mockRecipe = createMockRecipeDetail()
         coEvery { recipeRepository.getRecipe("recipe-123") } returns flowOf(Result.Success(mockRecipe))
         coEvery { recipeRepository.getRecipeLogs("recipe-123", any()) } returns flowOf(
-            Result.Success(CookingLogsResponse(emptyList(), null, false))
+            Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
 
         viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository)
@@ -93,10 +91,10 @@ class RecipeDetailViewModelTest {
     @Test
     fun `loadCookingLogs success updates state with logs`() = runTest {
         val mockRecipe = createMockRecipeDetail()
-        val mockLogs = listOf(createMockCookingLog("log-1"), createMockCookingLog("log-2"))
+        val mockLogs = listOf(createMockRecipeLogItem("log-1"), createMockRecipeLogItem("log-2"))
         coEvery { recipeRepository.getRecipe("recipe-123") } returns flowOf(Result.Success(mockRecipe))
-        coEvery { recipeRepository.getRecipeLogs("recipe-123", null) } returns flowOf(
-            Result.Success(CookingLogsResponse(mockLogs, "cursor-1", true))
+        coEvery { recipeRepository.getRecipeLogs("recipe-123", 0) } returns flowOf(
+            Result.Success(PaginatedResponse(mockLogs, "cursor-1", true))
         )
 
         viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository)
@@ -106,22 +104,21 @@ class RecipeDetailViewModelTest {
             val state = awaitItem()
             assertEquals(2, state.cookingLogs.size)
             assertTrue(state.hasMoreLogs)
-            assertEquals("cursor-1", state.logsCursor)
         }
     }
 
     @Test
     fun `loadMoreLogs appends to existing logs`() = runTest {
         val mockRecipe = createMockRecipeDetail()
-        val initialLogs = listOf(createMockCookingLog("log-1"))
-        val moreLogs = listOf(createMockCookingLog("log-2"))
+        val initialLogs = listOf(createMockRecipeLogItem("log-1"))
+        val moreLogs = listOf(createMockRecipeLogItem("log-2"))
 
         coEvery { recipeRepository.getRecipe("recipe-123") } returns flowOf(Result.Success(mockRecipe))
-        coEvery { recipeRepository.getRecipeLogs("recipe-123", null) } returns flowOf(
-            Result.Success(CookingLogsResponse(initialLogs, "cursor-1", true))
+        coEvery { recipeRepository.getRecipeLogs("recipe-123", 0) } returns flowOf(
+            Result.Success(PaginatedResponse(initialLogs, "cursor-1", true))
         )
-        coEvery { recipeRepository.getRecipeLogs("recipe-123", "cursor-1") } returns flowOf(
-            Result.Success(CookingLogsResponse(moreLogs, null, false))
+        coEvery { recipeRepository.getRecipeLogs("recipe-123", 1) } returns flowOf(
+            Result.Success(PaginatedResponse(moreLogs, null, false))
         )
 
         viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository)
@@ -134,16 +131,15 @@ class RecipeDetailViewModelTest {
             val state = awaitItem()
             assertEquals(2, state.cookingLogs.size)
             assertFalse(state.hasMoreLogs)
-            assertNull(state.logsCursor)
         }
     }
 
     @Test
-    fun `loadMoreLogs does nothing when no cursor`() = runTest {
+    fun `loadMoreLogs does nothing when no more logs`() = runTest {
         val mockRecipe = createMockRecipeDetail()
         coEvery { recipeRepository.getRecipe("recipe-123") } returns flowOf(Result.Success(mockRecipe))
-        coEvery { recipeRepository.getRecipeLogs("recipe-123", null) } returns flowOf(
-            Result.Success(CookingLogsResponse(emptyList(), null, false))
+        coEvery { recipeRepository.getRecipeLogs("recipe-123", 0) } returns flowOf(
+            Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
 
         viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository)
@@ -153,7 +149,7 @@ class RecipeDetailViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Should not throw or cause issues
-        coVerify(exactly = 1) { recipeRepository.getRecipeLogs("recipe-123", null) }
+        coVerify(exactly = 1) { recipeRepository.getRecipeLogs("recipe-123", 0) }
     }
 
     // MARK: - Toggle Save Tests
@@ -163,7 +159,7 @@ class RecipeDetailViewModelTest {
         val mockRecipe = createMockRecipeDetail(isSaved = false)
         coEvery { recipeRepository.getRecipe("recipe-123") } returns flowOf(Result.Success(mockRecipe))
         coEvery { recipeRepository.getRecipeLogs("recipe-123", any()) } returns flowOf(
-            Result.Success(CookingLogsResponse(emptyList(), null, false))
+            Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
         coEvery { recipeRepository.saveRecipe("recipe-123") } returns flowOf(Result.Success(Unit))
 
@@ -186,7 +182,7 @@ class RecipeDetailViewModelTest {
         val mockRecipe = createMockRecipeDetail(isSaved = true)
         coEvery { recipeRepository.getRecipe("recipe-123") } returns flowOf(Result.Success(mockRecipe))
         coEvery { recipeRepository.getRecipeLogs("recipe-123", any()) } returns flowOf(
-            Result.Success(CookingLogsResponse(emptyList(), null, false))
+            Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
         coEvery { recipeRepository.unsaveRecipe("recipe-123") } returns flowOf(Result.Success(Unit))
 
@@ -209,7 +205,7 @@ class RecipeDetailViewModelTest {
         val mockRecipe = createMockRecipeDetail(isSaved = false)
         coEvery { recipeRepository.getRecipe("recipe-123") } returns flowOf(Result.Success(mockRecipe))
         coEvery { recipeRepository.getRecipeLogs("recipe-123", any()) } returns flowOf(
-            Result.Success(CookingLogsResponse(emptyList(), null, false))
+            Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
         coEvery { recipeRepository.saveRecipe("recipe-123") } returns flowOf(Result.Error(Exception("Failed")))
 
@@ -231,8 +227,8 @@ class RecipeDetailViewModelTest {
     fun `refresh reloads recipe and logs`() = runTest {
         val mockRecipe = createMockRecipeDetail()
         coEvery { recipeRepository.getRecipe("recipe-123") } returns flowOf(Result.Success(mockRecipe))
-        coEvery { recipeRepository.getRecipeLogs("recipe-123", null) } returns flowOf(
-            Result.Success(CookingLogsResponse(emptyList(), null, false))
+        coEvery { recipeRepository.getRecipeLogs("recipe-123", 0) } returns flowOf(
+            Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
 
         viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository)
@@ -242,7 +238,7 @@ class RecipeDetailViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify(exactly = 2) { recipeRepository.getRecipe("recipe-123") }
-        coVerify(exactly = 2) { recipeRepository.getRecipeLogs("recipe-123", null) }
+        coVerify(exactly = 2) { recipeRepository.getRecipeLogs("recipe-123", 0) }
     }
 
     // MARK: - Helpers
@@ -251,50 +247,34 @@ class RecipeDetailViewModelTest {
         id = "recipe-123",
         title = "Test Recipe",
         description = "Test description",
-        coverImageUrl = null,
-        images = emptyList(),
-        cookingTimeRange = CookingTimeRange.UNDER_15_MIN,
+        foodName = "Test Food",
+        cookingStyle = "KR",
+        userName = "testuser",
+        creatorPublicId = "user-123",
+        ingredientList = emptyList(),
+        stepList = emptyList(),
+        hashtagObjects = emptyList(),
         servings = 2,
-        cookCount = 100,
-        saveCount = 50,
-        averageRating = 4.5,
-        author = createMockAuthor(),
-        ingredients = emptyList(),
-        steps = emptyList(),
-        hashtags = emptyList(),
-        isSaved = isSaved,
-        category = null,
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now()
+        cookingTimeRange = "UNDER_15_MIN",
+        recipeImages = emptyList(),
+        isSavedByCurrentUser = isSaved,
+        uiIsSaved = isSaved
     )
 
-    private fun createMockCookingLog(id: String) = CookingLog(
+    private fun createMockRecipeLogItem(id: String) = FeedItem(
         id = id,
-        author = createMockAuthor(),
-        images = emptyList(),
-        rating = 4,
+        title = "Test Log",
         content = "Test content",
-        recipe = null,
+        rating = 4,
+        thumbnailUrl = null,
+        creatorPublicId = "user-1",
+        userName = "testuser",
+        foodName = "Test Food",
+        recipeTitle = "Test Recipe",
         hashtags = emptyList(),
+        isVariant = false,
         isPrivate = false,
-        likeCount = 10,
         commentCount = 2,
-        isLiked = false,
-        isSaved = false,
-        createdAt = LocalDateTime.now()
-    )
-
-    private fun createMockAuthor() = UserSummary(
-        id = "user-1",
-        username = "testuser",
-        displayName = "Test User",
-        avatarUrl = null
+        cookingStyle = "KR"
     )
 }
-
-// Response class for cooking logs
-data class CookingLogsResponse(
-    val items: List<CookingLog>,
-    val nextCursor: String?,
-    val hasMore: Boolean
-)

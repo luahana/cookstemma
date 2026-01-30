@@ -1,17 +1,22 @@
 package com.cookstemma.app.ui.screens.search
 
 import app.cash.turbine.test
+import com.cookstemma.app.data.api.ApiService
+import com.cookstemma.app.data.api.HomeResponse
+import com.cookstemma.app.data.local.SearchHistoryDataStore
+import com.cookstemma.app.data.repository.HashtagResult
 import com.cookstemma.app.data.repository.SearchRepository
+import com.cookstemma.app.data.repository.SearchResults
 import com.cookstemma.app.domain.model.*
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.time.LocalDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
@@ -21,16 +26,27 @@ import kotlin.test.assertTrue
 class SearchViewModelTest {
 
     private lateinit var searchRepository: SearchRepository
+    private lateinit var searchHistoryDataStore: SearchHistoryDataStore
+    private lateinit var apiService: ApiService
     private lateinit var viewModel: SearchViewModel
     private val testDispatcher = StandardTestDispatcher()
+    private val mockHistoryFlow = MutableStateFlow<List<String>>(emptyList())
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         searchRepository = mockk()
+        searchHistoryDataStore = mockk()
+        apiService = mockk()
 
-        // Default mock for init
+        // Default mocks for init
         coEvery { searchRepository.getTrendingHashtags() } returns flowOf(Result.Success(emptyList()))
+        every { searchHistoryDataStore.searchHistory } returns mockHistoryFlow
+        coEvery { apiService.getHome() } returns HomeResponse(
+            recentRecipes = emptyList(),
+            recentActivity = emptyList(),
+            trendingTrees = emptyList()
+        )
     }
 
     @After
@@ -42,7 +58,7 @@ class SearchViewModelTest {
 
     @Test
     fun `initial state has correct defaults`() = runTest {
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
 
         viewModel.uiState.test {
             val state = awaitItem()
@@ -56,12 +72,12 @@ class SearchViewModelTest {
     @Test
     fun `init loads trending hashtags`() = runTest {
         val hashtags = listOf(
-            HashtagResult("trending", 100),
-            HashtagResult("popular", 50)
+            HashtagResult(id = "1", name = "trending", postCount = 100),
+            HashtagResult(id = "2", name = "popular", postCount = 50)
         )
         coEvery { searchRepository.getTrendingHashtags() } returns flowOf(Result.Success(hashtags))
 
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.test {
@@ -74,7 +90,7 @@ class SearchViewModelTest {
 
     @Test
     fun `setQuery updates query state`() = runTest {
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
 
         viewModel.setQuery("kimchi")
 
@@ -85,10 +101,11 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `setQuery with short query clears results`() = runTest {
-        viewModel = SearchViewModel(searchRepository)
+    fun `setQuery with empty query clears results`() = runTest {
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
 
-        viewModel.setQuery("k")
+        viewModel.setQuery("kimchi")
+        viewModel.setQuery("")
 
         viewModel.uiState.test {
             val state = awaitItem()
@@ -97,26 +114,11 @@ class SearchViewModelTest {
         }
     }
 
-    @Test
-    fun `setQuery with valid query triggers search after debounce`() = runTest {
-        val mockResults = createMockSearchResults()
-        coEvery { searchRepository.search("kimchi") } returns flowOf(Result.Success(mockResults))
-
-        viewModel = SearchViewModel(searchRepository)
-        viewModel.setQuery("kimchi")
-
-        // Advance past debounce (300ms)
-        testDispatcher.scheduler.advanceTimeBy(350)
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        coVerify { searchRepository.search("kimchi") }
-    }
-
     // MARK: - Tab Selection Tests
 
     @Test
     fun `selectTab updates selected tab`() = runTest {
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
 
         viewModel.selectTab(SearchTab.RECIPES)
 
@@ -129,19 +131,16 @@ class SearchViewModelTest {
     @Test
     fun `selectTab triggers search when query exists`() = runTest {
         val recipes = listOf(createMockRecipeSummary())
-        coEvery { searchRepository.searchRecipes("test") } returns flowOf(
+        coEvery { searchRepository.searchRecipes("test", any()) } returns flowOf(
             Result.Success(PaginatedResponse(recipes, null, false))
         )
 
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
         viewModel.setQuery("test")
-        testDispatcher.scheduler.advanceTimeBy(350)
-        testDispatcher.scheduler.advanceUntilIdle()
-
         viewModel.selectTab(SearchTab.RECIPES)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        coVerify { searchRepository.searchRecipes("test") }
+        coVerify { searchRepository.searchRecipes("test", any()) }
     }
 
     // MARK: - Search Tests
@@ -149,11 +148,11 @@ class SearchViewModelTest {
     @Test
     fun `search ALL tab returns combined results`() = runTest {
         val mockResults = createMockSearchResults()
-        coEvery { searchRepository.search("test") } returns flowOf(Result.Success(mockResults))
+        coEvery { searchRepository.search("test", any(), any()) } returns flowOf(Result.Success(mockResults))
 
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
         viewModel.setQuery("test")
-        testDispatcher.scheduler.advanceTimeBy(350)
+        viewModel.submitSearch()
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.test {
@@ -166,14 +165,14 @@ class SearchViewModelTest {
     @Test
     fun `search RECIPES tab returns recipes only`() = runTest {
         val recipes = listOf(createMockRecipeSummary())
-        coEvery { searchRepository.searchRecipes("test") } returns flowOf(
+        coEvery { searchRepository.searchRecipes("test", any()) } returns flowOf(
             Result.Success(PaginatedResponse(recipes, "cursor-1", true))
         )
 
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
         viewModel.selectTab(SearchTab.RECIPES)
         viewModel.setQuery("test")
-        testDispatcher.scheduler.advanceTimeBy(350)
+        viewModel.submitSearch()
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.test {
@@ -186,15 +185,15 @@ class SearchViewModelTest {
 
     @Test
     fun `search LOGS tab returns logs only`() = runTest {
-        val logs = listOf(createMockCookingLog())
-        coEvery { searchRepository.searchLogs("test") } returns flowOf(
+        val logs = listOf(createMockFeedItem())
+        coEvery { searchRepository.searchLogs("test", any()) } returns flowOf(
             Result.Success(PaginatedResponse(logs, null, false))
         )
 
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
         viewModel.selectTab(SearchTab.LOGS)
         viewModel.setQuery("test")
-        testDispatcher.scheduler.advanceTimeBy(350)
+        viewModel.submitSearch()
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.test {
@@ -206,33 +205,19 @@ class SearchViewModelTest {
     @Test
     fun `search USERS tab returns users only`() = runTest {
         val users = listOf(createMockUserSummary())
-        coEvery { searchRepository.searchUsers("test") } returns flowOf(
+        coEvery { searchRepository.searchUsers("test", any()) } returns flowOf(
             Result.Success(PaginatedResponse(users, null, false))
         )
 
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
         viewModel.selectTab(SearchTab.USERS)
         viewModel.setQuery("test")
-        testDispatcher.scheduler.advanceTimeBy(350)
+        viewModel.submitSearch()
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.test {
             val state = awaitItem()
             assertEquals(1, state.users.size)
-        }
-    }
-
-    @Test
-    fun `search shows loading state`() = runTest {
-        coEvery { searchRepository.search("test") } returns flowOf(Result.Loading)
-
-        viewModel = SearchViewModel(searchRepository)
-        viewModel.setQuery("test")
-        testDispatcher.scheduler.advanceTimeBy(350)
-
-        viewModel.uiState.test {
-            val state = awaitItem()
-            assertTrue(state.isLoading)
         }
     }
 
@@ -243,17 +228,17 @@ class SearchViewModelTest {
         val initialRecipes = listOf(createMockRecipeSummary("recipe-1"))
         val moreRecipes = listOf(createMockRecipeSummary("recipe-2"))
 
-        coEvery { searchRepository.searchRecipes("test") } returns flowOf(
+        coEvery { searchRepository.searchRecipes("test", null) } returns flowOf(
             Result.Success(PaginatedResponse(initialRecipes, "cursor-1", true))
         )
         coEvery { searchRepository.searchRecipes("test", "cursor-1") } returns flowOf(
             Result.Success(PaginatedResponse(moreRecipes, null, false))
         )
 
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
         viewModel.selectTab(SearchTab.RECIPES)
         viewModel.setQuery("test")
-        testDispatcher.scheduler.advanceTimeBy(350)
+        viewModel.submitSearch()
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.loadMore()
@@ -269,106 +254,107 @@ class SearchViewModelTest {
     @Test
     fun `loadMore does nothing without cursor`() = runTest {
         val recipes = listOf(createMockRecipeSummary())
-        coEvery { searchRepository.searchRecipes("test") } returns flowOf(
+        coEvery { searchRepository.searchRecipes("test", null) } returns flowOf(
             Result.Success(PaginatedResponse(recipes, null, false))
         )
 
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
         viewModel.selectTab(SearchTab.RECIPES)
         viewModel.setQuery("test")
-        testDispatcher.scheduler.advanceTimeBy(350)
+        viewModel.submitSearch()
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.loadMore()
         testDispatcher.scheduler.advanceUntilIdle()
 
-        // Should not call API again
-        coVerify(exactly = 1) { searchRepository.searchRecipes("test") }
+        // Should not call API again for loadMore since there's no cursor
+        coVerify(exactly = 1) { searchRepository.searchRecipes("test", any()) }
     }
 
     // MARK: - Recent Searches Tests
 
     @Test
     fun `submitSearch adds to recent searches`() = runTest {
-        coEvery { searchRepository.search("new search") } returns flowOf(
+        coEvery { searchRepository.search("new search", any(), any()) } returns flowOf(
             Result.Success(createMockSearchResults())
         )
+        coEvery { searchHistoryDataStore.addSearch("new search") } just Runs
 
-        viewModel = SearchViewModel(searchRepository)
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
         viewModel.setQuery("new search")
         viewModel.submitSearch()
         testDispatcher.scheduler.advanceUntilIdle()
 
-        viewModel.uiState.test {
-            val state = awaitItem()
-            assertTrue(state.recentSearches.contains("new search"))
-        }
+        coVerify { searchHistoryDataStore.addSearch("new search") }
     }
 
     @Test
     fun `clearRecentSearch removes specific search`() = runTest {
-        viewModel = SearchViewModel(searchRepository)
+        coEvery { searchHistoryDataStore.removeSearch("kimchi") } just Runs
+
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.clearRecentSearch("kimchi")
+        testDispatcher.scheduler.advanceUntilIdle()
 
-        viewModel.uiState.test {
-            val state = awaitItem()
-            assertFalse(state.recentSearches.contains("kimchi"))
-        }
+        coVerify { searchHistoryDataStore.removeSearch("kimchi") }
     }
 
     @Test
     fun `clearAllRecentSearches clears all`() = runTest {
-        viewModel = SearchViewModel(searchRepository)
+        coEvery { searchHistoryDataStore.clearAllSearches() } just Runs
+
+        viewModel = SearchViewModel(searchRepository, searchHistoryDataStore, apiService)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.clearAllRecentSearches()
+        testDispatcher.scheduler.advanceUntilIdle()
 
-        viewModel.uiState.test {
-            val state = awaitItem()
-            assertTrue(state.recentSearches.isEmpty())
-        }
+        coVerify { searchHistoryDataStore.clearAllSearches() }
     }
 
     // MARK: - Helpers
 
     private fun createMockSearchResults() = SearchResults(
         recipes = listOf(createMockRecipeSummary()),
-        logs = listOf(createMockCookingLog()),
+        logs = listOf(createMockFeedItem()),
         users = listOf(createMockUserSummary()),
-        hashtags = listOf(HashtagResult("test", 10))
+        hashtags = listOf(HashtagResult(id = "1", name = "test", postCount = 10))
     )
 
     private fun createMockRecipeSummary(id: String = "recipe-123") = RecipeSummary(
         id = id,
         title = "Test Recipe",
         description = null,
-        coverImageUrl = null,
-        cookingTimeRange = CookingTimeRange.UNDER_15_MIN,
+        foodName = "Test Food",
+        cookingStyle = "KR",
+        userName = "testuser",
+        thumbnail = null,
+        variantCount = 0,
+        logCount = 50,
         servings = 2,
-        cookCount = 50,
-        averageRating = 4.0,
-        author = createMockUserSummary(),
-        isSaved = false,
-        category = null,
-        createdAt = LocalDateTime.now()
+        cookingTimeRange = "UNDER_15_MIN",
+        hashtagList = emptyList(),
+        isPrivate = false,
+        savedStatus = false
     )
 
-    private fun createMockCookingLog() = CookingLog(
+    private fun createMockFeedItem() = FeedItem(
         id = "log-123",
-        author = createMockUserSummary(),
-        images = emptyList(),
-        rating = 4,
+        title = "Test Log",
         content = "Test content",
-        recipe = null,
+        rating = 4,
+        thumbnailUrl = null,
+        creatorPublicId = "user-1",
+        userName = "testuser",
+        foodName = "Test Food",
+        recipeTitle = "Test Recipe",
         hashtags = emptyList(),
+        isVariant = false,
         isPrivate = false,
-        likeCount = 10,
         commentCount = 2,
-        isLiked = false,
-        isSaved = false,
-        createdAt = LocalDateTime.now()
+        cookingStyle = "KR"
     )
 
     private fun createMockUserSummary() = UserSummary(
@@ -378,16 +364,3 @@ class SearchViewModelTest {
         avatarUrl = null
     )
 }
-
-// Domain model for search results
-data class SearchResults(
-    val recipes: List<RecipeSummary>,
-    val logs: List<CookingLog>,
-    val users: List<UserSummary>,
-    val hashtags: List<HashtagResult>
-)
-
-data class HashtagResult(
-    val tag: String,
-    val count: Int
-)
