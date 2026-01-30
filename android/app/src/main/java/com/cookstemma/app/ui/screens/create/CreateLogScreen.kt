@@ -1,17 +1,16 @@
 package com.cookstemma.app.ui.screens.create
 
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -23,23 +22,28 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.cookstemma.app.domain.model.RecipeSummary
 import com.cookstemma.app.ui.components.AppIcons
 import com.cookstemma.app.ui.components.StarRating
-import com.cookstemma.app.ui.navigation.CloseIconButton
 import com.cookstemma.app.ui.theme.Spacing
+import java.io.File
+import java.io.FileOutputStream
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CreateLogScreen(
     onDismiss: () -> Unit,
     onSuccess: () -> Unit,
+    onNavigateToRecipeSearch: () -> Unit = {},
     viewModel: CreateLogViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsState()
+    var hashtagInput by remember { mutableStateOf("") }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
@@ -55,164 +59,289 @@ fun CreateLogScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { },
-                navigationIcon = {
-                    CloseIconButton(onClick = onDismiss)
-                },
-                actions = {
-                    // Post button as icon
-                    IconButton(
-                        onClick = {
-                            // TODO: Convert URIs to Files and submit
-                            // viewModel.submit(photoFiles)
-                        },
-                        enabled = uiState.canSubmit
-                    ) {
-                        if (uiState.isSubmitting) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowUpward,
-                                contentDescription = null,
-                                tint = if (uiState.canSubmit)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .background(
-                                        if (uiState.canSubmit)
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                        else
-                                            Color.Transparent,
-                                        CircleShape
-                                    )
-                                    .padding(4.dp)
-                            )
-                        }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        // Custom Header (iOS-style)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.md)
+                .padding(top = Spacing.lg, bottom = Spacing.sm),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Close button
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.size(44.dp)
+            ) {
+                Icon(
+                    imageVector = AppIcons.close,
+                    contentDescription = "Close",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            // Title
+            Text(
+                text = "New Cooking Log",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            // Submit button
+            IconButton(
+                onClick = {
+                    val photoFiles = uiState.photos.mapNotNull { uri ->
+                        uriToFile(context, uri)
+                    }
+                    if (photoFiles.isNotEmpty()) {
+                        viewModel.submit(photoFiles)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surfaceVariant
-    ) { padding ->
+                enabled = uiState.canSubmit && !uiState.isSubmitting,
+                modifier = Modifier.size(44.dp)
+            ) {
+                if (uiState.isSubmitting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowCircleUp,
+                        contentDescription = "Submit",
+                        tint = if (uiState.canSubmit)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+        }
+
+        // Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(Spacing.md),
-            verticalArrangement = Arrangement.spacedBy(Spacing.lg)
         ) {
-            // Photos Section (Icon-focused)
-            PhotosSection(
-                photos = uiState.photos,
-                onAddPhoto = { photoPickerLauncher.launch("image/*") },
-                onRemovePhoto = viewModel::removePhoto,
-                photosRemaining = uiState.photosRemaining
+            // Recipe Link Section (at top like iOS)
+            RecipeLinkSection(
+                linkedRecipe = uiState.linkedRecipe,
+                onNavigateToSearch = onNavigateToRecipeSearch,
+                onClearRecipe = viewModel::clearLinkedRecipe
             )
 
-            // Rating Section (Icon-focused)
+            HorizontalDivider()
+
+            // Photo Section (3 fixed slots like iOS)
+            PhotoSection(
+                photos = uiState.photos,
+                maxPhotos = 3,
+                onAddPhoto = { photoPickerLauncher.launch("image/*") },
+                onRemovePhoto = viewModel::removePhoto
+            )
+
+            HorizontalDivider()
+
+            // Rating Section
             RatingSection(
                 rating = uiState.rating,
                 onRatingChange = viewModel::setRating
             )
 
-            // Link Recipe Section (Icon-focused)
-            LinkRecipeSection(
-                linkedRecipe = uiState.linkedRecipe,
-                searchQuery = uiState.recipeSearchQuery,
-                searchResults = uiState.recipeSearchResults,
-                isSearching = uiState.isSearchingRecipes,
-                onSearchQueryChange = viewModel::setRecipeSearchQuery,
-                onSelectRecipe = viewModel::selectRecipe,
-                onClearRecipe = viewModel::clearLinkedRecipe
-            )
+            HorizontalDivider()
 
-            // Content Section (Icon-focused)
-            ContentSection(
+            // Description Section
+            DescriptionSection(
                 content = uiState.content,
+                maxLength = 2000,
                 onContentChange = viewModel::setContent
             )
 
-            // Privacy Section (Icon-focused)
+            HorizontalDivider()
+
+            // Hashtags Section
+            HashtagsSection(
+                hashtags = uiState.hashtags,
+                maxHashtags = 10,
+                hashtagInput = hashtagInput,
+                onHashtagInputChange = { hashtagInput = it },
+                onAddHashtag = {
+                    viewModel.addHashtag(hashtagInput)
+                    hashtagInput = ""
+                },
+                onRemoveHashtag = viewModel::removeHashtag
+            )
+
+            HorizontalDivider()
+
+            // Privacy Section
             PrivacySection(
                 isPrivate = uiState.isPrivate,
                 onPrivateChange = viewModel::setPrivate
             )
+        }
+    }
 
-            // Error Message
-            uiState.error?.let { error ->
-                Snackbar(
-                    action = {
-                        IconButton(onClick = viewModel::clearError) {
-                            Icon(AppIcons.close, contentDescription = null)
-                        }
-                    }
-                ) {
-                    Text(error)
+    // Error Snackbar
+    uiState.error?.let { error ->
+        Snackbar(
+            modifier = Modifier.padding(Spacing.md),
+            action = {
+                TextButton(onClick = viewModel::clearError) {
+                    Text("Dismiss")
                 }
             }
+        ) {
+            Text(error)
         }
     }
 }
 
-// MARK: - Photos Section (Icon-focused)
+// MARK: - Recipe Link Section
 @Composable
-private fun PhotosSection(
-    photos: List<Uri>,
-    onAddPhoto: () -> Unit,
-    onRemovePhoto: (Uri) -> Unit,
-    photosRemaining: Int
+private fun RecipeLinkSection(
+    linkedRecipe: RecipeSummary?,
+    onNavigateToSearch: () -> Unit,
+    onClearRecipe: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Spacing.md),
-        color = MaterialTheme.colorScheme.surface
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onNavigateToSearch)
+            .padding(horizontal = Spacing.md, vertical = Spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.padding(Spacing.md)) {
-            // Header with icon and count
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = AppIcons.photo,
+        Icon(
+            imageVector = AppIcons.recipe,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
+        )
+
+        if (linkedRecipe != null) {
+            // Show selected recipe
+            linkedRecipe.coverImageUrl?.let { url ->
+                AsyncImage(
+                    model = url,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-                Text(
-                    text = "${photos.size}/5",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(Spacing.xs)),
+                    contentScale = ContentScale.Crop
                 )
             }
 
-            Spacer(modifier = Modifier.height(Spacing.sm))
+            Text(
+                text = linkedRecipe.title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+                maxLines = 1
+            )
 
-            if (photos.isEmpty()) {
-                // Empty state with dashed border
+            // Clear button
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        CircleShape
+                    )
+                    .clickable(onClick = onClearRecipe),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = AppIcons.close,
+                    contentDescription = "Clear",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(12.dp)
+                )
+            }
+        } else {
+            // Show placeholder
+            Text(
+                text = "Link a Recipe",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Icon(
+                imageVector = AppIcons.forward,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+// MARK: - Photo Section (3 Fixed Slots like iOS)
+@Composable
+private fun PhotoSection(
+    photos: List<Uri>,
+    maxPhotos: Int,
+    onAddPhoto: () -> Unit,
+    onRemovePhoto: (Uri) -> Unit
+) {
+    val slotSize = 100.dp
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.md, vertical = Spacing.lg),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+    ) {
+        repeat(maxPhotos) { index ->
+            if (index < photos.size) {
+                // Filled slot
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .border(
-                            width = 2.dp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-                            shape = RoundedCornerShape(Spacing.sm)
-                        )
+                        .size(slotSize)
                         .clip(RoundedCornerShape(Spacing.sm))
+                ) {
+                    AsyncImage(
+                        model = photos[index],
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    // Remove button (top right)
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = (-4).dp, y = 4.dp)
+                            .size(20.dp)
+                            .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                            .clickable { onRemovePhoto(photos[index]) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.close,
+                            contentDescription = "Remove",
+                            tint = Color.White,
+                            modifier = Modifier.size(10.dp)
+                        )
+                    }
+                }
+            } else {
+                // Empty slot
+                Box(
+                    modifier = Modifier
+                        .size(slotSize)
+                        .clip(RoundedCornerShape(Spacing.sm))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .clickable(onClick = onAddPhoto),
                     contentAlignment = Alignment.Center
                 ) {
@@ -221,226 +350,215 @@ private fun PhotosSection(
                         verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                     ) {
                         Icon(
-                            imageVector = AppIcons.addPhoto,
+                            imageVector = AppIcons.camera,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                         Text(
-                            text = "+",
+                            text = "Tap to add",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
                     }
                 }
-            } else {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
-                ) {
-                    items(photos) { uri ->
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedCornerShape(Spacing.sm))
-                        ) {
-                            AsyncImage(
-                                model = uri,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                            // Remove button
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = 4.dp, y = (-4).dp)
-                                    .size(24.dp)
-                                    .background(Color.Black.copy(alpha = 0.6f), CircleShape)
-                                    .clickable { onRemovePhoto(uri) },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.close,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(12.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    // Add more button
-                    if (photosRemaining > 0) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .clip(RoundedCornerShape(Spacing.sm))
-                                    .border(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-                                        RoundedCornerShape(Spacing.sm)
-                                    )
-                                    .clickable(onClick = onAddPhoto),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Add,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            }
-                        }
-                    }
-                }
             }
         }
     }
 }
 
-// MARK: - Rating Section (Icon-focused)
+// MARK: - Rating Section
 @Composable
 private fun RatingSection(
     rating: Int,
     onRatingChange: (Int) -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Spacing.md),
-        color = MaterialTheme.colorScheme.surface
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.md, vertical = Spacing.lg),
+        contentAlignment = Alignment.Center
     ) {
-        Column(modifier = Modifier.padding(Spacing.md)) {
-            Icon(
-                imageVector = AppIcons.star,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.height(Spacing.sm))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                StarRating(
-                    rating = rating,
-                    onRatingChange = onRatingChange,
-                    size = 40.dp,
-                    interactive = true
+        StarRating(
+            rating = rating,
+            onRatingChange = onRatingChange,
+            size = 36.dp,
+            interactive = true
+        )
+    }
+}
+
+// MARK: - Description Section
+@Composable
+private fun DescriptionSection(
+    content: String,
+    maxLength: Int,
+    onContentChange: (String) -> Unit
+) {
+    val remaining = maxLength - content.length
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.md, vertical = Spacing.md)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 100.dp)
+        ) {
+            if (content.isEmpty()) {
+                Text(
+                    text = "Share your cooking experience...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.padding(top = 8.dp, start = 4.dp)
                 )
             }
+
+            BasicTextField(
+                value = content,
+                onValueChange = { newValue ->
+                    if (newValue.length <= maxLength) {
+                        onContentChange(newValue)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 100.dp),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+
+        // Character count
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                text = "${content.length}/$maxLength",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (remaining < 100)
+                    MaterialTheme.colorScheme.error
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
         }
     }
 }
 
-// MARK: - Link Recipe Section (Icon-focused)
+// MARK: - Hashtags Section
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun LinkRecipeSection(
-    linkedRecipe: com.cookstemma.app.domain.model.RecipeSummary?,
-    searchQuery: String,
-    searchResults: List<com.cookstemma.app.domain.model.RecipeSummary>,
-    isSearching: Boolean,
-    onSearchQueryChange: (String) -> Unit,
-    onSelectRecipe: (com.cookstemma.app.domain.model.RecipeSummary) -> Unit,
-    onClearRecipe: () -> Unit
+private fun HashtagsSection(
+    hashtags: List<String>,
+    maxHashtags: Int,
+    hashtagInput: String,
+    onHashtagInputChange: (String) -> Unit,
+    onAddHashtag: () -> Unit,
+    onRemoveHashtag: (Int) -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Spacing.md),
-        color = MaterialTheme.colorScheme.surface
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.md, vertical = Spacing.md),
+        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
     ) {
+        // Input row
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Spacing.md),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = AppIcons.recipe,
+                imageVector = Icons.Filled.Tag,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
 
-            Spacer(modifier = Modifier.width(Spacing.md))
-
-            if (linkedRecipe != null) {
-                // Selected recipe display
-                if (linkedRecipe.coverImageUrl != null) {
-                    AsyncImage(
-                        model = linkedRecipe.coverImageUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(Spacing.xs)),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(modifier = Modifier.width(Spacing.sm))
+            BasicTextField(
+                value = hashtagInput,
+                onValueChange = onHashtagInputChange,
+                modifier = Modifier.weight(1f),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                singleLine = true,
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (hashtagInput.isEmpty()) {
+                            Text(
+                                text = "Add hashtag",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            )
+                        }
+                        innerTextField()
+                    }
                 }
-                Text(
-                    text = linkedRecipe.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1
-                )
-                // Clear button
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            CircleShape
-                        )
-                        .clickable(onClick = onClearRecipe),
-                    contentAlignment = Alignment.Center
+            )
+
+            if (hashtags.size < maxHashtags) {
+                IconButton(
+                    onClick = onAddHashtag,
+                    enabled = hashtagInput.isNotEmpty(),
+                    modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        imageVector = AppIcons.close,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(12.dp)
+                        imageVector = Icons.Filled.AddCircle,
+                        contentDescription = "Add",
+                        tint = if (hashtagInput.isEmpty())
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        else
+                            MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
-            } else {
-                // Search field or forward indicator
-                Spacer(modifier = Modifier.weight(1f))
-                Icon(
-                    imageVector = AppIcons.forward,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
             }
+
+            Text(
+                text = "${hashtags.size}/$maxHashtags",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
         }
 
-        // Search results dropdown (if searching)
-        if (linkedRecipe == null && searchResults.isNotEmpty()) {
-            Column(
-                modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.xs)
+        // Hashtag chips
+        if (hashtags.isNotEmpty()) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs)
             ) {
-                searchResults.take(5).forEach { recipe ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelectRecipe(recipe) }
-                            .padding(vertical = Spacing.sm),
-                        verticalAlignment = Alignment.CenterVertically
+                hashtags.forEachIndexed { index, tag ->
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     ) {
-                        if (recipe.coverImageUrl != null) {
-                            AsyncImage(
-                                model = recipe.coverImageUrl,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(RoundedCornerShape(Spacing.xxs)),
-                                contentScale = ContentScale.Crop
+                        Row(
+                            modifier = Modifier.padding(
+                                horizontal = Spacing.sm,
+                                vertical = Spacing.xs
+                            ),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.xxs),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "#$tag",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(modifier = Modifier.width(Spacing.sm))
+                            Icon(
+                                imageVector = AppIcons.close,
+                                contentDescription = "Remove",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .clickable { onRemoveHashtag(index) }
+                            )
                         }
-                        Text(
-                            text = recipe.title,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
                     }
                 }
             }
@@ -448,58 +566,21 @@ private fun LinkRecipeSection(
     }
 }
 
-// MARK: - Content Section (Icon-focused)
-@Composable
-private fun ContentSection(
-    content: String,
-    onContentChange: (String) -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Spacing.md),
-        color = MaterialTheme.colorScheme.surface
-    ) {
-        Column(modifier = Modifier.padding(Spacing.md)) {
-            Icon(
-                imageVector = AppIcons.edit,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.height(Spacing.sm))
-            OutlinedTextField(
-                value = content,
-                onValueChange = onContentChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent
-                )
-            )
-        }
-    }
-}
-
-// MARK: - Privacy Section (Icon-focused)
+// MARK: - Privacy Section
 @Composable
 private fun PrivacySection(
     isPrivate: Boolean,
     onPrivateChange: (Boolean) -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Spacing.md),
-        color = MaterialTheme.colorScheme.surface
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.md, vertical = Spacing.md),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Spacing.md),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -508,10 +589,32 @@ private fun PrivacySection(
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
-            Switch(
-                checked = isPrivate,
-                onCheckedChange = onPrivateChange
+            Text(
+                text = if (isPrivate) "Private" else "Public",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
+
+        Switch(
+            checked = isPrivate,
+            onCheckedChange = onPrivateChange
+        )
+    }
+}
+
+// MARK: - Helper Functions
+private fun uriToFile(context: Context, uri: Uri): File? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+        val fileName = "photo_${System.currentTimeMillis()}.jpg"
+        val file = File(context.cacheDir, fileName)
+        FileOutputStream(file).use { outputStream ->
+            inputStream.copyTo(outputStream)
+        }
+        inputStream.close()
+        file
+    } catch (e: Exception) {
+        null
     }
 }

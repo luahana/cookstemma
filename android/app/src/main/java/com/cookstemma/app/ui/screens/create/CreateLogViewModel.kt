@@ -18,7 +18,8 @@ data class CreateLogUiState(
     val rating: Int = 0,
     val linkedRecipe: RecipeSummary? = null,
     val content: String = "",
-    val hashtags: String = "",
+    val hashtags: List<String> = emptyList(),
+    val hashtagInput: String = "",
     val isPrivate: Boolean = false,
     val recipeSearchQuery: String = "",
     val recipeSearchResults: List<RecipeSummary> = emptyList(),
@@ -31,7 +32,10 @@ data class CreateLogUiState(
         get() = photos.isNotEmpty() && rating > 0 && !isSubmitting
 
     val photosRemaining: Int
-        get() = 5 - photos.size
+        get() = 3 - photos.size
+    
+    val hashtagsRemaining: Int
+        get() = 10 - hashtags.size
 }
 
 @HiltViewModel
@@ -45,7 +49,7 @@ class CreateLogViewModel @Inject constructor(
 
     fun addPhoto(uri: Uri) {
         val currentPhotos = _uiState.value.photos
-        if (currentPhotos.size < 5) {
+        if (currentPhotos.size < 3) {
             _uiState.update { it.copy(photos = currentPhotos + uri) }
         }
     }
@@ -69,8 +73,32 @@ class CreateLogViewModel @Inject constructor(
         _uiState.update { it.copy(content = content) }
     }
 
-    fun setHashtags(hashtags: String) {
-        _uiState.update { it.copy(hashtags = hashtags) }
+    fun setHashtagInput(input: String) {
+        _uiState.update { it.copy(hashtagInput = input) }
+    }
+
+    fun addHashtag(tag: String) {
+        val cleanedTag = tag.trim().removePrefix("#").lowercase()
+        if (cleanedTag.isEmpty()) return
+        
+        val currentHashtags = _uiState.value.hashtags
+        if (currentHashtags.size >= 10) return
+        if (currentHashtags.contains(cleanedTag)) return
+        
+        _uiState.update { 
+            it.copy(
+                hashtags = currentHashtags + cleanedTag,
+                hashtagInput = ""
+            ) 
+        }
+    }
+
+    fun removeHashtag(index: Int) {
+        val currentHashtags = _uiState.value.hashtags.toMutableList()
+        if (index in currentHashtags.indices) {
+            currentHashtags.removeAt(index)
+            _uiState.update { it.copy(hashtags = currentHashtags) }
+        }
     }
 
     fun setPrivate(isPrivate: Boolean) {
@@ -130,17 +158,13 @@ class CreateLogViewModel @Inject constructor(
             _uiState.update { it.copy(isSubmitting = true, error = null) }
 
             val state = _uiState.value
-            val hashtagList = state.hashtags
-                .split(" ", ",")
-                .map { it.trim().removePrefix("#") }
-                .filter { it.isNotEmpty() }
 
             logRepository.createLog(
                 photos = photoFiles,
                 rating = state.rating,
                 recipeId = state.linkedRecipe?.id,
                 content = state.content.ifBlank { null },
-                hashtags = hashtagList.ifEmpty { null },
+                hashtags = state.hashtags.ifEmpty { null },
                 isPrivate = state.isPrivate
             ).collect { result ->
                 when (result) {
