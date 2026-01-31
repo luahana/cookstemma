@@ -95,8 +95,8 @@ fun LoginBottomSheet(
                 text = "Continue with Apple",
                 onClick = onAppleSignIn,
                 enabled = !uiState.isLoading,
-                containerColor = Color.Black,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.inverseSurface,
+                contentColor = MaterialTheme.colorScheme.inverseOnSurface,
                 icon = {
                     Text("", style = MaterialTheme.typography.titleLarge)
                 }
@@ -156,8 +156,8 @@ private fun SignInButton(
     text: String,
     onClick: () -> Unit,
     enabled: Boolean = true,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
-    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    containerColor: Color = MaterialTheme.colorScheme.inverseSurface,
+    contentColor: Color = MaterialTheme.colorScheme.inverseOnSurface,
     icon: @Composable () -> Unit
 ) {
     Button(

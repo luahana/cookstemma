@@ -1,5 +1,6 @@
 package com.cookstemma.app.ui.screens.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cookstemma.app.data.repository.Comment
@@ -9,6 +10,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val TAG = "CommentsViewModel"
 
 data class CommentsUiState(
     val comments: List<Comment> = emptyList(),
@@ -33,10 +36,14 @@ class CommentsViewModel @Inject constructor(
     private var nextCursor: String? = null
 
     fun loadComments(logId: String) {
+        Log.d(TAG, "loadComments called with logId: $logId")
         this.logId = logId
         nextCursor = null
+        _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
+            Log.d(TAG, "Starting to collect comments for logId: $logId")
             commentRepository.getComments(logId).collect { result ->
+                Log.d(TAG, "Received result: $result")
                 when (result) {
                     is Result.Loading -> _uiState.update { it.copy(isLoading = true, error = null) }
                     is Result.Success -> {

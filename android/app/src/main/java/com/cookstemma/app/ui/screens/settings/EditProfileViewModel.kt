@@ -21,12 +21,9 @@ data class EditProfileUiState(
     val newAvatarUri: Uri? = null,
     val username: String = "",
     val originalUsername: String = "",
-    val displayName: String = "",
     val bio: String = "",
     val youtubeUrl: String = "",
     val instagramHandle: String = "",
-    val tiktokHandle: String = "",
-    val website: String = "",
     val usernameAvailable: Boolean? = null,
     val usernameFormatError: String? = null
 ) {
@@ -42,7 +39,6 @@ data class EditProfileUiState(
     val hasChanges: Boolean
         get() = newAvatarUri != null ||
                 username != originalUsername ||
-                displayName.isNotBlank() ||
                 bio.isNotBlank() ||
                 youtubeUrl.isNotBlank() ||
                 instagramHandle.isNotBlank()
@@ -80,12 +76,9 @@ class EditProfileViewModel @Inject constructor(
                                 avatarUrl = profile.avatarUrl,
                                 username = profile.username ?: "",
                                 originalUsername = profile.username ?: "",
-                                displayName = profile.displayName ?: "",
                                 bio = profile.bio ?: "",
-                                youtubeUrl = profile.socialLinks?.youtube ?: "",
-                                instagramHandle = profile.socialLinks?.instagram ?: "",
-                                tiktokHandle = profile.socialLinks?.tiktok ?: "",
-                                website = profile.socialLinks?.website ?: ""
+                                youtubeUrl = profile.youtubeUrl ?: "",
+                                instagramHandle = profile.instagramHandle ?: ""
                             )
                         }
                     }
@@ -109,10 +102,6 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
-    fun setDisplayName(name: String) {
-        _uiState.update { it.copy(displayName = name) }
-    }
-
     fun setBio(bio: String) {
         val trimmed = bio.take(EditProfileUiState.MAX_BIO_LENGTH)
         _uiState.update { it.copy(bio = trimmed) }
@@ -124,14 +113,6 @@ class EditProfileViewModel @Inject constructor(
 
     fun setInstagramHandle(handle: String) {
         _uiState.update { it.copy(instagramHandle = handle.removePrefix("@")) }
-    }
-
-    fun setTiktokHandle(handle: String) {
-        _uiState.update { it.copy(tiktokHandle = handle.removePrefix("@")) }
-    }
-
-    fun setWebsite(url: String) {
-        _uiState.update { it.copy(website = url) }
     }
 
     fun setNewAvatar(uri: Uri?) {
@@ -165,23 +146,17 @@ class EditProfileViewModel @Inject constructor(
 
             val state = _uiState.value
             val usernameToSend = if (state.username != state.originalUsername) state.username else null
-            val displayNameToSend = state.displayName.ifBlank { null }
             val bioToSend = state.bio.ifBlank { null }
             val youtubeToSend = state.youtubeUrl.ifBlank { null }
             val instagramToSend = state.instagramHandle.ifBlank { null }
-            val tiktokToSend = state.tiktokHandle.ifBlank { null }
-            val websiteToSend = state.website.ifBlank { null }
 
             // TODO: Handle avatar upload with MultipartBody.Part if newAvatarUri is set
 
             when (val result = userRepository.updateProfile(
                 username = usernameToSend,
-                displayName = displayNameToSend,
                 bio = bioToSend,
                 youtubeUrl = youtubeToSend,
-                instagramHandle = instagramToSend,
-                tiktokHandle = tiktokToSend,
-                website = websiteToSend
+                instagramHandle = instagramToSend
             )) {
                 is Result.Success -> {
                     _uiState.update { it.copy(isSaving = false, saveSuccess = true) }

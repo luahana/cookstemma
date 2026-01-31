@@ -320,9 +320,6 @@ enum CommentEndpoint: APIEndpoint {
 
 enum SearchEndpoint: APIEndpoint {
     case search(query: String, type: SearchType?, cursor: String?, size: Int)
-    case searchRecipes(query: String, filters: RecipeFilters?, cursor: String?)
-    case searchLogs(query: String, cursor: String?)
-    case searchUsers(query: String, cursor: String?)
     case recentSearches
     case clearRecentSearches
     case trending
@@ -331,9 +328,6 @@ enum SearchEndpoint: APIEndpoint {
     var path: String {
         switch self {
         case .search: return "search"
-        case .searchRecipes: return "search/recipes"
-        case .searchLogs: return "search/logs"
-        case .searchUsers: return "search/users"
         case .recentSearches, .clearRecentSearches: return "search/history"
         case .trending: return "hashtags/popular"
         case .hashtagContent(let h, _, _): return "hashtags/\(h)/content"
@@ -342,7 +336,7 @@ enum SearchEndpoint: APIEndpoint {
 
     var method: HTTPMethod {
         switch self {
-        case .search, .searchRecipes, .searchLogs, .searchUsers, .recentSearches, .trending, .hashtagContent: return .get
+        case .search, .recentSearches, .trending, .hashtagContent: return .get
         case .clearRecentSearches: return .delete
         }
     }
@@ -360,18 +354,6 @@ enum SearchEndpoint: APIEndpoint {
             if let c = cursor {
                 items.append(URLQueryItem(name: "cursor", value: c))
             }
-            return items
-        case .searchRecipes(let q, let filters, let cursor):
-            var items = [URLQueryItem(name: "q", value: q)]
-            if let cursor = cursor { items.append(URLQueryItem(name: "cursor", value: cursor)) }
-            if let filters = filters {
-                if let t = filters.cookingTimeRange { items.append(URLQueryItem(name: "cookingTimeRange", value: t.rawValue)) }
-                if let c = filters.category { items.append(URLQueryItem(name: "category", value: c)) }
-            }
-            return items
-        case .searchLogs(let q, let cursor), .searchUsers(let q, let cursor):
-            var items = [URLQueryItem(name: "q", value: q)]
-            if let c = cursor { items.append(URLQueryItem(name: "cursor", value: c)) }
             return items
         case .hashtagContent(_, let type, let cursor):
             var items: [URLQueryItem] = []

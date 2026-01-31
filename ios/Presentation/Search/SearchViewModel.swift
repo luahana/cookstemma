@@ -155,6 +155,8 @@ final class SearchViewModel: ObservableObject {
                 logs.append(logSummary)
             case .hashtag(let hashtag):
                 hashtags.append(HashtagCount(id: hashtag.id, name: hashtag.name, postCount: hashtag.totalCount))
+            case .user:
+                break // Users handled separately in searchUsers
             case .unknown:
                 break
             }
@@ -198,6 +200,8 @@ final class SearchViewModel: ObservableObject {
                 return .log(logSummary)
             case .hashtag(let hashtag):
                 return .hashtag(HashtagCount(id: hashtag.id, name: hashtag.name, postCount: hashtag.totalCount))
+            case .user(let user):
+                return .user(user)
             case .unknown:
                 return nil
             }

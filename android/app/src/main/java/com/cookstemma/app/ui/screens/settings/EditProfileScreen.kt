@@ -114,18 +114,6 @@ fun EditProfileScreen(
 
                 Spacer(modifier = Modifier.height(Spacing.md))
 
-                // Display Name Field
-                OutlinedTextField(
-                    value = uiState.displayName,
-                    onValueChange = viewModel::setDisplayName,
-                    label = { Text("Display Name") },
-                    placeholder = { Text("Your display name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.md))
-
                 // Bio Field
                 OutlinedTextField(
                     value = uiState.bio,
@@ -173,35 +161,6 @@ fun EditProfileScreen(
                     prefix = { Text("@") },
                     leadingIcon = {
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.sm))
-
-                OutlinedTextField(
-                    value = uiState.tiktokHandle,
-                    onValueChange = viewModel::setTiktokHandle,
-                    label = { Text("TikTok") },
-                    placeholder = { Text("username") },
-                    prefix = { Text("@") },
-                    leadingIcon = {
-                        Icon(Icons.Default.MusicNote, contentDescription = null)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.sm))
-
-                OutlinedTextField(
-                    value = uiState.website,
-                    onValueChange = viewModel::setWebsite,
-                    label = { Text("Website") },
-                    placeholder = { Text("https://yourwebsite.com") },
-                    leadingIcon = {
-                        Icon(Icons.Default.Language, contentDescription = null)
                     },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true

@@ -103,22 +103,16 @@ class UserRepository @Inject constructor(
     suspend fun updateProfile(
         avatar: MultipartBody.Part? = null,
         username: String? = null,
-        displayName: String? = null,
         bio: String? = null,
         youtubeUrl: String? = null,
-        instagramHandle: String? = null,
-        tiktokHandle: String? = null,
-        website: String? = null
+        instagramHandle: String? = null
     ): Result<MyProfile> = try {
         val response = apiService.updateProfile(
             avatar = avatar,
             username = username,
-            displayName = displayName,
             bio = bio,
             youtubeUrl = youtubeUrl,
-            instagramHandle = instagramHandle,
-            tiktokHandle = tiktokHandle,
-            website = website
+            instagramHandle = instagramHandle
         )
         Result.Success(response.toDomain())
     } catch (e: Exception) {

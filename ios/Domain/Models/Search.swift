@@ -41,6 +41,7 @@ enum SearchItemData: Codable {
     case recipe(RecipeSummary)
     case log(LogPostSummaryResponse)
     case hashtag(HashtagSearchResult)
+    case user(UserSummary)
     case unknown
 
     init(from decoder: Decoder) throws {
@@ -60,6 +61,11 @@ enum SearchItemData: Codable {
             self = .hashtag(hashtag)
             return
         }
+        // Try user
+        if let user = try? container.decode(UserSummary.self) {
+            self = .user(user)
+            return
+        }
         // Unknown type
         self = .unknown
     }
@@ -70,6 +76,7 @@ enum SearchItemData: Codable {
         case .recipe(let recipe): try container.encode(recipe)
         case .log(let log): try container.encode(log)
         case .hashtag(let hashtag): try container.encode(hashtag)
+        case .user(let user): try container.encode(user)
         case .unknown: try container.encodeNil()
         }
     }
