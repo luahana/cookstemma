@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -92,21 +93,40 @@ class AuthRepository @Inject constructor(
 
     fun checkAuthState(): Flow<Result<AuthState>> = flow {
         try {
+            // No access token or expired - try to refresh if we have a refresh token
             if (!tokenManager.hasValidToken()) {
+                if (tokenManager.getRefreshToken() != null) {
+                    if (refreshAccessToken()) {
+                        // Token refreshed successfully, now fetch profile
+                        val profile = apiService.getMyProfile().toDomain()
+                        _authState.value = AuthState.Authenticated(profile)
+                        emit(Result.Success(AuthState.Authenticated(profile)))
+                        return@flow
+                    }
+                }
+                // No refresh token or refresh failed
                 _authState.value = AuthState.Unauthenticated
                 emit(Result.Success(AuthState.Unauthenticated))
                 return@flow
             }
 
-            // Try to fetch profile to verify token is still valid
+            // Token exists and appears valid - verify with server
+            // TokenAuthenticator will handle 401 and refresh automatically
             val profile = apiService.getMyProfile().toDomain()
             _authState.value = AuthState.Authenticated(profile)
             emit(Result.Success(AuthState.Authenticated(profile)))
-        } catch (e: Exception) {
-            // Token is invalid or expired
-            tokenManager.clearTokens()
+        } catch (e: HttpException) {
+            // HTTP error - if still 401 after TokenAuthenticator tried refresh, token is invalid
+            if (e.code() == 401) {
+                tokenManager.clearTokens()
+            }
             _authState.value = AuthState.Unauthenticated
             emit(Result.Success(AuthState.Unauthenticated))
+        } catch (e: Exception) {
+            // Network error or other issue - don't clear tokens
+            // User might just be offline, keep tokens for when network returns
+            _authState.value = AuthState.Unauthenticated
+            emit(Result.Error(e))
         }
     }
 
