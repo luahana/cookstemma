@@ -365,6 +365,7 @@ struct ProfileView: View {
                             RecipeGridCard(recipe: recipe)
                         }
                         .buttonStyle(.plain)
+                        .id("\(recipe.id)-\(recipe.coverImageUrl ?? "")")
                     }
                 case .logs:
                     ForEach(viewModel.logs) { log in
@@ -372,6 +373,7 @@ struct ProfileView: View {
                             LogGridCard(log: log)
                         }
                         .buttonStyle(.plain)
+                        .id("\(log.id)-\(log.thumbnailUrl ?? "")")
                     }
                 case .saved:
                     EmptyView()
@@ -400,6 +402,7 @@ struct ProfileView: View {
                             RecipeGridCard(recipe: recipe, showSavedBadge: true)
                         }
                         .buttonStyle(.plain)
+                        .id("\(recipe.id)-\(recipe.coverImageUrl ?? "")")
                     }
                 }
                 if filter != .recipes {
@@ -408,6 +411,7 @@ struct ProfileView: View {
                             LogGridCard(log: log, showSavedBadge: true)
                         }
                         .buttonStyle(.plain)
+                        .id("\(log.id)-\(log.thumbnailUrl ?? "")")
                     }
                 }
             }

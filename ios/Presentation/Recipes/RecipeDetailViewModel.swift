@@ -124,10 +124,15 @@ final class RecipeDetailViewModel: ObservableObject {
             #if DEBUG
             print("[RecipeDetail] toggleSave: API success, isSaved=\(isSaved)")
             #endif
+            var userInfo: [String: Any] = ["recipeId": recipeId, "isSaved": isSaved]
+            // Include recipe summary when saving so profile can add it directly
+            if isSaved, let summary = recipeSummary {
+                userInfo["recipeSummary"] = summary
+            }
             NotificationCenter.default.post(
                 name: .recipeSaveStateChanged,
                 object: nil,
-                userInfo: ["recipeId": recipeId, "isSaved": isSaved]
+                userInfo: userInfo
             )
         case .failure(let error):
             #if DEBUG

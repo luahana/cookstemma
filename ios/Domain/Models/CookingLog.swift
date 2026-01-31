@@ -167,6 +167,26 @@ struct CookingLogDetail: Codable, Identifiable, Equatable {
     var isSaved: Bool { isSavedByCurrentUser ?? false }
     var hashtags: [String] { hashtagObjects.map { $0.name } }
     var updatedAt: Date { createdAt }
+
+    /// Convert to FeedLogItem for use in saved content list
+    var asFeedLogItem: FeedLogItem {
+        FeedLogItem(
+            id: id,
+            title: title,
+            content: content,
+            rating: rating,
+            thumbnailUrl: logImages.first?.imageUrl,
+            creatorPublicId: creatorPublicId,
+            userName: userName,
+            foodName: linkedRecipe?.foodName,
+            recipeTitle: linkedRecipe?.title,
+            hashtags: hashtags,
+            isVariant: false,
+            isPrivate: isPrivate,
+            commentCount: commentCount,
+            cookingStyle: linkedRecipe?.cookingStyle
+        )
+    }
 }
 
 // MARK: - Log Image Info (from API)

@@ -87,11 +87,16 @@ final class ProfileViewModel: ObservableObject {
                 #endif
 
                 if isSaved {
-                    // Recipe was saved - update count and refresh to get full data
+                    // Recipe was saved - update count and add to list directly if data provided
                     self.savedCountAdjustment += 1
-                    self.savedContentNeedsRefresh = true
-                    if self.selectedTab == .saved {
-                        Task { await self.loadSavedContent(refresh: true) }
+                    if let summary = notification.userInfo?["recipeSummary"] as? RecipeSummary {
+                        // Add directly to the list (prepend since it's the newest)
+                        if !self.savedRecipes.contains(where: { $0.id == summary.id }) {
+                            self.savedRecipes.insert(summary, at: 0)
+                        }
+                    } else {
+                        // Fallback: mark for refresh on next tab visit
+                        self.savedContentNeedsRefresh = true
                     }
                 } else {
                     // Recipe was unsaved - update count and remove from list immediately
@@ -114,11 +119,16 @@ final class ProfileViewModel: ObservableObject {
                 #endif
 
                 if isSaved {
-                    // Log was saved - update count and refresh to get full data
+                    // Log was saved - update count and add to list directly if data provided
                     self.savedCountAdjustment += 1
-                    self.savedContentNeedsRefresh = true
-                    if self.selectedTab == .saved {
-                        Task { await self.loadSavedContent(refresh: true) }
+                    if let feedLogItem = notification.userInfo?["feedLogItem"] as? FeedLogItem {
+                        // Add directly to the list (prepend since it's the newest)
+                        if !self.savedLogs.contains(where: { $0.id == feedLogItem.id }) {
+                            self.savedLogs.insert(feedLogItem, at: 0)
+                        }
+                    } else {
+                        // Fallback: mark for refresh on next tab visit
+                        self.savedContentNeedsRefresh = true
                     }
                 } else {
                     // Log was unsaved - update count and remove from list immediately

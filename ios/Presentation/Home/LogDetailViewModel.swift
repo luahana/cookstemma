@@ -74,10 +74,15 @@ final class LogDetailViewModel: ObservableObject {
             print("[LogDetail] toggleSave: API success, isSaved=\(isSaved)")
             #endif
             // Notify other views about save state change
+            var userInfo: [String: Any] = ["logId": logId, "isSaved": isSaved]
+            // Include feed log item when saving so profile can add it directly
+            if isSaved, let logDetail = log {
+                userInfo["feedLogItem"] = logDetail.asFeedLogItem
+            }
             NotificationCenter.default.post(
                 name: .logSaveStateChanged,
                 object: nil,
-                userInfo: ["logId": logId, "isSaved": isSaved]
+                userInfo: userInfo
             )
         case .failure(let error):
             #if DEBUG
