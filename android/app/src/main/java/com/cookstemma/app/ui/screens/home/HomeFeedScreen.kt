@@ -29,6 +29,7 @@ import com.cookstemma.app.domain.model.*
 import com.cookstemma.app.ui.AppState
 import com.cookstemma.app.ui.components.*
 import com.cookstemma.app.ui.navigation.NotificationIconButton
+import com.cookstemma.app.ui.theme.Layout
 import com.cookstemma.app.ui.theme.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -136,10 +137,12 @@ fun HomeFeedScreen(
                             state = listState,
                             contentPadding = PaddingValues(bottom = Spacing.md),
                             verticalArrangement = Arrangement.spacedBy(Spacing.md),
+                            horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.fillMaxSize()
                         ) {
                             items(uiState.items, key = { it.id }) { item ->
                                 FeedLogCard(
+                                    modifier = Modifier.widthIn(max = Layout.maxContentWidth),
                                     item = item,
                                     isLiked = uiState.isLogLiked(item.id),
                                     isSaved = uiState.isLogSaved(item.id),
@@ -209,6 +212,7 @@ fun HomeFeedScreen(
 @Composable
 fun FeedLogCard(
     item: FeedItem,
+    modifier: Modifier = Modifier,
     isLiked: Boolean = false,
     isSaved: Boolean = false,
     onClick: () -> Unit,
@@ -219,7 +223,7 @@ fun FeedLogCard(
     onSaveClick: () -> Unit
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .background(MaterialTheme.colorScheme.background)

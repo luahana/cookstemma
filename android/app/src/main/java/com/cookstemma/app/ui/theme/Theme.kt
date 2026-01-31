@@ -80,3 +80,8 @@ object AvatarSize {
     val lg = 64.dp
     val xl = 96.dp
 }
+
+object Layout {
+    /** Maximum content width on tablets (matches iOS) */
+    val maxContentWidth = 600.dp
+}

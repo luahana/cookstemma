@@ -21,6 +21,7 @@ import com.cookstemma.app.domain.model.cookingStyleDisplay
 import com.cookstemma.app.domain.model.cookingTimeDisplayText
 import com.cookstemma.app.ui.AppState
 import com.cookstemma.app.ui.components.*
+import com.cookstemma.app.ui.theme.Layout
 import com.cookstemma.app.ui.theme.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,11 +92,14 @@ fun RecipesListScreen(
                     LazyColumn(
                         state = listState,
                         verticalArrangement = Arrangement.spacedBy(Spacing.md),
-                        contentPadding = PaddingValues(bottom = Spacing.xl)
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        contentPadding = PaddingValues(bottom = Spacing.xl),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         items(uiState.recipes, key = { it.id }) { recipe ->
                             RecipeCard(
                                 recipe = recipe,
+                                modifier = Modifier.widthIn(max = Layout.maxContentWidth),
                                 isSaved = uiState.isRecipeSaved(recipe.id),
                                 onClick = { onRecipeClick(recipe.id) },
                                 onSaveClick = {
@@ -186,6 +190,7 @@ private fun RecipesHeader(
 @Composable
 private fun RecipeCard(
     recipe: RecipeSummary,
+    modifier: Modifier = Modifier,
     isSaved: Boolean,
     onClick: () -> Unit,
     onSaveClick: () -> Unit
@@ -193,7 +198,7 @@ private fun RecipeCard(
     var isSaving by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(Spacing.md),
