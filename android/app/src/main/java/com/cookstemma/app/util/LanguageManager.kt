@@ -1,12 +1,17 @@
 package com.cookstemma.app.util
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import com.cookstemma.app.MainActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.system.exitProcess
 
 // AppCompat is required for per-app language preferences on Android < 13
 
@@ -58,6 +63,37 @@ class LanguageManager @Inject constructor(
     fun setLanguage(language: AppLanguage) {
         val localeList = LocaleListCompat.forLanguageTags(language.code)
         AppCompatDelegate.setApplicationLocales(localeList)
+    }
+
+    /**
+     * Sets the language and fully restarts the app.
+     * This kills the current process and starts fresh.
+     */
+    fun setLanguageAndRestart(language: AppLanguage) {
+        // First set the language
+        val localeList = LocaleListCompat.forLanguageTags(language.code)
+        AppCompatDelegate.setApplicationLocales(localeList)
+
+        // Schedule app restart
+        val intent = Intent(context, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.setExact(
+            AlarmManager.RTC,
+            System.currentTimeMillis() + 100, // 100ms delay
+            pendingIntent
+        )
+
+        // Kill current process
+        exitProcess(0)
     }
 
     fun getAllLanguages(): List<AppLanguage> = AppLanguage.entries

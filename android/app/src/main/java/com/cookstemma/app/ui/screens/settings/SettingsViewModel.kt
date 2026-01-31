@@ -80,8 +80,8 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setLanguage(language: AppLanguage) {
-        languageManager.setLanguage(language)
-        _uiState.update { it.copy(currentLanguage = language) }
+        // This will fully restart the app after setting the language
+        languageManager.setLanguageAndRestart(language)
     }
 
     fun getAllLanguages(): List<AppLanguage> = languageManager.getAllLanguages()
