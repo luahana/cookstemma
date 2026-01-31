@@ -170,6 +170,12 @@
     <string name="privacy">プライバシー</string>
     <string name="manage_blocked_users">ブロックしたユーザーを管理</string>
     <string name="measurement_units">単位</string>
+    <string name="units_original">オリジナル</string>
+    <string name="units_original_description">食材を元の単位で表示</string>
+    <string name="units_metric">メートル法</string>
+    <string name="units_metric_description">メートル法単位に変換 (ml, L, g, kg)</string>
+    <string name="units_us">US単位</string>
+    <string name="units_us_description">US単位に変換 (カップ, 大さじ, 小さじ, oz, lb)</string>
     <string name="original">オリジナル</string>
     <string name="support">サポート</string>
     <string name="send_feedback">フィードバックを送信</string>

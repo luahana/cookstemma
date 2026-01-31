@@ -79,6 +79,24 @@ data class RecipeDetail(
 
     // Initialize saved state from API
     fun withSavedState(): RecipeDetail = copy(uiIsSaved = isSavedByCurrentUser ?: false)
+
+    // Convert to RecipeSummary for use in CreateLogScreen
+    fun toSummary(): RecipeSummary = RecipeSummary(
+        id = id,
+        title = title,
+        description = description,
+        foodName = foodName,
+        cookingStyle = cookingStyle,
+        userName = userName,
+        thumbnail = coverImageUrl,
+        variantCount = 0,
+        logCount = cookCount,
+        servings = servings,
+        cookingTimeRange = cookingTimeRange,
+        hashtagList = hashtags,
+        isPrivate = false,
+        savedStatus = isSaved
+    )
 }
 
 // Recipe Image from API
@@ -120,6 +138,16 @@ data class Ingredient(
         "SECONDARY" -> IngredientCategory.SECONDARY
         "SEASONING" -> IngredientCategory.SEASONING
         else -> IngredientCategory.MAIN
+    }
+
+    /**
+     * Format the ingredient amount with unit, converting based on user preference.
+     */
+    fun formatAmount(preference: MeasurementPreference): String {
+        if (quantity == null) return ""
+        
+        val result = MeasurementConverter.convert(quantity, unit, preference)
+        return result?.displayString ?: "$amount $displayUnit".trim()
     }
 }
 

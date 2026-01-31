@@ -25,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.cookstemma.app.domain.model.MeasurementPreference
 import com.cookstemma.app.domain.model.RecipeDetail
 import com.cookstemma.app.domain.model.cookingTimeDisplayText
 import com.cookstemma.app.ui.AppState
@@ -164,7 +165,10 @@ fun RecipeDetailScreen(
                     }
 
                     item {
-                        IngredientsSection(recipe = uiState.recipe!!)
+                        IngredientsSection(
+                            recipe = uiState.recipe!!,
+                            measurementPreference = uiState.measurementPreference
+                        )
                     }
 
                     item {
@@ -345,7 +349,10 @@ private fun RecipeDescription(recipe: RecipeDetail) {
 
 // MARK: - Ingredients Section (Icon Header)
 @Composable
-private fun IngredientsSection(recipe: RecipeDetail) {
+private fun IngredientsSection(
+    recipe: RecipeDetail,
+    measurementPreference: MeasurementPreference
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -367,6 +374,7 @@ private fun IngredientsSection(recipe: RecipeDetail) {
             recipe.ingredients.groupBy { it.category }.forEach { (category, ingredients) ->
                 Spacer(modifier = Modifier.height(Spacing.sm))
                 ingredients.forEach { ingredient ->
+                    val formattedAmount = ingredient.formatAmount(measurementPreference)
                     Row(
                         modifier = Modifier.padding(vertical = Spacing.xxs),
                         verticalAlignment = Alignment.Top
@@ -382,7 +390,11 @@ private fun IngredientsSection(recipe: RecipeDetail) {
                         )
                         Spacer(modifier = Modifier.width(Spacing.sm))
                         Text(
-                            text = "${ingredient.name} ${ingredient.amount}".trim(),
+                            text = if (formattedAmount.isNotEmpty()) {
+                                "${ingredient.name} $formattedAmount"
+                            } else {
+                                ingredient.name
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(1f)
                         )

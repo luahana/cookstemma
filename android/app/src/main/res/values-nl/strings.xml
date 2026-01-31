@@ -170,6 +170,12 @@
     <string name="privacy">Privacy</string>
     <string name="manage_blocked_users">Geblokkeerde gebruikers beheren</string>
     <string name="measurement_units">Maateenheden</string>
+    <string name="units_original">Origineel</string>
+    <string name="units_original_description">Ingrediënten weergeven in originele eenheden</string>
+    <string name="units_metric">Metrisch</string>
+    <string name="units_metric_description">Omzetten naar metrische eenheden (ml, L, g, kg)</string>
+    <string name="units_us">US</string>
+    <string name="units_us_description">Omzetten naar Amerikaanse eenheden (cup, el, tl, oz, lb)</string>
     <string name="original">Origineel</string>
     <string name="support">Ondersteuning</string>
     <string name="send_feedback">Feedback verzenden</string>

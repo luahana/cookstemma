@@ -30,6 +30,7 @@ fun SettingsScreen(
     onNavigateToEditProfile: () -> Unit,
     onNavigateToNotificationSettings: () -> Unit,
     onNavigateToBlockedUsers: () -> Unit,
+    onNavigateToMeasurementUnits: () -> Unit,
     onLogoutSuccess: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -105,8 +106,8 @@ fun SettingsScreen(
             SettingsItem(
                 icon = Icons.Default.Straighten,
                 title = stringResource(R.string.measurement_units),
-                subtitle = stringResource(R.string.original),
-                onClick = { /* TODO: Units settings */ }
+                subtitle = stringResource(uiState.measurementPreference.displayNameRes),
+                onClick = onNavigateToMeasurementUnits
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.sm))

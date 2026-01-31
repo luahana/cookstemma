@@ -170,6 +170,12 @@
     <string name="privacy">Конфиденциальность</string>
     <string name="manage_blocked_users">Управление заблокированными</string>
     <string name="measurement_units">Единицы измерения</string>
+    <string name="units_original">Оригинал</string>
+    <string name="units_original_description">Отображать ингредиенты в исходных единицах</string>
+    <string name="units_metric">Метрическая</string>
+    <string name="units_metric_description">Конвертировать в метрические единицы (мл, л, г, кг)</string>
+    <string name="units_us">Американская</string>
+    <string name="units_us_description">Конвертировать в американские единицы (чашка, ст.л., ч.л., унция, фунт)</string>
     <string name="original">Оригинал</string>
     <string name="support">Поддержка</string>
     <string name="send_feedback">Отправить отзыв</string>

@@ -170,6 +170,12 @@
     <string name="privacy">隐私</string>
     <string name="manage_blocked_users">管理已屏蔽用户</string>
     <string name="measurement_units">计量单位</string>
+    <string name="units_original">原始</string>
+    <string name="units_original_description">以原始单位显示食材</string>
+    <string name="units_metric">公制</string>
+    <string name="units_metric_description">转换为公制单位 (ml, L, g, kg)</string>
+    <string name="units_us">美制</string>
+    <string name="units_us_description">转换为美制单位 (杯, 大勺, 小勺, oz, lb)</string>
     <string name="original">原始</string>
     <string name="support">支持</string>
     <string name="send_feedback">发送反馈</string>

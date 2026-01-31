@@ -32,6 +32,7 @@ import com.cookstemma.app.ui.screens.profile.FollowersScreen
 import com.cookstemma.app.ui.screens.hashtag.HashtagDetailScreen
 import com.cookstemma.app.ui.screens.settings.BlockedUsersScreen
 import com.cookstemma.app.ui.screens.settings.EditProfileScreen
+import com.cookstemma.app.ui.screens.settings.MeasurementUnitsScreen
 import com.cookstemma.app.ui.screens.settings.NotificationSettingsScreen
 import com.cookstemma.app.ui.screens.settings.SettingsScreen
 import kotlinx.coroutines.launch
@@ -245,6 +246,7 @@ private fun MainContent(
                     onNavigateToEditProfile = { navController.navigate("settings/edit-profile") },
                     onNavigateToNotificationSettings = { navController.navigate("settings/notifications") },
                     onNavigateToBlockedUsers = { navController.navigate("settings/blocked-users") },
+                    onNavigateToMeasurementUnits = { navController.navigate("settings/measurement-units") },
                     onLogoutSuccess = {
                         navController.navigate(BottomNavItem.Home.route) {
                             popUpTo(0) { inclusive = true }
@@ -265,6 +267,11 @@ private fun MainContent(
             }
             composable("settings/notifications") {
                 NotificationSettingsScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("settings/measurement-units") {
+                MeasurementUnitsScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
@@ -290,6 +297,29 @@ private fun MainContent(
                     onNavigateToLog = { logId -> navController.navigate("log/$logId") },
                     onNavigateToRecipe = { recipeId -> navController.navigate("recipe/$recipeId") }
                 )
+            }
+
+            // Create Log route (with optional recipe pre-population)
+            composable(
+                route = "create-log?recipeId={recipeId}",
+                arguments = listOf(
+                    navArgument("recipeId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) {
+                ModalBottomSheet(
+                    onDismissRequest = { navController.popBackStack() },
+                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    modifier = Modifier.navigationBarsPadding()
+                ) {
+                    CreateLogScreen(
+                        onDismiss = { navController.popBackStack() },
+                        onSuccess = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }

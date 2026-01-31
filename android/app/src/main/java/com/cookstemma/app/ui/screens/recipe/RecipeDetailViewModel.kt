@@ -3,6 +3,7 @@ package com.cookstemma.app.ui.screens.recipe
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cookstemma.app.data.local.MeasurementPreferencesDataStore
 import com.cookstemma.app.data.repository.RecipeRepository
 import com.cookstemma.app.data.repository.SavedItemsManager
 import com.cookstemma.app.domain.model.*
@@ -14,6 +15,7 @@ import javax.inject.Inject
 data class RecipeDetailUiState(
     val recipe: RecipeDetail? = null,
     val cookingLogs: List<RecipeLogItem> = emptyList(),
+    val measurementPreference: MeasurementPreference = MeasurementPreference.ORIGINAL,
     val isLoading: Boolean = true,
     val isLoadingLogs: Boolean = false,
     val error: String? = null,
@@ -25,7 +27,8 @@ data class RecipeDetailUiState(
 class RecipeDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val recipeRepository: RecipeRepository,
-    private val savedItemsManager: SavedItemsManager
+    private val savedItemsManager: SavedItemsManager,
+    private val measurementPreferencesDataStore: MeasurementPreferencesDataStore
 ) : ViewModel() {
 
     private val recipeId: String = checkNotNull(savedStateHandle["recipeId"])
@@ -37,6 +40,15 @@ class RecipeDetailViewModel @Inject constructor(
         loadRecipe()
         loadCookingLogs()
         observeSavedState()
+        observeMeasurementPreference()
+    }
+
+    private fun observeMeasurementPreference() {
+        viewModelScope.launch {
+            measurementPreferencesDataStore.measurementPreference.collect { preference ->
+                _uiState.update { it.copy(measurementPreference = preference) }
+            }
+        }
     }
 
     private fun observeSavedState() {

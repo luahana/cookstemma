@@ -1,6 +1,7 @@
 package com.cookstemma.app.ui.screens.create
 
 import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cookstemma.app.data.repository.LogRepository
@@ -40,12 +41,32 @@ data class CreateLogUiState(
 
 @HiltViewModel
 class CreateLogViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val logRepository: LogRepository,
-    private val searchRepository: SearchRepository
+    private val searchRepository: SearchRepository,
+    private val recipeRepository: RecipeRepository
 ) : ViewModel() {
+
+    private val recipeId: String? = savedStateHandle.get<String>("recipeId")
 
     private val _uiState = MutableStateFlow(CreateLogUiState())
     val uiState: StateFlow<CreateLogUiState> = _uiState.asStateFlow()
+
+    init {
+        recipeId?.let { loadRecipeById(it) }
+    }
+
+    private fun loadRecipeById(id: String) {
+        viewModelScope.launch {
+            recipeRepository.getRecipe(id).collect { result ->
+                if (result is Result.Success) {
+                    _uiState.update {
+                        it.copy(linkedRecipe = result.data.toSummary())
+                    }
+                }
+            }
+        }
+    }
 
     fun addPhoto(uri: Uri) {
         val currentPhotos = _uiState.value.photos

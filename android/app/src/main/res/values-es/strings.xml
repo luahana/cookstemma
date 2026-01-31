@@ -170,6 +170,12 @@
     <string name="privacy">Privacidad</string>
     <string name="manage_blocked_users">Gestionar usuarios bloqueados</string>
     <string name="measurement_units">Unidades de medida</string>
+    <string name="units_original">Original</string>
+    <string name="units_original_description">Mostrar ingredientes en sus unidades originales</string>
+    <string name="units_metric">Métrico</string>
+    <string name="units_metric_description">Convertir a unidades métricas (ml, L, g, kg)</string>
+    <string name="units_us">US</string>
+    <string name="units_us_description">Convertir a unidades estadounidenses (taza, cda, cdta, oz, lb)</string>
     <string name="original">Original</string>
     <string name="support">Soporte</string>
     <string name="send_feedback">Enviar comentarios</string>

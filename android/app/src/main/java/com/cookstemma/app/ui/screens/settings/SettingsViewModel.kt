@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cookstemma.app.data.auth.TokenManager
+import com.cookstemma.app.data.local.MeasurementPreferencesDataStore
 import com.cookstemma.app.data.local.ThemePreferencesDataStore
 import com.cookstemma.app.data.repository.AuthRepository
 import com.cookstemma.app.data.repository.UserRepository
+import com.cookstemma.app.domain.model.MeasurementPreference
 import com.cookstemma.app.domain.model.Result
 import com.cookstemma.app.util.AppLanguage
 import com.cookstemma.app.util.LanguageManager
@@ -28,6 +30,7 @@ enum class AppTheme(val displayName: String) {
 data class SettingsUiState(
     val appTheme: AppTheme = AppTheme.SYSTEM,
     val currentLanguage: AppLanguage = AppLanguage.ENGLISH,
+    val measurementPreference: MeasurementPreference = MeasurementPreference.ORIGINAL,
     val appVersion: String = "1.0.0",
     val isLoggingOut: Boolean = false,
     val isDeletingAccount: Boolean = false,
@@ -43,6 +46,7 @@ class SettingsViewModel @Inject constructor(
     private val tokenManager: TokenManager,
     private val languageManager: LanguageManager,
     private val themePreferencesDataStore: ThemePreferencesDataStore,
+    private val measurementPreferencesDataStore: MeasurementPreferencesDataStore,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -52,17 +56,20 @@ class SettingsViewModel @Inject constructor(
     init {
         loadSettings()
         observeThemeChanges()
+        observeMeasurementChanges()
     }
 
     private fun loadSettings() {
         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         val currentLanguage = languageManager.getCurrentLanguage()
         val savedTheme = themePreferencesDataStore.currentTheme
+        val savedMeasurement = measurementPreferencesDataStore.currentPreference
         _uiState.update {
             it.copy(
                 appVersion = packageInfo.versionName ?: "1.0.0",
                 currentLanguage = currentLanguage,
-                appTheme = savedTheme
+                appTheme = savedTheme,
+                measurementPreference = savedMeasurement
             )
         }
     }
@@ -75,8 +82,20 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    private fun observeMeasurementChanges() {
+        viewModelScope.launch {
+            measurementPreferencesDataStore.measurementPreference.collect { preference ->
+                _uiState.update { it.copy(measurementPreference = preference) }
+            }
+        }
+    }
+
     fun setTheme(theme: AppTheme) {
         themePreferencesDataStore.setTheme(theme)
+    }
+
+    fun setMeasurementPreference(preference: MeasurementPreference) {
+        measurementPreferencesDataStore.setPreference(preference)
     }
 
     fun setLanguage(language: AppLanguage) {

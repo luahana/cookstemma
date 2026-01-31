@@ -170,6 +170,12 @@
     <string name="privacy">Datenschutz</string>
     <string name="manage_blocked_users">Blockierte Benutzer verwalten</string>
     <string name="measurement_units">Maßeinheiten</string>
+    <string name="units_original">Original</string>
+    <string name="units_original_description">Zutaten in Originaleinheiten anzeigen</string>
+    <string name="units_metric">Metrisch</string>
+    <string name="units_metric_description">In metrische Einheiten umrechnen (ml, L, g, kg)</string>
+    <string name="units_us">US</string>
+    <string name="units_us_description">In US-Einheiten umrechnen (Tasse, EL, TL, oz, lb)</string>
     <string name="original">Original</string>
     <string name="support">Support</string>
     <string name="send_feedback">Feedback senden</string>

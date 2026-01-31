@@ -170,6 +170,12 @@
     <string name="privacy">Privacy</string>
     <string name="manage_blocked_users">Manage blocked users</string>
     <string name="measurement_units">Measurement Units</string>
+    <string name="units_original">Original</string>
+    <string name="units_original_description">Display ingredients in their original units</string>
+    <string name="units_metric">Metric</string>
+    <string name="units_metric_description">Convert to metric units (ml, L, g, kg)</string>
+    <string name="units_us">US</string>
+    <string name="units_us_description">Convert to US units (cup, tbsp, tsp, oz, lb)</string>
     <string name="original">Original</string>
     <string name="support">Support</string>
     <string name="send_feedback">Send Feedback</string>
