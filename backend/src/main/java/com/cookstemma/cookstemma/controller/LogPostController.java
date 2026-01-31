@@ -13,6 +13,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -137,6 +138,7 @@ public class LogPostController {
      * GET /api/v1/log_posts/saved?cursor=xxx&size=20 (mobile)
      * GET /api/v1/log_posts/saved?page=0&size=20 (web)
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/saved")
     public ResponseEntity<UnifiedPageResponse<LogPostSummaryDto>> getSavedLogs(
             @AuthenticationPrincipal UserPrincipal principal,

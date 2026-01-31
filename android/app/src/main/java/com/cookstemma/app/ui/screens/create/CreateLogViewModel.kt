@@ -14,8 +14,17 @@ import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
 
+enum class PhotoState {
+    LOADING, SUCCESS, ERROR
+}
+
+data class PhotoItem(
+    val uri: Uri,
+    val state: PhotoState = PhotoState.LOADING
+)
+
 data class CreateLogUiState(
-    val photos: List<Uri> = emptyList(),
+    val photos: List<PhotoItem> = emptyList(),
     val rating: Int = 0,
     val linkedRecipe: RecipeSummary? = null,
     val content: String = "",
@@ -30,11 +39,14 @@ data class CreateLogUiState(
     val isSubmitSuccess: Boolean = false
 ) {
     val canSubmit: Boolean
-        get() = photos.isNotEmpty() && rating > 0 && !isSubmitting
+        get() = photos.isNotEmpty() &&
+                photos.all { it.state == PhotoState.SUCCESS } &&
+                rating > 0 &&
+                !isSubmitting
 
     val photosRemaining: Int
         get() = 3 - photos.size
-    
+
     val hashtagsRemaining: Int
         get() = 10 - hashtags.size
 }
@@ -71,16 +83,64 @@ class CreateLogViewModel @Inject constructor(
     fun addPhoto(uri: Uri) {
         val currentPhotos = _uiState.value.photos
         if (currentPhotos.size < 3) {
-            _uiState.update { it.copy(photos = currentPhotos + uri) }
+            // Add photo with loading state
+            val newPhoto = PhotoItem(uri = uri, state = PhotoState.LOADING)
+            _uiState.update { it.copy(photos = currentPhotos + newPhoto) }
+
+            // Simulate loading and validate the image
+            viewModelScope.launch {
+                kotlinx.coroutines.delay(500) // Brief loading state
+                validatePhoto(uri)
+            }
+        }
+    }
+
+    private fun validatePhoto(uri: Uri) {
+        // Update photo state to success (in a real app, you might validate the image here)
+        _uiState.update { state ->
+            state.copy(
+                photos = state.photos.map { photo ->
+                    if (photo.uri == uri) photo.copy(state = PhotoState.SUCCESS)
+                    else photo
+                }
+            )
+        }
+    }
+
+    fun setPhotoError(uri: Uri) {
+        _uiState.update { state ->
+            state.copy(
+                photos = state.photos.map { photo ->
+                    if (photo.uri == uri) photo.copy(state = PhotoState.ERROR)
+                    else photo
+                }
+            )
+        }
+    }
+
+    fun retryPhoto(uri: Uri) {
+        _uiState.update { state ->
+            state.copy(
+                photos = state.photos.map { photo ->
+                    if (photo.uri == uri) photo.copy(state = PhotoState.LOADING)
+                    else photo
+                }
+            )
+        }
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(500)
+            validatePhoto(uri)
         }
     }
 
     fun removePhoto(uri: Uri) {
-        _uiState.update { it.copy(photos = it.photos - uri) }
+        _uiState.update { it.copy(photos = it.photos.filter { photo -> photo.uri != uri }) }
     }
 
     fun reorderPhotos(fromIndex: Int, toIndex: Int) {
+        if (fromIndex == toIndex) return
         val photos = _uiState.value.photos.toMutableList()
+        if (fromIndex !in photos.indices || toIndex !in photos.indices) return
         val item = photos.removeAt(fromIndex)
         photos.add(toIndex, item)
         _uiState.update { it.copy(photos = photos) }

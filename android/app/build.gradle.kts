@@ -56,7 +56,7 @@ android {
         create("prod") {
             dimension = "environment"
             // No suffix for production
-            buildConfigField("String", "API_BASE_URL", "\"https://api.cookstemma.com/api/v1/\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://cookstemma.com/api/v1/\"")
             resValue("string", "app_name", "Cookstemma")
         }
     }

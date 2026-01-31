@@ -1,11 +1,16 @@
 package com.cookstemma.app.ui.screens.create
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -19,21 +24,30 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cookstemma.app.R
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import com.cookstemma.app.domain.model.RecipeSummary
 import com.cookstemma.app.ui.components.AppIcons
 import com.cookstemma.app.ui.components.StarRating
 import com.cookstemma.app.ui.theme.Spacing
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -47,12 +61,51 @@ fun CreateLogScreen(
     val uiState by viewModel.uiState.collectAsState()
     var hashtagInput by remember { mutableStateOf("") }
     var showRecipeSearchSheet by remember { mutableStateOf(false) }
+    var showPhotoPickerDialog by remember { mutableStateOf(false) }
+    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
 
+    // Gallery picker launcher
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris ->
         uris.take(uiState.photosRemaining).forEach { uri ->
             viewModel.addPhoto(uri)
+        }
+    }
+
+    // Camera launcher
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempCameraUri != null) {
+            viewModel.addPhoto(tempCameraUri!!)
+        }
+    }
+
+    // Camera permission launcher
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Permission granted, launch camera
+            tempCameraUri = createTempImageUri(context)
+            tempCameraUri?.let { cameraLauncher.launch(it) }
+        }
+    }
+
+    // Function to launch camera with permission check
+    fun launchCamera() {
+        when {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                tempCameraUri = createTempImageUri(context)
+                tempCameraUri?.let { cameraLauncher.launch(it) }
+            }
+            else -> {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
         }
     }
 
@@ -99,8 +152,8 @@ fun CreateLogScreen(
             // Submit button
             IconButton(
                 onClick = {
-                    val photoFiles = uiState.photos.mapNotNull { uri ->
-                        uriToFile(context, uri)
+                    val photoFiles = uiState.photos.mapNotNull { photoItem ->
+                        uriToFile(context, photoItem.uri)
                     }
                     if (photoFiles.isNotEmpty()) {
                         viewModel.submit(photoFiles)
@@ -143,12 +196,14 @@ fun CreateLogScreen(
 
             HorizontalDivider()
 
-            // Photo Section (3 fixed slots like iOS)
+            // Photo Section (3 fixed slots like iOS) with drag and drop
             PhotoSection(
                 photos = uiState.photos,
                 maxPhotos = 3,
-                onAddPhoto = { photoPickerLauncher.launch("image/*") },
-                onRemovePhoto = viewModel::removePhoto
+                onAddPhoto = { showPhotoPickerDialog = true },
+                onRemovePhoto = { viewModel.removePhoto(it) },
+                onReorderPhotos = viewModel::reorderPhotos,
+                onRetryPhoto = viewModel::retryPhoto
             )
 
             HorizontalDivider()
@@ -219,6 +274,21 @@ fun CreateLogScreen(
             onSearchQueryChange = viewModel::setRecipeSearchQuery,
             searchResults = uiState.recipeSearchResults,
             isSearching = uiState.isSearchingRecipes
+        )
+    }
+
+    // Photo Picker Dialog (Camera or Gallery)
+    if (showPhotoPickerDialog) {
+        PhotoPickerDialog(
+            onDismiss = { showPhotoPickerDialog = false },
+            onCameraClick = {
+                showPhotoPickerDialog = false
+                launchCamera()
+            },
+            onGalleryClick = {
+                showPhotoPickerDialog = false
+                photoPickerLauncher.launch("image/*")
+            }
         )
     }
 }
@@ -304,15 +374,22 @@ private fun RecipeLinkSection(
     }
 }
 
-// MARK: - Photo Section (3 Fixed Slots like iOS)
+// MARK: - Photo Section (3 Fixed Slots like iOS) with drag and drop
 @Composable
 private fun PhotoSection(
-    photos: List<Uri>,
+    photos: List<PhotoItem>,
     maxPhotos: Int,
     onAddPhoto: () -> Unit,
-    onRemovePhoto: (Uri) -> Unit
+    onRemovePhoto: (Uri) -> Unit,
+    onReorderPhotos: (Int, Int) -> Unit,
+    onRetryPhoto: (Uri) -> Unit
 ) {
     val slotSize = 100.dp
+    val slotSizePx = with(LocalDensity.current) { slotSize.toPx() }
+    val spacingPx = with(LocalDensity.current) { Spacing.sm.toPx() }
+
+    var draggedIndex by remember { mutableStateOf<Int?>(null) }
+    var dragOffset by remember { mutableStateOf(0f) }
 
     Row(
         modifier = Modifier
@@ -321,28 +398,138 @@ private fun PhotoSection(
         horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
     ) {
         repeat(maxPhotos) { index ->
+            val isDragging = draggedIndex == index
+            val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp, label = "elevation")
+
             if (index < photos.size) {
-                // Filled slot
+                val photoItem = photos[index]
+                // Filled slot with drag support
                 Box(
                     modifier = Modifier
                         .size(slotSize)
+                        .zIndex(if (isDragging) 1f else 0f)
+                        .offset {
+                            if (isDragging) IntOffset(dragOffset.roundToInt(), 0)
+                            else IntOffset.Zero
+                        }
+                        .shadow(elevation, RoundedCornerShape(Spacing.sm))
                         .clip(RoundedCornerShape(Spacing.sm))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .then(
+                            if (photoItem.state == PhotoState.SUCCESS) {
+                                Modifier.pointerInput(index) {
+                                    detectDragGesturesAfterLongPress(
+                                        onDragStart = {
+                                            draggedIndex = index
+                                        },
+                                        onDrag = { change, dragAmount ->
+                                            change.consume()
+                                            dragOffset += dragAmount.x
+
+                                            // Calculate target index based on drag position
+                                            val targetIndex = (index + (dragOffset / (slotSizePx + spacingPx)).roundToInt())
+                                                .coerceIn(0, photos.size - 1)
+
+                                            if (targetIndex != index && draggedIndex == index) {
+                                                onReorderPhotos(index, targetIndex)
+                                                draggedIndex = targetIndex
+                                                dragOffset = 0f
+                                            }
+                                        },
+                                        onDragEnd = {
+                                            draggedIndex = null
+                                            dragOffset = 0f
+                                        },
+                                        onDragCancel = {
+                                            draggedIndex = null
+                                            dragOffset = 0f
+                                        }
+                                    )
+                                }
+                            } else Modifier
+                        )
                 ) {
+                    // Photo image with loading state from Coil
+                    var imageState by remember { mutableStateOf<AsyncImagePainter.State?>(null) }
+
                     AsyncImage(
-                        model = photos[index],
+                        model = photoItem.uri,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        onState = { state -> imageState = state }
                     )
 
-                    // Remove button (top right)
+                    // Loading/Error overlay based on PhotoItem state
+                    when (photoItem.state) {
+                        PhotoState.LOADING -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.5f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = Color.White,
+                                    strokeWidth = 2.dp
+                                )
+                            }
+                        }
+                        PhotoState.ERROR -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.7f))
+                                    .clickable { onRetryPhoto(photoItem.uri) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Error,
+                                        contentDescription = null,
+                                        tint = Color.Red,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.tap_to_retry),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                        PhotoState.SUCCESS -> {
+                            // Success indicator (small checkmark)
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(4.dp)
+                                    .size(18.dp)
+                                    .background(Color(0xFF4CAF50), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // Remove button (top right) - always visible
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .offset(x = (-4).dp, y = 4.dp)
                             .size(20.dp)
                             .background(Color.Black.copy(alpha = 0.6f), CircleShape)
-                            .clickable { onRemovePhoto(photos[index]) },
+                            .clickable { onRemovePhoto(photoItem.uri) },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -352,6 +539,25 @@ private fun PhotoSection(
                             modifier = Modifier.size(10.dp)
                         )
                     }
+
+                    // Drag hint indicator for successful photos
+                    if (photoItem.state == PhotoState.SUCCESS && photos.size > 1) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(4.dp)
+                                .size(18.dp)
+                                .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.DragIndicator,
+                                contentDescription = "Drag to reorder",
+                                tint = Color.White,
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
+                    }
                 }
             } else {
                 // Empty slot
@@ -360,6 +566,11 @@ private fun PhotoSection(
                         .size(slotSize)
                         .clip(RoundedCornerShape(Spacing.sm))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                            shape = RoundedCornerShape(Spacing.sm)
+                        )
                         .clickable(onClick = onAddPhoto),
                     contentAlignment = Alignment.Center
                 ) {
@@ -621,7 +832,104 @@ private fun PrivacySection(
     }
 }
 
+// MARK: - Photo Picker Dialog
+@Composable
+private fun PhotoPickerDialog(
+    onDismiss: () -> Unit,
+    onCameraClick: () -> Unit,
+    onGalleryClick: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.add_photo),
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+            ) {
+                // Camera option
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onCameraClick),
+                    shape = RoundedCornerShape(Spacing.sm),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Row(
+                        modifier = Modifier.padding(Spacing.md),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.CameraAlt,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.take_photo),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+
+                // Gallery option
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onGalleryClick),
+                    shape = RoundedCornerShape(Spacing.sm),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Row(
+                        modifier = Modifier.padding(Spacing.md),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.PhotoLibrary,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.choose_from_gallery),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
 // MARK: - Helper Functions
+private fun createTempImageUri(context: Context): Uri? {
+    return try {
+        val tempFile = File.createTempFile(
+            "camera_photo_${System.currentTimeMillis()}",
+            ".jpg",
+            context.cacheDir
+        )
+        FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            tempFile
+        )
+    } catch (e: Exception) {
+        null
+    }
+}
+
 private fun uriToFile(context: Context, uri: Uri): File? {
     return try {
         val inputStream = context.contentResolver.openInputStream(uri) ?: return null
