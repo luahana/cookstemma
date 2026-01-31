@@ -84,6 +84,19 @@ struct ProfileView: View {
                 if case .idle = viewModel.state { viewModel.loadProfile() }
             }
         }
+        .onChange(of: authManager.currentUser?.id) { oldId, newId in
+            // When user changes (login/logout/switch account), reset and reload profile
+            guard isViewingOwnProfile else { return }
+            #if DEBUG
+            print("[ProfileView] User changed: \(oldId ?? "nil") -> \(newId ?? "nil")")
+            #endif
+            if oldId != newId {
+                viewModel.reset()
+                if authManager.isAuthenticated {
+                    viewModel.loadProfile()
+                }
+            }
+        }
         .onReceive(appState.$profileScrollToTopTrigger.dropFirst()) { _ in
             // Only handle for own profile tab (not when viewing other users)
             guard isViewingOwnProfile else { return }

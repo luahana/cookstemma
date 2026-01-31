@@ -355,4 +355,29 @@ final class ProfileViewModel: ObservableObject {
         await loadSavedContent(refresh: true)
         savedContentNeedsRefresh = false
     }
+
+    /// Reset all state (called when user changes)
+    func reset() {
+        #if DEBUG
+        print("[Profile] Resetting profile state")
+        #endif
+        state = .idle
+        profile = nil
+        myProfile = nil
+        recipes = []
+        logs = []
+        savedRecipes = []
+        savedLogs = []
+        recipesNextCursor = nil
+        logsNextCursor = nil
+        savedRecipesNextCursor = nil
+        savedLogsNextCursor = nil
+        hasMoreRecipes = true
+        hasMoreLogs = true
+        hasMoreSavedRecipes = true
+        hasMoreSavedLogs = true
+        selectedTab = .recipes
+        savedCountAdjustment = 0
+        savedContentNeedsRefresh = false
+    }
 }
