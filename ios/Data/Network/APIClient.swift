@@ -10,7 +10,7 @@ enum APIConfiguration {
     // static let baseURL = URL(string: "http://192.168.1.100:4000/api/v1")!
     static let baseURL = URL(string: "https://dev.cookstemma.com/api/v1")!
     #else
-    static let baseURL = URL(string: "https://api.cookstemma.com/api/v1")!
+    static let baseURL = URL(string: "https://cookstemma.com/api/v1")!
     #endif
     static let timeout: TimeInterval = 30
 }
