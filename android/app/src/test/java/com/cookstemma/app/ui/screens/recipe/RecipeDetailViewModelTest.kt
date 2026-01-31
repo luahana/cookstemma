@@ -1,6 +1,7 @@
 package com.cookstemma.app.ui.screens.recipe
 
 import app.cash.turbine.test
+import com.cookstemma.app.data.local.MeasurementPreferencesDataStore
 import com.cookstemma.app.data.repository.RecipeRepository
 import com.cookstemma.app.data.repository.SavedItemsManager
 import com.cookstemma.app.domain.model.*
@@ -22,6 +23,7 @@ class RecipeDetailViewModelTest {
 
     private lateinit var recipeRepository: RecipeRepository
     private lateinit var savedItemsManager: SavedItemsManager
+    private lateinit var measurementPreferencesDataStore: MeasurementPreferencesDataStore
     private lateinit var savedStateHandle: androidx.lifecycle.SavedStateHandle
     private lateinit var viewModel: RecipeDetailViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -32,6 +34,7 @@ class RecipeDetailViewModelTest {
         Dispatchers.setMain(testDispatcher)
         recipeRepository = mockk()
         savedItemsManager = mockk(relaxed = true)
+        measurementPreferencesDataStore = mockk(relaxed = true)
         savedStateHandle = mockk()
         every { savedStateHandle.get<String>("recipeId") } returns "recipe-123"
         every { savedItemsManager.savedRecipeIds } returns savedRecipeIdsFlow
@@ -49,7 +52,7 @@ class RecipeDetailViewModelTest {
         coEvery { recipeRepository.getRecipe("recipe-123") } returns flowOf(Result.Loading)
         coEvery { recipeRepository.getRecipeLogs("recipe-123", 0) } returns flowOf(Result.Loading)
 
-        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager)
+        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager, measurementPreferencesDataStore)
 
         viewModel.uiState.test {
             val state = awaitItem()
@@ -65,7 +68,7 @@ class RecipeDetailViewModelTest {
             Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
 
-        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager)
+        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager, measurementPreferencesDataStore)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.test {
@@ -82,7 +85,7 @@ class RecipeDetailViewModelTest {
         coEvery { recipeRepository.getRecipe("recipe-123") } returns flowOf(Result.Error(error))
         coEvery { recipeRepository.getRecipeLogs("recipe-123", any()) } returns flowOf(Result.Loading)
 
-        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager)
+        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager, measurementPreferencesDataStore)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.test {
@@ -103,7 +106,7 @@ class RecipeDetailViewModelTest {
             Result.Success(PaginatedResponse(mockLogs, "cursor-1", true))
         )
 
-        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager)
+        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager, measurementPreferencesDataStore)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.test {
@@ -127,7 +130,7 @@ class RecipeDetailViewModelTest {
             Result.Success(PaginatedResponse(moreLogs, null, false))
         )
 
-        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager)
+        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager, measurementPreferencesDataStore)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.loadMoreLogs()
@@ -148,7 +151,7 @@ class RecipeDetailViewModelTest {
             Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
 
-        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager)
+        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager, measurementPreferencesDataStore)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.loadMoreLogs()
@@ -168,7 +171,7 @@ class RecipeDetailViewModelTest {
             Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
 
-        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager)
+        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager, measurementPreferencesDataStore)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.toggleSave()
@@ -185,7 +188,7 @@ class RecipeDetailViewModelTest {
             Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
 
-        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager)
+        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager, measurementPreferencesDataStore)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Simulate manager updating saved state
@@ -207,7 +210,7 @@ class RecipeDetailViewModelTest {
             Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
 
-        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager)
+        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager, measurementPreferencesDataStore)
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Simulate manager removing saved state
@@ -230,7 +233,7 @@ class RecipeDetailViewModelTest {
             Result.Success(PaginatedResponse(emptyList<RecipeLogItem>(), null, false))
         )
 
-        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager)
+        viewModel = RecipeDetailViewModel(savedStateHandle, recipeRepository, savedItemsManager, measurementPreferencesDataStore)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.refresh()
