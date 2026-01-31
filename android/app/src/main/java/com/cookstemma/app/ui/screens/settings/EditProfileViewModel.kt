@@ -28,9 +28,13 @@ data class EditProfileUiState(
     val usernameFormatError: String? = null
 ) {
     val canSave: Boolean
-        get() = !isSaving && usernameFormatError == null &&
+        get() {
+            val result = !isSaving && usernameFormatError == null &&
                 (usernameAvailable == true || username == originalUsername) &&
                 username.isNotBlank()
+            android.util.Log.d("EditProfile", "canSave=$result isSaving=$isSaving usernameFormatError=$usernameFormatError usernameAvailable=$usernameAvailable username=$username originalUsername=$originalUsername")
+            return result
+        }
 
     val canCheckUsername: Boolean
         get() = !isCheckingUsername && username != originalUsername &&
@@ -76,6 +80,7 @@ class EditProfileViewModel @Inject constructor(
                                 avatarUrl = profile.avatarUrl,
                                 username = profile.username ?: "",
                                 originalUsername = profile.username ?: "",
+                                usernameAvailable = true,
                                 bio = profile.bio ?: "",
                                 youtubeUrl = profile.youtubeUrl ?: "",
                                 instagramHandle = profile.instagramHandle ?: ""
@@ -142,6 +147,7 @@ class EditProfileViewModel @Inject constructor(
 
     fun saveProfile() {
         viewModelScope.launch {
+            android.util.Log.d("EditProfile", "saveProfile called, canSave=${_uiState.value.canSave}")
             _uiState.update { it.copy(isSaving = true, error = null) }
 
             val state = _uiState.value
@@ -150,18 +156,26 @@ class EditProfileViewModel @Inject constructor(
             val youtubeToSend = state.youtubeUrl.ifBlank { null }
             val instagramToSend = state.instagramHandle.ifBlank { null }
 
+            android.util.Log.d("EditProfile", "Calling updateProfile: username=$usernameToSend bio=$bioToSend youtube=$youtubeToSend instagram=$instagramToSend")
+
             // TODO: Handle avatar upload with MultipartBody.Part if newAvatarUri is set
 
-            when (val result = userRepository.updateProfile(
+            val result = userRepository.updateProfile(
                 username = usernameToSend,
                 bio = bioToSend,
                 youtubeUrl = youtubeToSend,
                 instagramHandle = instagramToSend
-            )) {
+            )
+
+            android.util.Log.d("EditProfile", "updateProfile result: $result")
+
+            when (result) {
                 is Result.Success -> {
+                    android.util.Log.d("EditProfile", "updateProfile SUCCESS, setting saveSuccess=true")
                     _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
                 }
                 is Result.Error -> {
+                    android.util.Log.e("EditProfile", "updateProfile ERROR: ${result.exception.message}", result.exception)
                     _uiState.update { it.copy(isSaving = false, error = result.exception.message) }
                 }
                 is Result.Loading -> { }

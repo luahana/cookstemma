@@ -280,16 +280,22 @@ interface ApiService {
     @DELETE("notifications/fcm-token")
     suspend fun unregisterFcmToken(@Query("token") token: String)
 
-    // Profile Management
-    @Multipart
+    // Profile Management - without avatar
     @PATCH("users/me")
     suspend fun updateProfile(
-        @Part avatar: MultipartBody.Part? = null,
-        @Query("username") username: String? = null,
-        @Query("bio") bio: String? = null,
-        @Query("youtubeUrl") youtubeUrl: String? = null,
-        @Query("instagramHandle") instagramHandle: String? = null
-    ): MyProfileResponse
+        @Body request: UpdateProfileRequest
+    ): UserInfoDto
+
+    // Profile Management - with avatar
+    @Multipart
+    @PATCH("users/me")
+    suspend fun updateProfileWithAvatar(
+        @Part avatar: MultipartBody.Part,
+        @Part("username") username: okhttp3.RequestBody? = null,
+        @Part("bio") bio: okhttp3.RequestBody? = null,
+        @Part("youtubeUrl") youtubeUrl: okhttp3.RequestBody? = null,
+        @Part("instagramHandle") instagramHandle: okhttp3.RequestBody? = null
+    ): UserInfoDto
 
     @GET("users/check-username")
     suspend fun checkUsernameAvailability(@Query("username") username: String): UsernameAvailabilityResponse
@@ -430,4 +436,10 @@ data class BlockedUser(
     val username: String,
     val avatarUrl: String?,
     val blockedAt: String
+)
+data class UpdateProfileRequest(
+    val username: String? = null,
+    val bio: String? = null,
+    val youtubeUrl: String? = null,
+    val instagramHandle: String? = null
 )

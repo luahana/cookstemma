@@ -4,11 +4,15 @@ import com.cookstemma.app.data.api.ApiService
 import com.cookstemma.app.data.api.BlockedUser
 import com.cookstemma.app.data.api.MyProfileResponse
 import com.cookstemma.app.data.api.PagedResponse
+import com.cookstemma.app.data.api.UpdateProfileRequest
+import com.cookstemma.app.data.api.UserInfoDto
 import com.cookstemma.app.data.api.UserProfileResponse
 import com.cookstemma.app.domain.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -107,16 +111,34 @@ class UserRepository @Inject constructor(
         youtubeUrl: String? = null,
         instagramHandle: String? = null
     ): Result<MyProfile> = try {
-        val response = apiService.updateProfile(
-            avatar = avatar,
-            username = username,
-            bio = bio,
-            youtubeUrl = youtubeUrl,
-            instagramHandle = instagramHandle
-        )
-        Result.Success(response.toDomain())
+        android.util.Log.d("UserRepository", "updateProfile called: username=$username bio=$bio youtubeUrl=$youtubeUrl instagramHandle=$instagramHandle avatar=${avatar != null}")
+        val response = if (avatar != null) {
+            apiService.updateProfileWithAvatar(
+                avatar = avatar,
+                username = username?.toRequestBody(),
+                bio = bio?.toRequestBody(),
+                youtubeUrl = youtubeUrl?.toRequestBody(),
+                instagramHandle = instagramHandle?.toRequestBody()
+            )
+        } else {
+            apiService.updateProfile(
+                UpdateProfileRequest(
+                    username = username,
+                    bio = bio,
+                    youtubeUrl = youtubeUrl,
+                    instagramHandle = instagramHandle
+                )
+            )
+        }
+        android.util.Log.d("UserRepository", "updateProfile success: ${response.username}")
+        Result.Success(response.toMyProfile())
     } catch (e: Exception) {
+        android.util.Log.e("UserRepository", "updateProfile error: ${e.message}", e)
         Result.Error(e)
+    }
+
+    private fun String.toRequestBody(): okhttp3.RequestBody {
+        return this.toRequestBody("text/plain".toMediaTypeOrNull())
     }
 
     suspend fun checkUsernameAvailability(username: String): Result<Boolean> = try {
@@ -185,6 +207,29 @@ fun MyProfileResponse.toDomain() = MyProfile(
     socialLinks = null,
     youtubeUrl = user.youtubeUrl,
     instagramHandle = user.instagramHandle,
+    createdAt = null
+)
+
+// Extension for UserInfoDto (returned by PATCH /users/me)
+fun UserInfoDto.toMyProfile() = MyProfile(
+    id = id,
+    username = username,
+    displayName = null,
+    email = null,
+    avatarUrl = profileImageUrl,
+    bio = bio,
+    level = level,
+    levelName = levelName,
+    xp = totalXp ?: 0,
+    levelProgress = levelProgress ?: 0.0,
+    recipeCount = recipeCount,
+    logCount = logCount,
+    followerCount = followerCount,
+    followingCount = followingCount,
+    savedCount = 0,
+    socialLinks = null,
+    youtubeUrl = youtubeUrl,
+    instagramHandle = instagramHandle,
     createdAt = null
 )
 
