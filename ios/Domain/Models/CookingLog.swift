@@ -170,7 +170,15 @@ struct CookingLogDetail: Codable, Identifiable, Equatable {
 
     /// Convert to FeedLogItem for use in saved content list
     var asFeedLogItem: FeedLogItem {
-        FeedLogItem(
+        #if DEBUG
+        print("[CookingLogDetail] asFeedLogItem - id: \(id), logImages.count: \(logImages.count)")
+        if let firstImage = logImages.first {
+            print("[CookingLogDetail] asFeedLogItem - thumbnailUrl: \(firstImage.imageUrl)")
+        } else {
+            print("[CookingLogDetail] asFeedLogItem - NO IMAGES AVAILABLE")
+        }
+        #endif
+        return FeedLogItem(
             id: id,
             title: title,
             content: content,

@@ -9,6 +9,8 @@ final class MockRecipeRepository: RecipeRepositoryProtocol {
     var getRecipeResult: RepositoryResult<RecipeDetail>?
     var saveRecipeCalled = false
     var unsaveRecipeCalled = false
+    var saveRecipeResult: RepositoryResult<Void> = .success(())
+    var unsaveRecipeResult: RepositoryResult<Void> = .success(())
 
     func getRecipes(cursor: String?, filters: RecipeFilters?) async -> RepositoryResult<PaginatedResponse<RecipeSummary>> {
         return getRecipesResult
@@ -25,12 +27,12 @@ final class MockRecipeRepository: RecipeRepositoryProtocol {
 
     func saveRecipe(id: String) async -> RepositoryResult<Void> {
         saveRecipeCalled = true
-        return .success(())
+        return saveRecipeResult
     }
 
     func unsaveRecipe(id: String) async -> RepositoryResult<Void> {
         unsaveRecipeCalled = true
-        return .success(())
+        return unsaveRecipeResult
     }
 
     func isRecipeSaved(id: String) async -> RepositoryResult<Bool> {
@@ -57,6 +59,8 @@ final class MockCookingLogRepository: CookingLogRepositoryProtocol {
     var unlikeLogCalled = false
     var saveLogCalled = false
     var unsaveLogCalled = false
+    var saveLogResult: RepositoryResult<Void> = .success(())
+    var unsaveLogResult: RepositoryResult<Void> = .success(())
 
     func getHomeFeed() async -> RepositoryResult<HomeFeedResponse> {
         return getHomeFeedResult
@@ -98,12 +102,12 @@ final class MockCookingLogRepository: CookingLogRepositoryProtocol {
 
     func saveLog(id: String) async -> RepositoryResult<Void> {
         saveLogCalled = true
-        return .success(())
+        return saveLogResult
     }
 
     func unsaveLog(id: String) async -> RepositoryResult<Void> {
         unsaveLogCalled = true
-        return .success(())
+        return unsaveLogResult
     }
 }
 

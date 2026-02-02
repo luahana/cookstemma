@@ -18,33 +18,26 @@ final class RecipesListViewModel: ObservableObject {
     var hasActiveFilters: Bool { !filters.isEmpty }
 
     private let recipeRepository: RecipeRepositoryProtocol
-    private let savedContentRepository: SavedContentRepositoryProtocol
     private var nextCursor: String?
     private var loadTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
-    private var hasFetchedSavedIds = false
 
-    init(
-        recipeRepository: RecipeRepositoryProtocol = RecipeRepository(),
-        savedContentRepository: SavedContentRepositoryProtocol = SavedContentRepository()
-    ) {
+    init(recipeRepository: RecipeRepositoryProtocol = RecipeRepository()) {
         self.recipeRepository = recipeRepository
-        self.savedContentRepository = savedContentRepository
         setupSearchDebounce()
         setupSaveStateObserver()
     }
 
     private func setupSaveStateObserver() {
-        NotificationCenter.default.publisher(for: .recipeSaveStateChanged)
+        // Observe SavedItemsManager for save state changes
+        SavedItemsManager.shared.$savedRecipeIds
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] notification in
-                guard let recipeId = notification.userInfo?["recipeId"] as? String,
-                      let isSaved = notification.userInfo?["isSaved"] as? Bool else { return }
-                if isSaved {
-                    self?.savedRecipeIds.insert(recipeId)
-                } else {
-                    self?.savedRecipeIds.remove(recipeId)
-                }
+            .sink { [weak self] savedIds in
+                guard let self = self else { return }
+                self.savedRecipeIds = savedIds
+                #if DEBUG
+                print("[RecipesList] savedRecipeIds updated: \(savedIds.count) items")
+                #endif
             }
             .store(in: &cancellables)
     }
@@ -66,34 +59,8 @@ final class RecipesListViewModel: ObservableObject {
     }
 
     func saveRecipe(_ recipe: RecipeSummary) async {
-        let wasSaved = savedRecipeIds.contains(recipe.id)
-
-        // Optimistic update
-        if wasSaved {
-            savedRecipeIds.remove(recipe.id)
-        } else {
-            savedRecipeIds.insert(recipe.id)
-        }
-
-        let result = wasSaved
-            ? await recipeRepository.unsaveRecipe(id: recipe.id)
-            : await recipeRepository.saveRecipe(id: recipe.id)
-
-        // Revert on failure or notify on success
-        if case .failure = result {
-            if wasSaved {
-                savedRecipeIds.insert(recipe.id)
-            } else {
-                savedRecipeIds.remove(recipe.id)
-            }
-        } else {
-            // Notify other views about save state change
-            NotificationCenter.default.post(
-                name: .recipeSaveStateChanged,
-                object: nil,
-                userInfo: ["recipeId": recipe.id, "isSaved": !wasSaved]
-            )
-        }
+        // Delegate to SavedItemsManager which handles optimistic updates and API calls
+        await SavedItemsManager.shared.toggleSaveRecipe(id: recipe.id, summary: recipe)
     }
 
     func isRecipeSaved(_ recipeId: String) -> Bool {
@@ -113,7 +80,7 @@ final class RecipesListViewModel: ObservableObject {
 
         // Fetch recipes and saved IDs in parallel
         async let recipesTask = recipeRepository.getRecipes(cursor: nil, filters: filters)
-        async let savedTask = fetchSavedRecipeIds()
+        async let savedTask = SavedItemsManager.shared.fetchSavedRecipes()
 
         let result = await recipesTask
         await savedTask
@@ -134,30 +101,6 @@ final class RecipesListViewModel: ObservableObject {
             #endif
             state = .error(error.localizedDescription)
         }
-    }
-
-    private func fetchSavedRecipeIds() async {
-        // Only fetch once per session to avoid excessive API calls
-        guard !hasFetchedSavedIds else { return }
-
-        // Fetch all saved recipes to get their IDs
-        var allSavedIds: Set<String> = []
-        var cursor: String? = nil
-
-        repeat {
-            let result = await savedContentRepository.getSavedRecipes(cursor: cursor)
-            guard case .success(let response) = result else { break }
-
-            allSavedIds.formUnion(response.content.map { $0.id })
-            cursor = response.hasMore ? response.nextCursor : nil
-        } while cursor != nil
-
-        savedRecipeIds = allSavedIds
-        hasFetchedSavedIds = true
-
-        #if DEBUG
-        print("[RecipesList] Fetched \(allSavedIds.count) saved recipe IDs")
-        #endif
     }
 
     private func performLoadMore() async {

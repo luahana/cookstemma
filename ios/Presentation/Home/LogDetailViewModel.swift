@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 enum LogDetailState: Equatable { case idle, loading, loaded, error(String) }
 
@@ -11,6 +12,7 @@ final class LogDetailViewModel: ObservableObject {
     private let logId: String
     private let logRepository: CookingLogRepositoryProtocol
     private let userRepository: UserRepositoryProtocol
+    private var cancellables = Set<AnyCancellable>()
 
     init(
         logId: String,
@@ -20,6 +22,26 @@ final class LogDetailViewModel: ObservableObject {
         self.logId = logId
         self.logRepository = logRepository
         self.userRepository = userRepository
+        setupSaveStateObserver()
+    }
+
+    private func setupSaveStateObserver() {
+        // Observe SavedItemsManager for save state changes from other screens
+        // Use dropFirst() to skip initial value - we get initial state from API
+        SavedItemsManager.shared.$savedLogIds
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] savedIds in
+                guard let self = self else { return }
+                let newSavedState = savedIds.contains(self.logId)
+                if self.isSaved != newSavedState {
+                    #if DEBUG
+                    print("[LogDetail] Save state observer: id=\(self.logId), inSet=\(newSavedState), current=\(self.isSaved)")
+                    #endif
+                    self.isSaved = newSavedState
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func loadLog() {
@@ -52,44 +74,34 @@ final class LogDetailViewModel: ObservableObject {
     }
 
     func toggleSave() async {
-        guard log != nil else {
+        guard let logDetail = log else {
             #if DEBUG
             print("[LogDetail] toggleSave: log is nil, returning early")
             #endif
             return
         }
-        let wasSaved = isSaved
-        isSaved = !wasSaved
+        let feedLogItem = logDetail.asFeedLogItem
         #if DEBUG
-        print("[LogDetail] toggleSave: wasSaved=\(wasSaved), now isSaved=\(isSaved)")
-        #endif
-
-        let result = wasSaved
-            ? await logRepository.unsaveLog(id: logId)
-            : await logRepository.saveLog(id: logId)
-
-        switch result {
-        case .success:
-            #if DEBUG
-            print("[LogDetail] toggleSave: API success, isSaved=\(isSaved)")
-            #endif
-            // Notify other views about save state change
-            var userInfo: [String: Any] = ["logId": logId, "isSaved": isSaved]
-            // Include feed log item when saving so profile can add it directly
-            if isSaved, let logDetail = log {
-                userInfo["feedLogItem"] = logDetail.asFeedLogItem
-            }
-            NotificationCenter.default.post(
-                name: .logSaveStateChanged,
-                object: nil,
-                userInfo: userInfo
-            )
-        case .failure(let error):
-            #if DEBUG
-            print("[LogDetail] toggleSave: API failed with error: \(error), reverting to \(wasSaved)")
-            #endif
-            isSaved = wasSaved
+        print("========== [LogDetail] TOGGLE SAVE START ==========")
+        print("[LogDetail] logId: \(logId)")
+        print("[LogDetail] feedLogItem.id: \(feedLogItem.id)")
+        print("[LogDetail] feedLogItem.thumbnailUrl: \(feedLogItem.thumbnailUrl ?? "NIL")")
+        print("[LogDetail] logDetail.logImages.count: \(logDetail.logImages.count)")
+        if let firstImage = logDetail.logImages.first {
+            print("[LogDetail] First image URL: \(firstImage.imageUrl)")
         }
+        print("[LogDetail] Calling SavedItemsManager.toggleSaveLog...")
+        #endif
+        await SavedItemsManager.shared.toggleSaveLog(
+            id: logId,
+            logItem: feedLogItem
+        )
+        #if DEBUG
+        print("[LogDetail] SavedItemsManager.toggleSaveLog completed")
+        print("[LogDetail] Current savedLogIds count: \(SavedItemsManager.shared.savedLogIds.count)")
+        print("[LogDetail] Current savedLogs count: \(SavedItemsManager.shared.savedLogs.count)")
+        print("========== [LogDetail] TOGGLE SAVE END ==========")
+        #endif
     }
 
     func blockUser() async {
