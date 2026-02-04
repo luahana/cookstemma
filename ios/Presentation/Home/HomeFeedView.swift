@@ -34,6 +34,21 @@ struct HomeFeedView: View {
                     RecipeDetailView(recipeId: recipeId)
                 }
             }
+            // Handle ProfileNavDestination for when ProfileView is pushed and uses internal NavigationLinks
+            .navigationDestination(for: ProfileNavDestination.self) { destination in
+                switch destination {
+                case .settings:
+                    SettingsView()
+                case .followers(let userId):
+                    FollowersListView(userId: userId, initialTab: .followers)
+                case .following(let userId):
+                    FollowersListView(userId: userId, initialTab: .following)
+                case .recipe(let id):
+                    RecipeDetailView(recipeId: id)
+                case .log(let id):
+                    LogDetailView(logId: id)
+                }
+            }
         }
         .onAppear { if case .idle = viewModel.state { viewModel.loadFeed() } }
         .onChange(of: appState.homeScrollToTopTrigger) { _, _ in
@@ -108,10 +123,15 @@ struct HomeFeedView: View {
     private var feedContent: some View {
         VStack(spacing: DesignSystem.Spacing.md) {
             ForEach(viewModel.feedItems) { item in
-                NavigationLink(value: HomeDestination.log(item.id)) {
-                    FeedLogCard(item: item)
-                }
-                .buttonStyle(.plain)
+                FeedLogCard(
+                    item: item,
+                    onUsernameTap: {
+                        navigationPath.append(HomeDestination.user(item.creatorPublicId))
+                    },
+                    onCardTap: {
+                        navigationPath.append(HomeDestination.log(item.id))
+                    }
+                )
                 .responsiveFrame()
                 .id("\(item.id)-\(item.thumbnailUrl ?? "")")
                 .onAppear {
@@ -133,27 +153,34 @@ struct HomeFeedView: View {
 // MARK: - Feed Log Card (Instagram Style)
 struct FeedLogCard: View {
     let item: FeedLogItem
+    var onUsernameTap: (() -> Void)?
+    var onCardTap: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header: User and Rating
             HStack {
-                HStack(spacing: DesignSystem.Spacing.xs) {
-                    Circle()
-                        .fill(DesignSystem.Colors.tertiaryBackground)
-                        .frame(width: 32, height: 32)
-                        .overlay(
-                            Text(String(item.userName.prefix(1)).uppercased())
-                                .font(DesignSystem.Typography.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(DesignSystem.Colors.secondaryText)
-                        )
+                Button {
+                    onUsernameTap?()
+                } label: {
+                    HStack(spacing: DesignSystem.Spacing.xs) {
+                        Circle()
+                            .fill(DesignSystem.Colors.tertiaryBackground)
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Text(String(item.userName.prefix(1)).uppercased())
+                                    .font(DesignSystem.Typography.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                            )
 
-                    Text(item.userName)
-                        .font(DesignSystem.Typography.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(DesignSystem.Colors.text)
+                        Text(item.userName)
+                            .font(DesignSystem.Typography.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(DesignSystem.Colors.text)
+                    }
                 }
+                .buttonStyle(.plain)
 
                 Spacer()
 
@@ -170,75 +197,83 @@ struct FeedLogCard: View {
             .padding(.horizontal, DesignSystem.Spacing.sm)
             .padding(.vertical, DesignSystem.Spacing.xs)
 
-            // Full-width Image (16:9 aspect ratio)
-            AsyncImage(url: URL(string: item.thumbnailUrl ?? "")) { img in
-                img.resizable().scaledToFill()
-            } placeholder: {
-                Rectangle()
-                    .fill(DesignSystem.Colors.tertiaryBackground)
-                    .overlay(
-                        Image(systemName: AppIcon.photo)
-                            .font(.system(size: 32))
-                            .foregroundColor(DesignSystem.Colors.secondaryText.opacity(0.5))
-                    )
+            // Tappable content area (image + footer) -> navigates to log detail
+            Button {
+                onCardTap?()
+            } label: {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Full-width Image (16:9 aspect ratio)
+                    AsyncImage(url: URL(string: item.thumbnailUrl ?? "")) { img in
+                        img.resizable().scaledToFill()
+                    } placeholder: {
+                        Rectangle()
+                            .fill(DesignSystem.Colors.tertiaryBackground)
+                            .overlay(
+                                Image(systemName: AppIcon.photo)
+                                    .font(.system(size: 32))
+                                    .foregroundColor(DesignSystem.Colors.secondaryText.opacity(0.5))
+                            )
+                    }
+                    .frame(height: 220)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+
+                    // Footer: Description, Food, Comments, Hashtags
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                        // Description
+                        if let content = item.content, !content.isEmpty {
+                            Text(content)
+                                .font(DesignSystem.Typography.body)
+                                .lineLimit(2)
+                                .truncationMode(.tail)
+                                .foregroundColor(DesignSystem.Colors.text)
+                        }
+
+                        // Food name, cooking style, and comments
+                        HStack(spacing: DesignSystem.Spacing.sm) {
+                            if let foodName = item.foodName {
+                                HStack(spacing: 4) {
+                                    Image(systemName: AppIcon.recipe)
+                                        .font(.system(size: 12))
+                                    Text(foodName)
+                                }
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.secondaryText)
+                            }
+
+                            // Cooking style badge
+                            if let style = item.cookingStyle, !style.isEmpty {
+                                HStack(spacing: 2) {
+                                    Text(style.flagEmoji)
+                                    Text(style.cookingStyleName)
+                                }
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.secondaryText)
+                            }
+
+                            if let commentCount = item.commentCount, commentCount > 0 {
+                                HStack(spacing: 4) {
+                                    Image(systemName: AppIcon.comment)
+                                        .font(.system(size: 12))
+                                    Text("\(commentCount)")
+                                }
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.secondaryText)
+                            }
+                        }
+
+                        // Hashtags
+                        if !item.hashtags.isEmpty {
+                            Text(item.hashtags.prefix(4).map { "#\($0)" }.joined(separator: " "))
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.primary)
+                                .lineLimit(1)
+                        }
+                    }
+                    .padding(DesignSystem.Spacing.sm)
+                }
             }
-            .frame(height: 220)
-            .frame(maxWidth: .infinity)
-            .clipped()
-
-            // Footer: Description, Food, Comments, Hashtags
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                // Description
-                if let content = item.content, !content.isEmpty {
-                    Text(content)
-                        .font(DesignSystem.Typography.body)
-                        .lineLimit(2)
-                        .truncationMode(.tail)
-                        .foregroundColor(DesignSystem.Colors.text)
-                }
-
-                // Food name, cooking style, and comments
-                HStack(spacing: DesignSystem.Spacing.sm) {
-                    if let foodName = item.foodName {
-                        HStack(spacing: 4) {
-                            Image(systemName: AppIcon.recipe)
-                                .font(.system(size: 12))
-                            Text(foodName)
-                        }
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.secondaryText)
-                    }
-
-                    // Cooking style badge
-                    if let style = item.cookingStyle, !style.isEmpty {
-                        HStack(spacing: 2) {
-                            Text(style.flagEmoji)
-                            Text(style.cookingStyleName)
-                        }
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.secondaryText)
-                    }
-
-                    if let commentCount = item.commentCount, commentCount > 0 {
-                        HStack(spacing: 4) {
-                            Image(systemName: AppIcon.comment)
-                                .font(.system(size: 12))
-                            Text("\(commentCount)")
-                        }
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.secondaryText)
-                    }
-                }
-
-                // Hashtags
-                if !item.hashtags.isEmpty {
-                    Text(item.hashtags.prefix(4).map { "#\($0)" }.joined(separator: " "))
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.primary)
-                        .lineLimit(1)
-                }
-            }
-            .padding(DesignSystem.Spacing.sm)
+            .buttonStyle(.plain)
         }
         .background(DesignSystem.Colors.background)
         .contentShape(Rectangle())
@@ -267,6 +302,7 @@ struct NotificationBadge: View {
 // MARK: - Recipe Card Compact (for RecipeSummary)
 struct RecipeCardCompact: View {
     let recipe: RecipeSummary
+    var onUsernameTap: (() -> Void)?
 
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.sm) {
@@ -292,9 +328,20 @@ struct RecipeCardCompact: View {
                     Text(recipe.foodName)
                         .font(DesignSystem.Typography.caption)
                         .foregroundColor(DesignSystem.Colors.secondaryText)
-                    Text("by @\(recipe.userName)")
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.tertiaryText)
+                    if let onTap = onUsernameTap {
+                        Button {
+                            onTap()
+                        } label: {
+                            Text("by @\(recipe.userName)")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.tertiaryText)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Text("by @\(recipe.userName)")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.tertiaryText)
+                    }
                 }
 
                 // Stats row (icons only)

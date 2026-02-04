@@ -770,6 +770,7 @@ struct RecipeGridCard: View {
 struct LogGridCard: View {
     let log: FeedLogItem
     var showSavedBadge: Bool = false
+    var onUsernameTap: (() -> Void)?
 
     var body: some View {
         #if DEBUG
@@ -858,10 +859,22 @@ struct LogGridCard: View {
             }
 
             // Username
-            Text("@\(log.userName)")
-                .font(DesignSystem.Typography.caption)
-                .foregroundColor(DesignSystem.Colors.secondaryText)
-                .lineLimit(1)
+            if let onTap = onUsernameTap {
+                Button {
+                    onTap()
+                } label: {
+                    Text("@\(log.userName)")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                        .lineLimit(1)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text("@\(log.userName)")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                    .lineLimit(1)
+            }
         }
     }
 }
@@ -870,6 +883,7 @@ struct LogGridCard: View {
 struct LogGridCardFromSummary: View {
     let log: CookingLogSummary
     var showSavedBadge: Bool = false
+    var onUsernameTap: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
@@ -943,10 +957,22 @@ struct LogGridCardFromSummary: View {
             }
 
             // Username
-            Text("@\(log.author.username)")
-                .font(DesignSystem.Typography.caption)
-                .foregroundColor(DesignSystem.Colors.secondaryText)
-                .lineLimit(1)
+            if let onTap = onUsernameTap {
+                Button {
+                    onTap()
+                } label: {
+                    Text("@\(log.author.username)")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                        .lineLimit(1)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text("@\(log.author.username)")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                    .lineLimit(1)
+            }
         }
     }
 }

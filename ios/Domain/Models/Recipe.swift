@@ -9,6 +9,7 @@ struct RecipeSummary: Codable, Identifiable, Equatable {
     let foodName: String
     let cookingStyle: String?
     let userName: String
+    let creatorPublicId: String?
     let thumbnail: String?
     let variantCount: Int
     let logCount: Int
@@ -21,7 +22,7 @@ struct RecipeSummary: Codable, Identifiable, Equatable {
     enum CodingKeys: String, CodingKey {
         case id = "publicId"
         case title, description, foodName, cookingStyle
-        case userName, thumbnail, variantCount, logCount
+        case userName, creatorPublicId, thumbnail, variantCount, logCount
         case servings, cookingTimeRange, hashtags, isPrivate
         case savedStatus = "isSaved"
     }
@@ -34,7 +35,7 @@ struct RecipeSummary: Codable, Identifiable, Equatable {
 
     // Memberwise initializer for manual creation
     init(id: String, title: String, description: String?, foodName: String, cookingStyle: String?,
-         userName: String, thumbnail: String?, variantCount: Int, logCount: Int, servings: Int?,
+         userName: String, creatorPublicId: String? = nil, thumbnail: String?, variantCount: Int, logCount: Int, servings: Int?,
          cookingTimeRange: String?, hashtags: [String], isPrivate: Bool, isSaved: Bool = false) {
         self.id = id
         self.title = title
@@ -42,6 +43,7 @@ struct RecipeSummary: Codable, Identifiable, Equatable {
         self.foodName = foodName
         self.cookingStyle = cookingStyle
         self.userName = userName
+        self.creatorPublicId = creatorPublicId
         self.thumbnail = thumbnail
         self.variantCount = variantCount
         self.logCount = logCount

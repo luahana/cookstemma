@@ -60,6 +60,20 @@ struct FollowersListView: View {
         .onChange(of: selectedTab) { newTab in
             viewModel.switchTab(to: newTab)
         }
+        .navigationDestination(for: ProfileNavDestination.self) { destination in
+            switch destination {
+            case .settings:
+                SettingsView()
+            case .followers(let userId):
+                FollowersListView(userId: userId, initialTab: .followers)
+            case .following(let userId):
+                FollowersListView(userId: userId, initialTab: .following)
+            case .recipe(let id):
+                RecipeDetailView(recipeId: id)
+            case .log(let id):
+                LogDetailView(logId: id)
+            }
+        }
         .onAppear { viewModel.loadInitial(for: selectedTab) }
     }
 

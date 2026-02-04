@@ -107,6 +107,20 @@ struct RecipeDetailView: View {
         .background(DesignSystem.Colors.secondaryBackground)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBack()
+        .navigationDestination(for: ProfileNavDestination.self) { destination in
+            switch destination {
+            case .settings:
+                SettingsView()
+            case .followers(let userId):
+                FollowersListView(userId: userId, initialTab: .followers)
+            case .following(let userId):
+                FollowersListView(userId: userId, initialTab: .following)
+            case .recipe(let id):
+                RecipeDetailView(recipeId: id)
+            case .log(let id):
+                LogDetailView(logId: id)
+            }
+        }
         .onAppear { if case .idle = viewModel.state { viewModel.loadRecipe() } }
     }
 

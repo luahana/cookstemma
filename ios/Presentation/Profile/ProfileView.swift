@@ -30,7 +30,8 @@ struct ProfileView: View {
     }
 
     var body: some View {
-        // Use NavigationStack only for own profile (tab root), not when pushed from other views
+        // Only use NavigationStack for own profile (tab root)
+        // When pushed from another view, don't create nested NavigationStack
         if isViewingOwnProfile {
             NavigationStack(path: $navigationPath) {
                 profileBody
