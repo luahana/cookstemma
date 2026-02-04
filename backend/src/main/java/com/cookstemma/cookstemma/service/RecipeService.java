@@ -634,9 +634,9 @@ public class RecipeService {
                 .map(log -> {
                     var recipeLog = log.getRecipeLog();
                     var recipe = recipeLog.getRecipe();
-                    String userName = userRepository.findById(log.getCreatorId())
-                            .map(User::getUsername)
-                            .orElse("익명");
+                    var creator = userRepository.findById(log.getCreatorId()).orElse(null);
+                    String userName = creator != null ? creator.getUsername() : "익명";
+                    UUID creatorPublicId = creator != null ? creator.getPublicId() : null;
                     String thumbnailUrl = log.getImages().stream()
                             .findFirst()
                             .map(img -> urlPrefix + "/" + img.getStoredFilename())
@@ -655,6 +655,7 @@ public class RecipeService {
                             .rating(recipeLog.getRating())
                             .thumbnailUrl(thumbnailUrl)
                             .userName(userName)
+                            .creatorPublicId(creatorPublicId)
                             .recipeTitle(recipeTitle)
                             .recipePublicId(recipe.getPublicId())
                             .foodName(foodName)

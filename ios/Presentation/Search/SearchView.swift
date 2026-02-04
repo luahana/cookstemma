@@ -56,6 +56,21 @@ struct SearchView: View {
                     HashtagView(hashtag: name)
                 }
             }
+            // Handle ProfileNavDestination for when ProfileView is pushed and uses internal NavigationLinks
+            .navigationDestination(for: ProfileNavDestination.self) { destination in
+                switch destination {
+                case .settings:
+                    SettingsView()
+                case .followers(let userId):
+                    FollowersListView(userId: userId, initialTab: .followers)
+                case .following(let userId):
+                    FollowersListView(userId: userId, initialTab: .following)
+                case .recipe(let id):
+                    RecipeDetailView(recipeId: id)
+                case .log(let id):
+                    LogDetailView(logId: id)
+                }
+            }
         }
         .onAppear {
             viewModel.loadRecentSearches()
@@ -213,7 +228,11 @@ struct SearchView: View {
                     HStack(spacing: DesignSystem.Spacing.sm) {
                         ForEach(viewModel.trendingRecipes) { recipe in
                             NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
-                                HorizontalRecipeCard(recipe: recipe)
+                                HorizontalRecipeCard(recipe: recipe) {
+                                    if let creatorId = recipe.creatorPublicId {
+                                        navigationPath.append(SearchNavDestination.user(id: creatorId))
+                                    }
+                                }
                             }
                             .buttonStyle(.plain)
                         }
@@ -301,7 +320,11 @@ struct SearchView: View {
                     HStack(spacing: DesignSystem.Spacing.sm) {
                         ForEach(viewModel.recentLogs) { log in
                             NavigationLink(value: SearchNavDestination.log(id: log.id)) {
-                                HorizontalLogCard(log: log)
+                                HorizontalLogCard(log: log) {
+                                    if let creatorId = log.creatorPublicId {
+                                        navigationPath.append(SearchNavDestination.user(id: creatorId))
+                                    }
+                                }
                             }
                             .buttonStyle(.plain)
                         }
@@ -451,7 +474,11 @@ struct SearchView: View {
 
             ForEach(viewModel.trendingRecipes) { recipe in
                 NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
-                    RecipeCardCompactFromHome(recipe: recipe)
+                    RecipeCardCompactFromHome(recipe: recipe) {
+                        if let creatorId = recipe.creatorPublicId {
+                            navigationPath.append(SearchNavDestination.user(id: creatorId))
+                        }
+                    }
                 }
             }
         }
@@ -488,7 +515,11 @@ struct SearchView: View {
 
             ForEach(viewModel.recentLogs) { log in
                 NavigationLink(value: SearchNavDestination.log(id: log.id)) {
-                    LogCardCompactFromHome(log: log)
+                    LogCardCompactFromHome(log: log) {
+                        if let creatorId = log.creatorPublicId {
+                            navigationPath.append(SearchNavDestination.user(id: creatorId))
+                        }
+                    }
                 }
             }
         }
@@ -563,7 +594,11 @@ struct SearchView: View {
             Section("\(String(localized: "profile.recipes")) (\(viewModel.results.recipes.count))") {
                 ForEach(viewModel.results.recipes.prefix(3)) { recipe in
                     NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
-                        RecipeCardCompact(recipe: recipe)
+                        RecipeCardCompact(recipe: recipe) {
+                            if let creatorId = recipe.creatorPublicId {
+                                navigationPath.append(SearchNavDestination.user(id: creatorId))
+                            }
+                        }
                     }
                 }
             }
@@ -573,7 +608,9 @@ struct SearchView: View {
             Section("\(String(localized: "search.cookingLogs")) (\(viewModel.results.logs.count))") {
                 ForEach(viewModel.results.logs.prefix(3)) { log in
                     NavigationLink(value: SearchNavDestination.log(id: log.id)) {
-                        LogCardCompact(log: log)
+                        LogCardCompact(log: log) {
+                            navigationPath.append(SearchNavDestination.user(id: log.author.id))
+                        }
                     }
                 }
             }
@@ -608,7 +645,11 @@ struct SearchView: View {
     private var recipesResultsSection: some View {
         ForEach(viewModel.results.recipes) { recipe in
             NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
-                RecipeCardCompact(recipe: recipe)
+                RecipeCardCompact(recipe: recipe) {
+                    if let creatorId = recipe.creatorPublicId {
+                        navigationPath.append(SearchNavDestination.user(id: creatorId))
+                    }
+                }
             }
         }
     }
@@ -616,7 +657,9 @@ struct SearchView: View {
     private var logsResultsSection: some View {
         ForEach(viewModel.results.logs) { log in
             NavigationLink(value: SearchNavDestination.log(id: log.id)) {
-                LogCardCompact(log: log)
+                LogCardCompact(log: log) {
+                    navigationPath.append(SearchNavDestination.user(id: log.author.id))
+                }
             }
         }
     }
@@ -647,11 +690,17 @@ struct SearchView: View {
         switch result {
         case .recipe(let recipe):
             NavigationLink(value: SearchNavDestination.recipe(id: recipe.id)) {
-                RecipeCardCompact(recipe: recipe)
+                RecipeCardCompact(recipe: recipe) {
+                    if let creatorId = recipe.creatorPublicId {
+                        navigationPath.append(SearchNavDestination.user(id: creatorId))
+                    }
+                }
             }
         case .log(let log):
             NavigationLink(value: SearchNavDestination.log(id: log.id)) {
-                LogCardCompact(log: log)
+                LogCardCompact(log: log) {
+                    navigationPath.append(SearchNavDestination.user(id: log.author.id))
+                }
             }
         case .user(let user):
             NavigationLink(value: SearchNavDestination.user(id: user.id)) {
@@ -674,6 +723,7 @@ struct SearchView: View {
 
 struct HorizontalRecipeCard: View {
     let recipe: HomeRecipeItem
+    var onUsernameTap: (() -> Void)?
 
     private let cardWidth: CGFloat = 140
     private let cardHeight: CGFloat = 180
@@ -697,10 +747,22 @@ struct HorizontalRecipeCard: View {
                     .lineLimit(2)
                     .foregroundColor(DesignSystem.Colors.text)
 
-                Text("@\(recipe.userName)")
-                    .font(DesignSystem.Typography.caption)
-                    .foregroundColor(DesignSystem.Colors.secondaryText)
-                    .lineLimit(1)
+                if let onTap = onUsernameTap {
+                    Button {
+                        onTap()
+                    } label: {
+                        Text("@\(recipe.userName)")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.secondaryText)
+                            .lineLimit(1)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Text("@\(recipe.userName)")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                        .lineLimit(1)
+                }
             }
             .padding(DesignSystem.Spacing.xs)
         }
@@ -713,6 +775,7 @@ struct HorizontalRecipeCard: View {
 
 struct HorizontalLogCard: View {
     let log: RecentActivityItem
+    var onUsernameTap: (() -> Void)?
 
     private let cardWidth: CGFloat = 140
     private let cardHeight: CGFloat = 180
@@ -732,10 +795,22 @@ struct HorizontalLogCard: View {
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
                 StarRating(rating: log.rating)
 
-                Text("@\(log.userName)")
-                    .font(DesignSystem.Typography.caption)
-                    .foregroundColor(DesignSystem.Colors.secondaryText)
-                    .lineLimit(1)
+                if let onTap = onUsernameTap {
+                    Button {
+                        onTap()
+                    } label: {
+                        Text("@\(log.userName)")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.secondaryText)
+                            .lineLimit(1)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Text("@\(log.userName)")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                        .lineLimit(1)
+                }
 
                 Text(log.recipeTitle)
                     .font(DesignSystem.Typography.caption2)
@@ -755,6 +830,7 @@ struct HorizontalLogCard: View {
 
 struct RecipeCardCompactFromHome: View {
     let recipe: HomeRecipeItem
+    var onUsernameTap: (() -> Void)?
 
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.sm) {
@@ -778,9 +854,20 @@ struct RecipeCardCompactFromHome: View {
                     Text(recipe.foodName)
                         .font(DesignSystem.Typography.caption)
                         .foregroundColor(DesignSystem.Colors.secondaryText)
-                    Text("by @\(recipe.userName)")
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.tertiaryText)
+                    if let onTap = onUsernameTap {
+                        Button {
+                            onTap()
+                        } label: {
+                            Text("by @\(recipe.userName)")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.tertiaryText)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Text("by @\(recipe.userName)")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.tertiaryText)
+                    }
                 }
 
                 HStack(spacing: DesignSystem.Spacing.md) {
@@ -812,6 +899,7 @@ struct RecipeCardCompactFromHome: View {
 
 struct LogCardCompactFromHome: View {
     let log: RecentActivityItem
+    var onUsernameTap: (() -> Void)?
 
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.sm) {
@@ -831,9 +919,20 @@ struct LogCardCompactFromHome: View {
                     .lineLimit(2)
                     .foregroundColor(DesignSystem.Colors.text)
 
-                Text("@\(log.userName)")
-                    .font(DesignSystem.Typography.caption)
-                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                if let onTap = onUsernameTap {
+                    Button {
+                        onTap()
+                    } label: {
+                        Text("@\(log.userName)")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.secondaryText)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Text("@\(log.userName)")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                }
 
                 StarRating(rating: log.rating)
             }
@@ -870,6 +969,7 @@ struct UserRow: View {
 
 struct LogCardCompact: View {
     let log: CookingLogSummary
+    var onUsernameTap: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -892,9 +992,20 @@ struct LogCardCompact: View {
                     .foregroundColor(DesignSystem.Colors.text)
 
                 HStack {
-                    Text("@\(log.author.username)")
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                    if let onTap = onUsernameTap {
+                        Button {
+                            onTap()
+                        } label: {
+                            Text("@\(log.author.username)")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.secondaryText)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Text("@\(log.author.username)")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.secondaryText)
+                    }
                     Spacer()
                     StarRating(rating: log.rating)
                 }

@@ -693,25 +693,39 @@ struct RecipeGridCard: View {
     var showSavedBadge: Bool = false
 
     var body: some View {
+        #if DEBUG
+        let _ = print("[RecipeGridCard] Rendering: id=\(recipe.id), showSavedBadge=\(showSavedBadge), coverImageUrl=\(recipe.coverImageUrl ?? "NIL")")
+        #endif
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
             // Thumbnail with optional saved badge
             ZStack(alignment: .topTrailing) {
-                Color.clear
-                    .aspectRatio(1, contentMode: .fit)
-                    .overlay(
-                        AsyncImage(url: URL(string: recipe.coverImageUrl ?? "")) { img in
-                            img.resizable().scaledToFill()
-                        } placeholder: {
-                            Rectangle()
-                                .fill(DesignSystem.Colors.tertiaryBackground)
-                                .overlay(
-                                    Image(systemName: AppIcon.recipe)
-                                        .font(.system(size: 24))
-                                        .foregroundColor(DesignSystem.Colors.secondaryText.opacity(0.5))
-                                )
-                        }
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
+                AsyncImage(url: URL(string: recipe.coverImageUrl ?? "")) { phase in
+                    #if DEBUG
+                    let _ = print("[RecipeGridCard] AsyncImage phase: \(String(describing: phase))")
+                    #endif
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                    case .success(let img):
+                        img
+                            .resizable()
+                            .scaledToFill()
+                    case .failure(let error):
+                        #if DEBUG
+                        let _ = print("[RecipeGridCard] Image load FAILED: \(error)")
+                        #endif
+                        Image(systemName: AppIcon.recipe)
+                            .font(.system(size: 24))
+                            .foregroundColor(DesignSystem.Colors.secondaryText.opacity(0.5))
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+                .frame(minWidth: 0, maxWidth: .infinity)
+                .aspectRatio(1, contentMode: .fit)
+                .background(DesignSystem.Colors.tertiaryBackground)
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
 
                 // Saved indicator
                 if showSavedBadge {
@@ -756,50 +770,61 @@ struct RecipeGridCard: View {
 struct LogGridCard: View {
     let log: FeedLogItem
     var showSavedBadge: Bool = false
+    var onUsernameTap: (() -> Void)?
 
     var body: some View {
+        #if DEBUG
+        let _ = print("[LogGridCard] Rendering: id=\(log.id), showSavedBadge=\(showSavedBadge), thumbnailUrl=\(log.thumbnailUrl ?? "NIL")")
+        #endif
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-            // Thumbnail with rating overlay
-            ZStack {
-                Color.clear
-                    .aspectRatio(1, contentMode: .fit)
-                    .overlay(
-                        AsyncImage(url: URL(string: log.thumbnailUrl ?? "")) { img in
-                            img.resizable().scaledToFill()
-                        } placeholder: {
-                            Rectangle()
-                                .fill(DesignSystem.Colors.tertiaryBackground)
-                                .overlay(
-                                    LogoIconView(
-                                        size: 24,
-                                        color: DesignSystem.Colors.secondaryText.opacity(0.5),
-                                        useOriginalColors: false
-                                    )
-                                )
-                        }
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
-
-                // Overlays
-                VStack {
-                    // Saved badge (top right)
-                    HStack {
-                        Spacer()
-                        if showSavedBadge {
-                            Image(systemName: AppIcon.save)
-                                .font(.system(size: 12))
-                                .foregroundColor(.white)
-                                .padding(6)
-                                .background(Color.black.opacity(0.5))
-                                .clipShape(Circle())
-                        }
+            // Thumbnail with rating overlay and saved badge
+            ZStack(alignment: .topTrailing) {
+                AsyncImage(url: URL(string: log.thumbnailUrl ?? "")) { phase in
+                    #if DEBUG
+                    let _ = print("[LogGridCard] AsyncImage phase: \(String(describing: phase))")
+                    #endif
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                    case .success(let img):
+                        img
+                            .resizable()
+                            .scaledToFill()
+                    case .failure(let error):
+                        #if DEBUG
+                        let _ = print("[LogGridCard] Image load FAILED: \(error)")
+                        #endif
+                        LogoIconView(
+                            size: 24,
+                            color: DesignSystem.Colors.secondaryText.opacity(0.5),
+                            useOriginalColors: false
+                        )
+                    @unknown default:
+                        EmptyView()
                     }
+                }
+                .frame(minWidth: 0, maxWidth: .infinity)
+                .aspectRatio(1, contentMode: .fit)
+                .background(DesignSystem.Colors.tertiaryBackground)
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
 
-                    Spacer()
+                // Saved indicator (top right)
+                if showSavedBadge {
+                    Image(systemName: AppIcon.save)
+                        .font(.system(size: 12))
+                        .foregroundColor(.white)
+                        .padding(6)
+                        .background(Color.black.opacity(0.5))
+                        .clipShape(Circle())
+                        .padding(8)
+                }
 
-                    // Rating stars (bottom left)
-                    HStack {
-                        if let rating = log.rating, rating > 0 {
+                // Rating stars (bottom left)
+                if let rating = log.rating, rating > 0 {
+                    VStack {
+                        Spacer()
+                        HStack {
                             HStack(spacing: 2) {
                                 ForEach(0..<rating, id: \.self) { _ in
                                     Image(systemName: AppIcon.star)
@@ -811,11 +836,11 @@ struct LogGridCard: View {
                             .padding(.vertical, 4)
                             .background(Color.black.opacity(0.6))
                             .cornerRadius(4)
+                            Spacer()
                         }
-                        Spacer()
+                        .padding(8)
                     }
                 }
-                .padding(8)
             }
 
             // Food name
@@ -834,10 +859,22 @@ struct LogGridCard: View {
             }
 
             // Username
-            Text("@\(log.userName)")
-                .font(DesignSystem.Typography.caption)
-                .foregroundColor(DesignSystem.Colors.secondaryText)
-                .lineLimit(1)
+            if let onTap = onUsernameTap {
+                Button {
+                    onTap()
+                } label: {
+                    Text("@\(log.userName)")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                        .lineLimit(1)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text("@\(log.userName)")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                    .lineLimit(1)
+            }
         }
     }
 }
@@ -846,50 +883,52 @@ struct LogGridCard: View {
 struct LogGridCardFromSummary: View {
     let log: CookingLogSummary
     var showSavedBadge: Bool = false
+    var onUsernameTap: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-            // Thumbnail with rating overlay
-            ZStack {
-                Color.clear
-                    .aspectRatio(1, contentMode: .fit)
-                    .overlay(
-                        AsyncImage(url: URL(string: log.images.first?.thumbnailUrl ?? "")) { img in
-                            img.resizable().scaledToFill()
-                        } placeholder: {
-                            Rectangle()
-                                .fill(DesignSystem.Colors.tertiaryBackground)
-                                .overlay(
-                                    LogoIconView(
-                                        size: 24,
-                                        color: DesignSystem.Colors.secondaryText.opacity(0.5),
-                                        useOriginalColors: false
-                                    )
-                                )
-                        }
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
-
-                // Overlays
-                VStack {
-                    // Saved badge (top right)
-                    HStack {
-                        Spacer()
-                        if showSavedBadge {
-                            Image(systemName: AppIcon.save)
-                                .font(.system(size: 12))
-                                .foregroundColor(.white)
-                                .padding(6)
-                                .background(Color.black.opacity(0.5))
-                                .clipShape(Circle())
-                        }
+            // Thumbnail with rating overlay and saved badge
+            ZStack(alignment: .topTrailing) {
+                AsyncImage(url: URL(string: log.images.first?.thumbnailUrl ?? "")) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                    case .success(let img):
+                        img
+                            .resizable()
+                            .scaledToFill()
+                    case .failure:
+                        LogoIconView(
+                            size: 24,
+                            color: DesignSystem.Colors.secondaryText.opacity(0.5),
+                            useOriginalColors: false
+                        )
+                    @unknown default:
+                        EmptyView()
                     }
+                }
+                .frame(minWidth: 0, maxWidth: .infinity)
+                .aspectRatio(1, contentMode: .fit)
+                .background(DesignSystem.Colors.tertiaryBackground)
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
 
-                    Spacer()
+                // Saved indicator (top right)
+                if showSavedBadge {
+                    Image(systemName: AppIcon.save)
+                        .font(.system(size: 12))
+                        .foregroundColor(.white)
+                        .padding(6)
+                        .background(Color.black.opacity(0.5))
+                        .clipShape(Circle())
+                        .padding(8)
+                }
 
-                    // Rating stars (bottom left)
-                    HStack {
-                        if log.rating > 0 {
+                // Rating stars (bottom left)
+                if log.rating > 0 {
+                    VStack {
+                        Spacer()
+                        HStack {
                             HStack(spacing: 2) {
                                 ForEach(0..<log.rating, id: \.self) { _ in
                                     Image(systemName: AppIcon.star)
@@ -901,11 +940,11 @@ struct LogGridCardFromSummary: View {
                             .padding(.vertical, 4)
                             .background(Color.black.opacity(0.6))
                             .cornerRadius(4)
+                            Spacer()
                         }
-                        Spacer()
+                        .padding(8)
                     }
                 }
-                .padding(8)
             }
 
             // Recipe title
@@ -918,10 +957,22 @@ struct LogGridCardFromSummary: View {
             }
 
             // Username
-            Text("@\(log.author.username)")
-                .font(DesignSystem.Typography.caption)
-                .foregroundColor(DesignSystem.Colors.secondaryText)
-                .lineLimit(1)
+            if let onTap = onUsernameTap {
+                Button {
+                    onTap()
+                } label: {
+                    Text("@\(log.author.username)")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                        .lineLimit(1)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text("@\(log.author.username)")
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                    .lineLimit(1)
+            }
         }
     }
 }
@@ -933,53 +984,52 @@ struct HashtagContentGridCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
             // Thumbnail with optional rating overlay (for logs)
-            ZStack {
-                Color.clear
-                    .aspectRatio(1, contentMode: .fit)
-                    .overlay(
-                        AsyncImage(url: URL(string: item.thumbnailUrl ?? "")) { img in
-                            img.resizable().scaledToFill()
-                        } placeholder: {
-                            Rectangle()
-                                .fill(DesignSystem.Colors.tertiaryBackground)
-                                .overlay(
-                                    Group {
-                                        if item.isRecipe {
-                                            Image(systemName: AppIcon.recipe)
-                                                .font(.system(size: 24))
-                                                .foregroundColor(DesignSystem.Colors.secondaryText.opacity(0.5))
-                                        } else {
-                                            LogoIconView(
-                                                size: 24,
-                                                color: DesignSystem.Colors.secondaryText.opacity(0.5),
-                                                useOriginalColors: false
-                                            )
-                                        }
-                                    }
+            ZStack(alignment: .bottomLeading) {
+                AsyncImage(url: URL(string: item.thumbnailUrl ?? "")) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                    case .success(let img):
+                        img
+                            .resizable()
+                            .scaledToFill()
+                    case .failure:
+                        Group {
+                            if item.isRecipe {
+                                Image(systemName: AppIcon.recipe)
+                                    .font(.system(size: 24))
+                                    .foregroundColor(DesignSystem.Colors.secondaryText.opacity(0.5))
+                            } else {
+                                LogoIconView(
+                                    size: 24,
+                                    color: DesignSystem.Colors.secondaryText.opacity(0.5),
+                                    useOriginalColors: false
                                 )
+                            }
                         }
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+                .frame(minWidth: 0, maxWidth: .infinity)
+                .aspectRatio(1, contentMode: .fit)
+                .background(DesignSystem.Colors.tertiaryBackground)
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
 
                 // Rating overlay for logs
                 if item.isLog, let rating = item.rating, rating > 0 {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            HStack(spacing: 2) {
-                                ForEach(0..<rating, id: \.self) { _ in
-                                    Image(systemName: AppIcon.star)
-                                        .font(.system(size: 10))
-                                }
-                            }
-                            .foregroundColor(DesignSystem.Colors.rating)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 4)
-                            .background(Color.black.opacity(0.6))
-                            .cornerRadius(4)
-                            Spacer()
+                    HStack(spacing: 2) {
+                        ForEach(0..<rating, id: \.self) { _ in
+                            Image(systemName: AppIcon.star)
+                                .font(.system(size: 10))
                         }
                     }
+                    .foregroundColor(DesignSystem.Colors.rating)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+                    .background(Color.black.opacity(0.6))
+                    .cornerRadius(4)
                     .padding(8)
                 }
             }

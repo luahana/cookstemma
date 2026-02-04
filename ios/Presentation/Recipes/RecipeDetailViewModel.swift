@@ -35,13 +35,17 @@ final class RecipeDetailViewModel: ObservableObject {
     }
 
     private func setupSaveStateObserver() {
-        NotificationCenter.default.publisher(for: .recipeSaveStateChanged)
+        // Observe SavedItemsManager for save state changes
+        // Use dropFirst() to skip initial value - we use API value for initial state
+        SavedItemsManager.shared.$savedRecipeIds
+            .dropFirst()
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] notification in
-                guard let self = self,
-                      let notificationRecipeId = notification.userInfo?["recipeId"] as? String,
-                      notificationRecipeId == self.recipeId,
-                      let newSavedState = notification.userInfo?["isSaved"] as? Bool else { return }
+            .sink { [weak self] savedIds in
+                guard let self = self else { return }
+                let newSavedState = savedIds.contains(self.recipeId)
+                #if DEBUG
+                print("[RecipeDetail] Save state observer: id=\(self.recipeId), inSet=\(newSavedState), current=\(self.isSaved)")
+                #endif
                 self.isSaved = newSavedState
             }
             .store(in: &cancellables)
@@ -109,37 +113,30 @@ final class RecipeDetailViewModel: ObservableObject {
     }
 
     func toggleSave() async {
-        let wasSaved = isSaved
-        isSaved = !wasSaved
+        guard recipe != nil else { return }
         #if DEBUG
-        print("[RecipeDetail] toggleSave: wasSaved=\(wasSaved), now isSaved=\(isSaved)")
-        #endif
-
-        let result = wasSaved
-            ? await recipeRepository.unsaveRecipe(id: recipeId)
-            : await recipeRepository.saveRecipe(id: recipeId)
-
-        switch result {
-        case .success:
-            #if DEBUG
-            print("[RecipeDetail] toggleSave: API success, isSaved=\(isSaved)")
-            #endif
-            var userInfo: [String: Any] = ["recipeId": recipeId, "isSaved": isSaved]
-            // Include recipe summary when saving so profile can add it directly
-            if isSaved, let summary = recipeSummary {
-                userInfo["recipeSummary"] = summary
-            }
-            NotificationCenter.default.post(
-                name: .recipeSaveStateChanged,
-                object: nil,
-                userInfo: userInfo
-            )
-        case .failure(let error):
-            #if DEBUG
-            print("[RecipeDetail] toggleSave: API failed with error: \(error), reverting to \(wasSaved)")
-            #endif
-            isSaved = wasSaved
+        print("========== [RecipeDetail] TOGGLE SAVE START ==========")
+        print("[RecipeDetail] recipeId: \(recipeId)")
+        if let summary = recipeSummary {
+            print("[RecipeDetail] summary.id: \(summary.id)")
+            print("[RecipeDetail] summary.title: \(summary.title)")
+            print("[RecipeDetail] summary.thumbnail: \(summary.thumbnail ?? "NIL")")
+            print("[RecipeDetail] summary.coverImageUrl: \(summary.coverImageUrl ?? "NIL")")
+        } else {
+            print("[RecipeDetail] recipeSummary is NIL!")
         }
+        print("[RecipeDetail] Calling SavedItemsManager.toggleSaveRecipe...")
+        #endif
+        await SavedItemsManager.shared.toggleSaveRecipe(
+            id: recipeId,
+            summary: recipeSummary
+        )
+        #if DEBUG
+        print("[RecipeDetail] SavedItemsManager.toggleSaveRecipe completed")
+        print("[RecipeDetail] Current savedRecipeIds count: \(SavedItemsManager.shared.savedRecipeIds.count)")
+        print("[RecipeDetail] Current savedRecipes count: \(SavedItemsManager.shared.savedRecipes.count)")
+        print("========== [RecipeDetail] TOGGLE SAVE END ==========")
+        #endif
     }
 
     func shareRecipe() -> URL? {

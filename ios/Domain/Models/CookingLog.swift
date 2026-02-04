@@ -13,6 +13,7 @@ struct RecentActivityItem: Codable, Identifiable {
     let rating: Int
     let thumbnailUrl: String?
     let userName: String
+    let creatorPublicId: String?
     let recipeTitle: String
     let recipeId: String
     let foodName: String
@@ -22,7 +23,7 @@ struct RecentActivityItem: Codable, Identifiable {
 
     enum CodingKeys: String, CodingKey {
         case id = "logPublicId"
-        case rating, thumbnailUrl, userName, recipeTitle
+        case rating, thumbnailUrl, userName, creatorPublicId, recipeTitle
         case recipeId = "recipePublicId"
         case foodName, createdAt, hashtags, commentCount
     }
@@ -35,6 +36,7 @@ struct HomeRecipeItem: Codable, Identifiable {
     let description: String?
     let cookingStyle: String?
     let userName: String
+    let creatorPublicId: String?
     let thumbnail: String?
     let variantCount: Int
     let logCount: Int
@@ -45,7 +47,7 @@ struct HomeRecipeItem: Codable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case id = "publicId"
         case foodName, title, description, cookingStyle
-        case userName, thumbnail, variantCount, logCount
+        case userName, creatorPublicId, thumbnail, variantCount, logCount
         case servings, cookingTimeRange, hashtags
     }
 }
@@ -156,7 +158,7 @@ struct CookingLogDetail: Codable, Identifiable, Equatable {
         guard let r = linkedRecipe else { return nil }
         return RecipeSummary(
             id: r.id, title: r.title, description: r.description, foodName: r.foodName,
-            cookingStyle: r.cookingStyle, userName: r.userName, thumbnail: r.thumbnail,
+            cookingStyle: r.cookingStyle, userName: r.userName, creatorPublicId: r.creatorPublicId, thumbnail: r.thumbnail,
             variantCount: r.variantCount, logCount: r.logCount, servings: r.servings,
             cookingTimeRange: r.cookingTimeRange, hashtags: r.hashtags, isPrivate: r.isPrivate,
             isSaved: false
@@ -170,7 +172,15 @@ struct CookingLogDetail: Codable, Identifiable, Equatable {
 
     /// Convert to FeedLogItem for use in saved content list
     var asFeedLogItem: FeedLogItem {
-        FeedLogItem(
+        #if DEBUG
+        print("[CookingLogDetail] asFeedLogItem - id: \(id), logImages.count: \(logImages.count)")
+        if let firstImage = logImages.first {
+            print("[CookingLogDetail] asFeedLogItem - thumbnailUrl: \(firstImage.imageUrl)")
+        } else {
+            print("[CookingLogDetail] asFeedLogItem - NO IMAGES AVAILABLE")
+        }
+        #endif
+        return FeedLogItem(
             id: id,
             title: title,
             content: content,
@@ -205,6 +215,7 @@ struct LinkedRecipeSummary: Codable, Identifiable, Equatable {
     let foodName: String
     let cookingStyle: String?
     let userName: String
+    let creatorPublicId: String?
     let thumbnail: String?
     let variantCount: Int
     let logCount: Int
@@ -216,7 +227,7 @@ struct LinkedRecipeSummary: Codable, Identifiable, Equatable {
     enum CodingKeys: String, CodingKey {
         case id = "publicId"
         case title, description, foodName, cookingStyle
-        case userName, thumbnail, variantCount, logCount
+        case userName, creatorPublicId, thumbnail, variantCount, logCount
         case servings, cookingTimeRange, hashtags, isPrivate
     }
 
