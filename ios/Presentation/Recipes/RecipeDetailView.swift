@@ -119,6 +119,8 @@ struct RecipeDetailView: View {
                 RecipeDetailView(recipeId: id)
             case .log(let id):
                 LogDetailView(logId: id)
+            case .user(let id):
+                ProfileView(userId: id)
             }
         }
         .onAppear { if case .idle = viewModel.state { viewModel.loadRecipe() } }
@@ -152,7 +154,7 @@ struct RecipeDetailView: View {
                     .foregroundColor(DesignSystem.Colors.text)
 
                 // Author row (icon-focused)
-                NavigationLink(destination: ProfileView(userId: recipe.author.id)) {
+                NavigationLink(value: ProfileNavDestination.user(id: recipe.author.id)) {
                     HStack(spacing: DesignSystem.Spacing.sm) {
                         AvatarView(url: recipe.author.avatarUrl, name: recipe.author.username, size: DesignSystem.AvatarSize.xs)
                         Text("@\(recipe.author.username)")

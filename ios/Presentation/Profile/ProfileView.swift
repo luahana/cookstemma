@@ -7,6 +7,7 @@ enum ProfileNavDestination: Hashable {
     case following(userId: String)
     case recipe(id: String)
     case log(id: String)
+    case user(id: String)
 }
 
 
@@ -47,6 +48,8 @@ struct ProfileView: View {
                             RecipeDetailView(recipeId: id)
                         case .log(let id):
                             LogDetailView(logId: id)
+                        case .user(let id):
+                            ProfileView(userId: id)
                         }
                     }
             }

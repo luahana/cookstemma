@@ -72,6 +72,8 @@ struct FollowersListView: View {
                 RecipeDetailView(recipeId: id)
             case .log(let id):
                 LogDetailView(logId: id)
+            case .user(let id):
+                ProfileView(userId: id)
             }
         }
         .onAppear { viewModel.loadInitial(for: selectedTab) }

@@ -122,6 +122,8 @@ struct LogDetailView: View {
                 RecipeDetailView(recipeId: id)
             case .log(let id):
                 LogDetailView(logId: id)
+            case .user(let id):
+                ProfileView(userId: id)
             }
         }
         .onAppear { if case .idle = viewModel.state { viewModel.loadLog() } }

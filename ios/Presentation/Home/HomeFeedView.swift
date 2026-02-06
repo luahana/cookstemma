@@ -47,6 +47,8 @@ struct HomeFeedView: View {
                     RecipeDetailView(recipeId: id)
                 case .log(let id):
                     LogDetailView(logId: id)
+                case .user(let id):
+                    ProfileView(userId: id)
                 }
             }
         }
